@@ -56,7 +56,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  arm_group.execute(pick_plan);
+  if (arm_group.execute(pick_plan) != moveit::core::MoveItErrorCode::SUCCESS) {
+    RCLCPP_ERROR(node->get_logger(), "Execution to pick pose failed!");
+    rclcpp::shutdown();
+    spinner.join();
+    return 1;
+  }
   std::this_thread::sleep_for(1s);
 
   // ==================== Step 3: 闭合夹爪（抓取物体） ====================
@@ -92,7 +97,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  arm_group.execute(place_plan);
+  if (arm_group.execute(place_plan) != moveit::core::MoveItErrorCode::SUCCESS) {
+    RCLCPP_ERROR(node->get_logger(), "Execution to place pose failed!");
+    rclcpp::shutdown();
+    spinner.join();
+    return 1;
+  }
   RCLCPP_INFO(node->get_logger(), "Pick and place sequence completed successfully!");
 
   rclcpp::shutdown();
