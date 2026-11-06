@@ -6,14 +6,15 @@
 
 using namespace std::chrono_literals;
 
-int main(int argc, char** argv) {
+int main(int argc, char ** argv)
+{
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("pick_place_demo");
 
   // 必须先拉起后台 spinner 驱动回调，否则 MoveGroupInterface 无法接收服务与状态响应
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
-  std::thread spinner([&executor]() { executor.spin(); });
+  std::thread spinner([&executor]() {executor.spin();});
 
   RCLCPP_INFO(node->get_logger(), "Initializing MoveGroup interfaces...");
   moveit::planning_interface::MoveGroupInterface arm_group(node, "panda_arm");
