@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
-  std::thread spinner([&executor]() { executor.spin(); });
+  std::thread spinner([&executor]() {executor.spin();});
 
   auto logger = rclcpp::get_logger("first_motion_node");
 
@@ -27,13 +27,10 @@ int main(int argc, char *argv[])
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   bool success = static_cast<bool>(move_group.plan(plan));
 
-  if (success)
-  {
+  if (success) {
     RCLCPP_INFO(logger, "规划成功，开始执行");
     move_group.execute(plan);
-  }
-  else
-  {
+  } else {
     RCLCPP_ERROR(logger, "规划失败");
   }
 
