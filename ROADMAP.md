@@ -1,145 +1,218 @@
-# 8-Week Learning Roadmap
+# ArmPi Ultra Manipulation Project — Technical Roadmap
 
-> Background: solid Python / C, zero C++ experience
-> Project direction: industrial robotic arm — simulated grasping + trajectory planning
-> Dev environment: Windows + WSL2 + Ubuntu 24.04 + ROS 2 Jazzy
-> Primary textbook: *ROS 2 Robot Programming in Practice — Modern C++ and Python 3* (Textbook ①, main reference for Weeks 3-5 and 8)
-> Supplementary textbook: *ROS 2 Intelligent Robot Development in Practice* (Textbook ②, main reference for Week 6 URDF/Gazebo simulation; Ch2 communication sections useful as a cross-reference; Ch7 vision/YOLO used in the post-8-week deepening track)
->
-> Textbook ② is fundamentally a mobile-robot (wheeled-base) textbook, not an arm textbook. Its Ch5-6 (motor drivers, encoders, differential-drive kinematics) and Ch8-9 (SLAM, Nav2 navigation) aren't relevant to the arm and won't be used in the 8-week plan.
+> Imported from `ROADMAP_PUBLIC.md` (USB, 2026-10-26) on 2026-11-15.
+> The previous 8-week learning roadmap is archived at
+> `docs/archive/ROADMAP_8WEEK.md`. The private master plan is intentionally
+> kept outside this public repository.
 
-## Overview
+> This roadmap tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
+## 1. Technical Goal
+
+Develop a real robotic manipulation system with:
+
+- corrected ArmPi robot model;
+- 5-DoF constrained motion planning;
+- self-implemented hand-eye / camera calibration workflow;
+- real visual grasping;
+- quantitative error characterization;
+- reliability improvement based on measured failure modes;
+- optional mobile-base integration.
+
+## 2. Platform Constraint
+
+ArmPi Ultra is treated as a 5-DoF manipulator.
+
+The grasp planner therefore searches within a constrained task space rather than assuming arbitrary 6D end-effector targets.
+
+Initial grasp variables:
+
+```text
+target position
++
+approach pitch
++
+wrist rotation
++
+approach offset
 ```
-Day 0        Environment setup (WSL2 + Ubuntu 24.04 + ROS 2 Jazzy)
-Week 1-2     C++ crash course (building on existing C background)
-Week 3       ROS 2 core concepts: build system / packages / nodes
-Week 4       ROS 2 basic communication: topic / service + launch/params
-Week 5       ROS 2 extended communication: action / custom interfaces / tf2
-Week 6       Simulation environment: URDF + Gazebo + ros2_control (Textbook ② Ch4-led)
-Week 7       Intro to MoveIt2 motion planning
-Week 8       Project integration: grasping demo + debugging tools
+
+Position-only IK may be used for reachability checks, but final grasp execution must still enforce a valid tool orientation.
+
+## 3. Robot Model Audit
+
+Known items to inspect or repair:
+
+- `joint1` joint type;
+- provisional joint limits;
+- provisional effort limits;
+- package/resource naming;
+- gripper mimic behavior;
+- missing camera optical frame;
+- measured camera mounting transform.
+
+Real mechanical limits will be verified on hardware.
+
+## 4. Camera / Calibration Geometry
+
+The camera is mounted relative to `link4`, before the final wrist rotation.
+
+The calibration transform is therefore modeled as:
+
+```text
+link4 → camera
 ```
 
----
+rather than assuming a direct gripper-to-camera transform.
 
-## Week 0: Environment Setup
+Calibration pose collection must account for the limited orientation diversity of this mechanism.
 
-- [x] Install WSL2, distro Ubuntu 24.04 LTS
-- [x] Install ROS 2 Jazzy Desktop (`sudo apt install ros-jazzy-desktop`)
-- [x] VS Code + Remote-WSL + C/C++ extension + ROS extension
-- [x] Configure Git, set up this repo
-- [x] Verify: `ros2 topic list` works, `rviz2` opens a window
+## 5. Milestone A — Hardware Baseline
 
-**Checkpoint**: `ros2 run demo_nodes_cpp talker` and `listener` can communicate normally.
+- run vendor demos;
+- verify ROS2 environment;
+- measure real joint limits;
+- inspect control / feedback interfaces;
+- verify camera topics and TF;
+- correct URDF and frame definitions.
 
----
+## 6. Milestone B — Calibration
 
-## Week 1-2: C++ Crash Course
+Two calibration pipelines will be evaluated:
 
-Goal: build the minimum C++ skill set needed to read and write ROS 2 C++ code, focusing on what C doesn't have but ROS 2 code uses constantly (references, RAII/smart pointers, STL, inheritance & polymorphism, lambdas, CMake).
+```text
+vendor calibration baseline
+vs
+self-implemented calibration workflow
+```
 
-**Week 1 mini-project**: `Sensor` class + `std::vector<std::shared_ptr<Sensor>>` managing multiple sensor instances → [`cpp_warmup/week01_sensor_logger/`](./cpp_warmup/week01_sensor_logger/)
+Both will use the same independent validation procedure.
 
-**Week 2 mini-project**: inheritance hierarchy `TemperatureSensor : public Sensor`, `DistanceSensor : public Sensor`, hand-written CMakeLists.txt → [`cpp_warmup/week02_sensor_hierarchy/`](./cpp_warmup/week02_sensor_hierarchy/)
+Metrics:
 
-**Checkpoint**: independently write a C++ program with at least two levels of inheritance, using `shared_ptr` to manage objects and a lambda as a callback, and compile it successfully with a hand-written CMakeLists.txt.
+- translation error;
+- orientation error;
+- repeated-run variability;
+- sensitivity to calibration samples.
 
----
+## 7. Milestone C — Real Visual Grasping
 
-## Week 3: ROS 2 Core Concepts
+Pipeline:
 
-- Create your first `ros2_ws` workspace (`ros2_ws/src/`)
-- Create a C++ package with `ros2 pkg create`
-- Hand-write a node class (inheriting `rclcpp::Node`), `colcon build` + `ros2 run`
-- Inspect nodes with `ros2 node list` / `ros2 node info`
+```text
+fiducial detection
+→ target pose
+→ TF transform
+→ constrained grasp generation
+→ IK
+→ MoveIt2
+→ execution
+→ grasp verification
+```
 
-**Optional cross-reference**: when Textbook ① moves too fast on something, Textbook ② Ch2.1-2.4 (workspace/package/node, covered in both Python and C++) offers another angle.
+## 8. Milestone D — Error Budget
 
-**Checkpoint**: the package builds, the node runs, and it shows up in `ros2 node info`.
+Measure:
 
----
+- arm repeatability;
+- backlash / hysteresis;
+- calibration error;
+- visual relative-pose error;
+- grasp execution error;
+- task tolerance envelope.
 
-## Week 4: Basic Communication + Launch & Parameters
+### Visual Ground Truth
 
-- Topic pub/sub, basic QoS
-- Service server/client
-- Launch scripts, parameter system (YAML)
+Use known relative target displacement from a physical fixture, such as:
 
-**Optional cross-reference**: Textbook ② Ch2.5-2.6 (topics/services), Ch2.9 (parameters), Ch3.1 (Launch) — all covered in both Python and C++.
+- coordinate grid;
+- linear guide;
+- caliper-positioned jig.
 
-**Checkpoint**: independently write a minimal "publisher + subscriber + service + launch file" combo that comes up in one shot via `ros2 launch`.
+Compare measured visual displacement against known physical displacement.
 
----
+### Task Tolerance
 
-## Week 5: Extended Communication + Coordinate Transforms
+Intentionally offset the grasp target to determine how much x/y/z/angular error the physical grasp can tolerate.
 
-- Action communication (server/client, feedback/status/result)
-- Custom interfaces (`.msg`/`.srv`/`.action`)
-- tf2 coordinate system (static/dynamic transforms)
+The purpose is to identify which measured error sources are large enough to exceed task tolerance.
 
-**Optional cross-reference**: Textbook ② Ch2.8 (actions), Ch3.2 (tf frame management, including static/dynamic broadcasting and listening in C++) — this section specifically uses "industrial-robot base frame / tool frame / object frame" as its example, which fits the arm project better than Textbook ①. Worth reading.
+## 9. Milestone E — Reliability Intervention
 
-**Checkpoint**: can explain the difference between topic / service / action, and independently write an action server-client demo.
+The intervention will be chosen from the measured dominant error source.
 
----
+Possible examples:
 
-## Week 6: Simulation Environment (Textbook ② Ch4 + extensions)
+- temporal / multi-view visual estimation;
+- approach-direction control for backlash;
+- empirical bias compensation;
+- calibration sample-selection improvement;
+- final visual correction.
 
-The goal this week is to bring an arm "to life" in simulation. **URDF/XACRO/Gazebo now has a proper textbook reference — use Textbook ② Chapter 4** instead of figuring it out from scratch; `ros2_control` still isn't covered in depth by either textbook, so that part remains self-directed.
+## 10. Experimental Design
 
-- Textbook ② Ch4.2-4.3: URDF modeling basics — link/joint syntax. The book's examples use a mobile robot, but the syntax is generic and transfers directly to an arm's structure (a chain of revolute/continuous joints)
-- Textbook ② Ch4.4: XACRO optimization — using variables and macros to cut down repetitive URDF code, which saves real time given how many joints an arm has
-- Textbook ② Ch4.5-4.6: filling in physical parameters, adding controller plugins, loading the model into Gazebo, motion-control simulation
-  - **Suggestion**: once you've learned the syntax and workflow, don't model an arm from scratch — use the Franka Panda model bundled with the official MoveIt2 tutorials, or the examples in the `moveit2_tutorials` repo. The textbook teaches you to read/modify a model, not draw one from zero; spend the saved time on understanding concepts instead of tweaking coordinates
-- `ros2_control` basics (self-directed, neither textbook covers this in depth): understand what `joint_trajectory_controller` does, and be able to send a joint a motion command from the command line and see it move in Gazebo
+Primary outcome:
 
-**Risk note**: Gazebo/GPU rendering tends to lag under WSL2. The fallback is to do everything as a virtual planning scenario in RViz2 + MoveIt2, skipping physics simulation entirely.
+```text
+continuous physical error
+```
 
-**Checkpoint**: RViz2 shows a draggable-joint skeleton, the model spawns in Gazebo, and a joint can be moved via command line.
+Examples:
 
----
+- endpoint deviation in mm;
+- relative visual displacement error;
+- calibration validation error.
 
-## Week 7: Intro to MoveIt2 Motion Planning
+Secondary outcome:
 
-- Install MoveIt2, follow the official Getting Started tutorial
-- Understand planning groups and the `move_group` interface
-- Manual planning via the RViz2 Motion Planning plugin
-- Write a C++ node that triggers motion planning programmatically using `MoveGroupInterface`
+```text
+grasp success / failure
+```
 
-**Checkpoint**: your own C++ node can move the Panda to a specified pose in simulation.
+Where practical, use paired randomized trials:
 
----
+```text
+same object placement
+├── baseline
+└── intervention
+```
 
-## Week 8: Project Integration
+Randomize execution order.
 
-- GDB debugging, a look at ros2_tracing
-- rosbag2 recording/playback
-- Troubleshoot connectivity with `rqt_graph`, `ros2 topic echo`
+## 11. Safety
 
-**Final deliverable**:
-- [ ] A C++ node: pre-grasp pose → close gripper → place pose → open gripper
-- [ ] A single launch file that brings everything up
-- [ ] Project README (structure, how to run, lessons learned)
-- [ ] A demo video (30-60 seconds, worth keeping for your resume/portfolio)
+Automated experiments require:
 
----
+- conservative velocity / acceleration limits;
+- validated joint limits;
+- execution timeout;
+- communication watchdog;
+- workspace checks;
+- collision checking where available;
+- accessible hardware stop / power cut.
 
-## Post-8-Week Deepening Directions (optional)
+## 12. Optional Mobile Extension
 
-- More sophisticated trajectory planning: obstacle avoidance, Cartesian paths, MoveIt Task Constructor
-- **Real grasping (visual perception) — now has a concrete textbook reference**: Textbook ② Ch7 systematically covers camera calibration (7.2), using OpenCV in ROS 2 (7.3), and deep-learning/YOLO object detection (7.6-7.7). Working through these in order gets you a full "camera detects object position → feeds it to MoveIt2 for grasp planning" pipeline
-- Swap the Panda for a more "industrial" arm like the UR5e
-- Fill in remaining chapters of Textbook ①: plugin system, component system, lifecycle nodes, unit testing
-- Real-world deployment (a physical arm / Jetson)
-- Add unit tests + GitHub Actions CI + linting to the project
-- **Optional: extend into mobile robotics / mobile manipulation**: if you later want the arm "on the move" (mounted on a mobile base for mobile grasping), Textbook ② has a full path ready — Ch5-6 (motor drivers/encoders/differential-drive kinematics, hardware-facing), Ch8 (SLAM mapping), Ch9 (Nav2 autonomous navigation). This is its own substantial direction — worth planning separately once the 8-week MVP is done and you're genuinely interested
+After the fixed-base pipeline is stable:
 
----
+```text
+mecanum base
+→ teleoperation
+→ odometry
+→ TF integration
+→ basic navigation
+→ one mobile manipulation demo
+```
 
-## Study Method Reminders
+This extension should not compromise the stability of the core experimental system.
 
-- Spend 10 minutes at the end of each day writing down "what I got stuck on" (goes in `docs/weekly-log/`)
-- Prefer official docs (docs.ros.org, moveit.picknik.ai) — the textbooks were written earlier and commands may have shifted since
-- Don't get hung up in Week 1-2 on fully understanding the low-level mechanics of pointers/references — good enough is good enough
-- If you're stuck for more than an hour, switch approach: read someone else's code, roll back to the last working version, or log it to a "to resolve" list
+## 13. Status Convention
+
+Repository documentation should distinguish:
+
+- **Implemented**
+- **Validated**
+- **In Progress**
+- **Planned**
+
+Vendor-provided functionality should be identified clearly and separated from project-specific implementation and experiments.

@@ -1,154 +1,170 @@
-# ROS 2 Industrial Arm — Simulated Pick-and-Place Demo
+# ArmPi Ultra 5-DoF Manipulation — ROS 2 / MoveIt 2
 
-An 8-week, self-directed learning project: going from **zero C++ experience** to a working **simulated industrial robotic arm pick-and-place demo**, built on ROS 2 (Jazzy) and MoveIt 2.
+A personal robotics project around the **ArmPi Ultra** 5-DoF arm: corrected model
+and TF, constrained motion planning, calibration, real visual grasping, and a
+quantitative error budget.
 
----
+The vendor stack is treated as a **read-only baseline**. This repository contains
+project-specific code, models, experiments and evidence; it does **not** copy
+the 16 GB vendor tree.
 
-## Demo
+> Historical note: the repository started as an 8-week ROS 2/Panda learning
+> project. That record is preserved at
+> [`docs/archive/README_8WEEK.md`](docs/archive/README_8WEEK.md) and
+> [`docs/weekly-log/`](docs/weekly-log/). The old roadmap is at
+> [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md).
 
-![pick-and-place demo](docs/demo.gif)
+## Status (2026-11-15)
 
-The demo runs a Franka Panda arm in simulation through a full pick-and-place sequence: open gripper → move to pick pose → close gripper → move to place pose.
+Status convention: **Implemented / Validated / In Progress / Planned**. Vendor
+functionality is marked separately. `Validated` means there is a command, log or
+data file in `evidence/`; it does **not** mean hardware validation.
 
----
-
-## What this project is
-
-Over 8 weeks (roughly 2–3+ hours/day), this project went from:
-
-- **Weeks 1–2**: a C++ crash course for someone who only knew C (RAII, smart pointers, inheritance/polymorphism, lambdas, CMake)
-- **Weeks 3–5**: core ROS 2 concepts (nodes, executors, topics, services, actions, tf2, custom interfaces)
-- **Week 6**: URDF/XACRO modeling and Gazebo simulation with `ros2_control`
-- **Week 7**: motion planning with MoveIt 2, using the official Franka Panda demo
-- **Week 8**: integration, debugging tooling (GDB, rosbag2), and the final pick-and-place demo, wired up behind a single launch file
-
-The end result: one command spins up the full simulation stack (robot model, `move_group`, RViz2, controllers) and runs an autonomous 4-step grasp sequence.
-
----
-
-## Repository structure
-
-```
-ros2-industrial-arm-learning/
-├── cpp_warmup/              # Week 1-2 standalone C++ practice (no ROS 2 dependency)
-├── docs/
-│   └── weekly-log/          # Day-by-day learning log, one file per week (week01.md ... week08.md)
-└── ros2_ws/                 # Main ROS 2 workspace
-    └── src/
-        ├── arm_interfaces/      # Custom .action interface definitions
-        ├── arm_description/     # URDF/XACRO models (pure assets, no code)
-        ├── arm_basics/           # Weeks 3-5 nodes: pub/sub, service, action, tf2 broadcasters
-        └── arm_moveit_demo/      # Week 7-8: MoveIt 2 nodes + the final launch file
-            ├── src/
-            │   ├── first_motion.cpp     # Week 7: first verified MoveIt2 motion (kept as reference)
-            │   ├── debug_test.cpp       # Week 8 Day1: intentional segfault, GDB practice
-            │   └── pick_place_demo.cpp  # Week 8 Day3: the 4-step grasp sequence node
-            └── launch/
-                └── pick_place_demo.launch.py   # One-shot launch: sim stack + demo node
-```
-
-A separate, git-ignored workspace (`~/ws_moveit`) is used as an **underlay** for MoveIt 2 and the official `moveit_resources_panda_moveit_config` package — this project's own code lives entirely in the `ros2_ws` **overlay** on top of it.
-
----
-
-## Requirements
-
-- Ubuntu 24.04 (developed under WSL2 with WSLg for GUI support; native Ubuntu works the same way)
-- ROS 2 Jazzy
-- MoveIt 2 (built from source into a separate `ws_moveit` workspace, following the [official MoveIt 2 tutorials](https://moveit.picknik.ai/))
-- `moveit_resources_panda_moveit_config` (comes from the `moveit_resources` repo, part of the MoveIt 2 source build)
-- Gazebo (Harmonic) via `ros_gz_sim` / `ros_gz_bridge` for the Week 6 simulation work
-
----
-
-## Building and running
-
-Both workspaces need to be sourced, in order — the MoveIt 2 underlay first, then this project's overlay:
-
-```bash
-source ~/ws_moveit/install/setup.bash
-source ~/projects/ros2-industrial-arm-learning/ros2_ws/install/setup.bash
-```
-
-Build this project's packages:
-
-```bash
-cd ~/projects/ros2-industrial-arm-learning/ros2_ws
-colcon build
-```
-
-Run the full demo with a single command — this brings up the Panda simulation (RViz2, `move_group`, `robot_state_publisher`, `ros2_control`) and then, once the stack is ready, runs the pick-and-place sequence automatically:
-
-```bash
-ros2 launch arm_moveit_demo pick_place_demo.launch.py
-```
-
-Expected sequence: RViz2 opens with the Panda arm loaded, a short pause while the simulation stack finishes initializing, then the gripper opens, the arm moves to the pick pose, the gripper closes, and the arm moves to the place pose — logged step-by-step in the terminal.
-
----
-
-## 8-week learning path
-
-| Week | Focus | Reference |
+| Area | Status | Evidence / limit |
 |---|---|---|
-| 1–2 | C++ fundamentals for someone who knows C: RAII, smart pointers, inheritance/polymorphism, lambdas, templates, CMake | Custom crash-course, no textbook |
-| 3 | ROS 2 core architecture: colcon, workspaces, packages, nodes, executors | *ROS 2 机器人编程实战*, Ch. 1–2 |
-| 4 | Topics, services, launch files, parameters | *ROS 2 机器人编程实战*, Ch. 3–4 |
-| 5 | Actions, custom interfaces, tf2 coordinate transforms | *ROS 2 机器人编程实战*, Ch. 5 |
-| 6 | URDF/XACRO modeling, Gazebo simulation, `ros2_control` | *ROS 2 智能机器人开发实践*, Ch. 4 |
-| 7 | MoveIt 2 motion planning (Franka Panda) | Official MoveIt 2 tutorials |
-| 8 | GDB debugging, rosbag2, integration, final demo | *ROS 2 机器人编程实战*, Ch. 6 |
+| Panda learning demo | Implemented, simulation-validated | `panda-baseline-v1` tag; `docs/archive/README_8WEEK.md`; weekly logs |
+| ArmPi URDF / TF | Implemented, model-checked | `xacro` + `check_urdf`; single root; camera frames; **limits provisional** |
+| ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK loads; joint-space plan `error_code=1`; mock_components |
+| ArmPi constrained grasp | Planned | `position_only_ik` is reachability-only; no grasp planner yet |
+| Real ArmPi hardware | **Not validated** | no serial device, no robot connection, Docker workspace inaccessible |
+| Camera / calibration | Planned | `link4 → camera` frames added; extrinsic and intrinsics **not measured** |
+| Visual grasping | Planned | no fiducial/calibration/grasp pipeline |
+| Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
+| ArmPi Debug Studio | G1-**Mock** only | 41 backend tests pass; frontend builds; E7 gateway not implemented |
+| M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
-Full day-by-day notes, including every bug and how it was diagnosed, are in `docs/weekly-log/`.
+The detailed audit (sources, conflicts, decisions) is in
+[`docs/audit/2026-11-15/`](docs/audit/2026-11-15/).
 
----
+## Repository layout
 
-## Debugging deep-dives
+```text
+armpi-debug-studio/        # G1-Mock console (FastAPI + React); no hardware motion
+docs/
+├── armpi/                 # PRD + G0 vendor audit
+├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
+├── hardware/              # hardware baseline templates ([U] until measured)
+├── phase0/                # JER-39 / JER-59 read-only audits
+├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
+└── weekly-log/            # 8-week learning record
+evidence/
+├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
+└── armpi_moveit/          # model check + MoveIt smoke logs
+ros2_ws/src/
+├── arm_basics/            # learning nodes (legacy)
+├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
+├── arm_interfaces/        # custom action
+├── arm_moveit_demo/       # Panda pick-and-place demo
+├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
+└── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock_components)
+```
 
-Eight weeks of a from-scratch project surfaced a lot of real debugging work — not toy exercises. A few of the more involved ones, picked because the root cause took real investigation to find:
+## Build
 
-### 1. A silently-dropped Gazebo plugin, with zero error output (Week 6)
+```bash
+source /opt/ros/jazzy/setup.bash
+cd ros2_ws
+colcon build --symlink-install
+```
 
-After wiring up `ros2_control` for the arm, `controller_manager` never appeared — no crash, no error, nothing. The `<plugin>` tag responsible for loading `gz_ros2_control` had been added directly under `<robot>` instead of inside a `<gazebo>...</gazebo>` wrapper (a leftover from manual editing). `sdformat`'s URDF→SDF converter treats an unwrapped `<plugin>` as an unrecognized tag and **silently discards it** — no warning, no log line. It was only found by running the URDF through `gz sdf -p` directly and diffing the expanded SDF against what was expected, confirming the plugin tag never made it through the conversion.
+The Panda demo also needs the MoveIt/Panda underlay described in the archived
+8-week README (a separate `~/ws_moveit` workspace).
 
-### 2. `robot_state_publisher` aborting with no readable error (Week 6)
+## Run
 
-A missing `<joint>` tag (dropped by accident during an edit) left three links in the URDF with no parent — three disconnected root links instead of one tree. `robot_state_publisher` builds an internal KDL tree from the URDF, and multiple roots violate a hard assertion inside that library. Instead of a normal ROS error, the process called `abort()` and exited with code `-6`, with nothing printed to explain why. Diagnosing this meant recognizing that a hard crash with no ROS-level error message pointed to a lower-level (KDL) assertion failure rather than a parsing problem, and tracing it back to the URDF's link/joint graph.
+### ArmPi model and MoveIt (mock hardware)
 
-### 3. The official Panda demo quietly became a different robot (Week 8)
+```bash
+source /opt/ros/jazzy/setup.bash
+source ros2_ws/install/setup.bash
 
-Following the official `moveit2_tutorials` `demo.launch.py` — the exact tutorial used successfully in Week 7 — suddenly produced an unrelated error about a parameter called `mock_sensor_commands`. Grepping for that string across the workspace found it defined in `kortex_description`, the description package for a **Kinova Gen3** arm. It turned out the `moveit2_tutorials` repo's `main` branch had, between Week 7 and Week 8, switched its default demo configuration from the Franka Panda to a Kinova Gen3 + Robotiq 2F-85 gripper — an upstream change with no relation to anything in this project. The fix was to bypass `moveit2_tutorials` entirely and launch the Panda configuration's own bundled `demo.launch.py`, from the `moveit_resources_panda_moveit_config` package (note: the actual registered package name, not the more intuitive `panda_moveit_config`) — which remained untouched by the upstream change.
+# model check
+xacro ros2_ws/src/armpi_ultra_description/urdf/armpi_ultra.xacro > /tmp/armpi.urdf
+check_urdf /tmp/armpi.urdf
 
-### 4. A gripper action that "connects" but doesn't work (Week 8)
+# MoveIt demo: mock_components, no real hardware
+ros2 launch armpi_ultra_moveit_config demo.launch.py \
+  ros2_control_hardware_type:=mock_components \
+  use_sim_time:=false use_gazebo:=false use_real:=false
+```
 
-With the correct Panda demo running, the arm moved fine, but every gripper command failed with `Plan and Execute request aborted` — no obvious error, request just silently failed at the execution stage. The trail:
-- The controller (`panda_hand_controller`) was confirmed active and healthy.
-- The real error was buried lower: `Action client not connected to action server: panda_hand_controller/gripper_cmd`.
-- Comparing `gripper_moveit_controllers.yaml` (what MoveIt expected: a legacy `GripperCommand` action) against `ros2_controllers.yaml` (what was actually running: `parallel_gripper_action_controller/GripperActionController`, serving `ParallelGripperCommand`) revealed a type mismatch between two files that were supposed to describe the same controller.
-- `ros2 action list -t` confirmed it directly — the same action name was listed with **two different types**, one from each side of the mismatch.
-- Root cause, confirmed against the upstream MoveIt 2 GitHub history: the `panda_moveit_config` package's gripper configuration hadn't been updated to match ROS 2 Jazzy's newer `parallel_gripper_action_controller`, which replaced the older gripper controller type. The fix was a one-line change (`type: GripperCommand` → `type: ParallelGripperCommand`) in the underlay's config file.
+Expected: `move_group` loads, KDL IK initializes, `arm_controller` and
+`gripper_controller` are active. A joint-space `/move_action` goal is verified in
+`evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`.
 
-### 5. Launch-time race conditions, and what actually prevents them (Week 8)
+> **Do not treat this as hardware validation.** `mock_components` is a fake
+> system; `joint_states` semantics, limits, camera and gripper are unmeasured.
 
-The final launch file starts the entire simulation stack and the pick-and-place node together. `LaunchDescription` entries start **concurrently by default** — there's no built-in "wait for the previous action to be ready" behavior. A `TimerAction` was used to delay the demo node's startup by a fixed 6 seconds. In testing, the real safety net turned out to be layered: `TimerAction` only guards against the *worst* case (the stack not having started at all); the actual gap was much tighter than 6 seconds in practice, because `MoveGroupInterface`'s constructor itself blocks until it can connect to each planning group's action server — meaning it tolerates a controller that's still a few hundred milliseconds from being ready, without any extra handling required.
+### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
----
+```bash
+source /opt/ros/jazzy/setup.bash
+source ros2_ws/install/setup.bash
+ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
+```
 
-## Roadmap (post-8-week)
+Profiles: `default`, `gain_0p1`, `gain_0p2`. The 2026-11-15 regression sent
+`joint1=0.2, joint2=0.2` to `/arm_controller/follow_joint_trajectory`; all three
+returned `error_code=0`. See
+[`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md).
 
-Ideas for extending this project further, not required for the 8-week MVP:
+### ArmPi Debug Studio (Mock only)
 
-- Vision-based grasping: camera calibration, OpenCV, and YOLO-based object detection to replace hardcoded pick/place poses
-- More complex trajectory planning: obstacle avoidance, Cartesian path planning, MoveIt Task Constructor
-- Swapping the Franka Panda for a more "industrial" arm — likely a Universal Robots UR3e/UR5e, with an eye toward real hardware deployment on a student club's collaborative arm
-- Unit testing and CI hardening
-- Deeper `ros2_control` work: writing a custom hardware interface
+```bash
+cd armpi-debug-studio/backend
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e '.[dev]'
+pytest
+uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 
----
+# another terminal
+cd armpi-debug-studio/frontend
+npm install && npm run dev
+```
 
-## Acknowledgments
+The UI must show `SIMULATION`. Hardware mode is read-only; motion is disabled by
+design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
 
-- *ROS 2 机器人编程实战* — primary ROS 2 curriculum reference (Ch. 1–6)
-- *ROS 2 智能机器人开发实践* — URDF/XACRO/Gazebo reference (Ch. 4)
-- [MoveIt 2 official tutorials](https://moveit.picknik.ai/) and the [`moveit2_tutorials`](https://github.com/moveit/moveit2_tutorials) / [`moveit_resources`](https://github.com/moveit/moveit_resources) repositories
-- [ROS 2 documentation](https://docs.ros.org/en/jazzy/)
+## Model caveats (important)
+
+- **Joint limits are provisional.** `joint3` upper bound is `0.0` (vendor
+  software mapping), not `+2.09`. `r_joint` upper bound is `1.257`, the
+  intersection of URDF and vendor software range. Mechanical limits are not
+  measured.
+- **Camera frames are nominal.** `camera_connet_link` is the vendor mount;
+  `camera_link` and `camera_optical_frame` were added with an identity/REP-103
+  rotation. The real `link4 → camera` extrinsic is unknown.
+- **IK is KDL, position-only.** TRAC-IK is not installed. `position_only_ik` may
+  be used for reachability, never as the final grasp policy; a 5-DoF grasp needs
+  a constrained orientation.
+- **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
+  r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
+  xacro only.
+- **No hardware.** No `/dev/rrc`, no camera, no base, no real motion.
+
+## Evidence and reproducibility
+
+- `evidence/m2_2_v2/` — four MCAP bags, analysis CSVs/PNGs, source snapshot,
+  Gate 2 reports. `*.mcap` is gitignored; keep a local/remote backup.
+- `evidence/armpi_moveit/` — expanded URDF, `check_urdf`, MoveIt log and action
+  result.
+- `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
+
+Never present Mock/Gazebo results as hardware validation.
+
+## Documentation
+
+- [Technical roadmap](ROADMAP.md) — imported from `ROADMAP_PUBLIC.md`.
+- [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
+  status, merge plan, open decisions.
+- [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
+- [G0 vendor audit](docs/armpi/g0/README.md)
+- [Hardware baseline](docs/hardware/README.md)
+- [Phase 0 audits](docs/phase0/)
+- [8-week learning log](docs/weekly-log/)
+
+`MASTER_PLAN_V3_PRIVATE.md` is intentionally **not** in this public repository.
+
+## License
+
+See [LICENSE](LICENSE).

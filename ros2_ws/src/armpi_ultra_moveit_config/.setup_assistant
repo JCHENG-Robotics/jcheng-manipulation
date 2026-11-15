@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: armpi_ultra_description
+    relative_path: urdf/armpi_ultra.xacro
+  srdf:
+    relative_path: config/armpi_ultra.srdf
+  package_settings:
+    author_name: liuyuan
+    author_email: maintainer@example.invalid
+    generated_timestamp: 1751454082

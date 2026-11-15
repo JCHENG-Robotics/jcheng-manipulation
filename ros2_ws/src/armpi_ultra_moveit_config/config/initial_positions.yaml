@@ -1,0 +1,16 @@
+# Default initial positions for armpi_ultra's ros2_control mock system.
+#
+# PROVISIONAL. The arm values below are the vendor startup-check pose converted
+# with the vendor 240 deg / 1000 tick mapping:
+#   (6,500) (5,600) (4,800) (3,110) (2,500) (1,210)
+# The real robot's r_joint startup raw value (210 -> -2.052 rad) is outside the
+# current URDF/model range; 0.0 is used as a safe simulation placeholder until
+# the gripper is measured. See docs/hardware/measured_joint_limits.md.
+
+initial_positions:
+  joint1: 0.000
+  joint2: 0.419
+  joint3: -1.257
+  joint4: -1.634
+  joint5: 0.000
+  r_joint: 0.000

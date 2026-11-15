@@ -1,0 +1,91 @@
+# joint_limits.yaml — ArmPi Ultra (PROVISIONAL)
+#
+# Source of the position bounds:
+#   - vendor `servo_controller/config/servo_controller.yaml` (software mapping)
+#   - vendor URDF (`armpi_ultra.xacro`, `gripper.urdf.xacro`)
+# The bounds below are the intersection of the two where they disagree.
+# Mechanical limits have NOT been measured. Do not enable real-hardware motion
+# until `docs/hardware/measured_joint_limits.md` is filled in.
+
+default_velocity_scaling_factor: 0.1
+default_acceleration_scaling_factor: 0.1
+
+joint_limits:
+  joint1:
+    has_position_limits: true
+    min_position: -2.09
+    max_position: 2.09
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  joint2:
+    has_position_limits: true
+    min_position: -2.09
+    max_position: 2.09
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  joint3:
+    # vendor mapping: raw 500..1000 -> -2.094..0.0; URDF -2.09..+2.09.
+    # Intersection used; do not allow positive joint3.
+    has_position_limits: true
+    min_position: -2.09
+    max_position: 0.0
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  joint4:
+    has_position_limits: true
+    min_position: -2.09
+    max_position: 2.09
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  joint5:
+    has_position_limits: true
+    min_position: -2.09
+    max_position: 2.09
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+
+  # Gripper. r_joint is the only actuated gripper joint; the others are mimic.
+  # r_joint bounds are the intersection of URDF +/-1.57 and vendor -2.932..+1.257.
+  r_joint:
+    has_position_limits: true
+    min_position: -1.57
+    max_position: 1.257
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  l_in_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  l_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  l_out_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  r_in_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  r_out_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0

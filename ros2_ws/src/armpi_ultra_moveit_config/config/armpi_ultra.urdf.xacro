@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="armpi_ultra">
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+
+    <!-- Import armpi_ultra urdf file -->
+    <xacro:include filename="$(find armpi_ultra_description)/urdf/armpi_ultra.xacro" />
+
+    <!-- Import control_xacro -->
+    <xacro:include filename="armpi_ultra.ros2_control.xacro" />
+
+
+    <xacro:armpi_ultra_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>

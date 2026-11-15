@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.8)
 project(arm_description)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+
+ament_python_install_package(${PROJECT_NAME})
 
 install(DIRECTORY
   urdf
@@ -21,6 +24,8 @@ if(BUILD_TESTING)
   # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(controller_config_test test/test_controller_config.py)
 endif()
 
 ament_package()

@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <robot name="simple_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+  <!-- The launch file may replace this validated compatibility default. -->
+  <xacro:arg name="controller_config" default="$(find arm_description)/config/arm_controllers.yaml"/>
+
   <!-- ==================== 参数定义 (PROPERTIES) ==================== -->
   <!-- Base Link 属性 -->
   <xacro:property name="base_r" value="0.1"/>
@@ -120,7 +123,7 @@
  <!-- ==================== GAZEBO ROS2 CONTROL PLUGIN ==================== -->
 <gazebo>
   <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-    <parameters>/home/jerichocheng/projects/ros2-industrial-arm-learning/ros2_ws/install/arm_description/share/arm_description/config/arm_controllers.yaml</parameters>
+    <parameters>$(arg controller_config)</parameters>
   </plugin>
 </gazebo>
 

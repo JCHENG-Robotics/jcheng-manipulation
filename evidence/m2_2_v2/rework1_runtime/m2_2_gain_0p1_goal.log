@@ -1,0 +1,44 @@
+Waiting for an action server to become available...
+Sending goal:
+     trajectory:
+  header:
+    stamp:
+      sec: 0
+      nanosec: 0
+    frame_id: ''
+  joint_names:
+  - joint1
+  - joint2
+  points:
+  - positions:
+    - 0.2
+    - 0.2
+    velocities: []
+    accelerations: []
+    effort: []
+    time_from_start:
+      sec: 2
+      nanosec: 0
+multi_dof_trajectory:
+  header:
+    stamp:
+      sec: 0
+      nanosec: 0
+    frame_id: ''
+  joint_names: []
+  points: []
+path_tolerance: []
+component_path_tolerance: []
+goal_tolerance: []
+component_goal_tolerance: []
+goal_time_tolerance:
+  sec: 0
+  nanosec: 0
+
+Goal accepted with ID: 8130a14f99f44d5cbcc70264b42e02b6
+
+Result:
+    error_code: 0
+error_string: Goal successfully reached!
+
+Goal finished with status: SUCCEEDED

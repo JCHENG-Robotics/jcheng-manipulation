@@ -1,0 +1,436 @@
+"""Deterministic in-process mock robot adapter.
+
+No ROS, no Gazebo, no serial port. Every value is explicitly `simulated`.
+Faults are injectable so the safety gate and the UI can be tested without
+hardware.
+"""
+
+from __future__ import annotations
+
+import math
+import random
+import time
+from typing import Any, Callable
+
+from ..domain.enums import (
+    CommandStage,
+    ConnectionState,
+    ErrorCode,
+    FaultCode,
+    FaultLevel,
+    Mode,
+    SourceLabel,
+    StopState,
+    Truth,
+    Validity,
+)
+from ..domain.mapping import MappingConfig
+from ..domain.models import (
+    Capabilities,
+    ConnectionReport,
+    Fault,
+    JointState,
+    RobotState,
+    SegmentStatus,
+    StopResult,
+    utc_now_iso,
+)
+from .base import AdapterError, DispatchResult, RobotAdapter
+
+FAULT_KINDS = {
+    "timeout": (FaultLevel.FAULT, "模拟命令超时：命令状态应为 Unknown"),
+    "disconnect": (FaultLevel.CRITICAL, "模拟连接断开：撤销运动许可"),
+    "empty_feedback": (FaultLevel.FAULT, "模拟空反馈：显示 Unavailable，不得填 0"),
+    "nan_feedback": (FaultLevel.FAULT, "模拟 NaN 反馈：标记 invalid"),
+    "missing_servo": (FaultLevel.FAULT, "模拟舵机缺失：该关节不可用"),
+    "driver_exit": (FaultLevel.CRITICAL, "模拟 Driver 退出：进入 Degraded/Fault"),
+}
+
+
+class MockRobotAdapter(RobotAdapter):
+    mode = Mode.MOCK
+    source_label = SourceLabel.SIMULATION
+
+    def __init__(
+        self,
+        mapping: MappingConfig,
+        *,
+        clock: Callable[[], float] | None = None,
+        seed: int = 0,
+        noise_rad: float = 0.0,
+    ) -> None:
+        self.mapping = mapping
+        self._clock = clock or time.monotonic
+        self._random = random.Random(seed)
+        self._noise_rad = max(0.0, float(noise_rad))
+        self.capabilities = Capabilities(
+            hardware_motion=False,
+            hardware_read=False,
+            mock_faults=True,
+            replay=False,
+            min_duration_s=mapping.safety.min_duration_s,
+            max_duration_s=mapping.safety.max_duration_s,
+            max_step_rad=mapping.safety.max_step_rad,
+        )
+        self._targets: dict[str, float] = {name: 0.0 for name in mapping.joints}
+        self._positions: dict[str, float] = {name: 0.0 for name in mapping.joints}
+        self._motion: dict[str, Any] | None = None
+        self._fault_kinds: set[str] = set()
+        self._fault_joint: str | None = None
+        self._faults: dict[str, Fault] = {}
+        self._events: list[dict[str, Any]] = []
+        self._last_command_id: str | None = None
+        self._stop_state: StopState | None = None
+        self._stop_at: float | None = None
+        self._stop_command_id: str | None = None
+        self._driver_online = True
+        self._last_tick = self._clock()
+
+    # ------------------------------------------------------------------ faults
+    def inject(self, kind: str, *, joint: str | None = None) -> Fault:
+        if kind not in FAULT_KINDS:
+            raise AdapterError(
+                ErrorCode.BAD_REQUEST.value,
+                f"unknown mock fault: {kind}",
+                {"allowed": sorted(FAULT_KINDS)},
+            )
+        if kind == "missing_servo" and joint not in self.mapping.joints:
+            raise AdapterError(
+                ErrorCode.UNKNOWN_JOINT.value,
+                f"missing_servo requires a known joint, got {joint!r}",
+            )
+        level, message = FAULT_KINDS[kind]
+        now = utc_now_iso()
+        fault = Fault(
+            fault_id=f"mock-{kind}",
+            level=level,
+            code=kind.upper(),
+            message=message,
+            source="mock_adapter",
+            first_seen=now,
+            last_seen=now,
+            remediation="POST /api/mock/reset 清除注入故障",
+            details={"joint": joint},
+        )
+        self._fault_kinds.add(kind)
+        self._fault_joint = joint
+        self._faults[kind] = fault
+        if kind in {"disconnect", "driver_exit"}:
+            self._motion = None
+            self._stop_state = StopState.STOP_UNKNOWN
+            self._stop_at = self._clock()
+            if kind == "driver_exit":
+                self._driver_online = False
+        return fault
+
+    def clear_fault(self, kind: str) -> bool:
+        existed = kind in self._fault_kinds
+        self._fault_kinds.discard(kind)
+        self._faults.pop(kind, None)
+        if kind in {"disconnect", "driver_exit"}:
+            self._driver_online = True
+            self._stop_state = None
+            self._stop_at = None
+        return existed
+
+    def reset(self) -> None:
+        self._fault_kinds.clear()
+        self._faults.clear()
+        self._fault_joint = None
+        self._motion = None
+        self._stop_state = None
+        self._stop_at = None
+        self._stop_command_id = None
+        self._driver_online = True
+        self._targets = {name: 0.0 for name in self.mapping.joints}
+        self._positions = {name: 0.0 for name in self.mapping.joints}
+        self._events.clear()
+        self._last_command_id = None
+        self._last_tick = self._clock()
+
+    def active_faults(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "kind": kind,
+                "code": fault.code,
+                "level": fault.level.value,
+                "joint": fresh.details.get("joint"),
+            }
+            for kind, fault in self._faults.items()
+            for fresh in [self._refresh_fault(fault)]
+        ]
+
+    def _refresh_fault(self, fault: Fault) -> Fault:
+        fault.last_seen = utc_now_iso()
+        return fault
+
+    # ------------------------------------------------------------------ motion
+    def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
+        if "disconnect" in self._fault_kinds:
+            return DispatchResult(
+                CommandStage.FAILED,
+                ErrorCode.GATEWAY_UNAVAILABLE.value,
+                "mock disconnect fault is active",
+            )
+        if "driver_exit" in self._fault_kinds or not self._driver_online:
+            return DispatchResult(
+                CommandStage.FAILED,
+                ErrorCode.DRIVER_OFFLINE.value,
+                "mock driver_exit fault is active",
+            )
+
+        target_map = {item["joint"]: float(item["target_rad"]) for item in targets}
+        duration = max(float(item["duration_s"]) for item in targets)
+        now = self._clock()
+        self._motion = {
+            "command_id": command_id,
+            "start": now,
+            "duration": duration,
+            "start_positions": dict(self._positions),
+            "targets": target_map,
+            "timeout": "timeout" in self._fault_kinds,
+            "emit_events": "timeout" not in self._fault_kinds,
+        }
+        for name, value in target_map.items():
+            self._targets[name] = value
+        self._last_command_id = command_id
+        self._stop_state = None
+
+        if "timeout" in self._fault_kinds:
+            self._events.append(
+                {
+                    "stage": CommandStage.UNKNOWN.value,
+                    "command_id": command_id,
+                    "source": "mock_adapter",
+                    "result": "no acknowledgement; position evidence unavailable",
+                    "error_code": FaultCode.MOCK_TIMEOUT.value,
+                    "details": {"fault": "timeout"},
+                    "monotonic_ms": now * 1000.0,
+                }
+            )
+            return DispatchResult(
+                CommandStage.UNKNOWN,
+                FaultCode.MOCK_TIMEOUT.value,
+                "mock timeout: command dispatched but outcome is unknown",
+                {"fault": "timeout"},
+            )
+
+        return DispatchResult(
+            CommandStage.DISPATCHED,
+            None,
+            "mock command dispatched",
+            {"emit_events": True},
+        )
+
+    def stop(self, command_id: str) -> StopResult:
+        now = self._clock()
+        if "disconnect" in self._fault_kinds or "driver_exit" in self._fault_kinds:
+            return StopResult(
+                StopState.STOP_UNKNOWN,
+                command_id,
+                "stop request cannot be confirmed: mock connection fault",
+                "no evidence of controller acknowledgement",
+                requested_at=utc_now_iso(),
+            )
+        if self._motion is None:
+            self._stop_state = StopState.STOP_OBSERVED
+            self._stop_at = now
+            return StopResult(
+                StopState.STOP_OBSERVED,
+                command_id,
+                "no active motion; simulated position already at rest",
+                "mock position unchanged over observation window; not a hardware emergency stop",
+                requested_at=utc_now_iso(),
+                observed_at=utc_now_iso(),
+            )
+
+        # Freeze at the interpolated position, not the previous target.
+        self.tick()
+        for name in self._positions:
+            self._targets[name] = self._positions[name]
+        self._motion = None
+        self._stop_state = StopState.STOP_DISPATCHED
+        self._stop_at = now
+        self._stop_command_id = command_id
+        return StopResult(
+            StopState.STOP_DISPATCHED,
+            command_id,
+            "mock stop request dispatched",
+            "software stop request; not a hardware emergency stop",
+            requested_at=utc_now_iso(),
+        )
+
+    def tick(self) -> None:
+        now = self._clock()
+        if "disconnect" in self._fault_kinds:
+            self._last_tick = now
+            return
+
+        motion = self._motion
+        if motion is not None:
+            elapsed = max(0.0, now - motion["start"])
+            progress = min(1.0, elapsed / max(motion["duration"], 1e-9))
+            for name, target in motion["targets"].items():
+                start = motion["start_positions"].get(name, self._positions[name])
+                self._positions[name] = start + (target - start) * progress
+            if progress >= 1.0:
+                for name, target in motion["targets"].items():
+                    self._positions[name] = target
+                self._motion = None
+                if motion["emit_events"]:
+                    for stage in (CommandStage.OBSERVED, CommandStage.COMPLETED):
+                        self._events.append(
+                            {
+                                "stage": stage.value,
+                                "command_id": motion["command_id"],
+                                "source": "mock_adapter",
+                                "result": "simulated position reached",
+                                "error_code": None,
+                                "details": {"progress": 1.0},
+                                "monotonic_ms": now * 1000.0,
+                            }
+                        )
+
+        if (
+            self._stop_state is StopState.STOP_DISPATCHED
+            and self._stop_at is not None
+            and now - self._stop_at >= 0.2
+        ):
+            self._stop_state = StopState.STOP_OBSERVED
+            self._events.append(
+                {
+                    "stage": StopState.STOP_OBSERVED.value,
+                    "command_id": self._stop_command_id,
+                    "source": "mock_adapter",
+                    "result": "simulated motion stopped",
+                    "error_code": None,
+                    "details": {"stop_state": StopState.STOP_OBSERVED.value},
+                    "monotonic_ms": now * 1000.0,
+                }
+            )
+        self._last_tick = now
+
+    # ------------------------------------------------------------------ state
+    def _connection_state(self) -> ConnectionState:
+        if "disconnect" in self._fault_kinds:
+            return ConnectionState.DISCONNECTED
+        if "driver_exit" in self._fault_kinds or not self._driver_online:
+            return ConnectionState.DEGRADED
+        if self._motion is not None:
+            return ConnectionState.EXECUTING
+        return ConnectionState.SIMULATION
+
+    def _joint_state(self, name: str) -> JointState:
+        joint = self.mapping.joints[name]
+        target = self._targets[name]
+        target_raw = int(round(joint.rad_to_raw(target)))
+        disconnected = "disconnect" in self._fault_kinds or "driver_exit" in self._fault_kinds
+        empty = "empty_feedback" in self._fault_kinds
+        nan = "nan_feedback" in self._fault_kinds
+        missing = "missing_servo" in self._fault_kinds and self._fault_joint == name
+
+        if disconnected or empty or missing:
+            position = None
+            raw_position = None
+            truth = Truth.UNKNOWN
+            validity = Validity.UNAVAILABLE
+            age = None
+        elif nan:
+            position = None
+            raw_position = None
+            truth = Truth.UNKNOWN
+            validity = Validity.INVALID
+            age = 0
+        else:
+            noise = self._random.uniform(-self._noise_rad, self._noise_rad) if self._noise_rad else 0.0
+            position = self._positions[name] + noise
+            raw_position = int(round(joint.rad_to_raw(position)))
+            truth = Truth.SIMULATED
+            validity = Validity.VALID
+            age = 0
+
+        return JointState(
+            name=name,
+            servo_id=joint.servo_id,
+            target_rad=target,
+            target_raw=target_raw,
+            position_rad=position,
+            raw_position=raw_position,
+            truth=truth,
+            validity=validity,
+            sample_age_ms=age,
+            source="mock_adapter",
+            limit_min_rad=joint.min_rad,
+            limit_max_rad=joint.max_rad,
+            limit_verified=joint.verified,
+        )
+
+    def snapshot(self) -> RobotState:
+        self.tick()
+        now = self._clock()
+        faults = [self._refresh_fault(f) for f in self._faults.values()]
+        return RobotState(
+            robot_id="armpi-ultra-01",
+            mode=self.mode,
+            connection_state=self._connection_state(),
+            source_label=self.source_label,
+            control_owner=None,
+            received_at=utc_now_iso(),
+            monotonic_ms=now * 1000.0,
+            ros_time_ns=None,
+            joints=[self._joint_state(name) for name in self.mapping.joints],
+            faults=faults,
+            mapping_version=self.mapping.mapping_version,
+            limit_version=self.mapping.verification_status,
+            mapping_verified=self.mapping.verified,
+            capabilities=self.capabilities,
+            stop_state=self._stop_state,
+            last_command_id=self._last_command_id,
+        )
+
+    def connection_report(self) -> ConnectionReport:
+        disconnected = "disconnect" in self._fault_kinds
+        driver_fault = "driver_exit" in self._fault_kinds or not self._driver_online
+        feedback_fault = disconnected or "empty_feedback" in self._fault_kinds or "nan_feedback" in self._fault_kinds
+        segments = [
+            SegmentStatus(
+                name="serial",
+                state="simulated",
+                detail="mock adapter; no /dev/rrc opened",
+                evidence="ARMPI_MODE=mock",
+            ),
+            SegmentStatus(
+                name="driver",
+                state="offline" if driver_fault else "simulated",
+                detail="mock driver state",
+                evidence="no vendor ROS node",
+            ),
+            SegmentStatus(
+                name="gateway",
+                state="offline" if disconnected else "online",
+                detail="in-process mock adapter; no ROS gateway",
+                evidence="mock adapter",
+            ),
+            SegmentStatus(
+                name="feedback",
+                state="unavailable" if feedback_fault else "simulated",
+                detail="simulated positions, not sensor feedback",
+                evidence="truth=simulated",
+            ),
+        ]
+        return ConnectionReport(
+            segments=segments,
+            serial_available=False,
+            driver_online=not driver_fault,
+            gateway_online=not disconnected,
+            feedback_fresh=not feedback_fault,
+            notes=[
+                "SIMULATION: no serial port, ROS node, or hardware was accessed.",
+                "Mock positions are synthetic and must not be treated as hardware feedback.",
+            ],
+        )
+
+    def drain_events(self) -> list[dict[str, Any]]:
+        events = self._events
+        self._events = []
+        return events

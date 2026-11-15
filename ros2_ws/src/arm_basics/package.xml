@@ -4,7 +4,7 @@
   <name>arm_basics</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="chengkewei77@gmail.com">jerichocheng</maintainer>
+  <maintainer email="jerichocheng@users.noreply.github.com">jerichocheng</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

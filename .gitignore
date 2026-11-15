@@ -21,6 +21,20 @@
 .DS_Store
 .idea/
 .vscode/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+armpi-debug-studio/data/
+*.tsbuildinfo
+*.db
+*.db-wal
+*.db-shm
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
 CMakeCache.txt
 CMakeFiles/
 Makefile
@@ -36,3 +50,6 @@ ros2_ws/install/
 ros2_ws/log/
 rosbag2_*/
 week8_test_bag/
+
+# Evidence logs are small and intentionally tracked; MCAP remains ignored.
+!evidence/**/*.log
