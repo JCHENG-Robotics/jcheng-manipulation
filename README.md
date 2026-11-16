@@ -1,5 +1,7 @@
 # ArmPi Ultra 5-DoF Manipulation — ROS 2 / MoveIt 2
 
+**English** | [简体中文](README.zh-CN.md)
+
 A personal robotics project around the **ArmPi Ultra** 5-DoF arm: corrected model
 and TF, constrained motion planning, calibration, real visual grasping, and a
 quantitative error budget.
