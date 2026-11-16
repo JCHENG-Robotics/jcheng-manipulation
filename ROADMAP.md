@@ -1,11 +1,11 @@
-# ArmPi Ultra Manipulation Project — Technical Roadmap
+# JCHENG Manipulation: A ROS 2-Based Robotic Manipulation System with Quantitative Reliability Evaluation
 
 > Imported from `ROADMAP_PUBLIC.md` (USB, 2026-10-26) on 2026-11-15.
 > The previous 8-week learning roadmap is archived at
 > `docs/archive/ROADMAP_8WEEK.md`. The private master plan is intentionally
 > kept outside this public repository.
 
-> This roadmap tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
+> Technical roadmap: this document tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
 ## Current status (2026-11-16)
 

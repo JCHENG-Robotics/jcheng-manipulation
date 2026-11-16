@@ -1,8 +1,8 @@
-# ArmPi Ultra 5-DoF 机械臂 — ROS 2 / MoveIt 2
+# JCHENG Manipulation: A ROS 2-Based Robotic Manipulation System with Quantitative Reliability Evaluation
 
 [English](README.md) | **简体中文**
 
-围绕 **ArmPi Ultra** 五自由度机械臂的个人机器人项目：修正模型与 TF、约束运动规划、标定、真实视觉抓取，以及量化的误差预算。
+JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个人机器人项目：修正模型与 TF、约束运动规划、标定、真实视觉抓取，以及量化的误差预算。
 
 厂商技术栈被视为**只读基线**。本仓库包含项目特定的代码、模型、实验与证据，**不**复制 16 GB 的厂商源码树。
 
