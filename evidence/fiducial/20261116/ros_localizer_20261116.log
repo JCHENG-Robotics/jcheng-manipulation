@@ -1,0 +1,37 @@
+[INFO] [1794810393.154419975] [armpi_fiducial_localizer]: fiducial localizer: image=/image_raw camera_info=/camera_info output_frame=base_link
+[WARN] [1794810395.441997450] [armpi_fiducial_localizer]: waiting for CameraInfo on /camera_info
+[INFO] [1794810395.452438707] [armpi_fiducial_localizer]: marker 0 in base_link: t=(-0.000,0.000,0.900) reproj=0.00px
+[INFO] [1794810396.519550563] [armpi_fiducial_localizer]: marker 0 in base_link: t=(-0.000,0.000,0.900) reproj=0.00px
+[INFO] [1794810397.519615235] [armpi_fiducial_localizer]: marker 0 in base_link: t=(-0.000,0.000,0.900) reproj=0.00px
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/node.py", line 202, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_fiducial_localizer/lib/armpi_fiducial_localizer/fiducial_localizer", line 33, in <module>
+    sys.exit(load_entry_point('armpi-fiducial-localizer', 'console_scripts', 'fiducial_localizer')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/node.py", line 207, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333

@@ -21,10 +21,11 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | ArmPi URDF / TF | 已实现，模型检查通过 | `xacro` + `check_urdf`；单一根节点；相机坐标系；**关节限位为暂定值** |
 | ArmPi MoveIt 2 | 已实现，Mock 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP` 规划成功（Mock） |
 | ArmPi 约束抓取 | 已实现，Mock 验证 | 5-DoF 抓取搜索：80 个关节空间候选 → 40 个 IK 成功 → 26 个无碰撞 → 3 条 Pilz `PTP` 规划；仅规划 |
+| Fiducial 目标定位 | 已实现，合成验证 | AprilTag 36h11；5/5 合成位姿，最大 1.82 mm / 1.49°；ROS TF 检查 0.44 mm / 0.03° |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **未验证** | 无串口设备、未连接机器人、Docker 工作区不可访问 |
 | 相机 / 标定 | 计划中 | 已添加 `link4 → camera` 坐标系；外参和内参**均未测量** |
-| 视觉抓取 | 计划中 | 尚无 fiducial / 标定 / 抓取流水线 |
+| 视觉抓取 | 进行中 | 感知与抓取搜索已分别实现；无真实相机、标定或执行 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | 仅 G1-**Mock** | 41 个后端测试通过；前端可构建；E7 网关未实现 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
@@ -47,12 +48,14 @@ docs/
 evidence/
 ├── m2_2_v2/               # M2.2 bag（已 gitignore）、CSV、报告、快照
 ├── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
-└── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
+├── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
+└── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
 ros2_ws/src/
 ├── arm_basics/            # 学习节点（历史遗留）
 ├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
 ├── arm_interfaces/        # 自定义 action
 ├── arm_moveit_demo/       # Panda 抓取放置演示
+├── armpi_fiducial_localizer/  # AprilTag/ArUco 目标定位
 ├── armpi_grasp_planner/   # 5-DoF 候选生成 + MoveIt 筛选
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（mock_components）
@@ -128,6 +131,28 @@ ros2 run armpi_grasp_planner grasp_candidate_check \
 [`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
 和 [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/)。
 
+### Fiducial 目标定位（合成相机）
+
+```bash
+# 合成精度检查：5 个已知位姿，输出 JSON + 叠加图
+ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
+  --output-dir evidence/fiducial/20261116
+
+# 节点级检查：合成图像流（无真实相机）
+ros2 run armpi_fiducial_localizer fiducial_localizer --ros-args \
+  -p image_topic:=/image_raw -p camera_info_topic:=/camera_info \
+  -p marker_size_m:=0.06 -p output_frame:=base_link
+
+ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
+  --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
+```
+
+AprilTag 36h11 检测器默认在相机光学坐标系发布 `target_pose`，设置
+`output_frame:=base_link` 后经 TF 转换。合成结果：5/5 检测，最大
+1.82 mm / 1.49°；ROS TF 检查：0.44 mm / 0.03°。详见
+[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)
+和 [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/)。
+
 ### M2.2 控制器配置（Gazebo，2-DOF `simple_arm`）
 
 ```bash
@@ -179,6 +204,10 @@ npm install && npm run dev
   流形，因此大多数笛卡尔姿态邻域都会 IK 失败。对目标点请使用关节空间采样
   （`--sampler joint`）；结果中的 `target_offset_m` 给出候选与目标点的残余偏差。
   TCP 偏置为标称值，所有结果均为仅规划。
+- **Fiducial 定位仅完成合成验证。** AprilTag 检测器使用打印边长
+  （`marker_size_m`，默认 0.06 m）和相机 `CameraInfo`。真实内参、
+  `link4 → camera` 外参、光照和镜头畸变均未测量；不要把合成精度当作真实
+  相机计量结果。
 - **已移除过期 URDF。** 厂商预生成的 `armpi_ultra.urdf`（joint1 和 r_joint
   为 `fixed`）已归档到 `docs/archive/armpi_ultra.urdf.stale`；只使用 xacro。
 - **无硬件。** 没有 `/dev/rrc`、没有相机、没有底盘、没有真实运动。
@@ -191,6 +220,8 @@ npm install && npm run dev
   Phase 0 约束规划证据。
 - `evidence/armpi_grasp/` — 抓取候选搜索 JSON 与无头 MoveIt 日志
   （Mock，仅规划）。
+- `evidence/fiducial/` — 合成标记精度 JSON/叠加图与 ROS 定位器/TF 集成日志
+  （无真实相机）。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
 
 永远不要把 Mock/Gazebo 结果当作硬件验证。
@@ -201,6 +232,7 @@ npm install && npm run dev
 - [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 检查清单、证据和剩余缺口。
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
 - [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
+- [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、合成精度与 ROS 集成。
 - [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态、合并计划、待决事项。
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
 - [G0 厂商审计](docs/armpi/g0/README.md)

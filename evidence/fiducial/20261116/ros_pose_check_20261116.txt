@@ -1,0 +1,1 @@
+POSE_CHECK frame=base_link dt=0.440mm dr=0.031deg RESULT PASS

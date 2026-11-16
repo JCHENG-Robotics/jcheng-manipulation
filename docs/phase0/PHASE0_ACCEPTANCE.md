@@ -92,7 +92,8 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
 | Phase 0 constrained planning | Complete for endpoint-constrained PTP; candidate search is Phase 2 | — |
 | Phase 1 hardware baseline | **Not started**; templates exist in `docs/hardware/` | No robot connection; container workspace not exported (D-06) |
 | Phase 2 grasp candidate search | **Implemented, mock-validated** (2026-11-16) | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; plan-only, no camera target |
-| Phase 2 calibration + visual grasp | **Not started** | Hardware + camera |
+| Phase 2 fiducial localization | **Implemented, synthetic-validated** (2026-11-16) | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; no real camera |
+| Phase 2 calibration + real visual grasp | **Not started** | Hardware + camera |
 | Phase 3 Error Budget v1 | **Not started** | Hardware measurements |
 | Bonus mobile base | **Not started** | Hardware purchase deadline 2027-01-31 |
 

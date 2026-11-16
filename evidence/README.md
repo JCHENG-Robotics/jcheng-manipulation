@@ -23,6 +23,22 @@ and M70q copies as backups.
 - `armpi_plan2.log`, `armpi_plan2_result.log` (joint-space plan, `error_code=1`)
 - `MOVEIT_SMOKE_20261115.md`
 
+## `armpi_grasp/` — 5-DoF grasp candidate search (mock, plan-only)
+
+- `20261116/cartesian_exact_fk.json` — exact-FK Cartesian control
+- `20261116/joint_sampler.json` — joint-space sampler run (`PLAN_OK` entries)
+- `20261116/unreachable.json` — zero-candidate negative control
+- `20261116/moveit_headless_20261116.log` — headless MoveIt log
+- `20261116/README.md` — commands, results and limitations
+
+## `fiducial/` — synthetic fiducial localization (no real camera)
+
+- `20261116/synthetic_pose_accuracy.json` — five known poses and errors
+- `20261116/synthetic_pose_XX_overlay.png`, `synthetic_contact_sheet.png`
+- `20261116/ros_camera_frame_check.json`, `ros_base_link_check.json`
+- ROS localizer, publisher and static-TF logs
+- `20261116/README.md` — commands, results and limitations
+
 ## Rules
 
 1. Do not edit raw logs/bags; add a new dated report instead.

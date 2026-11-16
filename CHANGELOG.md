@@ -3,6 +3,42 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-16 Fiducial target localization
+
+### Added
+
+- `ros2_ws/src/armpi_fiducial_localizer/` — AprilTag/ArUco 36h11 detection
+  and 6D pose estimation:
+  - `detector.py`: `cv2.aruco` detection, `solvePnP(IPPE_SQUARE)`, reprojection
+    filtering and quaternion output, OpenCV 4.6/4.7-compatible API selection;
+  - `node.py`: image + `CameraInfo` → `target_pose` (`PoseStamped`), optional
+    TF transform to `base_link`;
+  - `synthetic.py` / `synthetic_publisher.py`: hardware-free marker rendering
+    and ROS image stream;
+  - `cli.py`: synthetic accuracy check with JSON and overlay images.
+- `launch/fiducial_localizer.launch.py`.
+- `tools/phase2/fiducial_ros_check.py` — one-shot pose comparison for ROS
+  integration checks.
+- `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md` and updated Phase 2 index.
+- `evidence/fiducial/20261116/` — synthetic accuracy, ROS camera-frame and
+  `base_link` checks, node/publisher/TF logs, overlay images.
+
+### Verified (synthetic only)
+
+- 5/5 synthetic poses detected; max translation 1.82 mm, mean 0.67 mm; max
+  rotation 1.49°, mean 0.64°; max reprojection 0.32 px.
+- ROS node + static TF: `camera_optical_frame` and `base_link` checks both
+  passed with 0.44 mm position error and 0.03° angle error.
+- `armpi_fiducial_localizer`: 11 tests pass; flake8 and PEP 257 pass.
+
+### Known limitations
+
+- No real camera, lens, lighting, intrinsics or `link4 → camera` extrinsic.
+  Synthetic accuracy is not real camera metrology.
+- `marker_size_m` must match the printed marker edge length.
+- Single marker, single frame, no temporal filtering or occlusion handling.
+- The published pose is the marker centre, not an object grasp-point offset.
+
 ## [Unreleased] — 2026-11-16 Phase 2 grasp candidate search
 
 ### Added

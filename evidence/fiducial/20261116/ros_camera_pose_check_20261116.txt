@@ -1,0 +1,1 @@
+POSE_CHECK frame=camera_optical_frame dt=0.440mm dr=0.031deg RESULT PASS

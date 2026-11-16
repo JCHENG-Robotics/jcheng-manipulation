@@ -28,10 +28,11 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | ArmPi URDF / TF | Implemented, model-checked | `xacro` + `check_urdf`; single root; camera frames; **limits provisional** |
 | ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` plan success (mock) |
 | ArmPi constrained grasp | Implemented, mock-validated | 5-DoF grasp search: 80 joint-space candidates → 40 IK OK → 26 collision-free → 3 Pilz `PTP` plans; plan-only |
+| Fiducial target localization | Implemented, synthetic-validated | AprilTag 36h11; 5/5 synthetic poses, max 1.82 mm / 1.49°; ROS TF check 0.44 mm / 0.03° |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Not validated** | no serial device, no robot connection, Docker workspace inaccessible |
 | Camera / calibration | Planned | `link4 → camera` frames added; extrinsic and intrinsics **not measured** |
-| Visual grasping | Planned | no fiducial/calibration/grasp pipeline |
+| Visual grasping | In progress | perception and grasp search implemented separately; no real camera, calibration or execution |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-**Mock** only | 41 backend tests pass; frontend builds; E7 gateway not implemented |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
@@ -54,12 +55,14 @@ docs/
 evidence/
 ├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
 ├── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
-└── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
+├── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
+└── fiducial/              # synthetic fiducial detection + ROS TF evidence
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
 ├── arm_interfaces/        # custom action
 ├── arm_moveit_demo/       # Panda pick-and-place demo
+├── armpi_fiducial_localizer/  # AprilTag/ArUco target localization
 ├── armpi_grasp_planner/   # 5-DoF candidate generation + MoveIt screening
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock_components)
@@ -136,6 +139,28 @@ plan-only Pilz `PTP`. It never executes. On 2026-11-16 the joint sampler produce
 [`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
 and [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/).
 
+### Fiducial target localization (synthetic camera)
+
+```bash
+# synthetic accuracy check: 5 known poses, JSON + overlays
+ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
+  --output-dir evidence/fiducial/20261116
+
+# node-level check with a synthetic image stream (no camera)
+ros2 run armpi_fiducial_localizer fiducial_localizer --ros-args \
+  -p image_topic:=/image_raw -p camera_info_topic:=/camera_info \
+  -p marker_size_m:=0.06 -p output_frame:=base_link
+
+ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
+  --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
+```
+
+The AprilTag 36h11 detector publishes `target_pose` in the camera optical frame
+by default, or in `base_link` after TF. Synthetic results: 5/5 detected, max
+1.82 mm / 1.49°; ROS TF check: 0.44 mm / 0.03°. See
+[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)
+and [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/).
+
 ### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
 ```bash
@@ -190,6 +215,11 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
   neighbours fail IK. Use the joint-space sampler (`--sampler joint`) for a
   target point; it reports the residual `target_offset_m` for each candidate.
   The TCP offset is nominal and all plans are plan-only.
+- **Fiducial localization is synthetic-validated only.** The AprilTag detector
+  uses a printed edge length (`marker_size_m`, default 0.06 m) and the camera
+  `CameraInfo`. The real intrinsics, the `link4 → camera` extrinsic, lighting and
+  lens distortion are unmeasured; do not treat the synthetic accuracy as real
+  camera metrology.
 - **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
   r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
   xacro only.
@@ -203,6 +233,8 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
   Phase 0 constrained-plan evidence.
 - `evidence/armpi_grasp/` — grasp candidate search JSON and headless MoveIt log
   (mock, plan-only).
+- `evidence/fiducial/` — synthetic marker accuracy JSON/overlays and the ROS
+  localizer/TF integration logs (no real camera).
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
@@ -216,6 +248,8 @@ Never present Mock/Gazebo results as hardware validation.
   and grasp policy.
 - [Phase 2 grasp search](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — candidate
   generation, screening pipeline, mock results and limitations.
+- [Phase 2 fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
+  AprilTag detection, pose convention, synthetic accuracy and ROS integration.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
   status, merge plan, open decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
