@@ -16,7 +16,7 @@ the 16 GB vendor tree.
 > [`docs/weekly-log/`](docs/weekly-log/). The old roadmap is at
 > [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md).
 
-## Status (2026-11-15)
+## Status (2026-11-16)
 
 Status convention: **Implemented / Validated / In Progress / Planned**. Vendor
 functionality is marked separately. `Validated` means there is a command, log or
@@ -27,7 +27,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Panda learning demo | Implemented, simulation-validated | `panda-baseline-v1` tag; `docs/archive/README_8WEEK.md`; weekly logs |
 | ArmPi URDF / TF | Implemented, model-checked | `xacro` + `check_urdf`; single root; camera frames; **limits provisional** |
 | ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` plan success (mock) |
-| ArmPi constrained grasp | In progress | Constrained-goal planning primitive verified; 5-DoF grasp candidate search is Phase 2 |
+| ArmPi constrained grasp | Implemented, mock-validated | 5-DoF grasp search: 80 joint-space candidates → 40 IK OK → 26 collision-free → 3 Pilz `PTP` plans; plan-only |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Not validated** | no serial device, no robot connection, Docker workspace inaccessible |
 | Camera / calibration | Planned | `link4 → camera` frames added; extrinsic and intrinsics **not measured** |
@@ -48,16 +48,19 @@ docs/
 ├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
 ├── hardware/              # hardware baseline templates ([U] until measured)
 ├── phase0/                # Phase 0 acceptance, 5-DoF constraints, historical audits
+├── phase2/                # grasp candidate search; calibration/grasping prep
 ├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
 └── weekly-log/            # 8-week learning record
 evidence/
 ├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
-└── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
+├── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
+└── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
 ├── arm_interfaces/        # custom action
 ├── arm_moveit_demo/       # Panda pick-and-place demo
+├── armpi_grasp_planner/   # 5-DoF candidate generation + MoveIt screening
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock_components)
 ```
@@ -108,6 +111,31 @@ returns `error_code=1 (SUCCESS)` with a non-zero trajectory point count. See
 > **Do not treat this as hardware validation.** `mock_components` is a fake
 > system; `joint_states` semantics, limits, camera and gripper are unmeasured.
 
+### 5-DoF grasp candidate search (mock, plan-only)
+
+With the headless MoveIt mock above still running:
+
+```bash
+# positive control: an FK-exact Cartesian candidate
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-joints 0.3 0.9 -1.8 -1.7 0.4 --max-plan 3 --json-out /tmp/grasp_cartesian.json
+
+# practical search: joint-space sampler around a target point
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-point 0.1382 0.0225 0.0896 --sampler joint \
+  --max-plan 3 --json-out /tmp/grasp_joint.json
+
+# negative control: unreachable point (expects exit 1)
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-point 0.60 0.0 0.30 --sampler joint --json-out /tmp/grasp_unreachable.json
+```
+
+The pipeline is sanity → full-pose IK → FK verification → collision validity →
+plan-only Pilz `PTP`. It never executes. On 2026-11-16 the joint sampler produced
+80 candidates → 40 IK OK → 26 collision-free → 3 plans. See
+[`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
+and [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/).
+
 ### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
 ```bash
@@ -157,6 +185,11 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
   with KDL even though `/compute_ik` solves it; `LIN` fails because a
   fixed-orientation straight line leaves the 5-DoF reachable set. Details are in
   the Phase 0 acceptance document.
+- **Grasp search is reachable-set based.** At a fixed tool point the reachable
+  orientations form a thin 5-DoF manifold, so most Cartesian orientation
+  neighbours fail IK. Use the joint-space sampler (`--sampler joint`) for a
+  target point; it reports the residual `target_offset_m` for each candidate.
+  The TCP offset is nominal and all plans are plan-only.
 - **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
   r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
   xacro only.
@@ -168,6 +201,8 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
   Gate 2 reports. `*.mcap` is gitignored; keep a local/remote backup.
 - `evidence/armpi_moveit/` — expanded URDF, `check_urdf`, MoveIt logs and the
   Phase 0 constrained-plan evidence.
+- `evidence/armpi_grasp/` — grasp candidate search JSON and headless MoveIt log
+  (mock, plan-only).
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
@@ -179,6 +214,8 @@ Never present Mock/Gazebo results as hardware validation.
   and remaining gaps.
 - [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space limits
   and grasp policy.
+- [Phase 2 grasp search](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — candidate
+  generation, screening pipeline, mock results and limitations.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
   status, merge plan, open decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)

@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-16 Phase 2 grasp candidate search
+
+### Added
+
+- `ros2_ws/src/armpi_grasp_planner/` — 5-DoF grasp candidate generation and
+  MoveIt 2 screening:
+  - Cartesian candidate family (pitch, approach yaw, roll, stand-off) with an
+    exact-FK positive-control mode;
+  - joint-space reachability sampler (PyKDL + URDF) that keeps FK-consistent
+    poses near a target point and can refine them to the exact target;
+  - staged pipeline: policy sanity → full-pose IK → FK verification →
+    state validity → plan-only Pilz `PTP`;
+  - `grasp_candidate_check` CLI and JSON report.
+- `docs/phase2/GRASP_CANDIDATE_SEARCH.md` and `docs/phase2/README.md`.
+- `evidence/armpi_grasp/20261116/` — Cartesian control, joint-sampler run,
+  unreachable negative control, and the headless MoveIt log.
+
+### Verified (mock only)
+
+- Cartesian exact-FK control: 54 candidates, the FK-exact candidate returned
+  `PLAN_OK` with 48 trajectory points; the ±10–15° neighbours failed IK.
+- Joint sampler at `(0.1382, 0.0225, 0.0896)`: 80 candidates → 40 IK OK →
+  40 FK OK → 26 collision-free → 3 `PLAN_OK`.
+- Unreachable point `(0.60, 0.0, 0.30)`: 0 candidates, exit 1.
+- `armpi_grasp_planner`: 15 tests pass; flake8 and PEP 257 pass.
+- Local KDL FK matches MoveIt `/compute_fk` to 0.0 mm per link at the checked
+  configuration.
+
+### Known limitations
+
+- No hardware, camera, scene objects or execution. Collision checking is
+  self-collision only.
+- TCP offset and joint limits are provisional.
+- The joint sampler's target point is model-generated, not camera-generated;
+  this is not visual grasping.
+- The best plan (`js_0243`) sits on `joint5 = -2.09 rad`, a joint limit; limit
+  behaviour is unmeasured.
+
 ## [Unreleased] — 2026-11-16 Phase 0 acceptance
 
 ### Added

@@ -13,6 +13,7 @@
 |---|---|---|
 | Robot model and TF | **Implemented, model-checked** | 17 links, 16 joints, single root; camera optical frame; provisional limits |
 | MoveIt 2 constrained planning | **Implemented, mock-validated** | Pilz `PTP` 6D-constrained goal on `gripper_link`; plan-only |
+| 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **Planned** | No robot connection; templates in `docs/hardware/` |
 | Calibration and visual grasping | **Planned** | Requires hardware and camera |
@@ -20,6 +21,8 @@
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
 Phase 0 is complete for the simulation/mock scope. No item is hardware-validated.
+The Phase 2 grasp-candidate search is implemented and mock-validated; calibration,
+visual grasping and execution still require hardware.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal

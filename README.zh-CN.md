@@ -11,7 +11,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 > [`docs/weekly-log/`](docs/weekly-log/)。旧路线图位于
 > [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md)。
 
-## 状态（2026-11-15）
+## 状态（2026-11-16）
 
 状态约定：**已实现 / 已验证 / 进行中 / 计划中**。厂商功能单独标注。`已验证` 表示 `evidence/` 中存在命令、日志或数据文件；它**不**代表已完成硬件验证。
 
@@ -20,7 +20,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | Panda 学习演示 | 已实现，仿真验证 | `panda-baseline-v1` tag；`docs/archive/README_8WEEK.md`；每周日志 |
 | ArmPi URDF / TF | 已实现，模型检查通过 | `xacro` + `check_urdf`；单一根节点；相机坐标系；**关节限位为暂定值** |
 | ArmPi MoveIt 2 | 已实现，Mock 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP` 规划成功（Mock） |
-| ArmPi 约束抓取 | 进行中 | 约束目标规划原语已验证；5-DoF 抓取候选搜索属于 Phase 2 |
+| ArmPi 约束抓取 | 已实现，Mock 验证 | 5-DoF 抓取搜索：80 个关节空间候选 → 40 个 IK 成功 → 26 个无碰撞 → 3 条 Pilz `PTP` 规划；仅规划 |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **未验证** | 无串口设备、未连接机器人、Docker 工作区不可访问 |
 | 相机 / 标定 | 计划中 | 已添加 `link4 → camera` 坐标系；外参和内参**均未测量** |
@@ -41,16 +41,19 @@ docs/
 ├── audit/2026-11-15/      # 源码清单、变更核对、状态、合并计划
 ├── hardware/              # 硬件基线模板（测量前标记为 [U]）
 ├── phase0/                # Phase 0 验收、5-DoF 约束、历史审计
+├── phase2/                # 抓取候选搜索；标定/视觉抓取准备
 ├── archive/               # 旧 README/ROADMAP、过期 URDF、Phase II 分支说明
 └── weekly-log/            # 8 周学习记录
 evidence/
 ├── m2_2_v2/               # M2.2 bag（已 gitignore）、CSV、报告、快照
-└── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
+├── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
+└── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
 ros2_ws/src/
 ├── arm_basics/            # 学习节点（历史遗留）
 ├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
 ├── arm_interfaces/        # 自定义 action
 ├── arm_moveit_demo/       # Panda 抓取放置演示
+├── armpi_grasp_planner/   # 5-DoF 候选生成 + MoveIt 筛选
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（mock_components）
 ```
@@ -100,6 +103,31 @@ python3 tools/phase0/constrained_plan_check.py \
 > **不要把这当作硬件验证。** `mock_components` 是仿真系统；`joint_states`
 > 语义、限位、相机和夹爪均未测量。
 
+### 5-DoF 抓取候选搜索（Mock，仅规划）
+
+保持上面的无头 MoveIt Mock 运行，另开终端：
+
+```bash
+# 正例：FK 精确的笛卡尔候选
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-joints 0.3 0.9 -1.8 -1.7 0.4 --max-plan 3 --json-out /tmp/grasp_cartesian.json
+
+# 实用搜索：目标点周围的关节空间采样
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-point 0.1382 0.0225 0.0896 --sampler joint \
+  --max-plan 3 --json-out /tmp/grasp_joint.json
+
+# 负例：不可达点（预期退出码 1）
+ros2 run armpi_grasp_planner grasp_candidate_check \
+  --target-point 0.60 0.0 0.30 --sampler joint --json-out /tmp/grasp_unreachable.json
+```
+
+流程为：策略检查 → 全位姿 IK → FK 校验 → 碰撞检查 → 仅规划的 Pilz `PTP`。
+不会执行任何轨迹。2026-11-16 的关节采样结果为 80 个候选 → 40 个 IK 成功 →
+26 个无碰撞 → 3 条规划成功。详见
+[`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
+和 [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/)。
+
 ### M2.2 控制器配置（Gazebo，2-DOF `simple_arm`）
 
 ```bash
@@ -147,6 +175,10 @@ npm install && npm run dev
 - **约束目标使用 Pilz `PTP`。** 即使 `/compute_ik` 能求解，OMPL 的目标采样器
   在 KDL 下仍无法处理该 6D 目标；`LIN` 失败，因为固定姿态的直线会离开
   5-DoF 可达集。细节见 Phase 0 验收文档。
+- **抓取搜索基于可达集。** 在固定工具点处，可达姿态构成一个很薄的 5-DoF
+  流形，因此大多数笛卡尔姿态邻域都会 IK 失败。对目标点请使用关节空间采样
+  （`--sampler joint`）；结果中的 `target_offset_m` 给出候选与目标点的残余偏差。
+  TCP 偏置为标称值，所有结果均为仅规划。
 - **已移除过期 URDF。** 厂商预生成的 `armpi_ultra.urdf`（joint1 和 r_joint
   为 `fixed`）已归档到 `docs/archive/armpi_ultra.urdf.stale`；只使用 xacro。
 - **无硬件。** 没有 `/dev/rrc`、没有相机、没有底盘、没有真实运动。
@@ -157,6 +189,8 @@ npm install && npm run dev
   `*.mcap` 已 gitignore；请保留本地/远程备份。
 - `evidence/armpi_moveit/` — 展开后的 URDF、`check_urdf`、MoveIt 日志和
   Phase 0 约束规划证据。
+- `evidence/armpi_grasp/` — 抓取候选搜索 JSON 与无头 MoveIt 日志
+  （Mock，仅规划）。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
 
 永远不要把 Mock/Gazebo 结果当作硬件验证。
@@ -166,6 +200,7 @@ npm install && npm run dev
 - [技术路线图](ROADMAP.md) — 包含当前状态的公开技术路线图。
 - [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 检查清单、证据和剩余缺口。
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
+- [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
 - [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态、合并计划、待决事项。
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
 - [G0 厂商审计](docs/armpi/g0/README.md)

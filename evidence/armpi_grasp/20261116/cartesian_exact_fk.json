@@ -1,0 +1,5218 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-16T05:56:40.814368+00:00",
+  "success": true,
+  "target": {
+    "mode": "fk_joints",
+    "joints": [
+      0.3,
+      0.9,
+      -1.8,
+      -1.7,
+      0.4
+    ],
+    "point": [
+      0.13820355409984267,
+      0.02253270006845913,
+      0.08955004915475873
+    ],
+    "decomposition": {
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117088,
+      "roll_deg": -22.34784980666626
+    },
+    "tcp_pose": {
+      "position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "orientation": [
+        -0.33200007818185306,
+        0.9050514791571388,
+        -0.010219342472785062,
+        0.265618774189895
+      ]
+    }
+  },
+  "frame": "base_link",
+  "tool_link": "gripper_link",
+  "tcp_link": "end_effector_link",
+  "parameters": {
+    "sampler": "cartesian",
+    "pitches_deg": [
+      20.83080611268874,
+      30.83080611268874,
+      40.83080611268874
+    ],
+    "approach_yaws_deg": [
+      2.941259589117095,
+      17.941259589117095,
+      32.941259589117095
+    ],
+    "rolls_deg": [
+      -37.34784980666626,
+      -22.34784980666626,
+      -7.347849806666261
+    ],
+    "standoffs_m": [
+      0.0,
+      0.03
+    ],
+    "tcp_offset_m": 0.0745612,
+    "max_pitch_deg": 75.0,
+    "sampling_radius_m": 0.02,
+    "position_step_rad": 0.2,
+    "roll_step_rad": 0.3,
+    "max_sampled": 80,
+    "include_refined": true,
+    "urdf": null,
+    "object_width_m": null,
+    "gripper_max_opening_m": null,
+    "max_plan": 3,
+    "ik_timeout_s": 0.2,
+    "seeds": [
+      [
+        0.0,
+        0.7309,
+        -1.6127,
+        -1.6591,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.6,
+        -1.2,
+        -0.6,
+        0.5
+      ]
+    ],
+    "pipeline": "pilz_industrial_motion_planner",
+    "planner": "PTP"
+  },
+  "exact_fk_candidate_found": true,
+  "counts": {
+    "generated": 54,
+    "sanity_ok": 54,
+    "ik_ok": 1,
+    "fk_ok": 1,
+    "collision_ok": 1,
+    "plan_attempted": 1,
+    "plan_ok": 1,
+    "duplicates_skipped": 0,
+    "evaluator_errors": 0
+  },
+  "best": {
+    "candidate_id": "p030.83_a+017.94_r-022.35_s000",
+    "status": "PLAN_OK",
+    "is_exact_fk": true,
+    "ik_joints": [
+      0.30000000026099705,
+      0.9000000141587665,
+      -1.8000000225811195,
+      -1.699999997479423,
+      0.39999999980027184
+    ],
+    "plan": {
+      "ok": true,
+      "error_code": 1,
+      "error_name": "SUCCESS",
+      "trajectory_points": 48,
+      "planning_time_s": 0.000912413
+    }
+  },
+  "candidates": [
+    {
+      "candidate_id": "p030.83_a+017.94_r-022.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": true,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10184878246294936,
+        0.010761511256597045,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.33200007818185323,
+        0.9050514791571389,
+        -0.01021934247278506,
+        0.2656187741898946
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            0.30000000026099705,
+            0.9000000141587665,
+            -1.8000000225811195,
+            -1.699999997479423,
+            0.39999999980027184
+          ],
+          "elapsed_s": 0.0012206250103190541,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          0.30000000026099705,
+          0.9000000141587665,
+          -1.8000000225811195,
+          -1.699999997479423,
+          0.39999999980027184
+        ],
+        "elapsed_s": 0.0012206250103190541,
+        "seed_index": 0,
+        "seed_kind": "default",
+        "seed": [
+          0.0,
+          0.7309,
+          -1.6127,
+          -1.6591,
+          0.0
+        ]
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 2.0623863246724915e-09,
+        "orientation_error_deg": 3.3809210669525427e-07,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": true,
+        "error_code": 1,
+        "error_name": "SUCCESS",
+        "trajectory_points": 48,
+        "planning_time_s": 0.000912413
+      },
+      "status": "PLAN_OK"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-007.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11172380898533554,
+        0.021172175934515963,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.08819133594255489,
+        0.9795609190160596,
+        -0.006950273919820627,
+        0.18064990421674645
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10303630799171515,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10574560999521054,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10126917099114507,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-007.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11297821397737456,
+        0.014365072325098987,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.21529520364467805,
+        0.9596693602936985,
+        0.016688730759382382,
+        0.18001161203300484
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10536448398488574,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10217795299831778,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10680825301096775,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-007.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11595168421191421,
+        0.008114579048748965,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460987,
+        0.04004218662830206,
+        0.1762932712587308
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10396031502750702,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10207311998237856,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10199769100290723,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-022.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11172380898533554,
+        0.021172175934515963,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.21529520364467802,
+        0.9596693602936985,
+        -0.030470357485275528,
+        0.1781972264537238
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10192414800985716,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1060911170206964,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10168019001139328,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-022.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11297821397737456,
+        0.014365072325098987,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460987,
+        -0.006950273919820634,
+        0.18064990421674643
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10143029599566944,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10092107998207211,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10077818401623517,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-022.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11595168421191421,
+        0.008114579048748965,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.4563399049219208,
+        0.8712469207835241,
+        0.016688730759382386,
+        0.18001161203300484
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10574567900039256,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1047191449906677,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10541281398036517,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-037.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11172380898533554,
+        0.021172175934515963,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460989,
+        -0.053469084786178254,
+        0.17269554474047294
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10227328600012697,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10529513098299503,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1059799279901199,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-037.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11297821397737456,
+        0.014365072325098987,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.45633990492192084,
+        0.871246920783524,
+        -0.03047035748527553,
+        0.17819722645372377
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10170254000695422,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10305740000330843,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10355460300343111,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-037.35_s000",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.11595168421191421,
+        0.008114579048748965,
+        0.15923752735702756
+      ],
+      "gripper_orientation": [
+        -0.5661563968279699,
+        0.8042289724510613,
+        -0.0069502739198206275,
+        0.18064990421674645
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1010952650103718,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10497665201546624,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10135249199811369,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-007.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.1000409334189185,
+        0.020571912068937544,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.08644289024176723,
+        0.9601405410479924,
+        -0.010219342472785059,
+        0.26561877418989466
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10163339599967003,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10643976699793711,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10407178199966438,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+017.94_r-007.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10184878246294936,
+        0.010761511256597045,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.211026848151595,
+        0.9406433443109484,
+        0.02453829259590279,
+        0.26468026061494676
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10510145901935175,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10172921902267262,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10410970501834527,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-007.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10613414911493374,
+        0.0017532975089756785,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.3320000781818533,
+        0.9050514791571389,
+        0.058876070674974745,
+        0.2592129943976453
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10428878001403064,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10321119101718068,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10276078199967742,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-022.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.1000409334189185,
+        0.020571912068937544,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.21102684815159506,
+        0.9406433443109484,
+        -0.04480212175842655,
+        0.2620124768950163
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10115630700602196,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10408037199522369,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10439109799335711,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-022.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10613414911493374,
+        0.0017532975089756785,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.44729269482660844,
+        0.8539739322672749,
+        0.024538292595902803,
+        0.2646802606149468
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1047430299804546,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1055700269935187,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10218556498875841,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-037.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.1000409334189185,
+        0.020571912068937544,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.33200007818185323,
+        0.9050514791571389,
+        -0.0786183243192865,
+        0.25392307347688153
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10306459199637175,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10470482698292471,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10561828699428588,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+017.94_r-037.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10184878246294936,
+        0.010761511256597045,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.4472926948266085,
+        0.8539739322672749,
+        -0.04480212175842655,
+        0.2620124768950162
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10630294599104673,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1036235360079445,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10330352201708592,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-037.35_s000",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.10613414911493374,
+        0.0017532975089756785,
+        0.15357459318769057
+      ],
+      "gripper_orientation": [
+        -0.5549320094499166,
+        0.7882846546300133,
+        -0.010219342472785038,
+        0.26561877418989466
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10094335899339058,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10484625599929132,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10569762799423188,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-007.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08951760977067347,
+        0.020031225754517983,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.08403656195059556,
+        0.9334129138138403,
+        -0.013410635658923895,
+        0.34856612490645683
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10210824897512794,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10500228198361583,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1045041719917208,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-007.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09182397228830906,
+        0.00751561180363459,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.20515245092258363,
+        0.9144584645020116,
+        0.03220110320914221,
+        0.3473345325952981
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.105826066021109,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10109575401293114,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10088979001739062,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-007.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09729102666051778,
+        -0.003976612398912758,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.3227581245802812,
+        0.8798573773267686,
+        0.07726187227346744,
+        0.34015995013210837
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10084341498441063,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10547434299951419,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10302136099198833,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-022.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08951760977067347,
+        0.020031225754517983,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.20515245092258363,
+        0.9144584645020117,
+        -0.05879291483273518,
+        0.3438336541796786
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10279248902224936,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10322236499632709,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10087365601793863,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-022.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09182397228830906,
+        0.00751561180363459,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.3227581245802812,
+        0.8798573773267686,
+        -0.013410635658923899,
+        0.3485661249064568
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10081415102467872,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10456779698142782,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1007172109966632,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-022.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09729102666051778,
+        -0.003976612398912758,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.43484131724095215,
+        0.8302016864829134,
+        0.03220110320914222,
+        0.3473345325952981
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10675447300309315,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10467165199224837,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10092694501508959,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-037.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08951760977067347,
+        0.020031225754517983,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.32275812458028114,
+        0.8798573773267686,
+        -0.10316923093328284,
+        0.3332180943011873
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10499131699907593,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10507512700860389,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10213457900681533,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-037.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09182397228830906,
+        0.00751561180363459,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.43484131724095215,
+        0.8302016864829134,
+        -0.05879291483273518,
+        0.3438336541796786
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10247422000975348,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10138755099615082,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10074654399068095,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-037.35_s000",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.13820355409984267,
+        0.02253270006845913,
+        0.08955004915475873
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.09729102666051778,
+        -0.003976612398912758,
+        0.14596630564589547
+      ],
+      "gripper_orientation": [
+        -0.5394842544028406,
+        0.7663410146079427,
+        -0.013410635658923892,
+        0.34856612490645683
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1034807089890819,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10544668498914689,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10570901099708863,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-007.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12754932169163016,
+        0.021985287687511734,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10106957657712304,
+        0.020624763553568567,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.08819133594255489,
+        0.9795609190160596,
+        -0.006950273919820627,
+        0.18064990421674645
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10470342898042873,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10591504399781115,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10507121498812921,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-007.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12805403660717835,
+        0.019246422053877763,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10282869648471024,
+        0.01107879431051762,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.21529520364467805,
+        0.9596693602936985,
+        0.016688730759382382,
+        0.18001161203300484
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1030886179942172,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10275421501137316,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10611835302552208,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-007.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1292504243669809,
+        0.01673151083610631,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10699855447905243,
+        0.002313389816396146,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460987,
+        0.04004218662830206,
+        0.1762932712587308
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10150488599902019,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10251856900868006,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10442880998016335,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-022.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12754932169163016,
+        0.021985287687511734,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10106957657712304,
+        0.020624763553568567,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.21529520364467802,
+        0.9596693602936985,
+        -0.030470357485275528,
+        0.1781972264537238
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10157123499084264,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10310335300164297,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10107710401643999,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-022.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12805403660717835,
+        0.019246422053877763,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10282869648471024,
+        0.01107879431051762,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460987,
+        -0.006950273919820634,
+        0.18064990421674643
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10405348101630807,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.105139171006158,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10211711798910983,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-022.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1292504243669809,
+        0.01673151083610631,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10699855447905243,
+        0.002313389816396146,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.4563399049219208,
+        0.8712469207835241,
+        0.016688730759382386,
+        0.18001161203300484
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10078991498448886,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10095795401139185,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10521529900142923,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+002.94_r-037.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12754932169163016,
+        0.021985287687511734,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.3551410802737499,
+        0.0182470793649132,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10106957657712304,
+        0.020624763553568567,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.3387153107213334,
+        0.9233575927460989,
+        -0.053469084786178254,
+        0.17269554474047294
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1010284939839039,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10172782000154257,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10235904902219772,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+017.94_r-037.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12805403660717835,
+        0.019246422053877763,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.33831724975547744,
+        0.10954260048604561,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10282869648471024,
+        0.01107879431051762,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.45633990492192084,
+        0.871246920783524,
+        -0.03047035748527553,
+        0.17819722645372377
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10627053800271824,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10549473500577733,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10559258301509544,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p020.83_a+032.94_r-037.35_s030",
+      "pitch_deg": 20.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1292504243669809,
+        0.01673151083610631,
+        0.11758908750269391
+      ],
+      "tool_z": [
+        0.2984376577620594,
+        0.19337297441176063,
+        -0.9346346115978396
+      ],
+      "gripper_position": [
+        0.10699855447905243,
+        0.002313389816396146,
+        0.18727656570496273
+      ],
+      "gripper_orientation": [
+        -0.5661563968279699,
+        0.8042289724510613,
+        -0.0069502739198206275,
+        0.18064990421674645
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10285290100728162,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10589506800170057,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10399118199711666,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-007.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1228486695160682,
+        0.021743769096510615,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08468604883514402,
+        0.01978298109698903,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.08644289024176723,
+        0.9601405410479924,
+        -0.010219342472785059,
+        0.26561877418989466
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10618700701161288,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.102751630009152,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10102891200222075,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+017.94_r-007.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12357606488149855,
+        0.017796514701862796,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08722129324460524,
+        0.006025325890000712,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.211026848151595,
+        0.9406433443109484,
+        0.02453829259590279,
+        0.26468026061494676
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10134522599400952,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10652364400448278,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10261020000325516,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-007.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1253002994640902,
+        0.01417202351303213,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.09323089447918126,
+        -0.006607379046451322,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.3320000781818533,
+        0.9050514791571389,
+        0.058876070674974745,
+        0.2592129943976453
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10359161600354128,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10273298202082515,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10628918497241102,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-022.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1228486695160682,
+        0.021743769096510615,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08468604883514402,
+        0.01978298109698903,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.21102684815159506,
+        0.9406433443109484,
+        -0.04480212175842655,
+        0.2620124768950163
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10508343699621037,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10292379002203234,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10172900598263368,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+017.94_r-022.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12357606488149855,
+        0.017796514701862796,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08722129324460524,
+        0.006025325890000712,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.33200007818185323,
+        0.9050514791571389,
+        -0.01021934247278506,
+        0.2656187741898946
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10262738101300783,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10590051600593142,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10331986201344989,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-022.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1253002994640902,
+        0.01417202351303213,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.09323089447918126,
+        -0.006607379046451322,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.44729269482660844,
+        0.8539739322672749,
+        0.024538292595902803,
+        0.2646802606149468
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10387566301506013,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10392727600992657,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1018915280001238,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+002.94_r-037.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1228486695160682,
+        0.021743769096510615,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.5118294861258158,
+        0.026297699064950494,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08468604883514402,
+        0.01978298109698903,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.33200007818185323,
+        0.9050514791571389,
+        -0.0786183243192865,
+        0.25392307347688153
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10404300398658961,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10149636399000883,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10399676798260771,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+017.94_r-037.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12357606488149855,
+        0.017796514701862796,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.48758297394480393,
+        0.15787284555321113,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.08722129324460524,
+        0.006025325890000712,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.4472926948266085,
+        0.8539739322672749,
+        -0.04480212175842655,
+        0.2620124768950162
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10641050001140684,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10146123199956492,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1031986869929824,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p030.83_a+032.94_r-037.35_s030",
+      "pitch_deg": 30.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1253002994640902,
+        0.01417202351303213,
+        0.11531058306499563
+      ],
+      "tool_z": [
+        0.43010848785841616,
+        0.27868921851423334,
+        -0.8586844636745634
+      ],
+      "gripper_position": [
+        0.09323089447918126,
+        -0.006607379046451322,
+        0.17933512709792748
+      ],
+      "gripper_orientation": [
+        -0.5549320094499166,
+        0.7882846546300133,
+        -0.010219342472785038,
+        0.26561877418989466
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1021680319972802,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10583304800093174,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10527312598424032,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-007.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1186145677386377,
+        0.021526221773873817,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.0699286234094685,
+        0.01902474745993267,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.08403656195059556,
+        0.9334129138138403,
+        -0.013410635658923895,
+        0.34856612490645683
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10340835200622678,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10118305298965424,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10535323500516824,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-007.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.11954254201385145,
+        0.016490513945586427,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.07316296020231784,
+        0.0014734256807618865,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.20515245092258363,
+        0.9144584645020116,
+        0.03220110320914221,
+        0.3473345325952981
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10593843899550848,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10387664000154473,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10385359197971411,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-007.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -7.347849806666261,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12174223342394493,
+        0.011866571116388124,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08082970598462004,
+        -0.014642741350983764,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.3227581245802812,
+        0.8798573773267686,
+        0.07726187227346744,
+        0.34015995013210837
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1041641790070571,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1047631419787649,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10589897900354117,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-022.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1186145677386377,
+        0.021526221773873817,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.0699286234094685,
+        0.01902474745993267,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.20515245092258363,
+        0.9144584645020117,
+        -0.05879291483273518,
+        0.3438336541796786
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1052472849842161,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1025229670049157,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10306319300434552,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-022.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.11954254201385145,
+        0.016490513945586427,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.07316296020231784,
+        0.0014734256807618865,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.3227581245802812,
+        0.8798573773267686,
+        -0.013410635658923899,
+        0.3485661249064568
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10273326002061367,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10418317597941495,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10178453000844456,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-022.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -22.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12174223342394493,
+        0.011866571116388124,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08082970598462004,
+        -0.014642741350983764,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.43484131724095215,
+        0.8302016864829134,
+        0.03220110320914222,
+        0.3473345325952981
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10669175200746395,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10138629100401886,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10630224400665611,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+002.94_r-037.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 2.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.1186145677386377,
+        0.021526221773873817,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6529662120401657,
+        0.03354927648617708,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.0699286234094685,
+        0.01902474745993267,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.32275812458028114,
+        0.8798573773267686,
+        -0.10316923093328284,
+        0.3332180943011873
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10582543499185704,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10654347800300457,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10577424100483768,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+017.94_r-037.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 17.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.11954254201385145,
+        0.016490513945586427,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.6220337361997073,
+        0.2014062040957568,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.07316296020231784,
+        0.0014734256807618865,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.43484131724095215,
+        0.8302016864829134,
+        -0.05879291483273518,
+        0.3438336541796786
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10537600298994221,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10569804298575036,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10347358300350606,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "p040.83_a+032.94_r-037.35_s030",
+      "pitch_deg": 40.83080611268874,
+      "approach_yaw_deg": 32.941259589117095,
+      "roll_deg": -37.34784980666626,
+      "standoff_m": 0.03,
+      "is_exact_fk": false,
+      "source": "cartesian",
+      "refined": false,
+      "target_offset_m": 0.0,
+      "sampled_joints": null,
+      "tcp_position": [
+        0.12174223342394493,
+        0.011866571116388124,
+        0.11224935783989393
+      ],
+      "tool_z": [
+        0.5487106891965914,
+        0.3555376317357002,
+        -0.7566436228378399
+      ],
+      "gripper_position": [
+        0.08082970598462004,
+        -0.014642741350983764,
+        0.16866561433103067
+      ],
+      "gripper_orientation": [
+        -0.5394842544028406,
+        0.7663410146079427,
+        -0.013410635658923892,
+        0.34856612490645683
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1014863750024233,
+          "seed_index": 0,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.6591,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10393963701790199,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10410306698759086,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    }
+  ]
+}

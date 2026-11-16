@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-16T05:57:19.725604+00:00",
+  "success": false,
+  "target": {
+    "mode": "point",
+    "joints": null,
+    "point": [
+      0.6,
+      0.0,
+      0.3
+    ],
+    "decomposition": null,
+    "tcp_pose": null
+  },
+  "frame": "base_link",
+  "tool_link": "gripper_link",
+  "tcp_link": "end_effector_link",
+  "parameters": {
+    "sampler": "joint",
+    "pitches_deg": [],
+    "approach_yaws_deg": [],
+    "rolls_deg": [],
+    "standoffs_m": [],
+    "tcp_offset_m": 0.0745612,
+    "max_pitch_deg": 75.0,
+    "sampling_radius_m": 0.02,
+    "position_step_rad": 0.2,
+    "roll_step_rad": 0.3,
+    "max_sampled": 80,
+    "include_refined": true,
+    "urdf": null,
+    "object_width_m": null,
+    "gripper_max_opening_m": null,
+    "max_plan": 5,
+    "ik_timeout_s": 0.2,
+    "seeds": [
+      [
+        0.0,
+        0.7309,
+        -1.6127,
+        -1.6591,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.6,
+        -1.2,
+        -0.6,
+        0.5
+      ]
+    ],
+    "pipeline": "pilz_industrial_motion_planner",
+    "planner": "PTP"
+  },
+  "exact_fk_candidate_found": false,
+  "counts": {
+    "generated": 0,
+    "sanity_ok": 0,
+    "ik_ok": 0,
+    "fk_ok": 0,
+    "collision_ok": 0,
+    "plan_attempted": 0,
+    "plan_ok": 0,
+    "duplicates_skipped": 0,
+    "evaluator_errors": 0
+  },
+  "best": null,
+  "candidates": []
+}
