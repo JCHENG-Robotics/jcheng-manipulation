@@ -6,6 +6,11 @@
 > 实际记录见 [MERGE_EXECUTION_REPORT.md](MERGE_EXECUTION_REPORT.md)。本目录的
 > `PROJECT_STATUS_AUDIT.md` 仍描述"合并前"状态，执行后的状态以该报告与
 > 根目录 `README.md` 为准。
+>
+> **工作区后续变更（2026-11-16）**：合并已提交为 `8ca4e9e`；
+> `armpi_ultra_ws_clean` 已迁到 `/home/jerichocheng/projects/armpi_ultra_ws_clean`；
+> `Projects_M70q` 只保留一个指针 README。当前路径索引见
+> `/home/jerichocheng/projects/WORKSPACE.md`。本目录正文保留审计当时的事实。
 
 | 文件 | 内容 |
 |---|---|

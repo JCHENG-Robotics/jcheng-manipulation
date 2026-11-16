@@ -1,77 +1,73 @@
-import os
-from ament_index_python.packages import get_package_share_directory
+"""Standalone ArmPi Ultra model display: robot_state_publisher + RViz."""
 
-from launch_ros.actions import Node
-from launch import LaunchDescription, LaunchService
+import os
+
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import Command, LaunchConfiguration
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription
+from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+
 
 def generate_launch_description():
-    compiled = os.environ['need_compile']
-    namespace = LaunchConfiguration('namespace', default='')
-    use_namespace = LaunchConfiguration('use_namespace', default='false')
-    frame_prefix = LaunchConfiguration('frame_prefix', default='')
-    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+    share_dir = get_package_share_directory('armpi_ultra_description')
+    xacro_file = os.path.join(share_dir, 'urdf', 'armpi_ultra.xacro')
+    rviz_config = os.path.join(share_dir, 'rviz', 'view.rviz')
 
-    frame_prefix_arg = DeclareLaunchArgument('frame_prefix', default_value=frame_prefix)
-    use_sim_time_arg = DeclareLaunchArgument('use_sim_time', default_value=use_sim_time)
-    namespace_arg = DeclareLaunchArgument('namespace', default_value=namespace)
-    use_namespace_arg = DeclareLaunchArgument('use_namespace', default_value=use_namespace)
+    use_gui = LaunchConfiguration('use_gui')
+    use_rviz = LaunchConfiguration('use_rviz')
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
-    if compiled == 'True':
-        armpi_ultra_description_package_path = get_package_share_directory('armpi_ultra_description')
-    else:
-        armpi_ultra_description_package_path = '/home/ubuntu/ros2_ws/src/simulations/armpi_ultra_description'
-    urdf_path = os.path.join(armpi_ultra_description_package_path, 'urdf/armpi_ultra.xacro')
-    rviz_config_file = os.path.join(armpi_ultra_description_package_path, 'rviz/view.rviz')
+    robot_description = {
+        'robot_description': ParameterValue(
+            Command(['xacro ', xacro_file]), value_type=str
+        )
+    }
 
-    robot_description = Command(['xacro ', urdf_path])
-
-    # 动态TF转换(dynamic TF conversion)
-    joint_state_publisher_gui_node = Node(
-        package='joint_state_publisher_gui',
-        executable='joint_state_publisher_gui',
-        output='screen',
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'use_gui',
+                default_value='true',
+                description='Use joint_state_publisher_gui instead of joint_state_publisher',
+            ),
+            DeclareLaunchArgument(
+                'use_rviz',
+                default_value='true',
+                description='Start RViz with the model view',
+            ),
+            DeclareLaunchArgument(
+                'use_sim_time',
+                default_value='false',
+                description='Use the simulation clock',
+            ),
+            Node(
+                package='robot_state_publisher',
+                executable='robot_state_publisher',
+                output='screen',
+                parameters=[robot_description, {'use_sim_time': use_sim_time}],
+            ),
+            Node(
+                package='joint_state_publisher_gui',
+                executable='joint_state_publisher_gui',
+                output='screen',
+                condition=IfCondition(use_gui),
+            ),
+            Node(
+                package='joint_state_publisher',
+                executable='joint_state_publisher',
+                output='screen',
+                condition=UnlessCondition(use_gui),
+            ),
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                name='rviz2',
+                output='screen',
+                arguments=['-d', rviz_config],
+                condition=IfCondition(use_rviz),
+            ),
+        ]
     )
-    
-    # 静态TF(static TF)
-    robot_state_publisher_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        name='robot_state_publisher',
-        parameters=[{'robot_description': robot_description, 'frame_prefix': frame_prefix, 'use_sim_time': use_sim_time}],
-        arguments=[urdf_path],
-    )
-
-    rviz_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(armpi_ultra_description_package_path, 'launch', 'rviz.launch.py')),
-            launch_arguments={
-                              'namespace': namespace,
-                              'use_namespace': use_namespace,
-                              'rviz_config': rviz_config_file}.items())
-
-    # Timer action to delay rviz_node for 5 seconds
-    delay_rviz_node = TimerAction(
-        period=5.0,
-        actions=[rviz_launch],
-    )
-
-    return LaunchDescription([
-        frame_prefix_arg,
-        use_sim_time_arg,
-        namespace_arg,
-        use_namespace_arg,
-        joint_state_publisher_gui_node,
-        robot_state_publisher_node,
-        delay_rviz_node,
-    ])
-
-if __name__ == '__main__':
-    # 创建一个LaunchDescription对象(create a LaunchDescription object)
-    ld = generate_launch_description()
-
-    ls = LaunchService()
-    ls.include_launch_description(ld)
-    ls.run()

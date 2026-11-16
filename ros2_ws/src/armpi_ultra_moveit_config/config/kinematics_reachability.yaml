@@ -1,0 +1,15 @@
+# Reachability-only IK profile for the ArmPi Ultra arm.
+#
+# This is NOT the default MoveIt kinematics file. It answers only:
+#   "can the arm reach this position?"
+# It must not be used to generate or execute a final grasp, because the tool
+# orientation is left unconstrained (MASTER_PLAN_V3 §4).
+#
+# Temporary use:
+#   cp config/kinematics_reachability.yaml config/kinematics.yaml
+# and restore config/kinematics.yaml afterwards.
+arm:
+  kinematics_solver: kdl_kinematics_plugin/KDLKinematicsPlugin
+  kinematics_solver_search_resolution: 0.005
+  kinematics_solver_timeout: 0.05
+  position_only_ik: true

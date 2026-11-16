@@ -24,8 +24,9 @@ data file in `evidence/`; it does **not** mean hardware validation.
 |---|---|---|
 | Panda learning demo | Implemented, simulation-validated | `panda-baseline-v1` tag; `docs/archive/README_8WEEK.md`; weekly logs |
 | ArmPi URDF / TF | Implemented, model-checked | `xacro` + `check_urdf`; single root; camera frames; **limits provisional** |
-| ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK loads; joint-space plan `error_code=1`; mock_components |
-| ArmPi constrained grasp | Planned | `position_only_ik` is reachability-only; no grasp planner yet |
+| ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` plan success (mock) |
+| ArmPi constrained grasp | In progress | Constrained-goal planning primitive verified; 5-DoF grasp candidate search is Phase 2 |
+| Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Not validated** | no serial device, no robot connection, Docker workspace inaccessible |
 | Camera / calibration | Planned | `link4 → camera` frames added; extrinsic and intrinsics **not measured** |
 | Visual grasping | Planned | no fiducial/calibration/grasp pipeline |
@@ -44,12 +45,12 @@ docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
 ├── hardware/              # hardware baseline templates ([U] until measured)
-├── phase0/                # JER-39 / JER-59 read-only audits
+├── phase0/                # Phase 0 acceptance, 5-DoF constraints, historical audits
 ├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
 └── weekly-log/            # 8-week learning record
 evidence/
 ├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
-└── armpi_moveit/          # model check + MoveIt smoke logs
+└── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
@@ -82,15 +83,25 @@ source ros2_ws/install/setup.bash
 xacro ros2_ws/src/armpi_ultra_description/urdf/armpi_ultra.xacro > /tmp/armpi.urdf
 check_urdf /tmp/armpi.urdf
 
+# model-only RViz (no MoveIt); use_rviz:=false for a headless check
+ros2 launch armpi_ultra_description display.launch.py
+
 # MoveIt demo: mock_components, no real hardware
+# add use_rviz:=false for a headless run
 ros2 launch armpi_ultra_moveit_config demo.launch.py \
   ros2_control_hardware_type:=mock_components \
   use_sim_time:=false use_gazebo:=false use_real:=false
+
+# constrained 6D goal on gripper_link (plan only, no execution)
+python3 tools/phase0/constrained_plan_check.py \
+  --pipeline pilz_industrial_motion_planner --planner PTP
 ```
 
 Expected: `move_group` loads, KDL IK initializes, `arm_controller` and
-`gripper_controller` are active. A joint-space `/move_action` goal is verified in
-`evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`.
+`gripper_controller` are active. The joint-space smoke test is in
+`evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`; the constrained-goal check
+returns `error_code=1 (SUCCESS)` with a non-zero trajectory point count. See
+[`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 > **Do not treat this as hardware validation.** `mock_components` is a fake
 > system; `joint_states` semantics, limits, camera and gripper are unmeasured.
@@ -129,14 +140,21 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
 
 - **Joint limits are provisional.** `joint3` upper bound is `0.0` (vendor
   software mapping), not `+2.09`. `r_joint` upper bound is `1.257`, the
-  intersection of URDF and vendor software range. Mechanical limits are not
-  measured.
+  intersection of URDF and vendor software range. Mechanical limits and all
+  `effort="1000"` values are unmeasured; every arm limit carries a
+  `PROVISIONAL` comment.
 - **Camera frames are nominal.** `camera_connet_link` is the vendor mount;
   `camera_link` and `camera_optical_frame` were added with an identity/REP-103
   rotation. The real `link4 → camera` extrinsic is unknown.
-- **IK is KDL, position-only.** TRAC-IK is not installed. `position_only_ik` may
-  be used for reachability, never as the final grasp policy; a 5-DoF grasp needs
-  a constrained orientation.
+- **IK is KDL, full-pose by default.** TRAC-IK is not installed.
+  `position_only_ik: false` is the checked-in default, so a 6D goal is not
+  silently reduced to position. Use `config/kinematics_reachability.yaml` only
+  for “can the arm reach this point?” checks. See
+  [`docs/phase0/ARMPI_5DOF_CONSTRAINTS.md`](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md).
+- **Constrained goals use Pilz `PTP`.** OMPL's goal sampler fails on the 6D goal
+  with KDL even though `/compute_ik` solves it; `LIN` fails because a
+  fixed-orientation straight line leaves the 5-DoF reachable set. Details are in
+  the Phase 0 acceptance document.
 - **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
   r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
   xacro only.
@@ -146,15 +164,19 @@ design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
 
 - `evidence/m2_2_v2/` — four MCAP bags, analysis CSVs/PNGs, source snapshot,
   Gate 2 reports. `*.mcap` is gitignored; keep a local/remote backup.
-- `evidence/armpi_moveit/` — expanded URDF, `check_urdf`, MoveIt log and action
-  result.
+- `evidence/armpi_moveit/` — expanded URDF, `check_urdf`, MoveIt logs and the
+  Phase 0 constrained-plan evidence.
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
 
 ## Documentation
 
-- [Technical roadmap](ROADMAP.md) — imported from `ROADMAP_PUBLIC.md`.
+- [Technical roadmap](ROADMAP.md) — public technical roadmap with current status.
+- [Phase 0 acceptance](docs/phase0/PHASE0_ACCEPTANCE.md) — checklist, evidence
+  and remaining gaps.
+- [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space limits
+  and grasp policy.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
   status, merge plan, open decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)

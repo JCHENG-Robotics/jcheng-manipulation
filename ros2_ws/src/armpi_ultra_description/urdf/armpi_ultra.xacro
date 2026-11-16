@@ -1,6 +1,19 @@
 <?xml version="1.0" ?>
 <robot name="armpi_ultra" xmlns:xacro="http://ros.org/wiki/xacro"> 
 
+  <!-- ===================================================================
+       PROVISIONAL SIMULATION MODEL — NOT A HARDWARE-VALIDATED MODEL.
+
+       Every joint position limit below is either the vendor URDF value or an
+       intersection with the vendor servo-software range. Every effort value
+       (effort="1000") is a placeholder. Mechanical limits and real servo
+       torque have NOT been measured on the robot.
+
+       Do not enable real-hardware motion until
+       docs/hardware/measured_joint_limits.md is complete.
+       See docs/phase0/PHASE0_ACCEPTANCE.md and MASTER_PLAN_V3 §5.
+       =================================================================== -->
+
  <link name="base_link">
     <inertial>
       <origin rpy="0 0 0" xyz="0.0164042229877272 -2.04513182262022E-05 0.0219693028117164"/>
@@ -49,6 +62,8 @@
     <parent link="base_link"/>
     <child link="link1"/>
     <axis xyz="0 0 1"/>
+    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
+         effort="1000" is a placeholder, not servo torque. -->
     <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
   </joint>
   <link name="link2">
@@ -78,6 +93,8 @@
     <parent link="link1"/>
     <child link="link2"/>
     <axis xyz="-0.0010551 -0.99998 0.0068419"/>
+    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
+         effort="1000" is a placeholder, not servo torque. -->
     <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
   </joint>
   <link name="link3">
@@ -109,7 +126,7 @@
     <axis xyz="0.000275 -1 -0.00032517"/>
     <!-- PROVISIONAL: vendor servo_controller.yaml maps joint3 to raw 500..1000,
          i.e. -2.094..0.0 rad. The symmetric +/-2.09 URDF limit is not valid.
-         Mechanical limits are NOT measured. -->
+         Mechanical limits are NOT measured. effort="1000" is a placeholder. -->
     <limit effort="1000" lower="-2.09" upper="0.0" velocity="10"/>
   </joint>
   <link name="link4">
@@ -139,6 +156,8 @@
     <parent link="link3"/>
     <child link="link4"/>
     <axis xyz="0.00040702 -1 -0.000213"/>
+    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
+         effort="1000" is a placeholder, not servo torque. -->
     <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
   </joint>
   <link name="link5">
@@ -168,6 +187,8 @@
     <parent link="link4"/>
     <child link="link5"/>
     <axis xyz="-0.012028 0.0031146 -0.99992"/>
+    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
+         effort="1000" is a placeholder, not servo torque. -->
     <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
   </joint>
   <link

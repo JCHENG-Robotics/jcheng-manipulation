@@ -1,7 +1,7 @@
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -19,6 +19,13 @@ def generate_launch_description():
     db_arg = DeclareLaunchArgument(
         "db", default_value="False", description="Database flag"
     )
+
+    use_rviz_arg = DeclareLaunchArgument(
+        "use_rviz",
+        default_value="true",
+        description="Start RViz; set false for headless planning checks",
+    )
+    use_rviz = LaunchConfiguration("use_rviz")
 
     ros2_control_hardware_type = DeclareLaunchArgument(
         "ros2_control_hardware_type",
@@ -75,7 +82,30 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "info"],
     )
 
-    tutorial_mode = LaunchConfiguration("rviz_tutorial")
+    # RViz starts only when use_rviz:=true. The tutorial flag selects the
+    # config, exactly as in the generated launch file.
+    rviz_tutorial_condition = IfCondition(
+        PythonExpression(
+            [
+                "'",
+                LaunchConfiguration("rviz_tutorial"),
+                "' == 'True' and '",
+                use_rviz,
+                "' == 'true'",
+            ]
+        )
+    )
+    rviz_condition = IfCondition(
+        PythonExpression(
+            [
+                "'",
+                LaunchConfiguration("rviz_tutorial"),
+                "' != 'True' and '",
+                use_rviz,
+                "' == 'true'",
+            ]
+        )
+    )
 
     current_dir = os.path.dirname(os.path.realpath(__file__))
     rviz_base = os.path.abspath(os.path.join(current_dir, '..', 'rviz'))
@@ -94,7 +124,7 @@ def generate_launch_description():
             moveit_config.planning_pipelines,
             moveit_config.robot_description_kinematics,
         ],
-        condition=IfCondition(tutorial_mode),
+        condition=rviz_tutorial_condition,
     )
     rviz_node = Node(
         package="rviz2",
@@ -108,7 +138,7 @@ def generate_launch_description():
             moveit_config.planning_pipelines,
             moveit_config.robot_description_kinematics,
         ],
-        condition=UnlessCondition(tutorial_mode),
+        condition=rviz_condition,
     )
 
     # Static TF
@@ -192,6 +222,7 @@ def generate_launch_description():
             declare_use_sim_time_argument,
             tutorial_arg,
             db_arg,
+            use_rviz_arg,
             ros2_control_hardware_type,
             use_gazebo_arg,
             use_real_arg,

@@ -1,13 +1,7 @@
-sensors:
-  - default_sensor
-default_sensor:
-  far_clipping_plane_distance: 5.0
-  filtered_cloud_topic: filtered_cloud
-  image_topic: /head_mount_kinect/depth_registered/points
-  max_update_rate: 1.0
-  near_clipping_plane_distance: 0.3
-  padding_offset: 0.03
-  padding_scale: 4.0
-  queue_size: 5
-  sensor_plugin: occupancy_map_monitor/DepthImageOctomapUpdater
-  shadow_threshold: 0.2
+# No 3D perception sensor is configured yet.
+#
+# The generated file referenced `occupancy_map_monitor/DepthImageOctomapUpdater`
+# with a Kinect topic that does not exist on ArmPi; MoveIt logged a plugin-load
+# error at every launch. An empty list disables the occupancy map monitor until
+# a real depth camera topic and frame are measured.
+sensors: []

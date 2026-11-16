@@ -7,6 +7,21 @@
 
 > This roadmap tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
+## Current status (2026-11-16)
+
+| Milestone | Status | Evidence / limit |
+|---|---|---|
+| Robot model and TF | **Implemented, model-checked** | 17 links, 16 joints, single root; camera optical frame; provisional limits |
+| MoveIt 2 constrained planning | **Implemented, mock-validated** | Pilz `PTP` 6D-constrained goal on `gripper_link`; plan-only |
+| 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
+| Hardware baseline | **Planned** | No robot connection; templates in `docs/hardware/` |
+| Calibration and visual grasping | **Planned** | Requires hardware and camera |
+| Error budget and tolerance envelope | **Planned** | Requires hardware measurements |
+| Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
+
+Phase 0 is complete for the simulation/mock scope. No item is hardware-validated.
+Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
+
 ## 1. Technical Goal
 
 Develop a real robotic manipulation system with:

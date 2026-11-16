@@ -3,6 +3,55 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-16 Phase 0 acceptance
+
+### Added
+
+- `docs/phase0/PHASE0_ACCEPTANCE.md` — Phase 0 checklist, evidence, known issues
+  and gap against the master plan.
+- `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` — 5-DoF task-space limits, grasp
+  candidate policy and `link4 → camera` calibration consequence.
+- `docs/phase0/README.md` — index; historical audits marked as outdated status.
+- `tools/phase0/constrained_plan_check.py` — plan-only 6D-constrained goal check
+  with a +roll negative control.
+- `config/kinematics_reachability.yaml` — explicit position-only profile.
+- `evidence/armpi_moveit/phase0_20261116/` — plan JSON, MoveIt log and RViz log.
+
+### Changed
+
+- `kinematics.yaml`: `position_only_ik: false` (full-pose IK is the default);
+  solver timeout 0.1 s. Position-only IK is now a separate, opt-in profile.
+- `armpi_ultra.srdf`: `arm` group is a chain `base_link → gripper_link`, so the
+  IK tip is the grasp tool frame.
+- `demo.launch.py`: added `use_rviz` (default `true`) for headless runs.
+- Rewrote the vendor `armpi_ultra_description` launch files
+  (`display.launch.py`, `rviz.launch.py`, `robot_description.launch.py`):
+  removed the `need_compile` requirement and the hardcoded `/home/ubuntu` /
+  `mentorpi_description` paths. `colcon test` for the package now passes
+  (12 tests, 0 failures, 1 skipped).
+- URDF arm limits and `effort="1000"` now carry explicit `PROVISIONAL` comments.
+- `sensors_3d.yaml`: removed the non-existent Kinect/octomap updater config.
+- README and ROADMAP now report the verified Phase 0 status.
+
+### Verified (mock only)
+
+- Pilz `PTP` planned an FK-exact 6D goal on `gripper_link` (`SUCCESS`, 66
+  trajectory points, plan-only).
+- The same goal with tool roll rotated +20° failed, confirming the orientation
+  constraint is enforced.
+- RViz loaded the `armpi_ultra` model and KDL plugin.
+- `armpi_ultra_description` tests: 12 tests, 0 failures, 1 skipped.
+- `xacro` + `check_urdf`: 17 links, 16 joints, single root.
+
+### Known limitations
+
+- OMPL goal sampling fails on the 6D goal with KDL; Pilz `PTP` is the current
+  constrained-goal primitive.
+- Pilz `LIN` fails on the same goal (`NO_IK_SOLUTION`) because a
+  fixed-orientation straight line leaves the 5-DoF reachable set.
+- No hardware validation; limits, camera extrinsic and gripper remain
+  unmeasured.
+
 ## [Unreleased] — 2026-11-15 merge
 
 ### Added

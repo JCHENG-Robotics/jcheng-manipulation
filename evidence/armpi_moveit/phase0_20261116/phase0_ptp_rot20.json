@@ -1,0 +1,31 @@
+{
+  "joints": [
+    0.0,
+    0.6,
+    -1.2,
+    -0.6,
+    0.5
+  ],
+  "link": "gripper_link",
+  "frame": "base_link",
+  "rotate_x_deg": 20.0,
+  "target_pose": {
+    "position": {
+      "x": 0.13201162813961312,
+      "y": -3.874605870303916e-06,
+      "z": 0.2684294382415682
+    },
+    "orientation": {
+      "x": -0.003449174942706468,
+      "y": 0.5752800998137657,
+      "z": -0.1031627878712487,
+      "w": 0.8114174937411137
+    }
+  },
+  "error_code": 99999,
+  "error_name": "FAILURE",
+  "planning_time": 0.104773602,
+  "wall_time": 0.11760525600402616,
+  "trajectory_points": 0,
+  "success": false
+}
