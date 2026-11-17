@@ -75,7 +75,10 @@ All notable changes to this project are documented here. Format based on
   `/battery` (7424 mV), `/camera/status` (640×400 `bgr8`) and token 401 were
   re-checked through the service. `systemctl stop` produced a clean SIGTERM
   (`received signal 15`), released port 8765 and removed the in-container
-  process; `systemctl start` restored `/health` 200.
+  process; `systemctl start` restored `/health` 200. A hardware-mode backend
+  using the service reported `LIVE` / 7.424 V / 640×400, and execute returned
+  **403 `GATE_REJECTED`** with `mapping_verified` and
+  `hardware_motion_enabled`; no motion was dispatched.
 - Read-only bus-servo state: joint1–joint5 pulses `497 / 642 / 808 / 331 / 500`,
   torque registers all `1`, battery 7424 mV; all inside the provisional ranges.
   **No torque was disabled and no mechanical limit was measured.**

@@ -36,6 +36,29 @@ The stop sequence also logs `Deactivated successfully` and
 always flushed through `docker exec`; the SIGTERM line and the process/port
 checks are the authoritative evidence.
 
+## Backend hardware-mode re-check
+
+Raw log:
+[`backend_hardware_20261117.txt`](backend_hardware_20261117.txt).
+
+A backend was started with `ARMPI_MODE=hardware`,
+`ARMPI_GATEWAY_URL=http://10.42.0.218:8765`, a temporary SQLite database and the
+service token (port 8010, stopped afterwards):
+
+```text
+GET /api/health         200; mode=hardware; source_label=LIVE; hardware_motion=false; hardware_read=true
+GET /api/peripherals    200; battery 7.424 V measured/valid; camera 640x400 measured/valid
+GET /api/connection     200; driver/gateway/feedback online
+GET /api/safety         200; blockers mapping_verified, hardware_motion_enabled
+POST /api/control/acquire  200
+POST /api/motion/preview   200; valid, token issued
+POST /api/motion/execute   403 GATE_REJECTED; same two blockers
+POST /api/control/release  200
+```
+
+No motion was dispatched. The gateway has no motion endpoint, and the backend
+rejected execute before any adapter dispatch.
+
 ## What was not tested
 
 - A host reboot (`systemctl is-enabled` is `yes`; the unit waits for
@@ -49,3 +72,4 @@ checks are the authoritative evidence.
 | File | Content |
 |---|---|
 | `service_lifecycle_20261117.txt` | status, health/battery/camera payloads, 401, stop/start, process and port counts, journal excerpts |
+| `backend_hardware_20261117.txt` | hardware-mode backend health/peripherals/connection/safety, preview, `GATE_REJECTED` execute, lease release |

@@ -1,0 +1,264 @@
+--- health: HTTP 200
+{
+  "status": "ok",
+  "mode": "hardware",
+  "version": "0.1.0",
+  "schema_version": 1,
+  "source_label": "LIVE",
+  "capabilities": {
+    "hardware_motion": false,
+    "hardware_read": true,
+    "mock_faults": false,
+    "replay": false,
+    "min_duration_s": 0.5,
+    "max_duration_s": 10.0,
+    "max_step_rad": 0.35
+  }
+}
+
+--- peripherals: HTTP 200
+{
+  "battery": {
+    "available": true,
+    "voltage_mv": 7424,
+    "voltage_v": 7.424,
+    "percent_estimate": 51.2,
+    "cell_count": 2,
+    "status": "ok",
+    "truth": "measured",
+    "validity": "valid",
+    "source": "armpi_debug_gateway",
+    "topic": "/ros_robot_controller/battery",
+    "received_at": "2026-11-17T10:40:28.405481Z",
+    "sample_age_ms": 86,
+    "notes": []
+  },
+  "camera": {
+    "available": true,
+    "truth": "measured",
+    "validity": "valid",
+    "source": "armpi_debug_gateway",
+    "topic": "/depth_cam/rgb/image_raw",
+    "width": 640,
+    "height": 400,
+    "encoding": "bgr8",
+    "fps": 9.9,
+    "last_frame_at": "2026-11-17T10:40:28.475486Z",
+    "sample_age_ms": 19,
+    "frame_count": 853,
+    "notes": []
+  }
+}
+
+--- connection: HTTP 200
+{
+  "segments": [
+    {
+      "name": "serial",
+      "state": "unknown",
+      "detail": "owned by the vendor stack",
+      "evidence": "gateway is the only serial owner"
+    },
+    {
+      "name": "driver",
+      "state": "online",
+      "detail": "vendor ROS stack via gateway",
+      "evidence": "GET /health ros_ready"
+    },
+    {
+      "name": "gateway",
+      "state": "online",
+      "detail": "http://10.42.0.218:8765",
+      "evidence": "GET /health"
+    },
+    {
+      "name": "feedback",
+      "state": "online",
+      "detail": "battery/camera/joint state via gateway",
+      "evidence": "GET /state, /battery, /camera/status"
+    }
+  ],
+  "serial_available": false,
+  "driver_online": true,
+  "gateway_online": true,
+  "feedback_fresh": true,
+  "notes": [
+    "Gateway is read-only; motion endpoints are NOT_IMPLEMENTED.",
+    "joint_states is a command echo, not encoder feedback."
+  ]
+}
+
+--- safety: HTTP 200
+{
+  "ready": false,
+  "checks": [
+    {
+      "check_id": "mode_supported",
+      "label": "运行模式",
+      "passed": true,
+      "blocking": true,
+      "detail": "mode=hardware",
+      "severity": "info"
+    },
+    {
+      "check_id": "gateway_online",
+      "label": "网关在线",
+      "passed": true,
+      "blocking": true,
+      "detail": "gateway probe",
+      "severity": "fault"
+    },
+    {
+      "check_id": "driver_online",
+      "label": "Driver 在线",
+      "passed": true,
+      "blocking": true,
+      "detail": "driver probe",
+      "severity": "fault"
+    },
+    {
+      "check_id": "feedback_fresh",
+      "label": "反馈新鲜度",
+      "passed": true,
+      "blocking": true,
+      "detail": "max sample age 17 ms (limit 500 ms)",
+      "severity": "fault"
+    },
+    {
+      "check_id": "mapping_loaded",
+      "label": "关节映射",
+      "passed": true,
+      "blocking": true,
+      "detail": "version=vendor-provisional-1",
+      "severity": "info"
+    },
+    {
+      "check_id": "mapping_verified",
+      "label": "限位验证",
+      "passed": false,
+      "blocking": true,
+      "detail": "provisional limits accepted for Mock; blocked for hardware motion",
+      "severity": "warning"
+    },
+    {
+      "check_id": "control_lease",
+      "label": "控制权租约",
+      "passed": true,
+      "blocking": false,
+      "detail": "not required for preview",
+      "severity": "info"
+    },
+    {
+      "check_id": "no_active_fault",
+      "label": "活动故障",
+      "passed": true,
+      "blocking": true,
+      "detail": "no active fault",
+      "severity": "fault"
+    },
+    {
+      "check_id": "not_executing",
+      "label": "执行互锁",
+      "passed": true,
+      "blocking": true,
+      "detail": "idle",
+      "severity": "fault"
+    },
+    {
+      "check_id": "hardware_motion_enabled",
+      "label": "硬件运动能力",
+      "passed": false,
+      "blocking": true,
+      "detail": "hardware_motion=false (G1 read-only)",
+      "severity": "fault"
+    },
+    {
+      "check_id": "joints_available",
+      "label": "关节数据可用",
+      "passed": true,
+      "blocking": true,
+      "detail": "all joints available",
+      "severity": "fault"
+    },
+    {
+      "check_id": "stop_state_clear",
+      "label": "停止状态",
+      "passed": true,
+      "blocking": true,
+      "detail": "no stop in progress",
+      "severity": "fault"
+    }
+  ],
+  "blockers": [
+    "mapping_verified",
+    "hardware_motion_enabled"
+  ],
+  "warnings": [],
+  "mode": "hardware",
+  "generated_at": "2026-11-17T10:40:28.425457Z"
+}
+
+--- acquire: HTTP 200
+{
+  "lease_id": "5a96ab9d5ca94cb8874a3aded1e99c38",
+  "session_id": "persist-check",
+  "acquired_at": "2026-11-17T10:40:28.427811Z",
+  "expires_at": "2026-11-17T10:41:28.427826Z",
+  "ttl_s": 60
+}
+
+--- preview: HTTP 200
+{
+  "command_id": "cmd_0128b1c6a0e14e11",
+  "session_id": "persist-check",
+  "valid": true,
+  "targets": [
+    {
+      "joint": "joint1",
+      "servo_id": 6,
+      "from_rad": 0.0,
+      "target_rad": 0.1,
+      "delta_rad": 0.1,
+      "duration_s": 1.0,
+      "target_raw": 524,
+      "limit_min_rad": -2.0943951023931957,
+      "limit_max_rad": 2.0943951023931957,
+      "limit_verified": false,
+      "limit_source": "software_config"
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    {
+      "code": "MAPPING_PROVISIONAL",
+      "message": "joint mapping is provisional; limits are not hardware-verified",
+      "joint": null,
+      "details": {}
+    }
+  ],
+  "preview_token": "KS0Sy_vArub4j4PUQlZMbUt-MHxSuH9S",
+  "expires_at": "2026-11-17T10:40:58.431149Z",
+  "mapping_version": "vendor-provisional-1",
+  "evaluated_at": "2026-11-17T10:40:28.431569Z"
+}
+
+--- execute: HTTP 403
+{
+  "error": {
+    "code": "GATE_REJECTED",
+    "message": "safety gate rejected execution",
+    "details": {
+      "blockers": [
+        "mapping_verified",
+        "hardware_motion_enabled"
+      ]
+    }
+  },
+  "trace_id": "59d2b8448c894e00add22c6127564f71"
+}
+
+--- release: HTTP 200
+{
+  "released": true,
+  "storage_error": null
+}

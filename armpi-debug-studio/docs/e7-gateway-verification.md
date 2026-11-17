@@ -105,6 +105,13 @@ GET /camera/status                    640x400 bgr8
 GET /health without token             401
 ```
 
+The backend was re-checked against this service in `hardware` mode:
+`/api/health` was `LIVE` (`hardware_motion=false`, `hardware_read=true`),
+`/api/peripherals` returned 7.424 V and 640×400, preview was valid, and execute
+returned **403 `GATE_REJECTED`** with blockers `mapping_verified` and
+`hardware_motion_enabled`. No motion was dispatched. Raw output:
+[`persistent/backend_hardware_20261117.txt`](../../../evidence/studio_gateway/20261117/persistent/backend_hardware_20261117.txt).
+
 Not verified: a full reboot or a vendor-container restart. Both trigger the
 vendor `startup_check`, which moves the arm, so the operator deferred them.
 The unit is enabled, `Requires=docker.service`, waits up to 60 s for the
