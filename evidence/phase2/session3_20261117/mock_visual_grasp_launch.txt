@@ -1,0 +1,422 @@
+[INFO] [launch]: All log files can be found below /home/jerichocheng/.ros/log/2026-11-17-19-47-20-528874-jerichocheng-Lenovo-Legion-R9000P2021H-1779226
+[INFO] [launch]: Default logging verbosity is set to INFO
+warning: Using load_yaml() directly is deprecated. Use xacro.load_yaml() instead.
+[INFO] [static_transform_publisher-1]: process started with pid [1779242]
+[INFO] [robot_state_publisher-2]: process started with pid [1779243]
+[INFO] [move_group-3]: process started with pid [1779244]
+[INFO] [ros2_control_node-4]: process started with pid [1779245]
+[INFO] [spawner-5]: process started with pid [1779246]
+[INFO] [spawner-6]: process started with pid [1779247]
+[INFO] [spawner-7]: process started with pid [1779248]
+[INFO] [static_transform_publisher-8]: process started with pid [1779249]
+[INFO] [synthetic_marker_publisher-9]: process started with pid [1779250]
+[INFO] [fiducial_localizer-10]: process started with pid [1779251]
+[INFO] [safety_supervisor-11]: process started with pid [1779252]
+[robot_state_publisher-2] [WARN] [1794916040.786909171] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[robot_state_publisher-2] [WARN] [1794916040.786925024] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[static_transform_publisher-1] [WARN] [1794916040.793102372] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[static_transform_publisher-1] [WARN] [1794916040.793123743] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[static_transform_publisher-1] [WARN] [1794916040.793508967] []: Old-style arguments are deprecated; see --help for new-style arguments
+[ros2_control_node-4] [WARN] [1794916040.796903425] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[ros2_control_node-4] [WARN] [1794916040.796923818] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[static_transform_publisher-8] [WARN] [1794916040.796932966] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[static_transform_publisher-8] [WARN] [1794916040.796948610] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[static_transform_publisher-8] [WARN] [1794916040.797381394] []: Old-style arguments are deprecated; see --help for new-style arguments
+[robot_state_publisher-2] [WARN] [1794916040.812436292] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1794916040.812581624] [robot_state_publisher]: Robot initialized
+[static_transform_publisher-1] [INFO] [1794916040.822891335] [static_transform_publisher]: Spinning until stopped - publishing transform
+[static_transform_publisher-1] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-1] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-1] from 'world' to 'base_link'
+[static_transform_publisher-8] [INFO] [1794916040.823498643] [mock_camera_optical_tf]: Spinning until stopped - publishing transform
+[static_transform_publisher-8] translation: ('0.138200', '0.022500', '0.349600')
+[static_transform_publisher-8] rotation: ('1.000000', '0.000000', '0.000000', '0.000000')
+[static_transform_publisher-8] from 'base_link' to 'camera_optical_calibrated'
+[ros2_control_node-4] [INFO] [1794916040.827023697] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-4] [INFO] [1794916040.832629354] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-4] [INFO] [1794916040.832714975] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-4] [INFO] [1794916040.832732015] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-4] [INFO] [1794916040.832747380] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-4] [WARN] [1794916040.832841870] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[move_group-3] [WARN] [1794916040.833244833] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[move_group-3] [WARN] [1794916040.833262083] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[move_group-3] [INFO] [1794916040.873120794] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00268093 seconds
+[move_group-3] [INFO] [1794916040.873230509] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'armpi_ultra'...
+[ros2_control_node-4] [INFO] [1794916040.996488410] [controller_manager]: Received robot description from topic.
+[ros2_control_node-4] [INFO] [1794916040.996572704] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-4] [INFO] [1794916041.000526981] [controller_manager]: Loading hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.001177309] [controller_manager]: Loaded hardware 'FakeSystem' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-4] [INFO] [1794916041.001309092] [controller_manager]: Initialize hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.009775020] [controller_manager]: Successful initialization of hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.010028601] [controller_manager]: Activating component 'FakeSystem'.
+[ros2_control_node-4] [INFO] [1794916041.010057444] [resource_manager]: 'configure' hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.010075532] [resource_manager]: Successful 'configure' of hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.010087474] [resource_manager]: 'activate' hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.010101651] [resource_manager]: Successful 'activate' of hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916041.010188529] [controller_manager]: Registering statistics for : FakeSystem
+[ros2_control_node-4] [INFO] [1794916041.010284765] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[move_group-3] [WARN] [1794916041.056544798] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[move_group-3] [INFO] [1794916041.056646761] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'arm': 1 1 1 1 1
+[spawner-5] [WARN] [1794916041.130144800] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-5] [WARN] [1794916041.130159327] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[spawner-7] [WARN] [1794916041.131425134] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-7] [WARN] [1794916041.131437076] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[spawner-6] [WARN] [1794916041.179083386] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-6] [WARN] [1794916041.179099239] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[safety_supervisor-11] [WARN] [1794916041.202700101] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[safety_supervisor-11] [WARN] [1794916041.202712672] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[spawner-5] [INFO] [1794916041.219643271] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[synthetic_marker_publisher-9] [WARN] [1794916041.358782615] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[synthetic_marker_publisher-9] [WARN] [1794916041.358795535] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[safety_supervisor-11] [INFO] [1794916041.394082329] [armpi_safety]: safety supervisor: config=/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_safety/share/armpi_safety/config/safety_limits.yaml state_timeout=0.500s workspace=on
+[fiducial_localizer-10] [WARN] [1794916041.463740416] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[fiducial_localizer-10] [WARN] [1794916041.463752916] [rcl]: 'localhost_only' is disabled, 'automatic_discovery_range' and 'static_peers' will be used.
+[synthetic_marker_publisher-9] [INFO] [1794916041.468800711] [synthetic_marker_publisher]: synthetic marker 0 at tvec=(0.0, 0.0, 0.26) rvec=(3.141592653589793, 0.0, 0.0)
+[ros2_control_node-4] [INFO] [1794916041.471505942] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-4] [INFO] [1794916041.471553571] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1794916041.476686288] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_ultra_moveit_config/share/armpi_ultra_moveit_config/config/ros2_controllers.yaml
+[spawner-5] [INFO] [1794916041.494489998] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-4] [INFO] [1794916041.495655239] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1794916041.495789467] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-4] [INFO] [1794916041.504895108] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-4] [INFO] [1794916041.513343646] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1794916041.524572631] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[fiducial_localizer-10] [INFO] [1794916041.553435619] [armpi_fiducial_localizer]: fiducial localizer: image=image_raw camera_info=camera_info camera_frame=camera_optical_calibrated output_frame=(same as camera)
+[spawner-6] [INFO] [1794916041.614576097] [spawner_arm_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-5]: process has finished cleanly [pid 1779246]
+[move_group-3] [INFO] [1794916041.706610163] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-3] [INFO] [1794916041.706750327] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-3] [INFO] [1794916041.707493121] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-3] [INFO] [1794916041.708012084] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-3] [INFO] [1794916041.708033943] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-3] [INFO] [1794916041.708134440] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-3] [INFO] [1794916041.708547250] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-3] [INFO] [1794916041.708619532] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-3] [INFO] [1794916041.709013346] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-3] [INFO] [1794916041.709035694] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-3] [INFO] [1794916041.709684067] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-3] [INFO] [1794916041.710059724] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-3] [WARN] [1794916041.710257643] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-3] [ERROR] [1794916041.710278665] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[ros2_control_node-4] [INFO] [1794916041.866778528] [controller_manager]: Loading controller : 'arm_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-4] [INFO] [1794916041.866825669] [controller_manager]: Loading controller 'arm_controller'
+[ros2_control_node-4] [INFO] [1794916041.869196168] [controller_manager]: Controller 'arm_controller' node arguments: --ros-args --params-file /home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_ultra_moveit_config/share/armpi_ultra_moveit_config/config/ros2_controllers.yaml
+[spawner-6] [INFO] [1794916041.894968561] [spawner_arm_controller]: Loaded arm_controller
+[ros2_control_node-4] [INFO] [1794916041.896384100] [controller_manager]: Configuring controller: 'arm_controller'
+[ros2_control_node-4] [INFO] [1794916041.896555342] [arm_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-4] [INFO] [1794916041.896585861] [arm_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-4] [INFO] [1794916041.896612050] [arm_controller]: Using 'splines' interpolation method.
+[ros2_control_node-4] [INFO] [1794916041.898782185] [arm_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-4] [INFO] [1794916041.904544000] [arm_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-4] [INFO] [1794916041.904574030] [arm_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-4] [INFO] [1794916041.915062456] [controller_manager]: Activating controllers: [ arm_controller ]
+[ros2_control_node-4] [INFO] [1794916041.923423907] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1794916041.934449734] [spawner_arm_controller]: Configured and activated arm_controller
+[spawner-7] [INFO] [1794916042.062623737] [spawner_gripper_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-6]: process has finished cleanly [pid 1779247]
+[fiducial_localizer-10] [INFO] [1794916042.192690418] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[move_group-3] [INFO] [1794916042.410010789] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-3] [INFO] [1794916042.411107170] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.411778729] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.411796328] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.412050816] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.412067787] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.412093068] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.412103474] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.412118768] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.413140353] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1794916042.414961230] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1794916042.414982042] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.416702632] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.416727075] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.417313223] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.420575409] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'CHOMP'
+[move_group-3] [INFO] [1794916042.421618015] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.421728079] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.421745329] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.421974886] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.421990040] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.422012458] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.422023353] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.422038787] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.423052620] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1794916042.423597424] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1794916042.423614604] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.424079513] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.424101442] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.424504615] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.427085116] [move_group.moveit.moveit.planners.pilz.joint_limits_aggregator]: Reading limits from namespace robot_description_planning
+[move_group-3] [INFO] [1794916042.433104772] [move_group.moveit.moveit.planners.pilz.command_planner]: Available plugins: pilz_industrial_motion_planner/PlanningContextLoaderCIRC pilz_industrial_motion_planner/PlanningContextLoaderLIN pilz_industrial_motion_planner/PlanningContextLoaderPTP
+[move_group-3] [INFO] [1794916042.433132358] [move_group.moveit.moveit.planners.pilz.command_planner]: About to load: pilz_industrial_motion_planner/PlanningContextLoaderCIRC
+[move_group-3] [INFO] [1794916042.434263099] [move_group.moveit.moveit.planners.pilz.command_planner]: Registered Algorithm [CIRC]
+[move_group-3] [INFO] [1794916042.434289777] [move_group.moveit.moveit.planners.pilz.command_planner]: About to load: pilz_industrial_motion_planner/PlanningContextLoaderLIN
+[move_group-3] [INFO] [1794916042.435008057] [move_group.moveit.moveit.planners.pilz.command_planner]: Registered Algorithm [LIN]
+[move_group-3] [INFO] [1794916042.435029008] [move_group.moveit.moveit.planners.pilz.command_planner]: About to load: pilz_industrial_motion_planner/PlanningContextLoaderPTP
+[move_group-3] [INFO] [1794916042.435708249] [move_group.moveit.moveit.planners.pilz.command_planner]: Registered Algorithm [PTP]
+[move_group-3] [INFO] [1794916042.435729271] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'Pilz Industrial Motion Planner'
+[move_group-3] [INFO] [1794916042.436766080] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.436856799] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916042.436871395] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.437120925] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1794916042.437136569] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.437159266] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1794916042.437171697] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.437186433] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1794916042.438202990] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.439344137] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1794916042.439365577] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.439775035] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1794916042.495488856] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for arm_controller
+[move_group-3] [INFO] [1794916042.497981920] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for gripper_controller
+[move_group-3] [INFO] [1794916042.498142198] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-3] [INFO] [1794916042.498176069] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-3] [INFO] [1794916042.498799300] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is managing controllers
+[move_group-3] [INFO] [1794916042.498824023] [move_group]: MoveGroup debug mode is ON
+[move_group-3] [INFO] [1794916042.520461122] [move_group.moveit.moveit.planners.pilz.move_group_sequence_action]: initialize move group sequence action
+[move_group-3] [INFO] [1794916042.523945113] [move_group.moveit.moveit.planners.pilz.joint_limits_aggregator]: Reading limits from namespace robot_description_planning
+[move_group-3] [INFO] [1794916042.524097569] [move_group.moveit.moveit.planners.pilz.joint_limits_aggregator]: Reading limits from namespace robot_description_planning
+[move_group-3] [INFO] [1794916042.525011185] [move_group.moveit.moveit.ros.move_group.executable]:
+[move_group-3]
+[move_group-3] ********************************************************
+[move_group-3] * MoveGroup using:
+[move_group-3] *     - apply_planning_scene_service
+[move_group-3] *     - clear_octomap_service
+[move_group-3] *     - get_group_urdf
+[move_group-3] *     - load_geometry_from_file
+[move_group-3] *     - CartesianPathService
+[move_group-3] *     - execute_trajectory_action
+[move_group-3] *     - get_planning_scene_service
+[move_group-3] *     - kinematics_service
+[move_group-3] *     - move_action
+[move_group-3] *     - motion_plan_service
+[move_group-3] *     - query_planners_service
+[move_group-3] *     - state_validation_service
+[move_group-3] *     - save_geometry_to_file
+[move_group-3] *     - SequenceAction
+[move_group-3] *     - SequenceService
+[move_group-3] ********************************************************
+[move_group-3]
+[move_group-3] [INFO] [1794916042.525078299] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-3] [INFO] [1794916042.525096247] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-3] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-3] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-3] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-3] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-3] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-3] [96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceAction'...[0m
+[move_group-3] [96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceService'...[0m
+[move_group-3]
+[move_group-3] [92mYou can start planning now![0m
+[move_group-3]
+[ros2_control_node-4] [INFO] [1794916042.815161606] [controller_manager]: Loading controller : 'gripper_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-4] [INFO] [1794916042.815203369] [controller_manager]: Loading controller 'gripper_controller'
+[ros2_control_node-4] [INFO] [1794916042.815531326] [controller_manager]: Controller 'gripper_controller' node arguments: --ros-args --params-file /home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_ultra_moveit_config/share/armpi_ultra_moveit_config/config/ros2_controllers.yaml
+[spawner-7] [INFO] [1794916042.834506424] [spawner_gripper_controller]: Loaded gripper_controller
+[ros2_control_node-4] [INFO] [1794916042.835710286] [controller_manager]: Configuring controller: 'gripper_controller'
+[ros2_control_node-4] [INFO] [1794916042.835829429] [gripper_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-4] [INFO] [1794916042.835852405] [gripper_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-4] [INFO] [1794916042.835867141] [gripper_controller]: Using 'splines' interpolation method.
+[ros2_control_node-4] [INFO] [1794916042.837122054] [gripper_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-4] [INFO] [1794916042.841527971] [gripper_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-4] [INFO] [1794916042.841558351] [gripper_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-4] [INFO] [1794916042.844634350] [controller_manager]: Activating controllers: [ gripper_controller ]
+[ros2_control_node-4] [INFO] [1794916042.853327531] [controller_manager]: Successfully switched controllers!
+[spawner-7] [INFO] [1794916042.864429202] [spawner_gripper_controller]: Configured and activated gripper_controller
+[INFO] [spawner-7]: process has finished cleanly [pid 1779248]
+[fiducial_localizer-10] [INFO] [1794916043.257717426] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916044.257850357] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916045.358186840] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916046.457437621] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916047.557361283] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916048.557472838] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916049.657145901] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916050.657211876] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916051.757401994] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916052.857649791] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916053.957310386] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916055.057189852] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916056.057684741] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916057.157209759] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916058.257167973] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916059.357331781] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916060.358071505] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916061.457342758] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916062.557231019] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916063.557558560] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916064.657309211] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916065.757266782] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916066.857389928] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916067.857959084] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916068.957744812] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916070.057145450] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916071.157246205] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[move_group-3] [INFO] [1794916071.226890763] [move_group.moveit.moveit.ros.move_group.move_action]: MoveGroupMoveAction: Received request
+[move_group-3] [INFO] [1794916071.227245260] [move_group.moveit.moveit.ros.move_group.move_action]: executing..
+[move_group-3] [INFO] [1794916071.233508809] [move_group.moveit.moveit.ros.move_group.move_action]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-3] [INFO] [1794916071.233569848] [move_group.moveit.moveit.ros.move_group.capability]: Using planning pipeline 'pilz_industrial_motion_planner'
+[move_group-3] [INFO] [1794916071.233882442] [move_group]: Calling PlanningRequestAdapter 'ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916071.233950534] [move_group]: Calling PlanningRequestAdapter 'ValidateWorkspaceBounds'
+[move_group-3] [WARN] [1794916071.233967365] [move_group.moveit.moveit.ros.validate_workspace_bounds]: It looks like the planning volume was not specified. Using default values.
+[move_group-3] [INFO] [1794916071.233999281] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateBounds'
+[move_group-3] [INFO] [1794916071.234060389] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateCollision'
+[move_group-3] [INFO] [1794916071.234170314] [move_group.moveit.moveit.planners.pilz.trajectory_generator.ptp]: Initialized Point-to-Point Trajectory Generator.
+[move_group-3] [INFO] [1794916071.234213194] [move_group]: Calling Planner 'Pilz Industrial Motion Planner'
+[move_group-3] [INFO] [1794916071.234249021] [move_group.moveit.moveit.planners.pilz.trajectory_generator]: Generating PTP trajectory...
+[move_group-3] [INFO] [1794916071.235713591] [move_group]: Calling PlanningResponseAdapter 'ValidateSolution'
+[move_group-3] [INFO] [1794916071.236520986] [move_group]: Calling PlanningResponseAdapter 'DisplayMotionPath'
+[move_group-3] [INFO] [1794916071.236688667] [move_group.moveit.moveit.ros.move_group.move_action]: Motion plan was computed successfully.
+[safety_supervisor-11] [INFO] [1794916071.290506288] [armpi_safety]: workspace FK ready: base_link -> end_effector_link
+[safety_supervisor-11] [INFO] [1794916071.291672231] [armpi_safety]: trajectory approved: 87 points, 8.509s
+[move_group-3] [INFO] [1794916071.295062371] [move_group.moveit.moveit.ros.move_group.move_action]: MoveGroupMoveAction: Received request
+[move_group-3] [INFO] [1794916071.295236128] [move_group.moveit.moveit.ros.move_group.move_action]: executing..
+[move_group-3] [INFO] [1794916071.303490964] [move_group.moveit.moveit.ros.move_group.move_action]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-3] [INFO] [1794916071.303543831] [move_group.moveit.moveit.ros.move_group.capability]: Using planning pipeline 'pilz_industrial_motion_planner'
+[move_group-3] [INFO] [1794916071.303654175] [move_group]: Calling PlanningRequestAdapter 'ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916071.303690002] [move_group]: Calling PlanningRequestAdapter 'ValidateWorkspaceBounds'
+[move_group-3] [WARN] [1794916071.303702852] [move_group.moveit.moveit.ros.validate_workspace_bounds]: It looks like the planning volume was not specified. Using default values.
+[move_group-3] [INFO] [1794916071.303728133] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateBounds'
+[move_group-3] [INFO] [1794916071.303776252] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateCollision'
+[move_group-3] [INFO] [1794916071.303864806] [move_group.moveit.moveit.planners.pilz.trajectory_generator.ptp]: Initialized Point-to-Point Trajectory Generator.
+[move_group-3] [INFO] [1794916071.303905801] [move_group]: Calling Planner 'Pilz Industrial Motion Planner'
+[move_group-3] [INFO] [1794916071.303921584] [move_group.moveit.moveit.planners.pilz.trajectory_generator]: Generating PTP trajectory...
+[move_group-3] [INFO] [1794916071.304576943] [move_group]: Calling PlanningResponseAdapter 'ValidateSolution'
+[move_group-3] [INFO] [1794916071.305559981] [move_group]: Calling PlanningResponseAdapter 'DisplayMotionPath'
+[move_group-3] [INFO] [1794916071.305732690] [move_group.moveit.moveit.ros.move_group.move_action]: Motion plan was computed successfully.
+[safety_supervisor-11] [INFO] [1794916071.312318540] [armpi_safety]: trajectory approved: 93 points, 9.143s
+[move_group-3] [INFO] [1794916071.316228972] [move_group.moveit.moveit.ros.move_group.move_action]: MoveGroupMoveAction: Received request
+[move_group-3] [INFO] [1794916071.316426264] [move_group.moveit.moveit.ros.move_group.move_action]: executing..
+[move_group-3] [INFO] [1794916071.323468226] [move_group.moveit.moveit.ros.move_group.move_action]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-3] [INFO] [1794916071.323516763] [move_group.moveit.moveit.ros.move_group.capability]: Using planning pipeline 'pilz_industrial_motion_planner'
+[move_group-3] [INFO] [1794916071.323623965] [move_group]: Calling PlanningRequestAdapter 'ResolveConstraintFrames'
+[move_group-3] [INFO] [1794916071.323685771] [move_group]: Calling PlanningRequestAdapter 'ValidateWorkspaceBounds'
+[move_group-3] [WARN] [1794916071.323700577] [move_group.moveit.moveit.ros.validate_workspace_bounds]: It looks like the planning volume was not specified. Using default values.
+[move_group-3] [INFO] [1794916071.323725788] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateBounds'
+[move_group-3] [INFO] [1794916071.323766783] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateCollision'
+[move_group-3] [INFO] [1794916071.323848912] [move_group.moveit.moveit.planners.pilz.trajectory_generator.ptp]: Initialized Point-to-Point Trajectory Generator.
+[move_group-3] [INFO] [1794916071.323884181] [move_group]: Calling Planner 'Pilz Industrial Motion Planner'
+[move_group-3] [INFO] [1794916071.323902059] [move_group.moveit.moveit.planners.pilz.trajectory_generator]: Generating PTP trajectory...
+[move_group-3] [INFO] [1794916071.324442115] [move_group]: Calling PlanningResponseAdapter 'ValidateSolution'
+[move_group-3] [INFO] [1794916071.325144964] [move_group]: Calling PlanningResponseAdapter 'DisplayMotionPath'
+[move_group-3] [INFO] [1794916071.325276608] [move_group.moveit.moveit.ros.move_group.move_action]: Motion plan was computed successfully.
+[safety_supervisor-11] [INFO] [1794916071.329805803] [armpi_safety]: trajectory approved: 79 points, 7.772s
+[fiducial_localizer-10] [INFO] [1794916072.257328791] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916073.357233489] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[fiducial_localizer-10] [INFO] [1794916074.357793005] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[safety_supervisor-11] [INFO] [1794916075.299714284] [armpi_safety]: trajectory approved: 87 points, 8.509s
+[safety_supervisor-11] [WARN] [1794916075.303415483] [armpi_safety]: trajectory rejected (JOINT_LIMIT): joint1 point 0 3.0000 outside [-2.0900, 2.0900]; start state differs from latest state by 3.0000 rad > 0.0800 rad; tool point x at point 0 is -0.0553 outside [-0.0500, 0.4500]
+[safety_supervisor-11] [WARN] [1794916075.306884890] [armpi_safety]: trajectory rejected (VELOCITY_LIMIT): joint1 velocity at point 1 is 5.0000 > 1.2000
+[safety_supervisor-11] [WARN] [1794916075.310314908] [armpi_safety]: trajectory rejected (TIMESTAMP): point 1 time 0.000000 is not after 0.000000
+[fiducial_localizer-10] [INFO] [1794916075.457603667] [armpi_fiducial_localizer]: marker 0 in camera_optical_calibrated: t=(-0.000,-0.000,0.260) reproj=0.00px
+[static_transform_publisher-1] [INFO] [1794916075.459970333] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[static_transform_publisher-8] [INFO] [1794916075.459970333] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-4] [INFO] [1794916075.459971241] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-4] [INFO] [1794916075.460047853] [controller_manager]: Shutdown request received....
+[ros2_control_node-4] [INFO] [1794916075.460101768] [controller_manager]: Shutting down all controllers in the controller manager.
+[move_group-3] [INFO] [1794916075.459994078] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-4] [INFO] [1794916075.460139411] [controller_manager]: Deactivating controller 'gripper_controller'
+[ros2_control_node-4] [INFO] [1794916075.460215674] [controller_manager]: Shutting down controller 'gripper_controller'
+[ros2_control_node-4] [INFO] [1794916075.460393691] [controller_manager]: Deactivating controller 'arm_controller'
+[ros2_control_node-4] [INFO] [1794916075.460447605] [controller_manager]: Shutting down controller 'arm_controller'
+[robot_state_publisher-2] [INFO] [1794916075.460409334] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-4] [INFO] [1794916075.460512974] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1794916075.460566539] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1794916075.460624994] [resource_manager]: 'deactivate' hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916075.460650345] [resource_manager]: Successful 'deactivate' of hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916075.460659284] [resource_manager]: 'shutdown' hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916075.460669411] [resource_manager]: Successful 'shutdown' of hardware 'FakeSystem'
+[ros2_control_node-4] [INFO] [1794916075.460713199] [controller_manager]: Shutting down the controller manager.
+[ros2_control_node-4] [ERROR] [1794916075.460894079] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[ros2_control_node-4] [ERROR] [1794916075.461521573] [controller_manager.pal_statistics]: Exception in publisher thread: context cannot be slept with because it's invalid!. Aborting!
+[ros2_control_node-4] [INFO] [1794916075.466639015] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-4] [INFO] [1794916075.466658080] [controller_manager.pal_statistics]: publish_async_failures_ 0
+[ros2_control_node-4] [INFO] [1794916075.469028518] [controller_manager.pal_statistics]: Async messages lost 0
+[ros2_control_node-4] [INFO] [1794916075.469044441] [controller_manager.pal_statistics]: publish_async_failures_ 0
+[move_group-3] Stack trace (most recent call last):
+[move_group-3] #6    Object "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2", at 0xffffffffffffffff, in
+[move_group-3] #5    Object "/opt/ros/jazzy/lib/moveit_ros_move_group/move_group", at 0x57ff8cabba14, in _start
+[synthetic_marker_publisher-9] Traceback (most recent call last):
+[synthetic_marker_publisher-9]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/synthetic_publisher.py", line 133, in main
+[synthetic_marker_publisher-9]     rclpy.spin(node)
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+[synthetic_marker_publisher-9]     executor.spin_once()
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+[synthetic_marker_publisher-9]     self._spin_once_impl(timeout_sec)
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+[synthetic_marker_publisher-9]     handler, entity, node = self.wait_for_ready_callbacks(
+[synthetic_marker_publisher-9]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+[synthetic_marker_publisher-9]     return next(self._cb_iter)
+[synthetic_marker_publisher-9]            ^^^^^^^^^^^^^^^^^^^
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+[synthetic_marker_publisher-9]     raise ExternalShutdownException()
+[synthetic_marker_publisher-9] rclpy.executors.ExternalShutdownException
+[synthetic_marker_publisher-9]
+[synthetic_marker_publisher-9] During handling of the above exception, another exception occurred:
+[synthetic_marker_publisher-9]
+[synthetic_marker_publisher-9] Traceback (most recent call last):
+[synthetic_marker_publisher-9]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_fiducial_localizer/lib/armpi_fiducial_localizer/synthetic_marker_publisher", line 33, in <module>
+[synthetic_marker_publisher-9]     sys.exit(load_entry_point('armpi-fiducial-localizer', 'console_scripts', 'synthetic_marker_publisher')())
+[synthetic_marker_publisher-9]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[synthetic_marker_publisher-9]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/synthetic_publisher.py", line 138, in main
+[synthetic_marker_publisher-9]     rclpy.shutdown()
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[synthetic_marker_publisher-9]     _shutdown(context=context)
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[synthetic_marker_publisher-9]     context.shutdown()
+[synthetic_marker_publisher-9]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[synthetic_marker_publisher-9]     self.__context.shutdown()
+[synthetic_marker_publisher-9] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[fiducial_localizer-10] Traceback (most recent call last):
+[fiducial_localizer-10]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/node.py", line 217, in main
+[fiducial_localizer-10]     rclpy.spin(node)
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+[fiducial_localizer-10]     executor.spin_once()
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+[fiducial_localizer-10]     self._spin_once_impl(timeout_sec)
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+[fiducial_localizer-10]     handler, entity, node = self.wait_for_ready_callbacks(
+[fiducial_localizer-10]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+[fiducial_localizer-10]     return next(self._cb_iter)
+[fiducial_localizer-10]            ^^^^^^^^^^^^^^^^^^^
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+[fiducial_localizer-10]     raise ExternalShutdownException()
+[fiducial_localizer-10] rclpy.executors.ExternalShutdownException
+[fiducial_localizer-10]
+[fiducial_localizer-10] During handling of the above exception, another exception occurred:
+[fiducial_localizer-10]
+[fiducial_localizer-10] Traceback (most recent call last):
+[fiducial_localizer-10]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_fiducial_localizer/lib/armpi_fiducial_localizer/fiducial_localizer", line 33, in <module>
+[fiducial_localizer-10]     sys.exit(load_entry_point('armpi-fiducial-localizer', 'console_scripts', 'fiducial_localizer')())
+[fiducial_localizer-10]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[fiducial_localizer-10]   File "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/build/armpi_fiducial_localizer/armpi_fiducial_localizer/node.py", line 222, in main
+[fiducial_localizer-10]     rclpy.shutdown()
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[fiducial_localizer-10]     _shutdown(context=context)
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[fiducial_localizer-10]     context.shutdown()
+[fiducial_localizer-10]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[fiducial_localizer-10]     self.__context.shutdown()
+[fiducial_localizer-10] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[move_group-3] #4    Source "../csu/libc-start.c", line 360, in __libc_start_main_impl [0x759844c2a28a]
+[move_group-3] #3    Source "../sysdeps/nptl/libc_start_call_main.h", line 58, in __libc_start_call_main [0x759844c2a1c9]
+[move_group-3] #2    Object "/opt/ros/jazzy/lib/moveit_ros_move_group/move_group", at 0x57ff8caba4e7, in main
+[move_group-3] #1    Object "/opt/ros/jazzy/lib/librclcpp.so", at 0x7598455162f7, in rclcpp::Executor::~Executor()
+[move_group-3] #0    Object "/opt/ros/jazzy/lib/librclcpp.so", at 0x759845510dde, in
+[move_group-3] Segmentation fault (Address not mapped to object [0x759802c43170])
+[INFO] [static_transform_publisher-8]: process has finished cleanly [pid 1779249]
+[INFO] [static_transform_publisher-1]: process has finished cleanly [pid 1779242]
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 1779243]
+[INFO] [ros2_control_node-4]: process has finished cleanly [pid 1779245]
+[INFO] [safety_supervisor-11]: process has finished cleanly [pid 1779252]
+[ERROR] [synthetic_marker_publisher-9]: process has died [pid 1779250, exit code 1, cmd '/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_fiducial_localizer/lib/armpi_fiducial_localizer/synthetic_marker_publisher --frame-id camera_optical_calibrated --tvec 0.0 0.0 0.26 --rvec 3.141592653589793 0.0 0.0 --marker-id 0 --marker-size 0.06 --width 640 --height 480 --fx 700 --fy 700 --ros-args -r __node:=synthetic_marker_publisher'].
+[ERROR] [fiducial_localizer-10]: process has died [pid 1779251, exit code 1, cmd '/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/install/armpi_fiducial_localizer/lib/armpi_fiducial_localizer/fiducial_localizer --ros-args -r __node:=armpi_fiducial_localizer --params-file /tmp/launch_params_1ynvao_6'].
+[ERROR] [move_group-3]: process has died [pid 1779244, exit code -11, cmd '/opt/ros/jazzy/lib/moveit_ros_move_group/move_group --ros-args --log-level info --ros-args --params-file /tmp/launch_params_e2la4c9g --params-file /tmp/launch_params_y4rwqb1a'].

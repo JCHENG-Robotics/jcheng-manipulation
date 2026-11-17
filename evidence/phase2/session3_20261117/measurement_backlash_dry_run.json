@@ -1,0 +1,695 @@
+{
+  "schema_version": 1,
+  "protocol": "backlash",
+  "mode": "dry-run",
+  "generated_at": "2026-11-17T11:48:32.840666+00:00",
+  "dry_run": true,
+  "no_hardware": true,
+  "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
+  "limits": {
+    "joint1": [
+      -2.09,
+      2.09
+    ],
+    "joint2": [
+      -2.09,
+      2.09
+    ],
+    "joint3": [
+      -2.09,
+      0.0
+    ],
+    "joint4": [
+      -2.09,
+      2.09
+    ],
+    "joint5": [
+      -2.09,
+      2.09
+    ]
+  },
+  "target_joints": [
+    0.0,
+    0.59888,
+    -1.25664,
+    -0.71209,
+    0.0
+  ],
+  "target_point_m": [
+    0.2,
+    0.0,
+    0.1
+  ],
+  "schedule": {
+    "trials": 30,
+    "target_joints": [
+      0.0,
+      0.59888,
+      -1.25664,
+      -0.71209,
+      0.0
+    ],
+    "approach_joint": "joint4",
+    "approach_delta_rad": 0.1,
+    "entries": [
+      {
+        "trial": 1,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 2,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 3,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 4,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 5,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 6,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 7,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 8,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 9,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 10,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 11,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 12,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 13,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 14,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 15,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 16,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 17,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 18,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 19,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 20,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 21,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 22,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 23,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 24,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 25,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 26,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 27,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 28,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 29,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 30,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      }
+    ]
+  },
+  "samples": null,
+  "analysis": null,
+  "limitations": [
+    "Dry-run/simulate only; the robot is not moved.",
+    "Joint limits are provisional URDF/MoveIt values; mechanical limits are not measured.",
+    "Simulation noise is synthetic and does not model servo dynamics, backlash or camera noise.",
+    "A hardware run needs the supervised joint-limit survey and the safety review first."
+  ]
+}

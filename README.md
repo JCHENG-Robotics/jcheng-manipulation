@@ -33,7 +33,9 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
 | Camera / calibration | **Camera + validated hand-eye + selected pose set** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44° std; measured optical frame published; 24 diverse poses selected offline from 14,176 evaluated poses (not executed) |
-| Visual grasping | In progress | perception + grasp search + validated camera calibration and frame; no real grasp yet |
+| Visual grasping | In progress — mock chain validated | perception + grasp search + validated camera calibration and frame; fiducial → grasp bridge and safety veto pass a synthetic mock E2E; no real grasp yet |
+| Safety layer | Implemented, mock-validated | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; `ValidateTrajectory` veto service; provisional limits, no e-stop |
+| Measurement protocols | Implemented, dry-run/simulate validated | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no hardware data |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
@@ -58,19 +60,22 @@ evidence/
 ├── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
 ├── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
 ├── fiducial/              # synthetic fiducial detection + ROS TF evidence
-└── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
+├── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
+└── phase2/                # frames, joint limits, bridge E2E, safety, measurements
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
-├── arm_interfaces/        # custom action
+├── arm_interfaces/        # custom action + trajectory validation service
 ├── arm_moveit_demo/       # Panda pick-and-place demo
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco target localization
-├── armpi_grasp_planner/   # 5-DoF candidate generation + MoveIt screening
+├── armpi_grasp_planner/   # 5-DoF candidate generation + bridge + mock E2E launch
+├── armpi_safety/          # state watchdog + trajectory veto
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock + real-robot launch)
 tools/
 ├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
-└── phase1/                # live hardware baseline helpers
+├── phase1/                # live hardware baseline helpers
+└── phase2/                # calibration, fiducial, bridge E2E and measurement tools
 ```
 
 ## Build
@@ -173,6 +178,63 @@ semi-synthetic poses on real frames, max 1.69 mm / 0.53°; 0 false detections on
 [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/) and
 [`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/).
 
+### Fiducial → grasp mock E2E (plan-only, safety-vetoed)
+
+```bash
+# One command: synthetic marker -> localizer -> bridge -> grasp search ->
+# safety veto. It starts/stops the mock chain and uses isolated domain 77.
+tools/phase2/run_mock_visual_grasp_e2e.sh evidence/phase2/session3_20261117
+```
+
+Manual form (two terminals, same isolated environment):
+
+```bash
+ros2 launch armpi_grasp_planner mock_visual_grasp.launch.py use_rviz:=false
+export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1
+ros2 run armpi_grasp_planner grasp_target_bridge \
+  --safety-service /armpi_safety/validate_trajectory \
+  --include-trajectory --json-out /tmp/bridge.json
+```
+
+The bridge accepts `target_pose` in `camera_optical_calibrated`, transforms it
+to `base_link`, rejects stale/tilted markers, and runs the joint-space grasp
+search. On 2026-11-17 it produced 3/3 plan-only Pilz `PTP` plans, all approved
+by the safety service; it never executes. See
+[`docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md).
+
+### Safety supervisor (veto only)
+
+```bash
+ros2 launch armpi_safety safety_supervisor.launch.py
+ros2 service list | grep armpi_safety
+```
+
+It watches `/joint_states`, publishes `safety_status` / `safety_stop`, and
+exposes `armpi_safety/validate_trajectory` + `armpi_safety/reset_stop`. It does
+not forward or execute commands. Limits are provisional; see
+[`docs/phase2/SAFETY_LAYER.md`](docs/phase2/SAFETY_LAYER.md).
+
+### Phase 3 measurement protocols (no motion)
+
+```bash
+python3 tools/phase2/measurement_protocol.py repeatability \
+  --mode dry-run --trials 30 --json-out /tmp/repeatability.json
+python3 tools/phase2/measurement_protocol.py backlash \
+  --mode simulate --json-out /tmp/backlash_sim.json
+python3 tools/phase2/measurement_protocol.py visual_displacement \
+  --mode simulate --json-out /tmp/visual_sim.json
+python3 tools/phase2/measurement_protocol.py gripper_envelope \
+  --mode simulate --json-out /tmp/gripper_sim.json
+```
+
+`dry-run` writes a schedule and does not import ROS; `simulate` exercises the
+analyzers with synthetic noise/bias; `analyze` reads a later hardware file.
+Joint-limit measurement remains the separate physical
+`tools/phase2/joint_limit_survey.py` (read-only mode is safe; torque-off survey
+needs support). See
+[`docs/phase2/MEASUREMENT_PROTOCOL.md`](docs/phase2/MEASUREMENT_PROTOCOL.md)
+and [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
+
 ### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
 ```bash
@@ -272,6 +334,8 @@ limits remain provisional; the read-only survey and the torque-off tool are in
   contract.
 - `evidence/phase2/vendor_calibration_20261117/` — decoded vendor calibration
   and Baseline A status.
+- `evidence/phase2/session3_20261117/` — synthetic marker → grasp → safety E2E,
+  safety service negative controls, and measurement dry-run/simulate reports.
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
@@ -288,6 +352,12 @@ Never present Mock/Gazebo results as hardware validation.
 - [Phase 2 fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
   AprilTag detection, pose convention, real-background accuracy and frame
   contract.
+- [Phase 2 fiducial → grasp bridge](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) —
+  `target_pose` → TF → grasp search → safety veto, mock E2E result.
+- [Phase 2 safety layer](docs/phase2/SAFETY_LAYER.md) — watchdog, limits,
+  workspace and trajectory-veto service.
+- [Phase 3 measurement protocols](docs/phase2/MEASUREMENT_PROTOCOL.md) —
+  repeatability, backlash, visual displacement and gripper envelope.
 - [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical
   frames and `camera_optical_calibrated`.
 - [Vendor calibration baseline](docs/hardware/vendor_calibration_baseline.md) —

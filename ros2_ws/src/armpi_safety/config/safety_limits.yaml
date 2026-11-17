@@ -1,0 +1,59 @@
+# Provisional safety limits for ArmPi Ultra.
+#
+# Position bounds come from the URDF/MoveIt provisional limits; mechanical
+# limits are NOT measured (see docs/phase2/JOINT_LIMITS.md). Velocity and
+# acceleration limits are deliberately far below the URDF limits (10 rad/s,
+# 1 rad/s^2) so a future executor cannot pass a fast trajectory through the
+# veto layer. Update this file only after the limit survey is reviewed.
+schema_version: 1
+source: provisional URDF/MoveIt limits; mechanical survey pending
+
+joint_limits:
+  joint1:
+    lower: -2.09
+    upper: 2.09
+    max_velocity: 1.2
+    max_acceleration: 0.5
+  joint2:
+    lower: -2.09
+    upper: 2.09
+    max_velocity: 1.2
+    max_acceleration: 0.5
+  joint3:
+    lower: -2.09
+    upper: 0.0
+    max_velocity: 1.2
+    max_acceleration: 0.5
+  joint4:
+    lower: -2.09
+    upper: 2.09
+    max_velocity: 1.2
+    max_acceleration: 0.5
+  joint5:
+    lower: -2.09
+    upper: 2.09
+    max_velocity: 1.2
+    max_acceleration: 0.5
+
+state:
+  # A stale or missing /joint_states stream is a stop condition.
+  timeout_s: 0.5
+
+start_state:
+  # The first trajectory point must match the latest measured state.
+  max_distance_rad: 0.08
+
+trajectory:
+  max_duration_s: 30.0
+  max_points: 5000
+  position_tolerance_rad: 0.001
+  velocity_tolerance_rad_s: 0.001
+  acceleration_tolerance_rad_s2: 0.001
+
+workspace:
+  frame: base_link
+  enabled: true
+  # Fail closed when FK is unavailable.
+  required: true
+  lower: [-0.05, -0.30, 0.00]
+  upper: [0.45, 0.30, 0.55]

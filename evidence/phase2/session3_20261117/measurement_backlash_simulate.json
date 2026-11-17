@@ -1,0 +1,796 @@
+{
+  "schema_version": 1,
+  "protocol": "backlash",
+  "mode": "simulate",
+  "generated_at": "2026-11-17T11:48:32.891139+00:00",
+  "dry_run": false,
+  "no_hardware": true,
+  "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
+  "limits": {
+    "joint1": [
+      -2.09,
+      2.09
+    ],
+    "joint2": [
+      -2.09,
+      2.09
+    ],
+    "joint3": [
+      -2.09,
+      0.0
+    ],
+    "joint4": [
+      -2.09,
+      2.09
+    ],
+    "joint5": [
+      -2.09,
+      2.09
+    ]
+  },
+  "target_joints": [
+    0.0,
+    0.59888,
+    -1.25664,
+    -0.71209,
+    0.0
+  ],
+  "target_point_m": [
+    0.2,
+    0.0,
+    0.1
+  ],
+  "schedule": {
+    "trials": 30,
+    "target_joints": [
+      0.0,
+      0.59888,
+      -1.25664,
+      -0.71209,
+      0.0
+    ],
+    "approach_joint": "joint4",
+    "approach_delta_rad": 0.1,
+    "entries": [
+      {
+        "trial": 1,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 2,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 3,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 4,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 5,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 6,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 7,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 8,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 9,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 10,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 11,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 12,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 13,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 14,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 15,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 16,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 17,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 18,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 19,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 20,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 21,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 22,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 23,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 24,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 25,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 26,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 27,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 28,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 29,
+        "direction": "positive",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.61209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      },
+      {
+        "trial": 30,
+        "direction": "negative",
+        "pre_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.81209,
+          0.0
+        ],
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "approach_joint": "joint4",
+        "approach_delta_rad": 0.1,
+        "settle_s": 0.5
+      }
+    ]
+  },
+  "samples": null,
+  "analysis": {
+    "kind": "backlash",
+    "forward": {
+      "n": 15,
+      "axes_mm": {
+        "x": {
+          "n": 15,
+          "mean": 200.02373328900538,
+          "std": 0.2598240102998706,
+          "min": 199.50018124240643,
+          "max": 200.51525909520012,
+          "range": 1.015077852793695,
+          "ci95": 0.13148909113859983
+        },
+        "y": {
+          "n": 15,
+          "mean": -0.05588547029519717,
+          "std": 0.256368576446022,
+          "min": -0.5074093655545268,
+          "max": 0.25657529062942114,
+          "range": 0.7639846561839478,
+          "ci95": 0.12974040033666923
+        },
+        "z": {
+          "n": 15,
+          "mean": 99.988428137152,
+          "std": 0.21767175569534625,
+          "min": 99.47683356481731,
+          "max": 100.35910157139371,
+          "range": 0.8822680065763961,
+          "ci95": 0.11015710707371325
+        }
+      },
+      "mean_m": [
+        0.20002373328900538,
+        -5.5885470295197166e-05,
+        0.09998842813715199
+      ],
+      "radial_rms_mm": 0.4105769105073712,
+      "radial_max_mm": 0.6938708071468371,
+      "ci95_radial_mm": 0.08245688433618481,
+      "nominal_error_mm": {
+        "mean": 0.37838735387314365,
+        "max": 0.7440168898095129,
+        "std": 0.17692847428175673
+      }
+    },
+    "reverse": {
+      "n": 15,
+      "axes_mm": {
+        "x": {
+          "n": 15,
+          "mean": 199.0991934621525,
+          "std": 0.33057758219420796,
+          "min": 198.4591187206303,
+          "max": 199.68028887821654,
+          "range": 1.2211701575862435,
+          "ci95": 0.16729533880777697
+        },
+        "y": {
+          "n": 15,
+          "mean": 0.06473702436237216,
+          "std": 0.3207157802284836,
+          "min": -0.4262977600506761,
+          "max": 0.7599236364184322,
+          "range": 1.1862213964691084,
+          "ci95": 0.16230457842360244
+        },
+        "z": {
+          "n": 15,
+          "mean": 100.09937341845699,
+          "std": 0.33358826513979184,
+          "min": 99.6176202557331,
+          "max": 100.92628062937226,
+          "range": 1.3086603736391567,
+          "ci95": 0.1688189545958807
+        }
+      },
+      "mean_m": [
+        0.1990991934621525,
+        6.473702436237216e-05,
+        0.10009937341845698
+      ],
+      "radial_rms_mm": 0.5494177477088955,
+      "radial_max_mm": 0.8346523909374697,
+      "ci95_radial_mm": 0.10266817357243485,
+      "nominal_error_mm": {
+        "mean": 1.0190076143475906,
+        "max": 1.5847412633478748,
+        "std": 0.3088025038881678
+      }
+    },
+    "hysteresis": {
+      "vector_mm": [
+        0.9245398268528937,
+        -0.12062249465756933,
+        -0.11094528130499437
+      ],
+      "magnitude_mm": 0.9389528918419914
+    },
+    "pass_2mm": true
+  },
+  "limitations": [
+    "Dry-run/simulate only; the robot is not moved.",
+    "Joint limits are provisional URDF/MoveIt values; mechanical limits are not measured.",
+    "Simulation noise is synthetic and does not model servo dynamics, backlash or camera noise.",
+    "A hardware run needs the supervised joint-limit survey and the safety review first."
+  ]
+}

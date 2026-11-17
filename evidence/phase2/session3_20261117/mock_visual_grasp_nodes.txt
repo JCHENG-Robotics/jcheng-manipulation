@@ -1,0 +1,17 @@
+/arm_controller
+/armpi_fiducial_localizer
+/armpi_safety
+/controller_manager
+/fakesystem
+/gripper_controller
+/joint_state_broadcaster
+/mock_camera_optical_tf
+/move_group
+/move_group/moveit
+/move_group_private_96755235640224
+/moveit_3051761001
+/moveit_simple_controller_manager
+/robot_state_publisher
+/static_transform_publisher
+/synthetic_marker_publisher
+/transform_listener_impl_57ff957fc100

@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "protocol": "gripper_envelope",
+  "mode": "dry-run",
+  "generated_at": "2026-11-17T11:48:33.042942+00:00",
+  "dry_run": true,
+  "no_hardware": true,
+  "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
+  "limits": {
+    "joint1": [
+      -2.09,
+      2.09
+    ],
+    "joint2": [
+      -2.09,
+      2.09
+    ],
+    "joint3": [
+      -2.09,
+      0.0
+    ],
+    "joint4": [
+      -2.09,
+      2.09
+    ],
+    "joint5": [
+      -2.09,
+      2.09
+    ]
+  },
+  "target_joints": [
+    0.0,
+    0.59888,
+    -1.25664,
+    -0.71209,
+    0.0
+  ],
+  "target_point_m": [
+    0.2,
+    0.0,
+    0.1
+  ],
+  "schedule": {
+    "step_mm": 2.0,
+    "max_offset_mm": 10.0,
+    "trials_per_offset": 3,
+    "offsets": [
+      {
+        "id": "x_-10mm",
+        "offset_m": [
+          -0.01,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_-8mm",
+        "offset_m": [
+          -0.008,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_-6mm",
+        "offset_m": [
+          -0.006,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_-4mm",
+        "offset_m": [
+          -0.004,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_-2mm",
+        "offset_m": [
+          -0.002,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+2mm",
+        "offset_m": [
+          0.002,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+4mm",
+        "offset_m": [
+          0.004,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+6mm",
+        "offset_m": [
+          0.006,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+8mm",
+        "offset_m": [
+          0.008,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "x_+10mm",
+        "offset_m": [
+          0.01,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_-10mm",
+        "offset_m": [
+          0.0,
+          -0.01,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_-8mm",
+        "offset_m": [
+          0.0,
+          -0.008,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_-6mm",
+        "offset_m": [
+          0.0,
+          -0.006,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_-4mm",
+        "offset_m": [
+          0.0,
+          -0.004,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_-2mm",
+        "offset_m": [
+          0.0,
+          -0.002,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+2mm",
+        "offset_m": [
+          0.0,
+          0.002,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+4mm",
+        "offset_m": [
+          0.0,
+          0.004,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+6mm",
+        "offset_m": [
+          0.0,
+          0.006,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+8mm",
+        "offset_m": [
+          0.0,
+          0.008,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "y_+10mm",
+        "offset_m": [
+          0.0,
+          0.01,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_-10mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.01
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_-8mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.008
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_-6mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.006
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_-4mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.004
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_-2mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.002
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+2mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.002
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+4mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.004
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+6mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.006
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+8mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.008
+        ],
+        "trials": 3
+      },
+      {
+        "id": "z_+10mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.01
+        ],
+        "trials": 3
+      }
+    ]
+  },
+  "samples": null,
+  "analysis": null,
+  "limitations": [
+    "Dry-run/simulate only; the robot is not moved.",
+    "Joint limits are provisional URDF/MoveIt values; mechanical limits are not measured.",
+    "Simulation noise is synthetic and does not model servo dynamics, backlash or camera noise.",
+    "A hardware run needs the supervised joint-limit survey and the safety review first."
+  ]
+}

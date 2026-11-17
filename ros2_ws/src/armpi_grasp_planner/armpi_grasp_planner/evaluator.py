@@ -13,6 +13,7 @@ Only candidates that reach the planning stage are sent to MoveIt's planner.
 Nothing is executed: ``planning_options.plan_only`` is always true.
 """
 
+import json
 import time
 
 from geometry_msgs.msg import Pose, PoseStamped
@@ -78,6 +79,30 @@ def error_name(code):
     return ERROR_NAMES.get(code, 'UNKNOWN({})'.format(code))
 
 
+def trajectory_to_dict(message):
+    """Convert a RobotTrajectory message into a JSON-friendly dictionary."""
+    trajectory = message.joint_trajectory
+    points = []
+    for point in trajectory.points:
+        points.append(
+            {
+                'positions': [float(value) for value in point.positions],
+                'velocities': [float(value) for value in point.velocities],
+                'accelerations': [
+                    float(value) for value in point.accelerations
+                ],
+                'time_from_start_s': (
+                    float(point.time_from_start.sec)
+                    + float(point.time_from_start.nanosec) * 1e-9
+                ),
+            }
+        )
+    return {
+        'joint_names': list(trajectory.joint_names),
+        'points': points,
+    }
+
+
 def _distance(a, b):
     return (
         (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
@@ -106,6 +131,7 @@ class MoveItGraspEvaluator(Node):
         tool_link='gripper_link',
         tcp_link='end_effector_link',
         frame='base_link',
+        safety_service='',
     ):
         super().__init__('armpi_grasp_planner')
         self.service_timeout = service_timeout
@@ -113,6 +139,9 @@ class MoveItGraspEvaluator(Node):
         self.tool_link = tool_link
         self.tcp_link = tcp_link
         self.frame = frame
+        self.safety_service = safety_service
+        self._safety_client = None
+        self.last_planned_trajectory = None
         self._ik_client = self.create_client(GetPositionIK, '/compute_ik')
         self._fk_client = self.create_client(GetPositionFK, '/compute_fk')
         self._validity_client = self.create_client(
@@ -294,6 +323,7 @@ class MoveItGraspEvaluator(Node):
         allowed_planning_time,
         position_tolerance,
         orientation_tolerance,
+        include_trajectory=False,
     ):
         """Plan, but do not execute, a constrained trajectory to a candidate."""
         goal = MoveGroup.Goal()
@@ -374,12 +404,68 @@ class MoveItGraspEvaluator(Node):
         result = result_future.result().result
         code = result.error_code.val
         points = len(result.planned_trajectory.joint_trajectory.points)
-        return {
+        self.last_planned_trajectory = result.planned_trajectory
+        plan = {
             'ok': code == 1 and points > 0,
             'error_code': code,
             'error_name': error_name(code),
             'trajectory_points': points,
             'planning_time_s': result.planning_time,
+        }
+        if include_trajectory and points:
+            plan['trajectory'] = trajectory_to_dict(
+                result.planned_trajectory
+            )
+        return plan
+
+    def validate_with_safety(
+        self, trajectory, max_start_state_distance_rad=0.0, timeout=None
+    ):
+        """Ask the safety service to veto or approve a planned trajectory."""
+        from arm_interfaces.srv import ValidateTrajectory
+
+        if not self.safety_service:
+            return {
+                'approved': False,
+                'code': 'SAFETY_NOT_CONFIGURED',
+                'violations': [],
+            }
+        if self._safety_client is None:
+            self._safety_client = self.create_client(
+                ValidateTrajectory, self.safety_service
+            )
+        wait_timeout = min(self.service_timeout, timeout or self.service_timeout)
+        if not self._safety_client.wait_for_service(
+            timeout_sec=wait_timeout
+        ):
+            return {
+                'approved': False,
+                'code': 'SAFETY_UNAVAILABLE',
+                'violations': [
+                    '{} is not available'.format(self.safety_service)
+                ],
+            }
+        request = ValidateTrajectory.Request()
+        request.trajectory = trajectory
+        request.max_start_state_distance_rad = float(
+            max_start_state_distance_rad
+        )
+        response = self._call(
+            self._safety_client,
+            request,
+            timeout or self.service_timeout,
+        )
+        report = None
+        if response.report_json:
+            try:
+                report = json.loads(response.report_json)
+            except ValueError:
+                report = None
+        return {
+            'approved': bool(response.approved),
+            'code': str(response.code),
+            'violations': list(response.violations),
+            'report': report,
         }
 
     def evaluate_all(
@@ -398,6 +484,8 @@ class MoveItGraspEvaluator(Node):
         fk_position_tolerance=0.001,
         fk_orientation_tolerance_deg=1.0,
         ik_timeout=0.2,
+        include_trajectory=False,
+        max_start_state_distance_rad=0.0,
     ):
         """
         Screen every candidate and return ``(results, counts)``.
@@ -415,6 +503,8 @@ class MoveItGraspEvaluator(Node):
             'plan_ok': 0,
             'duplicates_skipped': 0,
             'evaluator_errors': 0,
+            'safety_checked': 0,
+            'safety_ok': 0,
         }
         solved_states = set()
         if not seeds:
@@ -514,11 +604,29 @@ class MoveItGraspEvaluator(Node):
                     allowed_planning_time,
                     position_tolerance,
                     orientation_tolerance,
+                    include_trajectory=include_trajectory,
                 )
                 counts['plan_attempted'] += 1
                 if entry['plan']['ok']:
                     counts['plan_ok'] += 1
                     entry['status'] = 'PLAN_OK'
+                    if self.safety_service:
+                        try:
+                            entry['safety'] = self.validate_with_safety(
+                                self.last_planned_trajectory,
+                                max_start_state_distance_rad=(
+                                    max_start_state_distance_rad
+                                ),
+                            )
+                        except Exception as exc:  # noqa: BLE001
+                            entry['safety'] = {
+                                'approved': False,
+                                'code': 'SAFETY_ERROR',
+                                'violations': [str(exc)],
+                            }
+                        counts['safety_checked'] += 1
+                        if entry['safety']['approved']:
+                            counts['safety_ok'] += 1
                 else:
                     entry['status'] = 'PLAN_FAIL'
             except Exception as exc:  # noqa: BLE001 - report per candidate

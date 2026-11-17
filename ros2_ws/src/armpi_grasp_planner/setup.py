@@ -1,3 +1,6 @@
+from glob import glob
+import os
+
 from setuptools import setup
 
 package_name = 'armpi_grasp_planner'
@@ -12,6 +15,10 @@ setup(
             ['resource/' + package_name],
         ),
         ('share/' + package_name, ['package.xml']),
+        (
+            os.path.join('share', package_name, 'launch'),
+            glob(os.path.join('launch', '*.*')),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -28,6 +35,10 @@ setup(
             (
                 'grasp_candidate_check = '
                 'armpi_grasp_planner.cli:main'
+            ),
+            (
+                'grasp_target_bridge = '
+                'armpi_grasp_planner.target_bridge:main'
             ),
         ],
     },

@@ -28,6 +28,7 @@ gitignored or kept private.
 | `armpi_moveit/` | Model URDF, `check_urdf`, MoveIt smoke logs, Phase 0 plan-only results |
 | `armpi_grasp/20261116/` | 5-DoF grasp candidate search (mock, plan-only) |
 | `fiducial/20261116/` | Synthetic fiducial localization and ROS TF wiring |
+| `phase2/session3_20261117/` | Synthetic marker → localizer → grasp bridge → safety veto E2E, safety service negative controls, measurement dry-run/simulate reports |
 | `armpi_moveit/phase0_20261116/` | Phase 0 constrained-planning acceptance |
 
 ## Rules

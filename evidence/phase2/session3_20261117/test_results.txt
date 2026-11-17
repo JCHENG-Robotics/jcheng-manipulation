@@ -1,0 +1,6 @@
+== colcon test (2026-11-17) ==
+Summary: 58 tests, 0 errors, 0 failures, 0 skipped
+
+== pytest tools/phase2/tests (ROS env sourced) ==
+.........................                                                [100%]
+25 passed in 2.45s

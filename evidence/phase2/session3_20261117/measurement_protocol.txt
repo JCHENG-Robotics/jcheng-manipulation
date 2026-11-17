@@ -1,0 +1,36 @@
+===== repeatability dry-run =====
+MEASUREMENT protocol=repeatability mode=dry-run dry_run=True
+SCHEDULE repeatability trials=30
+RESULT PASS
+===== repeatability simulate =====
+MEASUREMENT protocol=repeatability mode=simulate dry_run=False
+SCHEDULE repeatability trials=30
+ANALYSIS radial_rms_mm=0.483 radial_max_mm=0.919 nominal_error_mean_mm=1.130 pass_5mm=True
+RESULT PASS
+===== backlash dry-run =====
+MEASUREMENT protocol=backlash mode=dry-run dry_run=True
+SCHEDULE backlash trials=30
+RESULT PASS
+===== backlash simulate =====
+MEASUREMENT protocol=backlash mode=simulate dry_run=False
+SCHEDULE backlash trials=30
+ANALYSIS hysteresis_mm=0.939 pass_2mm=True
+RESULT PASS
+===== visual_displacement dry-run =====
+MEASUREMENT protocol=visual_displacement mode=dry-run dry_run=True
+SCHEDULE placements=21
+RESULT PASS
+===== visual_displacement simulate =====
+MEASUREMENT protocol=visual_displacement mode=simulate dry_run=False
+SCHEDULE placements=21
+ANALYSIS rmse_mm=1.139 max_error_mm=1.876 pass_5mm=True
+RESULT PASS
+===== gripper_envelope dry-run =====
+MEASUREMENT protocol=gripper_envelope mode=dry-run dry_run=True
+SCHEDULE offsets=33
+RESULT PASS
+===== gripper_envelope simulate =====
+MEASUREMENT protocol=gripper_envelope mode=simulate dry_run=False
+SCHEDULE offsets=33
+ANALYSIS envelope_mm={'x': 6.0, 'y': 6.0, 'z': 6.0}
+RESULT PASS

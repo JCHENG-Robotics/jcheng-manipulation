@@ -14,11 +14,14 @@
 | Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; model `camera_optical_frame` stays mock-only |
 | MoveIt 2 constrained planning | **Implemented, mock-validated; real reset_servo verified** | Pilz `PTP` 6D-constrained goal (plan-only); one supervised real motion through Humble Docker MoveIt |
 | 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware trials |
+| Fiducial → grasp bridge | **Implemented, mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; no real grasp |
 | Fiducial target localization | **Implemented, synthetic + real-background validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames |
+| Safety supervisor | **Implemented, mock-validated (2026-11-17)** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; veto service; provisional limits, no e-stop |
+| Measurement protocols | **Implemented, dry-run/simulate validated (2026-11-17)** | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no hardware data |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
-| Calibration and visual grasping | **In progress — hand-eye validated, diverse 24-pose set selected** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; next capture uses 24 offline-selected poses (diversity/coplanarity checks pass, not executed); real grasp not started |
-| Error budget and tolerance envelope | **Planned** | Requires measured repeatability, backlash and calibration |
+| Calibration and visual grasping | **In progress — hand-eye validated, diverse 24-pose set selected, mock visual chain validated** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; next capture uses 24 offline-selected poses (not executed); synthetic marker → grasp → safety E2E passes plan-only; real grasp not started |
+| Error budget and tolerance envelope | **Planned — measurement protocols ready** | Requires measured repeatability, backlash and calibration; dry-run/simulate scripts exist |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
 Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack
@@ -37,8 +40,11 @@ non-coplanar camera centres; the set is planned, not yet executed. The real-back
 semi-synthetic check passes 15/15 poses (max 1.69 mm / 0.53°)
 with zero false detections on 8 real frames. The shipped vendor
 `hand2cam_tf_matrix` is **stale for the current mount** and is not valid
-Baseline A. The grasp-candidate search remains mock-validated; the fiducial →
-grasp bridge and a real visual grasp are not started.
+Baseline A. The grasp-candidate search remains mock-validated. On 2026-11-17
+Session 3, the fiducial → grasp bridge and a safety veto were added and a
+synthetic marker → localizer → grasp search → safety E2E passed (3/3 plans
+approved, plan-only). The measurement protocols have dry-run/simulate
+validation only. A real visual grasp is still not started.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal

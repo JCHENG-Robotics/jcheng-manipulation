@@ -26,7 +26,9 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
 | 相机 / 标定 | **相机可用；手眼标定已验证；已离线选姿** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°，留一验证 3.41 mm / 0.44°（std）；实测光轴 frame 已发布；从 14,176 个评估位姿中离线选出 24 个多样位姿（尚未实机执行） |
-| 视觉抓取 | 进行中 | 感知、抓取搜索、已验证的相机标定与 frame；尚无实机抓取 |
+| 视觉抓取 | 进行中 — Mock 链路已验证 | 感知、抓取搜索、已验证的相机标定与 frame；fiducial → 抓取桥接 + 安全否决通过合成 Mock E2E；尚无实机抓取 |
+| 安全层 | 已实现，Mock 验证 | 状态看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；`ValidateTrajectory` 否决服务；限位仍为暂定值，无急停集成 |
+| 测量协议 | 已实现，dry-run/simulate 验证 | 重复性/回差/视觉位移/夹爪包络的计划与分析器；尚无实机数据 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
@@ -51,19 +53,22 @@ evidence/
 ├── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
 ├── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
 ├── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
-└── phase1/                # 实机 Pi/ROS/舵机/TF/相机基线（2026-11-17）
+├── phase1/                # 实机 Pi/ROS/舵机/TF/相机基线（2026-11-17）
+└── phase2/                # frame、关节限位、桥接 E2E、安全层、测量
 ros2_ws/src/
 ├── arm_basics/            # 学习节点（历史遗留）
 ├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
-├── arm_interfaces/        # 自定义 action
+├── arm_interfaces/        # 自定义 action + 轨迹校验服务
 ├── arm_moveit_demo/       # Panda 抓取放置演示
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco 目标定位
-├── armpi_grasp_planner/   # 5-DoF 候选生成 + MoveIt 筛选
+├── armpi_grasp_planner/   # 5-DoF 候选生成 + 桥接 + Mock E2E launch
+├── armpi_safety/          # 状态看门狗 + 轨迹否决
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（Mock + 实机 launch）
 tools/
 ├── humble_moveit/         # 实机使用的 Humble Docker MoveIt/RViz
-└── phase1/                # 实机基线辅助工具
+├── phase1/                # 实机基线辅助工具
+└── phase2/                # 标定、fiducial、桥接 E2E 与测量工具
 ```
 
 ## 构建
@@ -247,6 +252,7 @@ provisional；只读实测与关力矩测量工具见
   24 位姿选择。
 - `evidence/phase2/real_background_20261117/` — 真实背景负对照 + 半合成位姿精度。
 - `evidence/phase2/frames_20261117/` — 全精度 body→optical frame 契约。
+- `evidence/phase2/session3_20261117/` — 合成标记 → 抓取 → 安全 E2E、安全服务负对照、测量 dry-run/simulate 报告。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
 
 永远不要把 Mock/Gazebo 结果当作硬件验证。
@@ -258,6 +264,9 @@ provisional；只读实测与关力矩测量工具见
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
 - [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
 - [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、真实背景精度与 frame 契约。
+- [Phase 2 Fiducial → 抓取桥接](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — `target_pose` → TF → 抓取搜索 → 安全否决，Mock E2E 结果。
+- [Phase 2 安全层](docs/phase2/SAFETY_LAYER.md) — 看门狗、限位、工作空间与轨迹否决服务。
+- [Phase 3 测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移与夹爪包络。
 - [相机 frame 契约](docs/hardware/camera_frames.md) — body/optical frame 与 `camera_optical_calibrated`。
 - [Vendor 标定基线](docs/hardware/vendor_calibration_baseline.md) — vendor 矩阵解码与 Baseline A 状态。
 - [Phase 2 关节限位](docs/phase2/JOINT_LIMITS.md) — 舵机只读证据、关力矩测量流程与 CycloneDDS 注意事项。

@@ -1,0 +1,423 @@
+{
+  "schema_version": 1,
+  "protocol": "repeatability",
+  "mode": "dry-run",
+  "generated_at": "2026-11-17T11:48:32.741204+00:00",
+  "dry_run": true,
+  "no_hardware": true,
+  "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
+  "limits": {
+    "joint1": [
+      -2.09,
+      2.09
+    ],
+    "joint2": [
+      -2.09,
+      2.09
+    ],
+    "joint3": [
+      -2.09,
+      0.0
+    ],
+    "joint4": [
+      -2.09,
+      2.09
+    ],
+    "joint5": [
+      -2.09,
+      2.09
+    ]
+  },
+  "target_joints": [
+    0.0,
+    0.59888,
+    -1.25664,
+    -0.71209,
+    0.0
+  ],
+  "target_point_m": [
+    0.2,
+    0.0,
+    0.1
+  ],
+  "schedule": {
+    "trials": 30,
+    "target_joints": [
+      0.0,
+      0.59888,
+      -1.25664,
+      -0.71209,
+      0.0
+    ],
+    "entries": [
+      {
+        "trial": 1,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 2,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 3,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 4,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 5,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 6,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 7,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 8,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 9,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 10,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 11,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 12,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 13,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 14,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 15,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 16,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 17,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 18,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 19,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 20,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 21,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 22,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 23,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 24,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 25,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 26,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 27,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 28,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 29,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      },
+      {
+        "trial": 30,
+        "target_joints": [
+          0.0,
+          0.59888,
+          -1.25664,
+          -0.71209,
+          0.0
+        ],
+        "settle_s": 0.5,
+        "dwell_s": 0.5
+      }
+    ]
+  },
+  "samples": null,
+  "analysis": null,
+  "limitations": [
+    "Dry-run/simulate only; the robot is not moved.",
+    "Joint limits are provisional URDF/MoveIt values; mechanical limits are not measured.",
+    "Simulation noise is synthetic and does not model servo dynamics, backlash or camera noise.",
+    "A hardware run needs the supervised joint-limit survey and the safety review first."
+  ]
+}

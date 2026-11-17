@@ -3,6 +3,65 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Session 3: fiducial → grasp bridge, mock E2E, safety veto, measurement protocols
+
+### Added
+
+- `armpi_grasp_planner/target_bridge.py` + `grasp_target_bridge`: one-shot ROS 2
+  node that subscribes to `target_pose`, transforms it to `base_link`, checks
+  pose age and marker tilt, applies an optional marker-frame offset, and runs
+  the joint-space grasp search with an optional safety veto.
+- `armpi_grasp_planner/launch/mock_visual_grasp.launch.py`: mock-only chain
+  (MoveIt mock, down-looking camera frame, synthetic AprilTag, localizer,
+  safety supervisor) on an isolated DDS domain (77, localhost only).
+- `arm_interfaces/srv/ValidateTrajectory.srv` and `armpi_safety`:
+  pure-policy watchdog/veto (`policy.py`) and ROS supervisor
+  (`safety_supervisor`) with `armpi_safety/validate_trajectory`,
+  `armpi_safety/reset_stop`, `safety_status` and a latched `safety_stop`.
+- `armpi_safety/config/safety_limits.yaml`: provisional joint/rate/workspace
+  limits; FK workspace check via `end_effector_link`.
+- `tools/phase2/run_mock_visual_grasp_e2e.sh`, `tools/phase2/safety_service_check.py`:
+  reproducible mock E2E and safety service negative controls.
+- `tools/phase2/measurement_protocol.py`: dry-run/simulate/analyze schedules and
+  analyzers for repeatability, backlash, visual displacement and gripper
+  envelope.
+- Docs: `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`, `SAFETY_LAYER.md`,
+  `MEASUREMENT_PROTOCOL.md`; evidence bundle
+  `evidence/phase2/session3_20261117/`.
+
+### Changed
+
+- `MoveItGraspEvaluator` can include the full planned trajectory in reports and
+  call a safety service for every `PLAN_OK` candidate; the CLI success requires
+  at least one safety-approved plan when `--safety-service` is set.
+- `grasp_candidate_check` gained `--safety-service`,
+  `--max-start-state-distance` and `--include-trajectory`; its `best` entry
+  prefers a safety-approved plan.
+- Phase 2 docs/README/ROADMAP/zh-CN README now separate the mock visual chain
+  from a real grasp.
+
+### Verified (mock/synthetic, 2026-11-17)
+
+- `colcon test --packages-select arm_interfaces armpi_grasp_planner armpi_safety armpi_fiducial_localizer`:
+  **58 tests, 0 failures**.
+- `python3 -m pytest tools/phase2/tests -q`: **25 passed**.
+- Mock E2E: synthetic marker → localizer → bridge → 80 candidates → 40 IK →
+  40 FK → 26 collision-free → 3 `PLAN_OK`; safety approved 3/3; best `js_0249`,
+  87 points, 8.51 s; `E2E PASS`.
+- Safety service: valid approved; joint-limit, velocity and timestamp
+  negative controls rejected with the expected codes.
+- Measurement dry-run/simulate: all four protocols produce schedules and
+  analysis reports; no hardware data.
+
+### Limits
+
+- The mock E2E is synthetic and plan-only; nothing was executed and no real
+  grasp exists.
+- Safety limits are provisional and the layer is a veto, not an e-stop or a
+  controller path.
+- Measurement results are simulated (`noise=0.3 mm`, `bias=1.0 mm`), not
+  robot measurements.
+
 ## [Unreleased] — 2026-11-17 Session 2: calibration pose selection and synthetic hand-eye gate
 
 ### Added

@@ -7,6 +7,7 @@
   <maintainer email="maintainer@example.invalid">Jericho Cheng</maintainer>
   <license>MIT</license>
 
+  <exec_depend>arm_interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>builtin_interfaces</exec_depend>
@@ -15,6 +16,8 @@
   <exec_depend>python3-pykdl</exec_depend>
   <exec_depend>python3-urdf-parser-py</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>shape_msgs</exec_depend>
   <exec_depend>xacro</exec_depend>
 

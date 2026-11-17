@@ -90,20 +90,21 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
 
 ## 5. Gap against the master plan
 
-| Plan area | State on 2026-11-16 | Blocker |
+| Plan area | State on 2026-11-17 | Blocker |
 |---|---|---|
 | Phase 0 Panda freeze | Complete: `panda-baseline-v1` tag; 8-week README/roadmap archived; Phase II work archived, not merged | — |
 | Phase 0 ArmPi model | Complete for model/mock scope (see checklist) | — |
 | Phase 0 constrained planning | Complete for endpoint-constrained PTP; candidate search is Phase 2 | — |
-| Phase 1 hardware baseline | **Not started**; templates exist in `docs/hardware/` | No robot connection; container workspace not exported (D-06) |
-| Phase 2 grasp candidate search | **Implemented, mock-validated** (2026-11-16) | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; plan-only, no camera target |
-| Phase 2 fiducial localization | **Implemented, synthetic-validated** (2026-11-16) | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; no real camera |
-| Phase 2 calibration + real visual grasp | **Not started** | Hardware + camera |
-| Phase 3 Error Budget v1 | **Not started** | Hardware measurements |
+| Phase 1 hardware baseline | **In progress**; live Pi/ROS/servo/TF/camera baseline captured | Joint limits/IMU/stop behaviour open; one supervised motion only |
+| Phase 2 grasp candidate search | **Implemented, mock-validated** | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; plan-only |
+| Phase 2 fiducial localization | **Implemented, synthetic + real-background validated** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; real camera frames, no physical target |
+| Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; synthetic marker, plan-only |
+| Phase 2 calibration + real visual grasp | **Calibration validated; mock visual chain validated; real grasp not started** | Hardware + physical target/object + execution decision |
+| Phase 3 Error Budget v1 | **Protocols implemented, dry-run/simulate only; no hardware data** | Hardware measurements |
 | Bonus mobile base | **Not started** | Hardware purchase deadline 2027-01-31 |
 
-The project is therefore **at the end of Phase 0, not inside Phase 1**. Do not
-promote any hardware-dependent item to “validated” before Phase 1 data exists.
+Phase 1 started on 2026-11-17. Do not promote any hardware-dependent item to
+“validated” before the corresponding Phase 1 data exists.
 
 ## 6. Changes made on 2026-11-16
 

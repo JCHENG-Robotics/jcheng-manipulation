@@ -1,0 +1,8 @@
+[WARN] [1794916071.791365889] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1794916071.791396827] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+SAFETY_CASE valid approved=True code=OK expected=(True, OK) result=PASS
+SAFETY_CASE joint_limit approved=False code=JOINT_LIMIT expected=(False, JOINT_LIMIT) result=PASS
+SAFETY_CASE velocity approved=False code=VELOCITY_LIMIT expected=(False, VELOCITY_LIMIT) result=PASS
+SAFETY_CASE timestamp approved=False code=TIMESTAMP expected=(False, TIMESTAMP) result=PASS
+RESULT PASS
+safety service check exit=0

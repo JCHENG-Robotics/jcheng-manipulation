@@ -1,0 +1,95 @@
+[WARN] [1794916049.065172278] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1794916049.065201401] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1794916049.136364203] [armpi_grasp_target_bridge]: waiting for target_pose -> base_link (max_age=0.50s, offset=(0.0, 0.0, 0.0))
+[INFO] [1794916051.516371569] [armpi_grasp_target_bridge]: target captured in base_link: point=(0.1381, 0.0226, 0.0895) age=0.061s tilt=0.00deg
+[WARN] [1794916051.524459475] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1794916051.524475677] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+BRIDGE_TARGET frame=base_link point=(0.1381, 0.0226, 0.0895) age=0.061s tilt=0.00deg
+TARGET mode=point sampler=joint tcp=(0.1381, 0.0226, 0.0895)
+CANDIDATE jsr_0041 status=IK_FAIL source=joint_sample_refined pitch=3.0 yaw=18.5 roll=-91.6 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0027 status=IK_FAIL source=joint_sample_refined pitch=3.0 yaw=18.6 roll=-91.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0221 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=29.4 roll=-92.2 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0207 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=29.4 roll=-92.1 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0193 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=29.7 roll=-91.8 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0501 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=40.0 roll=-93.0 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0487 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=40.1 roll=-93.0 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0014 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=-6.1 roll=+107.3 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0028 status=IK_FAIL source=joint_sample_refined pitch=3.1 yaw=-6.2 roll=+107.2 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0040 status=IK_FAIL source=joint_sample_refined pitch=3.2 yaw=19.0 roll=-73.9 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0026 status=IK_FAIL source=joint_sample_refined pitch=3.2 yaw=19.1 roll=-73.8 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0180 status=IK_FAIL source=joint_sample_refined pitch=3.2 yaw=5.6 roll=+107.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0194 status=IK_FAIL source=joint_sample_refined pitch=3.2 yaw=5.3 roll=+107.3 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0208 status=IK_FAIL source=joint_sample_refined pitch=3.2 yaw=5.3 roll=+107.2 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0220 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=29.9 roll=-74.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0206 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=30.0 roll=-74.4 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0192 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=30.2 roll=-74.1 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0474 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=16.5 roll=+107.0 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0488 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=16.5 roll=+106.9 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0500 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=40.5 roll=-75.3 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0486 status=IK_FAIL source=joint_sample_refined pitch=3.3 yaw=40.6 roll=-75.2 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0015 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=-5.8 roll=+90.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0029 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=-5.8 roll=+90.4 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0039 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=18.4 roll=-57.3 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0025 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=18.4 roll=-57.3 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0181 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=5.9 roll=+90.7 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0195 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=5.7 roll=+90.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0209 status=IK_FAIL source=joint_sample_refined pitch=3.4 yaw=5.6 roll=+90.4 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0219 status=IK_FAIL source=joint_sample_refined pitch=3.5 yaw=29.3 roll=-57.9 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0205 status=IK_FAIL source=joint_sample_refined pitch=3.5 yaw=29.4 roll=-57.8 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0191 status=IK_FAIL source=joint_sample_refined pitch=3.5 yaw=29.6 roll=-57.6 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0475 status=IK_FAIL source=joint_sample_refined pitch=3.5 yaw=16.9 roll=+90.2 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0489 status=IK_FAIL source=joint_sample_refined pitch=3.5 yaw=16.8 roll=+90.1 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0499 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=40.0 roll=-58.6 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0485 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=40.1 roll=-58.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0016 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=-4.4 roll=+74.6 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0030 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=-4.5 roll=+74.5 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0038 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=16.9 roll=-41.7 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0024 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=16.9 roll=-41.6 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE jsr_0182 status=IK_FAIL source=joint_sample_refined pitch=3.6 yaw=7.2 roll=+74.8 standoff=0.000 offset=0.0mm seed=- points=0
+CANDIDATE js_0368 status=COLLISION source=joint_sample pitch=38.4 yaw=17.6 roll=+16.4 standoff=0.000 offset=3.9mm seed=0 points=0
+CANDIDATE js_0367 status=COLLISION source=joint_sample pitch=38.4 yaw=17.3 roll=+33.3 standoff=0.000 offset=4.0mm seed=0 points=0
+CANDIDATE js_0369 status=COLLISION source=joint_sample pitch=38.4 yaw=18.0 roll=-0.5 standoff=0.000 offset=4.0mm seed=0 points=0
+CANDIDATE js_0366 status=COLLISION source=joint_sample pitch=38.3 yaw=17.0 roll=+50.3 standoff=0.000 offset=4.1mm seed=0 points=0
+CANDIDATE js_0370 status=COLLISION source=joint_sample pitch=38.3 yaw=18.3 roll=-17.4 standoff=0.000 offset=4.1mm seed=0 points=0
+CANDIDATE js_0371 status=COLLISION source=joint_sample pitch=38.2 yaw=18.5 roll=-34.4 standoff=0.000 offset=4.2mm seed=0 points=0
+CANDIDATE js_0365 status=COLLISION source=joint_sample pitch=38.1 yaw=16.7 roll=+67.3 standoff=0.000 offset=4.3mm seed=0 points=0
+CANDIDATE js_0372 status=COLLISION source=joint_sample pitch=38.0 yaw=18.7 roll=-51.5 standoff=0.000 offset=4.4mm seed=0 points=0
+CANDIDATE js_0364 status=COLLISION source=joint_sample pitch=38.0 yaw=16.6 roll=+84.3 standoff=0.000 offset=4.5mm seed=0 points=0
+CANDIDATE js_0373 status=COLLISION source=joint_sample pitch=37.8 yaw=18.8 roll=-68.6 standoff=0.000 offset=4.6mm seed=0 points=0
+CANDIDATE js_0363 status=COLLISION source=joint_sample pitch=37.7 yaw=16.5 roll=+101.5 standoff=0.000 offset=4.7mm seed=0 points=0
+CANDIDATE js_0374 status=COLLISION source=joint_sample pitch=37.6 yaw=18.8 roll=-85.8 standoff=0.000 offset=4.8mm seed=0 points=0
+CANDIDATE js_0249 status=PLAN_OK source=joint_sample pitch=14.5 yaw=20.2 roll=-101.4 standoff=0.000 offset=4.9mm seed=0 points=87
+SAFETY js_0249 approved=True code=OK
+CANDIDATE js_0236 status=PLAN_OK source=joint_sample pitch=14.6 yaw=15.0 roll=+117.0 standoff=0.000 offset=4.9mm seed=0 points=93
+SAFETY js_0236 approved=True code=OK
+CANDIDATE js_0248 status=PLAN_OK source=joint_sample pitch=14.7 yaw=20.4 roll=-84.0 standoff=0.000 offset=4.9mm seed=0 points=79
+SAFETY js_0248 approved=True code=OK
+CANDIDATE js_0237 status=COLLISION_FREE source=joint_sample pitch=14.8 yaw=14.9 roll=+99.7 standoff=0.000 offset=4.9mm seed=0 points=0
+CANDIDATE js_0362 status=COLLISION source=joint_sample pitch=37.5 yaw=16.5 roll=+118.7 standoff=0.000 offset=4.9mm seed=0 points=0
+CANDIDATE js_0247 status=COLLISION_FREE source=joint_sample pitch=14.9 yaw=20.4 roll=-66.8 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0238 status=COLLISION_FREE source=joint_sample pitch=15.0 yaw=15.1 roll=+82.7 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0246 status=COLLISION_FREE source=joint_sample pitch=15.1 yaw=20.2 roll=-49.9 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0239 status=COLLISION_FREE source=joint_sample pitch=15.2 yaw=15.5 roll=+65.9 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0245 status=COLLISION_FREE source=joint_sample pitch=15.3 yaw=19.7 roll=-33.1 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0375 status=COLLISION source=joint_sample pitch=37.4 yaw=18.7 roll=-103.1 standoff=0.000 offset=5.0mm seed=0 points=0
+CANDIDATE js_0240 status=COLLISION_FREE source=joint_sample pitch=15.4 yaw=16.1 roll=+49.3 standoff=0.000 offset=5.1mm seed=0 points=0
+CANDIDATE js_0244 status=COLLISION_FREE source=joint_sample pitch=15.4 yaw=19.1 roll=-16.5 standoff=0.000 offset=5.1mm seed=0 points=0
+CANDIDATE js_0241 status=COLLISION_FREE source=joint_sample pitch=15.5 yaw=16.8 roll=+32.8 standoff=0.000 offset=5.1mm seed=0 points=0
+CANDIDATE js_0243 status=COLLISION_FREE source=joint_sample pitch=15.5 yaw=18.4 roll=-0.0 standoff=0.000 offset=5.1mm seed=0 points=0
+CANDIDATE js_0242 status=COLLISION_FREE source=joint_sample pitch=15.5 yaw=17.6 roll=+16.4 standoff=0.000 offset=5.1mm seed=0 points=0
+CANDIDATE js_0172 status=COLLISION_FREE source=joint_sample pitch=7.4 yaw=-162.1 roll=-163.3 standoff=0.000 offset=7.6mm seed=0 points=0
+CANDIDATE js_0173 status=COLLISION_FREE source=joint_sample pitch=7.4 yaw=-163.7 roll=+177.9 standoff=0.000 offset=7.6mm seed=0 points=0
+CANDIDATE js_0171 status=COLLISION_FREE source=joint_sample pitch=7.5 yaw=-160.5 roll=-144.5 standoff=0.000 offset=7.6mm seed=0 points=0
+CANDIDATE js_0174 status=COLLISION_FREE source=joint_sample pitch=7.5 yaw=-165.2 roll=+159.3 standoff=0.000 offset=7.7mm seed=0 points=0
+CANDIDATE js_0170 status=COLLISION_FREE source=joint_sample pitch=7.6 yaw=-159.1 roll=-125.9 standoff=0.000 offset=7.8mm seed=0 points=0
+CANDIDATE js_0175 status=COLLISION_FREE source=joint_sample pitch=7.7 yaw=-166.3 roll=+140.9 standoff=0.000 offset=7.9mm seed=0 points=0
+CANDIDATE js_0389 status=COLLISION_FREE source=joint_sample pitch=48.8 yaw=18.5 roll=-103.3 standoff=0.000 offset=7.9mm seed=0 points=0
+CANDIDATE js_0169 status=COLLISION_FREE source=joint_sample pitch=7.7 yaw=-158.0 roll=-107.7 standoff=0.000 offset=8.0mm seed=0 points=0
+CANDIDATE js_0376 status=COLLISION_FREE source=joint_sample pitch=49.0 yaw=16.8 roll=+119.0 standoff=0.000 offset=8.0mm seed=0 points=0
+CANDIDATE js_0388 status=COLLISION_FREE source=joint_sample pitch=49.0 yaw=18.6 roll=-86.1 standoff=0.000 offset=8.1mm seed=0 points=0
+CANDIDATE js_0176 status=COLLISION_FREE source=joint_sample pitch=7.9 yaw=-167.1 roll=+123.0 standoff=0.000 offset=8.2mm seed=0 points=0
+CANDIDATE js_0168 status=COLLISION_FREE source=joint_sample pitch=7.9 yaw=-157.4 roll=-89.9 standoff=0.000 offset=8.2mm seed=0 points=0
+GRASP_SEARCH candidates=80 sanity_ok=80 ik_ok=40 fk_ok=40 collision_ok=26 plan_ok=3
+RESULT PASS
+BRIDGE_RESULT PASS
+bridge exit=0

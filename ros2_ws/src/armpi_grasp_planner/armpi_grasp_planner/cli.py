@@ -213,6 +213,25 @@ def _parse_args(argv):
         default=None,
         help='URDF/xacro path for joint sampling; defaults to the description',
     )
+    parser.add_argument(
+        '--safety-service',
+        default='',
+        help=(
+            'optional arm_interfaces/ValidateTrajectory service; planned '
+            'candidates are vetoed unless it approves'
+        ),
+    )
+    parser.add_argument(
+        '--max-start-state-distance',
+        type=float,
+        default=0.0,
+        help='override the safety start-state threshold, radians (0=config)',
+    )
+    parser.add_argument(
+        '--include-trajectory',
+        action='store_true',
+        help='include the full planned joint trajectory in the JSON report',
+    )
     parser.add_argument('--service-timeout', type=float, default=10.0)
     parser.add_argument('--json-out', default=None)
     parser.add_argument('--quiet', action='store_true')
@@ -248,6 +267,13 @@ def _target_summary(args, decomposition, tcp_pose):
 
 
 def _best_entry(results):
+    preferred = [
+        entry for entry in results
+        if entry['status'] == 'PLAN_OK'
+        and (entry.get('safety') or {}).get('approved')
+    ]
+    if preferred:
+        results = preferred
     for status in ('PLAN_OK', 'COLLISION_FREE'):
         for entry in results:
             if entry['status'] == status:
@@ -261,6 +287,7 @@ def _best_entry(results):
                         else None
                     ),
                     'plan': entry.get('plan'),
+                    'safety': entry.get('safety'),
                 }
     return None
 
@@ -276,7 +303,10 @@ def main(argv=None):
         'success': False,
     }
     try:
-        node = MoveItGraspEvaluator(service_timeout=args.service_timeout)
+        node = MoveItGraspEvaluator(
+            service_timeout=args.service_timeout,
+            safety_service=args.safety_service,
+        )
         node.wait_for_interfaces()
 
         sampler = args.sampler
@@ -390,6 +420,10 @@ def main(argv=None):
             fk_position_tolerance=args.fk_position_tolerance,
             fk_orientation_tolerance_deg=args.fk_orientation_tolerance,
             ik_timeout=args.ik_timeout,
+            include_trajectory=args.include_trajectory,
+            max_start_state_distance_rad=(
+                args.max_start_state_distance
+            ),
         )
 
         target_summary = _target_summary(args, decomposition, tcp_pose)
@@ -417,6 +451,8 @@ def main(argv=None):
                     'gripper_max_opening_m': args.gripper_max_opening,
                     'max_plan': args.max_plan,
                     'ik_timeout_s': args.ik_timeout,
+                    'safety_service': args.safety_service or None,
+                    'include_trajectory': args.include_trajectory,
                     'seeds': [list(seed) for seed in seeds],
                     'pipeline': args.pipeline,
                     'planner': args.planner,
@@ -432,6 +468,8 @@ def main(argv=None):
             if args.max_plan > 0
             else counts['collision_ok'] > 0
         )
+        if args.safety_service and counts['plan_ok'] > 0:
+            success = success and counts['safety_ok'] > 0
         summary['success'] = success
 
         if not args.quiet:
@@ -476,6 +514,15 @@ def main(argv=None):
                         plan.get('trajectory_points', 0),
                     )
                 )
+                safety = entry.get('safety')
+                if safety:
+                    print(
+                        'SAFETY {} approved={} code={}'.format(
+                            entry['candidate_id'],
+                            safety['approved'],
+                            safety['code'],
+                        )
+                    )
             print(
                 'GRASP_SEARCH candidates={generated} sanity_ok={sanity_ok} '
                 'ik_ok={ik_ok} fk_ok={fk_ok} collision_ok={collision_ok} '

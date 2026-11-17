@@ -1,0 +1,14 @@
+# Validate a planned trajectory against conservative safety limits.
+#
+# The safety node never executes a trajectory. It checks state freshness,
+# joint position limits, velocity/acceleration limits, start-state consistency,
+# duration and the Cartesian workspace, then reports a veto or approval.
+moveit_msgs/RobotTrajectory trajectory
+# 0.0 means "use the configured default".
+float64 max_start_state_distance_rad
+---
+bool approved
+string code
+string[] violations
+# Full structured report, JSON-encoded (schema_version, checks, statistics).
+string report_json
