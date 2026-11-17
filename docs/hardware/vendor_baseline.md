@@ -53,7 +53,8 @@ install), not in the public repository:
    action servers per action.
 2. Robot `.zshrc`: added `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and
    `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`.
-3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to `eth0` only.
+3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to `wlan0` only (office WiFi;
+   the direct `eth0` path is an SSH fallback, not the DDS interface).
 4. Restarted `start_node.service` and verified one `/controller_manager`, one
    `/servo_manager`, one action server and one MoveIt client.
 

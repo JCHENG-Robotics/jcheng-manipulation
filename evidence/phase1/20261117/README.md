@@ -13,7 +13,7 @@
 | OS / kernel | Debian 12 (bookworm), 6.6.20+rpt-rpi-2712, aarch64 |
 | Container | `ArmPiUltra`, ROS 2 Humble |
 | RMW / domain | `rmw_cyclonedds_cpp`, `ROS_DOMAIN_ID=0` |
-| Robot / laptop link | `eth0 10.42.0.218/24` ↔ laptop `10.42.0.1/24` direct Ethernet |
+| Robot / laptop link | SSH baseline over direct Ethernet (`eth0 10.42.0.218/24` ↔ laptop `10.42.0.1/24`); ROS 2 DDS over WiFi (`wlan0 10.51.128.226/23` ↔ `wlp4s0 10.51.128.246/23`) |
 | Camera | Deptrum Aurora 930, serial `HY400523001036827G00179`, firmware 2.0.8, SDK 1.1.19 |
 | Laptop MoveIt | Humble Docker container, `real_moveit.launch.py` |
 
@@ -50,8 +50,9 @@
    `lsusb` hung, and a soft reboot stuck in shutdown. A restart
    recovered it. Do not load `rtw88_8821cu` on this robot.
 4. **Direct link lost at the end.** The laptop NIC `enx00e04ca373c7` reported
-   `Link detected: no` after the capture; the robot was offline afterwards.
-   The baseline above was collected while the link was up.
+   `Link detected: no` after the capture; the robot remained reachable over
+   WiFi `10.51.128.226`, and the camera was restarted over WiFi. The baseline
+   above was collected while the direct SSH link was up.
 
 ## Files
 
@@ -82,6 +83,9 @@
 ## Reproduce
 
 ```bash
+# WiFi (DDS + SSH); current path after the direct link dropped
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226
+# direct Ethernet fallback when the cable is connected
 ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218
 sudo docker exec -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
   'source ~/.zshrc >/dev/null 2>&1; ROS2CLI_NO_DAEMON=1 ros2 node list'

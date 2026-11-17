@@ -24,7 +24,7 @@
 | Battery | 2S pack; 7651 mV latest (7704 mV after reboot, 7385 mV earlier) | `/ros_robot_controller/battery` | `[V]` |
 | Storage | root filesystem 95% used, ≈2.9 GiB free | `df -h /` | `[V]`; boot/log risk |
 | Thermal | 48.8 °C after boot, `throttled=0x0` | `vcgencmd` | `[V]` |
-| Network | `eth0 10.42.0.218/24`; `wlan0 10.51.128.226/23` Wi-Fi client | `ip -brief addr` | `[V]` |
+| Network | `wlan0 10.51.128.226/23` (DDS + SSH); `eth0 10.42.0.218/24` (SSH fallback; link down at end) | `ip -brief addr` | `[V]` |
 | Wi-Fi USB adapter | Realtek RTL8188GU `0bda:1a2b` in CDROM mode; `rtw88_8821cu` is the wrong module and crashed the kernel | `lsusb`, `dmesg` | `[V]` |
 
 ## Notes
@@ -46,9 +46,10 @@
   `voltage` field is 0 (not populated). Do not treat them as encoder feedback.
 - **Battery.** 7.651 V is usable but below the earlier 7.704 V. Charge before
   long motion trials and avoid charging while the arm is moving.
-- **Direct link.** The laptop's direct NIC showed **no link** at the end of the
-  session (cable/power), so the robot was offline after the capture. The data
-  above was collected while the link was up.
+- **DDS over WiFi.** The container's CycloneDDS is bound to `wlan0` only; the
+  laptop uses `wlp4s0`. The direct `eth0` link is an SSH fallback. The laptop's
+  direct NIC showed no link at the end of the session, but the robot remained
+  reachable over WiFi `10.51.128.226`.
 - **Storage.** 95% root usage is a boot/fsck and logging risk. Free space before
   recording bags.
 

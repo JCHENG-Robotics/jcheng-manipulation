@@ -1,10 +1,10 @@
 # Hardware Baseline — ArmPi Ultra
 
-> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. The robot was connected over
-> direct Ethernet; read-only queries plus one supervised `reset_servo` motion.
-> Camera RGB/depth streams and intrinsics are verified. Joint limits, the IMU
-> and the camera hand-eye extrinsic remain open. `[U]` items must not be
-> treated as measured.
+> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. SSH baseline over direct
+> Ethernet; ROS 2 discovery/DDS over the office WiFi (`wlan0` ↔ `wlp4s0`).
+> Read-only queries plus one supervised `reset_servo` motion. Camera RGB/depth
+> streams and intrinsics are verified. Joint limits, the IMU and the camera
+> hand-eye extrinsic remain open. `[U]` items must not be treated as measured.
 
 `MASTER_PLAN_V3_PRIVATE.md` §6 requires this folder before Phase 1.
 

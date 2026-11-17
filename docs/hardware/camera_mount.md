@@ -104,6 +104,10 @@ fraction is invalid/no-return pixels, not a valid 0 mm reading.
   error 135171). After the restart the same device opened and streamed.
   Root cause is unresolved; treat it as a transient device/USB state until
   reproduced.
+- The persistent launch later exited with **SIGKILL** while the static TF
+  publishers were logging DDS multicast errors. It was restarted over WiFi and
+  published `camera_info` again. Check `/aurora/aurora` before relying on the
+  stream; restart with the persistent command above if it is missing.
 - The camera enumerates at USB 2.0 (480 Mbps), not USB 3.0. 8 Hz at 640×400 is
   adequate for static AprilTag localization but not for high-rate visual
   servoing.

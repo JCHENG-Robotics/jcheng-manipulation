@@ -31,6 +31,10 @@ All notable changes to this project are documented here. Format based on
 - Private vendor `servo_controller.launch.py` (not in this repository):
   removed `name='controller_manager'`, which also renamed the internal
   `ServoManager` and created duplicate nodes/action servers.
+- Corrected the live DDS topology in the Phase 1 docs: robot `wlan0` ↔ laptop
+  `wlp4s0` (office WiFi); direct Ethernet is an SSH fallback, not the current
+  CycloneDDS interface. Recorded that the camera launch can be killed and must
+  be checked/restarted with the persistent `docker exec -d ... exec` form.
 
 ### Verified (real hardware, 2026-11-17)
 
