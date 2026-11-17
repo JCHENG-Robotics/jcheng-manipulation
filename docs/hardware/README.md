@@ -2,9 +2,10 @@
 
 > Status: **LIVE BASELINE CAPTURED (2026-11-17)**. SSH baseline over direct
 > Ethernet; ROS 2 discovery/DDS over the office WiFi (`wlan0` ↔ `wlp4s0`).
-> Read-only queries plus one supervised `reset_servo` motion. Camera RGB/depth
-> streams and intrinsics are verified. Joint limits, the IMU and the camera
-> hand-eye extrinsic remain open. `[U]` items must not be treated as measured.
+> Read-only queries, one supervised `reset_servo` motion and one plan-only
+> `camera_forward` check. Camera RGB/depth streams and intrinsics are verified.
+> Joint limits, the IMU and the camera hand-eye extrinsic remain open. `[U]`
+> items must not be treated as measured.
 
 `MASTER_PLAN_V3_PRIVATE.md` §6 requires this folder before Phase 1.
 
@@ -24,7 +25,7 @@
 |---|---|
 | Host / OS / container | Raspberry Pi 5, Debian 12, kernel 6.6.20, Humble container `ArmPiUltra` |
 | ROS graph | one `/controller_manager`, one `/servo_manager`, one arm action server, one MoveIt client; `/joint_states` ~20 Hz |
-| Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` verified |
+| Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` verified; `camera_forward` plan-only verified |
 | Camera | Aurora 930; RGB 8.0 Hz `bgr8`, depth 8.2 Hz `mono16` (mm); intrinsics read |
 | TF | `base_link → … → rgb_camera_link` / `depth_camera_link` verified; no `camera_optical_frame` |
 | Joint limits | **not measured**; two command snapshots recorded |

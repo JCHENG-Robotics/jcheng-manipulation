@@ -174,16 +174,47 @@ Expected:
 - exactly **one** action server and, once `move_group` is up, one client
   (`/moveit_simple_controller_manager`).
 
-## First real motion
+## Named states on the real robot
 
-- In RViz: Fixed Frame `base_link`, Planning Group `arm`.
-- From the current vertical pose (`joint1≈0.84`, `joint2..5=0`), `reset_servo`
-  (all-zero arm) is a small joint1-only test; use it first.
-- `init_pose` folds the arm and is a larger move; try it after `reset_servo`.
-- Set velocity and acceleration scaling to **0.05**.
-- Click **Plan** first, inspect the green trajectory, then **Execute**.
-- Keep the arm clear, keep the power cut within reach, and do not run unattended.
-- The `arm` group does not move `r_joint`; the gripper stays where it is.
+The SRDF named states are loaded as `robot_description_semantic`. RViz lists
+them under **MotionPlanning → States**, and **Plan & Execute** sends a
+`FollowJointTrajectory` goal through `move_group` to the robot's
+`arm_controller`. No extra node is needed; `real_moveit.launch.py` loads the
+SRDF from this package explicitly.
+
+| State | Group | Meaning |
+|---|---|---|
+| `reset_servo` | `arm` | all arm joints at 0; smallest first test |
+| `init_pose` | `arm` | vendor folded pose |
+| `camera_forward` | `arm` | camera optical +z horizontal forward; camera at x≈0.154 m, z≈0.282 m |
+
+Procedure:
+
+1. Start the robot bringup and the Humble container as above.
+2. Launch `real_moveit.launch.py` (not `demo.launch.py`).
+3. In RViz set Fixed Frame `base_link`, Planning Group `arm`, and set velocity
+   and acceleration scaling to **0.05** on the **Planning** tab.
+4. Select `camera_forward` as the goal: use the **Planning → Goal State**
+   dropdown, or open the **States** tab and click **Set as Goal**.
+5. Click **Plan**, inspect the green trajectory, then **Execute**.
+6. Keep the arm clear, keep the power cut within reach, and do not run
+   unattended.
+
+`reset_servo` from the current pose is the smallest test; `camera_forward` is a
+larger forward reach. The `arm` group does not move `r_joint`, so the gripper
+stays where it is. The `open`/`close` gripper states are model-only until the
+`r_joint` sign convention is measured (see
+`docs/hardware/measured_joint_limits.md`).
+
+The documented workspace is built with `--symlink-install`, so an SRDF edit is
+picked up after relaunching `move_group`. Without symlink install, rebuild with
+`colcon build --packages-select armpi_ultra_moveit_config` first.
+
+For a plan-only check without RViz, copy
+`evidence/armpi_moveit/real_camera_forward_20261117/plan_named_state_check.py`
+into the container and run `python3 /tmp/plan_named_state_check.py <state>`
+after sourcing the workspace. It calls `/plan_kinematic_path` and never sends an
+execute goal.
 
 ## Troubleshooting
 
@@ -194,6 +225,7 @@ Expected:
 | Two action servers | The robot's `servo_controller.launch.py` still has `name='controller_manager'`; remove it and restart `start_node.service`. A Jazzy/mock demo in the same graph also causes duplicates. |
 | Plan Failed; `Start state appears to be in collision ... l_link ... r_in_link` | Vendor finger meshes overlap. Ensure the SRDF finger-pair `disable_collisions` entries are present and the MoveIt container was restarted after rebuilding. |
 | RViz shows no arm | Check `/joint_states` and TF in the container; Fixed Frame `base_link`; CycloneDDS interfaces (`wlp4s0` laptop, `wlan0` robot). |
+| `does not match an available interface` or no robot nodes | The container was started before `cyclonedds-laptop.xml` was changed. A bind-mounted file keeps the old inode, so restart the container with `run_humble.sh`; editing the host file in place is not enough. Check `CYCLONEDDS_URI` and the interface name. |
 | No robot nodes, but data arrives | Check `--net=host`, `ROS_DOMAIN_ID=0`, `RMW_IMPLEMENTATION`, `CYCLONEDDS_URI`; run `ros2 daemon stop` inside the container. |
 | Pi load high / SSH stalls | Close Jazzy MoveIt/RViz; the old Jazzy discovery storm overloads the Pi. Use the IPv6 link-local SSH fallback if IPv4 SSH stalls. |
 | `Action server /recognize_objects not available`, `No 3D sensor plugin`, `amdgpu drmGetDevice2 failed` | Expected/harmless in this setup. |

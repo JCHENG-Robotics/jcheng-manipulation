@@ -30,15 +30,31 @@
         <joint name="joint4" value="-1.6591"/>
         <joint name="joint5" value="0"/>
     </group_state>
-    <group_state name="open" group="gripper">
-        <joint name="r_joint" value="1.2"/>
-    </group_state>
     <group_state name="reset_servo" group="arm">
         <joint name="joint1" value="0"/>
         <joint name="joint2" value="0"/>
         <joint name="joint3" value="0"/>
         <joint name="joint4" value="0"/>
         <joint name="joint5" value="0"/>
+    </group_state>
+    <!-- Looking horizontally forward in base_link: FK at this state puts the
+         camera mount (link4 -> camera_connet_link) at x ~= 0.154 m,
+         z ~= 0.282 m, with the camera optical +z axis within 0.1 deg of
+         horizontal. The camera is on link4, so joint5 does not change the
+         view direction. All five values are inside joint_limits.yaml, so the
+         state is a valid arm target. -->
+    <group_state name="camera_forward" group="arm">
+        <joint name="joint1" value="0"/>
+        <joint name="joint2" value="0.419"/>
+        <joint name="joint3" value="-1.257"/>
+        <joint name="joint4" value="-0.709"/>
+        <joint name="joint5" value="0"/>
+    </group_state>
+    <!-- These gripper states are model-only until the r_joint sign convention
+         is measured. Do not execute them on the real robot yet; see
+         docs/hardware/measured_joint_limits.md. -->
+    <group_state name="open" group="gripper">
+        <joint name="r_joint" value="1.2"/>
     </group_state>
     <group_state name="close" group="gripper">
         <joint name="r_joint" value="0"/>

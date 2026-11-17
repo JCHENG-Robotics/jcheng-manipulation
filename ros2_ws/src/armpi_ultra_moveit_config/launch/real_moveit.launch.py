@@ -27,6 +27,11 @@ def generate_launch_description():
         MoveItConfigsBuilder(
             "armpi_ultra", package_name="armpi_ultra_moveit_config"
         )
+        # Bind these files explicitly: the real launch must use the SRDF named
+        # states and the FollowJointTrajectory mapping from this package, not
+        # whatever a stale install or another MoveIt config might provide.
+        .robot_description_semantic(file_path="config/armpi_ultra.srdf")
+        .trajectory_execution(file_path="config/moveit_controllers.yaml")
         .to_moveit_configs()
     )
     use_rviz = LaunchConfiguration("use_rviz")

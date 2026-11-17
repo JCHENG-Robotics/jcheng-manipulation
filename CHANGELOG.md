@@ -24,6 +24,11 @@ All notable changes to this project are documented here. Format based on
 
 ### Changed
 
+- `armpi_ultra_moveit_config`: added the `camera_forward` arm named state
+  (camera optical +z axis horizontal forward; FK-verified at x≈0.154 m,
+  z≈0.282 m) and bound the SRDF and controller mapping explicitly in
+  `real_moveit.launch.py`. Documented the named-state Plan & Execute workflow
+  for the real robot.
 - `armpi_ultra_moveit_config/config/armpi_ultra.srdf`: added
   `disable_collisions` for the vendor finger-finger and palm-finger mesh
   overlaps that made the planner report the start state as self-colliding while
@@ -34,13 +39,20 @@ All notable changes to this project are documented here. Format based on
 - Corrected the live DDS topology in the Phase 1 docs: robot `wlan0` ↔ laptop
   `wlp4s0` (office WiFi); direct Ethernet is an SSH fallback, not the current
   CycloneDDS interface. Recorded that the camera launch can be killed and must
-  be checked/restarted with the persistent `docker exec -d ... exec` form.
+  be checked/restarted with the persistent `docker exec -d ... exec` form, and
+  that a running Humble container keeps the old bind-mounted
+  `cyclonedds-laptop.xml` inode, so it must be restarted after an interface
+  change.
 
 ### Verified (real hardware, 2026-11-17)
 
 - One `/controller_manager`, one `/servo_manager`, one
   `/arm_controller/follow_joint_trajectory` server and one MoveIt client;
   `/joint_states` at ~20 Hz; one supervised `reset_servo` motion.
+- `camera_forward` planned successfully from the live robot pose
+  (`error_code=1`, 0.015 s, 96 waypoints) with the real-robot
+  `real_moveit.launch.py`. **Plan-only; no execute goal was sent.** Evidence:
+  `evidence/armpi_moveit/real_camera_forward_20261117/`.
 - Deptrum Aurora 930 opens and streams: RGB 8.0 Hz, 640×400, `bgr8`; depth
   8.2 Hz, 640×400, `mono16` in millimetres; RGB/depth `camera_info` captured.
 - Live TF: `base_link → rgb_camera_link` and `base_link → depth_camera_link`

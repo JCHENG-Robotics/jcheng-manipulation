@@ -1,0 +1,57 @@
+camera_forward named-state plan check — 2026-11-17
+====================================================
+
+Real robot:       10.51.128.226 (ArmPiUltra container, ROS 2 Humble)
+Laptop:           10.51.128.246, wlp4s0; Humble container armpi-humble-moveit
+MoveIt launch:    real_moveit.launch.py use_rviz:=false
+Service:          /plan_kinematic_path (moveit_msgs/srv/GetMotionPlan)
+Execution:        none (plan-only; no execute goal was sent)
+
+command:
+  sg docker -c "docker cp \
+    evidence/armpi_moveit/real_camera_forward_20261117/plan_named_state_check.py \
+    armpi-humble-check:/tmp/plan_named_state_check.py"
+  sg docker -c "docker exec armpi-humble-check bash -lc \
+    'source /opt/ros/humble/setup.bash && source /workspace/install/setup.bash && \
+     python3 /tmp/plan_named_state_check.py camera_forward'"
+
+loaded state:
+state=camera_forward group=arm
+target: joint1=0 joint2=0.419 joint3=-1.257 joint4=-0.709 joint5=0
+
+result:
+error_code=1          # moveit_msgs/MoveItErrorCodes.SUCCESS
+planning_time=0.015s
+waypoints=96
+  final joint1=-0.008899
+  final joint2=0.419328
+  final joint3=-1.259860
+  final joint4=-0.701461
+  final joint5=0.004995
+
+current /joint_states before the check (commanded values, not encoders):
+  joint1=-0.858702
+  joint2=+0.448201
+  joint3=-1.528908
+  joint4=-0.557109
+  joint5=+1.118407
+  r_joint=-0.837758
+
+live TF at the same start pose:
+  base_link -> camera_connet_link
+  translation [0.134, -0.077, 0.256] m
+  RPY (deg) [-0.175, 5.519, -49.164]
+  (matches the FK model; the camera is on link4, not link5)
+
+notes:
+- The start state is the live robot state; joint1 (+0.859 rad, +49 deg) and
+  joint5 (-1.118 rad, -64 deg) differ most from the target, so this is not a
+  small motion from the current pose. joint5 only rolls the gripper; the
+  camera is on link4.
+- The final trajectory point is within the 0.01 rad joint tolerance.
+- move_group reported one arm and one gripper FollowJointTrajectory controller
+  and the robot saw exactly one MoveIt action client
+  (/moveit_simple_controller_manager).
+- camera_forward FK: camera mount at x≈0.154 m, z≈0.282 m in base_link;
+  optical +z is within 0.1 deg of horizontal. The camera is on link4, so
+  joint5 does not change the view direction.
