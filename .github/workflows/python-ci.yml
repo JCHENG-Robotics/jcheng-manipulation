@@ -30,7 +30,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install test tooling
-        run: python -m pip install --upgrade pip pytest flake8
+        # PyYAML is imported by tools/phase2/measurement_protocol.py to read
+        # ros2_ws/src/armpi_safety/config/safety_limits.yaml.
+        run: python -m pip install --upgrade pip pytest flake8 pyyaml
 
       - name: Lint the analysis package and phase-4 tools
         run: |
