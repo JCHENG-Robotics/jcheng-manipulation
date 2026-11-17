@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Header, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Header, Query, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
@@ -87,6 +87,21 @@ def state(request: Request) -> dict[str, Any]:
 @router.get("/connection")
 def connection(request: Request) -> dict[str, Any]:
     return _service(request).connection_report()
+
+
+@router.get("/peripherals")
+def peripherals(request: Request) -> dict[str, Any]:
+    return _service(request).peripherals()
+
+
+@router.get("/peripherals/camera/snapshot")
+def camera_snapshot(request: Request) -> Response:
+    content, media_type = _service(request).camera_snapshot()
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 
 @router.get("/safety")

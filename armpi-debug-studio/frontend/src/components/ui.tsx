@@ -59,13 +59,13 @@ export function TruthBadge({ truth }: { truth: string }) {
       ? "simulated"
       : truth === "commanded"
         ? "commanded"
-        : truth === "measured_on_demand"
+        : truth === "measured" || truth === "measured_on_demand"
           ? "measured"
           : "unknown";
   const tone: Tone =
     truth === "simulated"
       ? "simulation"
-      : truth === "measured_on_demand"
+      : truth === "measured" || truth === "measured_on_demand"
         ? "ok"
         : truth === "commanded"
           ? "warning"

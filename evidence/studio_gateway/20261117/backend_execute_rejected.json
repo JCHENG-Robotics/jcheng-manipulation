@@ -1,0 +1,1 @@
+{"error":{"code":"GATE_REJECTED","message":"safety gate rejected execution","details":{"blockers":["mapping_verified","hardware_motion_enabled"]}},"trace_id":"060f7125cbe3415197f767b7d2a64f56"}

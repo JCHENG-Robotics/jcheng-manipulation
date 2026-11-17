@@ -11,7 +11,14 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..domain.enums import CommandStage, Mode, SourceLabel
-from ..domain.models import Capabilities, ConnectionReport, RobotState, StopResult
+from ..domain.models import (
+    BatteryState,
+    CameraStatus,
+    Capabilities,
+    ConnectionReport,
+    RobotState,
+    StopResult,
+)
 
 
 class HardwareMotionDisabled(RuntimeError):
@@ -51,6 +58,18 @@ class RobotAdapter(ABC):
     @abstractmethod
     def connection_report(self) -> ConnectionReport:
         """Return four-segment connection evidence."""
+
+    @abstractmethod
+    def battery(self) -> BatteryState:
+        """Return the latest battery sample, or an explicit unavailable state."""
+
+    @abstractmethod
+    def camera_status(self) -> CameraStatus:
+        """Return camera health, or an explicit unavailable state."""
+
+    @abstractmethod
+    def camera_snapshot(self) -> tuple[bytes, str] | None:
+        """Return (image bytes, media type), or None when no frame is available."""
 
     @abstractmethod
     def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:

@@ -13,6 +13,7 @@ from enum import Enum
 from typing import Any
 
 from .enums import (
+    BatteryStatus,
     CommandStage,
     ConnectionState,
     FaultLevel,
@@ -177,6 +178,48 @@ class StopResult:
     evidence: str
     requested_at: str
     observed_at: str | None = None
+
+
+@dataclass
+class BatteryState:
+    """Battery telemetry from the vendor `/ros_robot_controller/battery` topic.
+
+    The vendor topic is a 2S pack voltage in millivolts. `available=False`
+    means "no valid sample"; never fill a missing value with zero.
+    """
+
+    available: bool
+    voltage_mv: int | None
+    voltage_v: float | None
+    percent_estimate: float | None
+    cell_count: int
+    status: BatteryStatus
+    truth: Truth
+    validity: Validity
+    source: str
+    topic: str
+    received_at: str
+    sample_age_ms: int | None
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class CameraStatus:
+    """Read-only camera health for the Deptrum Aurora 930 RGB stream."""
+
+    available: bool
+    truth: Truth
+    validity: Validity
+    source: str
+    topic: str
+    width: int | None
+    height: int | None
+    encoding: str | None
+    fps: float | None
+    last_frame_at: str | None
+    sample_age_ms: int | None
+    frame_count: int
+    notes: list[str] = field(default_factory=list)
 
 
 @dataclass

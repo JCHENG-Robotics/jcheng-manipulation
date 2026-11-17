@@ -1,0 +1,33 @@
+{
+  "command_id": "cmd_167c53dfc7574b01",
+  "session_id": "s-evidence",
+  "valid": true,
+  "targets": [
+    {
+      "joint": "joint1",
+      "servo_id": 6,
+      "from_rad": 0.0,
+      "target_rad": 0.1,
+      "delta_rad": 0.1,
+      "duration_s": 1.0,
+      "target_raw": 524,
+      "limit_min_rad": -2.0943951023931957,
+      "limit_max_rad": 2.0943951023931957,
+      "limit_verified": false,
+      "limit_source": "software_config"
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    {
+      "code": "MAPPING_PROVISIONAL",
+      "message": "joint mapping is provisional; limits are not hardware-verified",
+      "joint": null,
+      "details": {}
+    }
+  ],
+  "preview_token": "REDACTED (single-use, expired; no dispatch)",
+  "expires_at": "2026-11-17T07:39:30.791650Z",
+  "mapping_version": "vendor-provisional-1",
+  "evaluated_at": "2026-11-17T07:39:00.791922Z"
+}

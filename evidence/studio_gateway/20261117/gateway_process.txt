@@ -1,0 +1,2 @@
+9496 python3 -m armpi_debug_gateway.main --host 10.42.0.218 --port 8765
+LISTEN 0      5        10.42.0.218:8765       0.0.0.0:*

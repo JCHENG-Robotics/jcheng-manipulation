@@ -32,6 +32,8 @@ class Settings:
     frontend_dist: Path
     log_level: str
     hardware_motion_enabled: bool
+    gateway_url: str | None = None
+    gateway_token: str | None = None
     api_version: str = "0.1.0"
     schema_version: int = 1
 
@@ -58,6 +60,8 @@ class Settings:
             frontend_dist=Path(os.getenv("FRONTEND_DIST", str(PROJECT_ROOT / "frontend" / "dist"))),
             log_level=os.getenv("LOG_LEVEL", "info"),
             hardware_motion_enabled=hardware_motion_enabled,
+            gateway_url=os.getenv("ARMPI_GATEWAY_URL") or None,
+            gateway_token=os.getenv("ARMPI_GATEWAY_TOKEN") or None,
         )
 
     def load_mapping(self) -> MappingConfig:

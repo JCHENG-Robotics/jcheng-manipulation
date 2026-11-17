@@ -6,6 +6,7 @@ import type {
   EventRecord,
   EventsPayload,
   Lease,
+  Peripherals,
   PreviewResult,
   ProbeResult,
   RobotState,
@@ -159,6 +160,12 @@ export const api = {
   },
   async diagnostics(): Promise<Diagnostics> {
     return request<Diagnostics>("/api/diagnostics");
+  },
+  async peripherals(): Promise<Peripherals> {
+    return request<Peripherals>("/api/peripherals");
+  },
+  cameraSnapshotUrl(tick: number): string {
+    return `${API_BASE}/api/peripherals/camera/snapshot?t=${tick}`;
   },
   async probe(): Promise<ProbeResult> {
     return request<ProbeResult>("/api/diagnostics/probe", { method: "POST" });

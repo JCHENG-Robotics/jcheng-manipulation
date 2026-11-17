@@ -47,6 +47,7 @@ class CommandStage(StrEnum):
 
 class Truth(StrEnum):
     COMMANDED = "commanded"
+    MEASURED = "measured"
     MEASURED_ON_DEMAND = "measured_on_demand"
     SIMULATED = "simulated"
     UNKNOWN = "unknown"
@@ -78,6 +79,13 @@ class StopState(StrEnum):
     STOP_DISPATCHED = "StopDispatched"
     STOP_OBSERVED = "StopObserved"
     STOP_UNKNOWN = "StopUnknown"
+
+
+class BatteryStatus(StrEnum):
+    OK = "ok"
+    LOW = "low"
+    CRITICAL = "critical"
+    UNAVAILABLE = "unavailable"
 
 
 class ErrorCode(StrEnum):

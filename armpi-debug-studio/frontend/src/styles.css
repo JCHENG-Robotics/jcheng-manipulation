@@ -1065,6 +1065,125 @@ select:focus-visible {
   padding: 10px 11px;
 }
 
+/* --------------------------------------------------------- camera/battery */
+.grid-camera {
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+}
+
+.camera-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #05080b;
+}
+
+.camera-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.camera-fallback {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.camera-overlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(135deg, rgba(34, 211, 238, 0.16) 0 6px, transparent 6px 12px),
+    rgba(10, 14, 19, 0.82);
+  color: #a9f3ff;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.camera-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.battery-readout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+
+.battery-voltage {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ok);
+}
+
+.battery-unit {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.battery-gauge {
+  flex: 1;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.battery-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ok);
+  transition: width 0.3s ease;
+}
+
+.battery-fill.battery-low {
+  background: var(--warning);
+}
+
+.battery-fill.battery-critical {
+  background: var(--fault);
+}
+
+.battery-percent {
+  min-width: 44px;
+  text-align: right;
+}
+
+.battery-warning {
+  margin: 10px 0 0;
+  color: var(--warning);
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .grid-camera {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ----------------------------------------------------------- responsive */
 @media (max-width: 1280px) {
   .grid-4 {

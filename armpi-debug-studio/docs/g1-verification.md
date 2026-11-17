@@ -3,6 +3,11 @@
 Date: 2026-11-14  
 Scope: ArmPi Debug Studio G1, Mock mode only. No hardware access.
 
+> Update 2026-11-17: the E7 read-only gateway is now implemented and
+> hardware-verified; see
+> [`e7-gateway-verification.md`](e7-gateway-verification.md). This document
+> remains the 2026-11-14 Mock verification record.
+
 ## 1. Backend tests
 
 Command:
@@ -120,11 +125,16 @@ confirmation modal → execute → observe Completed → run mock probe → chec
 Timeline → check Settings. This is still a Mock-only UI test; it does not
 validate hardware or ROS integration.
 
+> Note (2026-11-17 audit): this was a one-off browser session. No Playwright
+> file or script was committed, so the PASS list above is **not reproducible**
+> from the repository. E8 (committed Playwright/contract tests) remains open.
+
 ## 4. What this does NOT prove
 
 - No ArmPi hardware was connected.
 - No serial port (`/dev/rrc`, `/dev/ttyACM*`) was opened.
-- No ROS 2 node was started; E7 gateway is not implemented.
+- No ROS 2 node was started; E7 was not implemented at the time of this record
+  (see the 2026-11-17 update above).
 - No joint limit was mechanically measured.
 - Mock positions are synthetic and are not sensor feedback.
 - The vendor driver defects documented in G0 remain unpatched.

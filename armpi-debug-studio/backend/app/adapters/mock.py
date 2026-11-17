@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from ..domain.enums import (
+    BatteryStatus,
     CommandStage,
     ConnectionState,
     ErrorCode,
@@ -26,6 +27,8 @@ from ..domain.enums import (
 )
 from ..domain.mapping import MappingConfig
 from ..domain.models import (
+    BatteryState,
+    CameraStatus,
     Capabilities,
     ConnectionReport,
     Fault,
@@ -44,6 +47,9 @@ FAULT_KINDS = {
     "nan_feedback": (FaultLevel.FAULT, "模拟 NaN 反馈：标记 invalid"),
     "missing_servo": (FaultLevel.FAULT, "模拟舵机缺失：该关节不可用"),
     "driver_exit": (FaultLevel.CRITICAL, "模拟 Driver 退出：进入 Degraded/Fault"),
+    "battery_low": (FaultLevel.WARNING, "模拟低电量：电压低于预警阈值"),
+    "battery_missing": (FaultLevel.FAULT, "模拟电池数据缺失：显示 Unavailable"),
+    "camera_offline": (FaultLevel.WARNING, "模拟相机离线：画面显示 Unavailable"),
 }
 
 
@@ -84,6 +90,8 @@ class MockRobotAdapter(RobotAdapter):
         self._stop_at: float | None = None
         self._stop_command_id: str | None = None
         self._driver_online = True
+        self._camera_started = self._clock()
+        self._camera_frames = 0
         self._last_tick = self._clock()
 
     # ------------------------------------------------------------------ faults
@@ -146,6 +154,8 @@ class MockRobotAdapter(RobotAdapter):
         self._positions = {name: 0.0 for name in self.mapping.joints}
         self._events.clear()
         self._last_command_id = None
+        self._camera_started = self._clock()
+        self._camera_frames = 0
         self._last_tick = self._clock()
 
     def active_faults(self) -> list[dict[str, Any]]:
@@ -429,6 +439,129 @@ class MockRobotAdapter(RobotAdapter):
                 "Mock positions are synthetic and must not be treated as hardware feedback.",
             ],
         )
+
+    def battery(self) -> BatteryState:
+        now = self._clock()
+        unavailable = (
+            "disconnect" in self._fault_kinds
+            or "driver_exit" in self._fault_kinds
+            or "battery_missing" in self._fault_kinds
+        )
+        if unavailable:
+            return BatteryState(
+                available=False,
+                voltage_mv=None,
+                voltage_v=None,
+                percent_estimate=None,
+                cell_count=2,
+                status=BatteryStatus.UNAVAILABLE,
+                truth=Truth.UNKNOWN,
+                validity=Validity.UNAVAILABLE,
+                source="mock_adapter",
+                topic="/ros_robot_controller/battery",
+                received_at=utc_now_iso(),
+                sample_age_ms=None,
+                notes=["SIMULATION: battery unavailable due to an injected mock fault."],
+            )
+
+        # 2S Li-ion: 6.4 V empty, 8.4 V full. The mock starts near the measured
+        # baseline (7.65 V) and drifts slowly so the UI has live-looking data.
+        drift = int(round(18 * math.sin(now / 37.0) + 7 * math.sin(now / 11.0)))
+        voltage_mv = 7650 + drift
+        if "battery_low" in self._fault_kinds:
+            voltage_mv = 6750 + drift // 2
+        percent = max(0.0, min(100.0, (voltage_mv - 6400.0) / (8400.0 - 6400.0) * 100.0))
+        status = (
+            BatteryStatus.CRITICAL
+            if percent < 10.0
+            else BatteryStatus.LOW
+            if percent < 25.0
+            else BatteryStatus.OK
+        )
+        return BatteryState(
+            available=True,
+            voltage_mv=voltage_mv,
+            voltage_v=round(voltage_mv / 1000.0, 3),
+            percent_estimate=round(percent, 1),
+            cell_count=2,
+            status=status,
+            truth=Truth.SIMULATED,
+            validity=Validity.VALID,
+            source="mock_adapter",
+            topic="/ros_robot_controller/battery",
+            received_at=utc_now_iso(),
+            sample_age_ms=0,
+            notes=["SIMULATION: synthetic 2S voltage; not a hardware measurement."],
+        )
+
+    def camera_status(self) -> CameraStatus:
+        now = self._clock()
+        unavailable = (
+            "disconnect" in self._fault_kinds
+            or "driver_exit" in self._fault_kinds
+            or "camera_offline" in self._fault_kinds
+        )
+        if unavailable:
+            return CameraStatus(
+                available=False,
+                truth=Truth.UNKNOWN,
+                validity=Validity.UNAVAILABLE,
+                source="mock_adapter",
+                topic="/depth_cam/rgb/image_raw",
+                width=None,
+                height=None,
+                encoding=None,
+                fps=0.0,
+                last_frame_at=None,
+                sample_age_ms=None,
+                frame_count=self._camera_frames,
+                notes=["SIMULATION: camera unavailable due to an injected mock fault."],
+            )
+
+        elapsed = max(0.0, now - self._camera_started)
+        self._camera_frames = max(self._camera_frames, int(elapsed * 8.0) + 1)
+        return CameraStatus(
+            available=True,
+            truth=Truth.SIMULATED,
+            validity=Validity.VALID,
+            source="mock_adapter",
+            topic="/depth_cam/rgb/image_raw",
+            width=640,
+            height=400,
+            encoding="bgr8",
+            fps=8.0,
+            last_frame_at=utc_now_iso(),
+            sample_age_ms=0,
+            frame_count=self._camera_frames,
+            notes=["SIMULATION: generated placeholder; no camera device accessed."],
+        )
+
+    def camera_snapshot(self) -> tuple[bytes, str] | None:
+        status = self.camera_status()
+        if not status.available:
+            return None
+        battery = self.battery()
+        battery_text = (
+            f"{battery.voltage_v:.2f} V / {battery.percent_estimate:.0f}%"
+            if battery.available and battery.voltage_v is not None
+            else "battery unavailable"
+        )
+        svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
+  <rect width="640" height="400" fill="#070b10"/>
+  <g stroke="#1d2a38" stroke-width="1">
+    <path d="M0 100 H640 M0 200 H640 M0 300 H640 M160 0 V400 M320 0 V400 M480 0 V400"/>
+  </g>
+  <g stroke="#2bd4e8" stroke-width="1.5" fill="none" opacity="0.8">
+    <path d="M320 170 V230 M290 200 H350"/>
+    <circle cx="320" cy="200" r="46" stroke-dasharray="4 6"/>
+  </g>
+  <text x="24" y="42" fill="#e8eef6" font-family="monospace" font-size="24" font-weight="700">MOCK CAMERA</text>
+  <text x="24" y="66" fill="#22d3ee" font-family="monospace" font-size="13">SIMULATION — no camera device accessed</text>
+  <text x="24" y="352" fill="#b6c3d4" font-family="monospace" font-size="14">{status.width}×{status.height} · {status.fps:.0f} fps · {status.encoding}</text>
+  <text x="24" y="374" fill="#8192a8" font-family="monospace" font-size="12">frame {status.frame_count} · {battery_text}</text>
+  <text x="616" y="42" fill="#8192a8" font-family="monospace" font-size="12" text-anchor="end">{utc_now_iso()}</text>
+</svg>"""
+        return svg.encode("utf-8"), "image/svg+xml"
 
     def drain_events(self) -> list[dict[str, Any]]:
         events = self._events

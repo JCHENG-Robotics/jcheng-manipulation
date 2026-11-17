@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
+import type { Peripherals } from "../api/types";
 import {
   Button,
   Card,
@@ -13,7 +14,7 @@ import {
   TruthBadge,
   ValidityBadge,
 } from "../components/ui";
-import { formatAngle, formatClock, formatNumber, maxFeedbackAge } from "../format";
+import { formatAge, formatAngle, formatClock, formatNumber, maxFeedbackAge } from "../format";
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
@@ -27,6 +28,43 @@ export function Dashboard() {
   const sessionId = getSessionId();
   const [leaseBusy, setLeaseBusy] = useState(false);
   const [leaseError, setLeaseError] = useState<string | null>(null);
+  const [peripherals, setPeripherals] = useState<Peripherals | null>(null);
+  const [peripheralError, setPeripheralError] = useState<string | null>(null);
+  const [cameraTick, setCameraTick] = useState(0);
+  const [cameraFailed, setCameraFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await api.peripherals();
+        if (!cancelled) {
+          setPeripherals(data);
+          setPeripheralError(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPeripheralError(
+            error instanceof ApiError ? `${error.code}: ${error.message}` : String(error),
+          );
+        }
+      }
+    };
+    void load();
+    const timer = window.setInterval(load, 1000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCameraTick((tick) => tick + 1);
+      setCameraFailed(false);
+    }, 300);
+    return () => window.clearInterval(timer);
+  }, []);
 
   if (!robot || !diagnostics) {
     return (
@@ -40,6 +78,17 @@ export function Dashboard() {
   const feedbackAge = maxFeedbackAge(robot.joints);
   const activeFaults = robot.faults;
   const latestEvents = events.slice(0, 8);
+  const battery = peripherals?.battery ?? null;
+  const camera = peripherals?.camera ?? null;
+  const batteryTone =
+    battery?.status === "ok"
+      ? "ok"
+      : battery?.status === "low"
+        ? "warning"
+        : battery?.status === "critical"
+          ? "fault"
+          : "neutral";
+  const batteryPercent = Math.max(0, Math.min(100, battery?.percent_estimate ?? 0));
 
   const acquireLease = async () => {
     setLeaseBusy(true);
@@ -126,6 +175,119 @@ export function Dashboard() {
           tone={feedbackAge === null ? "neutral" : feedbackAge > 500 ? "fault" : "ok"}
           hint="simulated in Mock"
         />
+      </div>
+
+      {peripheralError && (
+        <ErrorBanner message={peripheralError} onDismiss={() => setPeripheralError(null)} />
+      )}
+
+      <div className="grid grid-camera">
+        <Card
+          title="Camera · RGB"
+          subtitle={camera?.topic ?? "/depth_cam/rgb/image_raw"}
+          actions={
+            <>
+              {camera && <TruthBadge truth={camera.truth} />}
+              <StatusChip
+                tone={camera && camera.available ? (camera.validity === "valid" ? "ok" : "warning") : "neutral"}
+                label={camera && camera.available ? camera.validity : "unavailable"}
+              />
+            </>
+          }
+        >
+          {!peripherals ? (
+            <EmptyState title="正在读取相机…">等待 /api/peripherals 返回相机状态。</EmptyState>
+          ) : camera && camera.available ? (
+            <>
+              <div className="camera-frame">
+                {cameraFailed ? (
+                  <div className="camera-fallback">Snapshot unavailable</div>
+                ) : (
+                  <img
+                    src={api.cameraSnapshotUrl(cameraTick)}
+                    alt="ArmPi camera"
+                    onLoad={() => setCameraFailed(false)}
+                    onError={() => setCameraFailed(true)}
+                  />
+                )}
+                <span className="camera-overlay">{robot.source_label}</span>
+              </div>
+              <div className="camera-meta">
+                <span>
+                  {camera.width ?? "—"}×{camera.height ?? "—"}
+                </span>
+                <span>{camera.fps !== null ? `${camera.fps.toFixed(1)} fps` : "—"}</span>
+                <span>{camera.encoding ?? "—"}</span>
+                <span>age {formatAge(camera.sample_age_ms)}</span>
+                <span>frames {camera.frame_count}</span>
+              </div>
+              {camera.notes.length > 0 && <p className="footnote">{camera.notes.join(" ")}</p>}
+            </>
+          ) : (
+            <EmptyState title="Camera Unavailable">
+              {camera?.notes?.length
+                ? camera.notes.join(" ")
+                : "尚未收到相机帧，或网关未配置。"}
+            </EmptyState>
+          )}
+        </Card>
+
+        <Card
+          title="Battery · 2S"
+          subtitle={battery?.topic ?? "/ros_robot_controller/battery"}
+          actions={
+            <>
+              {battery && <TruthBadge truth={battery.truth} />}
+              <StatusChip tone={batteryTone} label={battery?.status ?? "unavailable"} />
+            </>
+          }
+        >
+          {!peripherals ? (
+            <EmptyState title="正在读取电池…">等待 /api/peripherals 返回电池状态。</EmptyState>
+          ) : battery && battery.available && battery.voltage_v !== null ? (
+            <>
+              <div className="battery-readout">
+                <span className="battery-voltage mono">
+                  {battery.voltage_v.toFixed(2)}
+                  <span className="battery-unit">V</span>
+                </span>
+                <div className="battery-gauge">
+                  <div
+                    className={`battery-fill battery-${battery.status}`}
+                    style={{ width: `${batteryPercent}%` }}
+                  />
+                </div>
+                <span className="battery-percent mono">
+                  {battery.percent_estimate !== null
+                    ? `${battery.percent_estimate.toFixed(0)}%`
+                    : "—"}
+                </span>
+              </div>
+              <div className="kv-list">
+                <KeyValue label="Cells">{battery.cell_count}S</KeyValue>
+                <KeyValue label="Age">{formatAge(battery.sample_age_ms)}</KeyValue>
+                <KeyValue label="Source">{battery.source}</KeyValue>
+                <KeyValue label="Validity">
+                  <ValidityBadge validity={battery.validity} />
+                </KeyValue>
+              </div>
+              {battery.status !== "ok" && (
+                <p className="battery-warning">
+                  {battery.status === "critical"
+                    ? "电压严重偏低，停止运动并充电。"
+                    : "电压偏低，长时运动前请充电。"}
+                </p>
+              )}
+              {battery.notes.length > 0 && <p className="footnote">{battery.notes.join(" ")}</p>}
+            </>
+          ) : (
+            <EmptyState title="Battery Unavailable">
+              {battery?.notes?.length
+                ? battery.notes.join(" ")
+                : "尚未收到电池数据，或网关未配置。"}
+            </EmptyState>
+          )}
+        </Card>
       </div>
 
       <div className="grid grid-2">

@@ -20,6 +20,9 @@ const FAULT_OPTIONS = [
   { kind: "nan_feedback", label: "NaN 反馈" },
   { kind: "missing_servo", label: "舵机缺失" },
   { kind: "driver_exit", label: "Driver 退出" },
+  { kind: "battery_low", label: "低电量" },
+  { kind: "battery_missing", label: "电池数据缺失" },
+  { kind: "camera_offline", label: "相机离线" },
 ];
 
 function errorText(error: unknown): string {

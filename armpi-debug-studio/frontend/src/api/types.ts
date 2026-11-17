@@ -245,6 +245,43 @@ export interface ProbeResult {
   }>;
 }
 
+export interface BatteryState {
+  available: boolean;
+  voltage_mv: number | null;
+  voltage_v: number | null;
+  percent_estimate: number | null;
+  cell_count: number;
+  status: string;
+  truth: string;
+  validity: string;
+  source: string;
+  topic: string;
+  received_at: string | null;
+  sample_age_ms: number | null;
+  notes: string[];
+}
+
+export interface CameraStatus {
+  available: boolean;
+  truth: string;
+  validity: string;
+  source: string;
+  topic: string;
+  width: number | null;
+  height: number | null;
+  encoding: string | null;
+  fps: number | null;
+  last_frame_at: string | null;
+  sample_age_ms: number | null;
+  frame_count: number;
+  notes: string[];
+}
+
+export interface Peripherals {
+  battery: BatteryState;
+  camera: CameraStatus;
+}
+
 export interface TargetPayload {
   joint: string;
   target_rad: number;

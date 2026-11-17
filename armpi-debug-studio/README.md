@@ -12,24 +12,36 @@ copied into this directory.
 > and supervised hardware acceptance are not implemented. See
 > `docs/audit/2026-11-15/PROJECT_STATUS_AUDIT.md` and `DECISION_REQUIRED.md`.
 
+> Status note (2026-11-17, later): camera/battery and the read-only gateway are
+> now verified on the real robot over direct Ethernet. `pytest` reports
+> **46 passed**, `npm run build` succeeds, gateway `/battery`,
+> `/camera/status`, `/camera/snapshot` and `/state` return live data, and the
+> backend `hardware` mode rejects execute with `GATE_REJECTED`. See
+> [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md).
+> Hardware motion remains disabled.
+
 ## Status
 
 | Area | Status | Evidence |
 |---|---|---|
-| Mock adapter + fault injection | Implemented | `backend/app/adapters/mock.py`, 41 backend tests |
+| Mock adapter + fault injection | Implemented | `backend/app/adapters/mock.py`, 41 baseline tests + 5 peripheral tests |
 | Backend REST + WebSocket | Implemented | `backend/app/api/routes.py` |
 | Safety core (validation/gate/lease/token/idempotency) | Implemented | `backend/app/safety/`, `backend/tests/test_safety.py` |
 | SQLite append-only event log + CSV export | Implemented | `backend/app/persistence/store.py` |
 | Dashboard / Joint Control / Diagnostics / Event Timeline / Settings | Implemented | `frontend/src/pages/` |
 | Frontend type-check + production build | Verified | `tsc -b && vite build` |
 | Mock HTTP end-to-end | Verified | preview → execute → Completed; see below |
-| E7 ROS 2 read-only gateway | **Not implemented** | `backend/app/adapters/hardware.py` |
+| Camera + battery (Mock) | Implemented | `/api/peripherals`, Dashboard panels |
+| Camera + battery (hardware) | **Verified read-only (2026-11-17)** | live RGB 640×400 `bgr8` and 7.424 V battery via gateway |
+| Read-only ROS 2 gateway for camera/battery/state | **Verified read-only (2026-11-17)** | [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md) |
 | Hardware motion | **Disabled by design** | `capabilities.hardware_motion=false` |
 | Gripper (`r_joint`) | **Excluded from G1** | `configs/joint_mapping.yaml` |
-| Trajectory Inspector / Experiment Lab / 3D / camera | **Not implemented** | Settings → Roadmap |
+| Trajectory Inspector / Experiment Lab / 3D / depth-cloud | **Not implemented** | Settings → Roadmap |
 
-No hardware was accessed while building or testing this slice: no serial port,
-no ROS node, no robot motion.
+No hardware was accessed while building or testing the Mock slice: no serial
+port, no ROS node, no robot motion. The read-only gateway was later verified on
+the robot host (2026-11-17); its battery and camera payloads are now hardware
+evidence, but joint positions remain a command echo and motion remains off.
 
 ## Architecture
 
@@ -39,9 +51,13 @@ Browser (React + TS)
    ▼
 FastAPI backend
    ├── SafetySupervisor / LeaseManager / PreviewTokenManager
-   ├── MockRobotAdapter (G1; no ROS, no serial)
-   ├── HardwareAdapter (G1 stub; motion raises)
-   └── SQLite event store (append-only, WAL)
+   ├── MockRobotAdapter (no ROS, no serial)
+   ├── HardwareAdapter (read-only gateway client; motion disabled)
+   ├── SQLite event store (append-only, WAL)
+   └── HTTP client ──> armpi_debug_gateway (robot host, ROS 2)
+                          ├── /battery  <- /ros_robot_controller/battery
+                          ├── /camera   <- /depth_cam/rgb/image_raw
+                          └── /state    <- /controller_manager/joint_states (command echo)
 ```
 
 The browser never talks to ROS or a serial port. The backend exposes named
@@ -61,7 +77,7 @@ armpi-debug-studio/
 │   │   ├── config.py
 │   │   ├── service.py
 │   │   └── main.py
-│   └── tests/              41 unit/API tests
+│   └── tests/              46 unit/API tests
 ├── configs/
 │   └── joint_mapping.yaml  provisional vendor-derived mapping
 └── frontend/
@@ -211,6 +227,44 @@ instead of through the Vite proxy, the G1 CORS allowlist only includes
 `localhost:5173`. Use one of the tunnel/proxy recipes above, or add an explicit
 CORS/authentication review before exposing it.
 
+## Camera and battery
+
+### Mock mode
+
+The Dashboard shows a synthetic camera frame (`SVG`, labelled `MOCK CAMERA`) and
+a 2S battery gauge around `7.65 V`. Both are explicitly `truth=simulated`.
+Use Diagnostics → Mock fault injection to test:
+
+- `battery_low` — low-voltage warning
+- `battery_missing` — battery `Unavailable`
+- `camera_offline` — camera `Unavailable`
+
+Mock camera frames are generated placeholders; they are **not** camera data.
+
+### Real hardware (read-only gateway)
+
+Run `ros2_gateway/` on the robot host (see `ros2_gateway/README.md`). It
+subscribes to:
+
+| Data | Topic | Truth |
+|---|---|---|
+| Battery | `/ros_robot_controller/battery` (`std_msgs/UInt16`, mV) | `measured` |
+| Camera | `/depth_cam/rgb/image_raw` (`sensor_msgs/Image`) | `measured` |
+| Joint state | `/controller_manager/joint_states` | `commanded` (echo, not encoder feedback) |
+
+Then start the backend with:
+
+```bash
+export ARMPI_MODE=hardware
+export ARMPI_GATEWAY_URL=http://127.0.0.1:8765
+export ARMPI_GATEWAY_TOKEN='replace-with-a-long-random-token'
+uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+The gateway has **no motion endpoints**: `/motion/dispatch` and `/motion/stop`
+return `501 NOT_IMPLEMENTED`. `hardware_motion` stays `false`; real joint motion
+still requires mapping/limit verification and Board approval.
+
 ## API surface
 
 | Method | Path | Purpose |
@@ -218,6 +272,8 @@ CORS/authentication review before exposing it.
 | GET | `/api/health` | mode, source label, capabilities |
 | GET | `/api/state` | latest `RobotState` |
 | GET | `/api/connection` | four-segment connection evidence |
+| GET | `/api/peripherals` | battery + camera status |
+| GET | `/api/peripherals/camera/snapshot` | latest camera frame (JPEG or Mock SVG) |
 | GET | `/api/safety` | safety gate checks |
 | GET | `/api/diagnostics` | mapping, defects, environment, probe availability |
 | POST | `/api/diagnostics/probe` | simulated single-shot probe (Mock only) |
@@ -240,6 +296,7 @@ CORS/authentication review before exposing it.
 ## Safety invariants
 
 - The backend never opens a serial port and never imports `rclpy`.
+- The `ros2_gateway` process only subscribes; it has no motion publisher.
 - Hardware Mode advertises `hardware_motion=false`; execute requests are
   rejected with `GATE_REJECTED`.
 - Every execute requires a valid control lease, a valid single-use preview
@@ -269,26 +326,58 @@ These are Mock/simulation results. **They are not hardware validation.** No
 ArmPi device was connected, no serial port was opened, and no motion command
 was sent to a robot.
 
+## Hardware read-only verification (2026-11-17)
+
+```text
+backend:  46 passed (41 baseline + 5 peripheral)
+frontend: tsc -b && vite build → success
+gateway:  /health all ready, motion_enabled=false
+          /battery 7424 mV / 51.2% / truth=measured
+          /camera  640x400 bgr8, 8.5 fps, JPEG snapshot
+          /state   5 joints + gripper, truth=commanded
+          no token → 401; POST /motion/dispatch → 501
+backend:  mode=hardware; hardware_read=true; hardware_motion=false
+          /api/peripherals battery + camera measured/valid
+          /api/connection driver/gateway/feedback online
+          preview valid → execute GATE_REJECTED
+          blockers: mapping_verified, hardware_motion_enabled
+UI:       LIVE; camera measured 640x400 bgr8; battery 7.42 V / 51%;
+          camera renders a live frame, not the Mock SVG
+```
+
+Evidence:
+[`evidence/studio_gateway/20261117/`](../evidence/studio_gateway/20261117/) and
+[`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md). The raw
+camera image is private and not committed.
+
 ## Known limitations
 
-1. E7 ROS 2 read-only gateway is not implemented; Hardware Mode cannot read
-   real state yet.
-2. Hardware motion is disabled; the vendor driver defects (no ACK, blocking
-   reads, `joint_states` command echo) are not repaired.
+1. The read-only gateway is hardware-verified for battery, RGB camera and
+   joint-command state. It is not a persistent service: it was started manually
+   with `docker exec` and does not survive reboots or container restarts. Joint
+   positions are the vendor command echo, not encoder feedback.
+2. Hardware motion is disabled; there is no motion write path in the gateway.
+   The vendor driver defects (no ACK, blocking reads, `joint_states` command
+   echo) are not repaired.
 3. The joint mapping and limits are provisional (`configs/joint_mapping.yaml`).
    They are not mechanical measurements.
-4. Mock API is unauthenticated and bound to localhost by default. Do not expose
-   it on a LAN/public interface without a separate security review.
-5. Frontend has no automated Playwright suite yet; backend tests and a production
-   build were run.
-6. G2–G4 (trajectory, experiments, 3D/camera) are not implemented and have no
-   routes or buttons in the UI.
+4. Backend API is unauthenticated and bound to localhost by default. The
+   gateway uses a shared token. Do not expose either on a LAN/public interface
+   without a separate security review.
+5. Frontend has no committed Playwright suite. A one-off browser check (DOM
+   snapshot + screenshot) verified the camera/battery panels in hardware mode,
+   but it is not reproducible in CI yet.
+6. The vendor container has no `cv_bridge`; the gateway uses its numpy fallback
+   for `bgr8`/`rgb8`/`mono8`. Other encodings report an error frame instead of
+   being guessed.
+7. G2–G4 (trajectory, experiments, 3D, depth/point cloud) are not implemented.
 
 ## Next steps
 
-1. E7: read-only ROS 2 gateway (`CapabilityProbe`, `StateReader`, watchdog,
-   `NOT_IMPLEMENTED` for dispatch/stop).
-2. Board decisions on hardware mapping verification and controlled single-joint
-   tests.
-3. E8: Playwright E2E + contract tests for the frontend.
-4. G2 offline trajectory recording/replay before any hardware trajectory work.
+1. Make the gateway deployment persistent (systemd unit or container restart
+   policy), bind the active interface, and rotate the shared token.
+2. Hardware mapping/limit verification with torque off and manual movement.
+3. Add a guarded single-joint motion path only after Board approval; keep
+   `hardware_motion=false` until then.
+4. E8: Playwright E2E + contract tests for the frontend.
+5. G2 offline trajectory recording/replay before any hardware trajectory work.

@@ -315,6 +315,32 @@ class RobotService:
     def connection_report(self) -> dict[str, Any]:
         return jsonable(self._connection())
 
+    def battery(self) -> dict[str, Any]:
+        return jsonable(self.adapter.battery())
+
+    def camera_status(self) -> dict[str, Any]:
+        return jsonable(self.adapter.camera_status())
+
+    def camera_snapshot(self) -> tuple[bytes, str]:
+        snapshot = self.adapter.camera_snapshot()
+        if snapshot is None:
+            raise ServiceError(
+                ErrorCode.NOT_IMPLEMENTED.value,
+                "camera snapshot is unavailable",
+                status_code=503,
+                details={
+                    "mode": self.settings.mode.value,
+                    "hint": "Configure ARMPI_GATEWAY_URL and run armpi_debug_gateway on the robot",
+                },
+            )
+        return snapshot
+
+    def peripherals(self) -> dict[str, Any]:
+        return {
+            "battery": self.battery(),
+            "camera": self.camera_status(),
+        }
+
     def safety_report(
         self,
         *,

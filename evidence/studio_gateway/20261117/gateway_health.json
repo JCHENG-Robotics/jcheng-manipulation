@@ -1,0 +1,1 @@
+{"status": "ok", "ros_ready": true, "battery_ready": true, "camera_ready": true, "joints_ready": true, "motion_enabled": false, "node": "armpi_debug_gateway", "wall_time": "2026-11-17T07:56:04.545416Z", "topics": {"battery": "/ros_robot_controller/battery", "camera": "/depth_cam/rgb/image_raw", "joint_state": "/controller_manager/joint_states"}}

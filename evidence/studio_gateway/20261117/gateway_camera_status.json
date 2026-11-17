@@ -1,0 +1,1 @@
+{"available": true, "truth": "measured", "validity": "valid", "source": "armpi_debug_gateway", "topic": "/depth_cam/rgb/image_raw", "width": 640, "height": 400, "encoding": "bgr8", "fps": 8.5, "last_frame_at": "2026-11-17T07:56:04.197093Z", "sample_age_ms": 370, "frame_count": 15757, "notes": []}

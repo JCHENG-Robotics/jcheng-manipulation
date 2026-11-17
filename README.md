@@ -34,7 +34,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Camera / calibration | **Camera + first hand-eye baseline (not validated)** | Aurora 930 RGB/depth live; 8-pose chessboard fit 13.4 mm / 2.06°; ~101° optical/body difference; open-loop repeatability limit |
 | Visual grasping | In progress | perception + grasp search + first camera calibration; no validated calibration or real grasp |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
-| ArmPi Debug Studio | G1-**Mock** only | 41 backend tests pass; frontend builds; E7 gateway not implemented |
+| ArmPi Debug Studio | G1-Mock + read-only hardware | 46 backend tests pass; frontend builds; E7 gateway hardware-verified read-only; hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
 The detailed audit (sources, conflicts, decisions) is in
@@ -178,7 +178,7 @@ Profiles: `default`, `gain_0p1`, `gain_0p2`. The 2026-11-15 regression sent
 returned `error_code=0`. See
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md).
 
-### ArmPi Debug Studio (Mock only)
+### ArmPi Debug Studio (Mock and read-only hardware)
 
 ```bash
 cd armpi-debug-studio/backend
@@ -192,8 +192,12 @@ cd armpi-debug-studio/frontend
 npm install && npm run dev
 ```
 
-The UI must show `SIMULATION`. Hardware mode is read-only; motion is disabled by
-design. See [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
+The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the
+read-only gateway running on the robot, the UI shows `LIVE` battery and camera
+data; joint positions are a command echo. Hardware motion remains disabled by
+design. The gateway was hardware-verified on 2026-11-17; see
+[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)
+and [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
 
 ## Model caveats (important)
 

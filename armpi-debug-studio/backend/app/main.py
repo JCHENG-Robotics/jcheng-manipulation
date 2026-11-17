@@ -37,7 +37,12 @@ def _make_service(settings: Settings, clock: Callable[[], float] | None) -> Robo
     adapter = (
         MockRobotAdapter(mapping, clock=clock)
         if settings.mode is Mode.MOCK
-        else HardwareAdapter(mapping, clock=clock)
+        else HardwareAdapter(
+            mapping,
+            clock=clock,
+            gateway_url=settings.gateway_url,
+            gateway_token=settings.gateway_token,
+        )
     )
     return RobotService(settings, mapping, adapter, store, clock=clock)
 

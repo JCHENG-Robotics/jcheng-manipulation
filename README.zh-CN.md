@@ -27,7 +27,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 相机 / 标定 | **相机可用；首次手眼基线（未验证）** | Aurora 930 RGB/depth 实时；8 姿态棋盘手眼 13.4 mm / 2.06°；光轴与静态 TF 差约 101°；开环重复性受限 |
 | 视觉抓取 | 进行中 | 感知、抓取搜索和首次相机标定；尚无验证过的标定或实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
-| ArmPi Debug Studio | 仅 G1-**Mock** | 41 个后端测试通过；前端可构建；E7 网关未实现 |
+| ArmPi Debug Studio | G1-Mock + 只读硬件 | 46 个后端测试通过；前端可构建；E7 网关已实机验证（只读）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
 
 详细审计（来源、冲突、决策）见
@@ -170,7 +170,7 @@ ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
 三者均返回 `error_code=0`。详见
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md)。
 
-### ArmPi Debug Studio（仅 Mock）
+### ArmPi Debug Studio（Mock 与只读硬件）
 
 ```bash
 cd armpi-debug-studio/backend
@@ -184,8 +184,11 @@ cd armpi-debug-studio/frontend
 npm install && npm run dev
 ```
 
-界面必须显示 `SIMULATION`。硬件模式为只读；按设计禁用运动。详见
-[`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。
+Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在机器人上
+运行只读网关时，界面显示 `LIVE` 电池与相机数据；关节位置是命令回显。硬件运动
+仍按设计禁用。网关已于 2026-11-17 实机验证；详见
+[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)
+和 [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。
 
 ## 模型注意事项（重要）
 
