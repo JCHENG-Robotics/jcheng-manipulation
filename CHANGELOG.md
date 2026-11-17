@@ -33,6 +33,67 @@ All notable changes to this project are documented here. Format based on
   2.16° (RMS 1.13°); using them reduced the board scatter from 13.4 mm to
   2.9 mm. The ~89.34° static-TF difference is the expected body/optical roll.
 
+## [Unreleased] — 2026-11-17 Studio E8 + persistent gateway
+
+### Added
+
+- `armpi-debug-studio/ros2_gateway/deploy/` — host systemd unit
+  (`armpi-gateway.service`), `docker exec` runner, token file support,
+  `install-gateway.sh` and `rotate-token.sh`. The unit waits for the vendor
+  container, restarts on failure and stops the in-container gateway with
+  SIGTERM.
+- `armpi-debug-studio/ros2_gateway/armpi_debug_gateway/auth.py` and
+  `tests/` — token precedence (`--token` > `--token-file` > env) and 12 unit
+  tests that run without ROS.
+- `armpi-debug-studio/frontend/playwright.config.ts` and `frontend/e2e/` —
+  Playwright browser suite: Dashboard panels, five-page navigation, preview
+  rejection, lease → preview → confirm → execute → `Completed`, and served API
+  contract checks. `npm run test:e2e` builds first and starts a temporary mock
+  backend on port 8766.
+- `armpi-debug-studio/backend/tests/test_spa.py` and `SPAStaticFiles` — serves
+  `index.html` for client-side routes while keeping unknown `/api/...` paths
+  404.
+- `tools/phase2/joint_limit_survey.py` — safe read-only bus-servo survey plus
+  an interactive torque-off mechanical-limit survey with automatic torque
+  restore. `docs/phase2/JOINT_LIMITS.md` and
+  `evidence/phase2/joint_limits_20261117/` document the read-only evidence and
+  the pending physical procedure.
+
+### Changed
+
+- Gateway `main.py`: SIGTERM/SIGINT set a stop event, the HTTP server runs in a
+  worker thread, and rclpy/HTTP shut down cleanly. Binding to a non-loopback
+  address without a token now fails closed (exit 2).
+- `armpi-debug-studio/README.md` status, limitations and next steps updated for
+  the persistent gateway and committed E2E suite; top-level READMEs report the
+  new test counts and joint-limit status.
+
+### Verified (real hardware, 2026-11-17)
+
+- Persistent gateway installed on the Pi host: `armpi-gateway.service` is
+  `enabled` and `active`, bound to `10.42.0.218:8765`. `/health`,
+  `/battery` (7424 mV), `/camera/status` (640×400 `bgr8`) and token 401 were
+  re-checked through the service. `systemctl stop` produced a clean SIGTERM
+  (`received signal 15`), released port 8765 and removed the in-container
+  process; `systemctl start` restored `/health` 200.
+- Read-only bus-servo state: joint1–joint5 pulses `497 / 642 / 808 / 331 / 500`,
+  torque registers all `1`, battery 7424 mV; all inside the provisional ranges.
+  **No torque was disabled and no mechanical limit was measured.**
+- Test runs: backend **48 passed**, gateway **12 passed**, Playwright **7
+  passed**, `npm run build` succeeds.
+
+### Known limitations (this increment)
+
+- A full reboot and a vendor-container restart were **not** tested; both run
+  the vendor `startup_check`, which moves the arm. The unit is enabled and the
+  stop/start path is verified.
+- The token rotation script is provided but was not exercised on the robot.
+- Mechanical joint limits remain provisional; the torque-off survey is pending
+  a supported arm.
+- The gateway uses the default RMW (Fast DDS). Topics interoperate with the
+  vendor CycloneDDS stack, but services do not; the read-only gateway subscribes
+  only. Survey/service work must source the vendor `.zshrc`.
+
 ## [Unreleased] — 2026-11-17 Phase 1 hardware baseline
 
 ### Added

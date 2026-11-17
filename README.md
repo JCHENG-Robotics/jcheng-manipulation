@@ -34,7 +34,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Camera / calibration | **Camera + validated hand-eye** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.3° optical/body roll |
 | Visual grasping | In progress | perception + grasp search + validated camera calibration; no real grasp yet |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
-| ArmPi Debug Studio | G1-Mock + read-only hardware | 46 backend tests pass; frontend builds; E7 gateway hardware-verified read-only; hardware motion disabled |
+| ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
 The detailed audit (sources, conflicts, decisions) is in
@@ -43,7 +43,7 @@ The detailed audit (sources, conflicts, decisions) is in
 ## Repository layout
 
 ```text
-armpi-debug-studio/        # G1-Mock console (FastAPI + React); no hardware motion
+armpi-debug-studio/        # G1 console (FastAPI + React) + read-only gateway; no hardware motion
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
@@ -190,14 +190,19 @@ uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 # another terminal
 cd armpi-debug-studio/frontend
 npm install && npm run dev
+npm run test:e2e          # builds + 7 Playwright mock tests
 ```
 
 The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the
 read-only gateway running on the robot, the UI shows `LIVE` battery and camera
 data; joint positions are a command echo. Hardware motion remains disabled by
-design. The gateway was hardware-verified on 2026-11-17; see
-[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)
-and [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md).
+design. The gateway was hardware-verified on 2026-11-17 and now runs as a host
+systemd service; see
+[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md),
+[`armpi-debug-studio/ros2_gateway/deploy/README.md`](armpi-debug-studio/ros2_gateway/deploy/README.md)
+and [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md). Joint
+limits remain provisional; the read-only survey and the torque-off tool are in
+[`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
 
 ## Model caveats (important)
 
@@ -258,6 +263,8 @@ Never present Mock/Gazebo results as hardware validation.
   generation, screening pipeline, mock results and limitations.
 - [Phase 2 fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
   AprilTag detection, pose convention, synthetic accuracy and ROS integration.
+- [Phase 2 joint limits](docs/phase2/JOINT_LIMITS.md) — read-only bus-servo
+  evidence, the torque-off measurement procedure and the CycloneDDS gotcha.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
   status, merge plan, open decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)

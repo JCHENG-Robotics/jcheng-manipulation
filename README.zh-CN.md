@@ -27,7 +27,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 相机 / 标定 | **相机可用；手眼标定已验证** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°；光轴与静态 TF 差约 89.3° |
 | 视觉抓取 | 进行中 | 感知、抓取搜索和已验证的相机标定；尚无实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
-| ArmPi Debug Studio | G1-Mock + 只读硬件 | 46 个后端测试通过；前端可构建；E7 网关已实机验证（只读）；硬件运动仍禁用 |
+| ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
 
 详细审计（来源、冲突、决策）见
@@ -182,13 +182,18 @@ uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 # 另一个终端
 cd armpi-debug-studio/frontend
 npm install && npm run dev
+npm run test:e2e          # 构建并运行 7 个 Playwright Mock 测试
 ```
 
 Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在机器人上
 运行只读网关时，界面显示 `LIVE` 电池与相机数据；关节位置是命令回显。硬件运动
-仍按设计禁用。网关已于 2026-11-17 实机验证；详见
-[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)
-和 [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。
+仍按设计禁用。网关已于 2026-11-17 实机验证，并已作为宿主机 systemd 服务常驻；
+详见
+[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)、
+[`armpi-debug-studio/ros2_gateway/deploy/README.md`](armpi-debug-studio/ros2_gateway/deploy/README.md)
+和 [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。关节限位仍为
+provisional；只读实测与关力矩测量工具见
+[`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md)。
 
 ## 模型注意事项（重要）
 
@@ -240,6 +245,7 @@ Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
 - [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
 - [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、合成精度与 ROS 集成。
+- [Phase 2 关节限位](docs/phase2/JOINT_LIMITS.md) — 舵机只读证据、关力矩测量流程与 CycloneDDS 注意事项。
 - [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态、合并计划、待决事项。
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
 - [G0 厂商审计](docs/armpi/g0/README.md)
