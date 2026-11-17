@@ -105,7 +105,8 @@ backlash without moving the camera out of the board view.
 2. Secure the chessboard (tape/clamp) and verify stationary frames before and
    after the sequence.
 3. Retrieve the interrupted pre-pose dataset if present; otherwise rerun the
-   full sequence with `--pre-offset 0.08 --pre-joint1-only` over Ethernet.
+   full sequence with `--pre-offset 0.08 --pre-joint1-only` over Ethernet
+   (`--repeats` defaults to 3 and records per-pose translation spread).
 4. Improve rotation diversity (move the camera back or center the board) and
    measure per-joint repeatability; rerun the solver.
 5. Do not use the calibrated transform for real grasping until the board std is

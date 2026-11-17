@@ -26,7 +26,7 @@ not use the static TF alone as the measured optical extrinsic.
 | Board | OpenCV chessboard, 11×8 inner corners, 20 mm squares |
 | Camera | Aurora 930 RGB, 640×400, `bgr8`, `rgb_camera_link` |
 | Robot pose | link4 FK from the project URDF (matches live TF to <0.1 mm) |
-| Capture | small joint offsets (±0.06–0.08 rad), 4 s trajectories, fresh frame after the action result |
+| Capture | small joint offsets (±0.06–0.08 rad), 4 s trajectories, 3 fresh frames per pose (median translation + spread) |
 | Detector | `findChessboardCorners` + `cornerSubPix` + `solvePnP` |
 
 Tools:
@@ -71,7 +71,9 @@ The vendor `joint_states` are cached commands, not measured feedback. Tests on
 
 Use the joint1-only pre-pose for future captures. An all-joint pre-pose
 (`−0.10` on joints 1–4) moved the camera out of the board view and is not
-usable with this geometry.
+usable with this geometry. The capture tool takes `--repeats` fresh frames per
+pose (default 3) and records `translation_spread_m`; a large spread flags a
+pose that was still moving or shifted.
 
 ## Vendor baseline
 
@@ -100,7 +102,8 @@ vendor tag. Running it requires the vendor tag and a separate comparison.
 1. Reconnect the robot over direct Ethernet, charge the battery, secure the
    board.
 2. Rerun the full capture with
-   `--pre-offset 0.08 --pre-joint1-only` and larger rotation diversity.
+   `--pre-offset 0.08 --pre-joint1-only` (repeats default to 3) and larger
+   rotation diversity.
 3. Add an independent validation: place a fiducial at a measured base-frame
    position and compare the calibrated prediction.
 4. Only then use the transform for visual grasping; keep the vendor static TF

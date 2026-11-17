@@ -100,16 +100,39 @@ def detect_board(image, camera_matrix, dist_coeffs):
     }
 
 
+def combine_detections(detections):
+    """Combine repeated board detections into one median sample."""
+    valid = [board for board in detections if board is not None]
+    if not valid:
+        return None
+    translations = np.asarray(
+        [board['tvec'] for board in valid], dtype=np.float64)
+    median = np.median(translations, axis=0)
+    distances = np.linalg.norm(translations - median, axis=1)
+    best = int(np.argmin(distances))
+    out = dict(valid[best])
+    out['tvec'] = [float(value) for value in median]
+    out['repeats'] = len(valid)
+    out['translation_spread_m'] = float(distances.max())
+    out['rms_px_max'] = float(max(board['rms_px'] for board in valid))
+    out['repeat_tvec'] = [
+        [float(value) for value in board['tvec']] for board in valid
+    ]
+    return out
+
+
 class ChessboardCapture(Node):
     """Move the arm, capture frames and detect the chessboard."""
 
-    def __init__(self, output_dir, duration, settle=0.5, warmup=3):
+    def __init__(self, output_dir, duration, settle=0.5, warmup=3,
+                 repeats=3):
         """Create subscriptions and the arm action client."""
         super().__init__('chessboard_calib_capture')
         self.output_dir = output_dir
         self.duration = duration
         self.settle = settle
         self.warmup = warmup
+        self.repeats = repeats
         self.joint_state = None
         self.camera_info = None
         self.latest_image = None
@@ -215,14 +238,23 @@ class ChessboardCapture(Node):
             if not self.spin_until(
                     lambda: self.latest_image_wall > start, 2.0):
                 raise RuntimeError('no fresh image during warmup')
-        start = time.monotonic()
-        if not self.spin_until(
-                lambda: self.latest_image_wall > start, 2.0):
-            raise RuntimeError('no fresh image')
-        image = image_to_bgr(self.latest_image)
-        board = detect_board(image, camera_matrix, dist_coeffs)
-        image_name = 'sample_{:02d}.png'.format(index)
-        cv2.imwrite(os.path.join(self.output_dir, image_name), image)
+        detections = []
+        images = []
+        for _ in range(max(1, self.repeats)):
+            start = time.monotonic()
+            if not self.spin_until(
+                    lambda: self.latest_image_wall > start, 2.0):
+                raise RuntimeError('no fresh image')
+            image = image_to_bgr(self.latest_image)
+            images.append(image)
+            detections.append(
+                detect_board(image, camera_matrix, dist_coeffs))
+        for repeat, image in enumerate(images):
+            image_name = 'sample_{:02d}_r{}.png'.format(index, repeat)
+            cv2.imwrite(
+                os.path.join(self.output_dir, image_name), image)
+        image_name = 'sample_{:02d}_r0.png'.format(index)
+        board = combine_detections(detections)
         sample = {
             'index': index,
             'target_joints': [float(value) for value in target],
@@ -245,21 +277,29 @@ class ChessboardCapture(Node):
 
 
 def pose_offsets(delta):
-    """Small joint-space offsets around the current camera-forward pose."""
+    """Joint-space offsets around the capture base pose.
+
+    ``delta`` drives the yaw (joint1) and roll (joint4) amplitude; the pitch
+    joints 2/3 use half of it. At the 2026-11-17 base pose this kept all
+    corners inside a 25 px image margin (predicted from the live detection).
+    """
+    pitch = 0.5 * delta
     values = [
         (0.0, 0.0, 0.0, 0.0),
         (delta, 0.0, 0.0, 0.0),
         (-delta, 0.0, 0.0, 0.0),
-        (0.0, 0.75 * delta, 0.0, 0.0),
-        (0.0, -0.75 * delta, 0.0, 0.0),
-        (0.0, 0.0, 0.75 * delta, 0.0),
-        (0.0, 0.0, -0.75 * delta, 0.0),
+        (0.0, pitch, 0.0, 0.0),
+        (0.0, -pitch, 0.0, 0.0),
+        (0.0, 0.0, pitch, 0.0),
+        (0.0, 0.0, -pitch, 0.0),
         (0.0, 0.0, 0.0, delta),
         (0.0, 0.0, 0.0, -delta),
-        (0.75 * delta, 0.5 * delta, 0.5 * delta, 0.75 * delta),
-        (-0.75 * delta, -0.5 * delta, -0.5 * delta, -0.75 * delta),
-        (0.75 * delta, -0.5 * delta, 0.5 * delta, -0.75 * delta),
-        (-0.75 * delta, 0.5 * delta, -0.5 * delta, 0.75 * delta),
+        (delta, -pitch, pitch, -delta),
+        (-delta, pitch, -pitch, delta),
+        (0.0, pitch, pitch, 0.0),
+        (0.0, pitch, -pitch, 0.0),
+        (0.0, -pitch, pitch, 0.0),
+        (delta, pitch, -pitch, delta),
     ]
     return [list(offset) for offset in values]
 
@@ -272,6 +312,7 @@ def main():
     parser.add_argument('--duration', type=float, default=4.0)
     parser.add_argument('--settle', type=float, default=0.5)
     parser.add_argument('--warmup', type=int, default=3)
+    parser.add_argument('--repeats', type=int, default=3)
     parser.add_argument('--delta', type=float, default=0.08)
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--final-base', action='store_true')
@@ -296,7 +337,8 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     rclpy.init()
     node = ChessboardCapture(
-        args.output_dir, args.duration, args.settle, args.warmup)
+        args.output_dir, args.duration, args.settle, args.warmup,
+        args.repeats)
     samples = []
     base = None
     try:
@@ -318,6 +360,25 @@ def main():
                     raise RuntimeError(
                         'base-pose {}={} outside [{}, {}]'.format(
                             name, value, lower, upper))
+            if args.pre_offset > 0.0:
+                pre_base = list(base_target)
+                if args.pre_joint1_only:
+                    pre_base[0] -= args.pre_offset
+                else:
+                    pre_base = [
+                        base_target[i] - args.pre_offset
+                        for i in range(4)
+                    ] + [base_target[4]]
+                for name, value in zip(ARM_JOINTS, pre_base):
+                    lower, upper = ARM_LIMITS[name]
+                    if not lower <= value <= upper:
+                        raise RuntimeError(
+                            'base pre-pose {}={} outside [{}, {}]'.format(
+                                name, value, lower, upper))
+                print('APPROACH BASE PRE', [round(value, 4)
+                                            for value in pre_base])
+                node.move_to(
+                    pre_base, duration=max(6.0, 0.5 * args.duration))
             print('APPROACH BASE', [round(value, 4)
                                     for value in base_target])
             node.move_to(base_target, duration=max(8.0, args.duration))
@@ -367,8 +428,9 @@ def main():
                 print('  board NOT detected')
             else:
                 print(
-                    '  board id ok rms={:.3f}px tvec={}'.format(
+                    '  board ok rms={:.3f}px spread={:.2f}mm tvec={}'.format(
                         board['rms_px'],
+                        1000.0 * board.get('translation_spread_m', 0.0),
                         [round(value, 4) for value in board['tvec']]))
         if args.check_only:
             for index in range(args.count):
@@ -379,8 +441,11 @@ def main():
                     print('CHECK {} board NOT detected'.format(index))
                 else:
                     print(
-                        'CHECK {} rms={:.3f}px tvec={}'.format(
+                        'CHECK {} rms={:.3f}px spread={:.2f}mm tvec={}'
+                        .format(
                             index, board['rms_px'],
+                            1000.0 * board.get(
+                                'translation_spread_m', 0.0),
                             [round(value, 4) for value in board['tvec']]))
     finally:
         if base is not None and not args.check_only:
