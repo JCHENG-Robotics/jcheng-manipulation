@@ -1,6 +1,6 @@
 # Error Budget — fiducial_grasp_partial_20261117
 
-- Generated: `2026-11-17T12:11:52.808744+00:00`
+- Generated: `2026-11-17T12:13:21.852726+00:00`
 - Task: fiducial_grasp
 - Status: **PARTIAL**
 - Samples: 10000 (seed 7)

@@ -12,8 +12,8 @@ executed.
 
 | Path | Content | Scope |
 |---|---|---|
-| `error_budget_demo.json/.md` | Synthetic complete budget with known values and distributions | Offline validation |
-| `error_budget_baseline_report.json/.md` | Project budget with measured hand-eye/fiducial terms and unmeasured required terms | Offline analysis of hardware calibration/perception evidence |
+| `error_budget_demo.json/.md/.svg` | Synthetic complete budget with known values, distributions and contribution chart | Offline validation |
+| `error_budget_baseline_report.json/.md/.svg` | Project budget with measured hand-eye/fiducial terms, unmeasured required terms and contribution chart | Offline analysis of hardware calibration/perception evidence |
 | `paired_trials_plan.json` | 24-pair randomized schedule, seed 7 | Offline plan; not executed |
 | `paired_trials_simulation.json` | Simulation input/output bundle | Synthetic |
 | `paired_trials_simulated.jsonl` | 48 simulated records | Synthetic |
@@ -24,7 +24,6 @@ executed.
 | `with_camera/` | Host + ROS benchmark with the camera running | Real hardware, read-only |
 | `commands.log` | Exact commands and test summaries | Record |
 | `tests.txt` | Local colcon/pytest summary | Record |
-
 ## Key results
 
 ### Error budget (partial)

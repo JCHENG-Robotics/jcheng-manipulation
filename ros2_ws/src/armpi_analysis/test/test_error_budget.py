@@ -9,6 +9,7 @@ from armpi_analysis.error_budget import (
     demo_budget,
     load_budget,
     render_markdown,
+    render_svg,
     template_budget,
     validate_budget,
 )
@@ -150,6 +151,17 @@ def test_markdown_marks_partial_budget():
     assert 'Partial budget' in text
     assert 'hand_eye_translation' in text
     assert 'Missing required sources' in text
+
+
+def test_svg_contains_contributions_and_missing_sources():
+    """The SVG chart names sources and marks missing required terms."""
+    report = aggregate(load_budget(BASELINE), samples=500)
+    svg = render_svg(report)
+    assert svg.startswith('<svg')
+    assert svg.rstrip().endswith('</svg>')
+    assert 'hand_eye_translation' in svg
+    assert 'missing required' in svg
+    assert 'fiducial_grasp_partial_20261117' in svg
 
 
 def test_report_is_json_serializable():

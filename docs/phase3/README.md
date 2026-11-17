@@ -21,7 +21,7 @@ Session 4 of the remote work plan covers R11 (error-budget framework), R12
 
 | Item | State | Note |
 |---|---|---|
-| Error-budget framework | **Implemented, demo-validated** | `armpi_analysis/error_budget.py`; measured/unmeasured sources stay separate; RSS, worst case, dominance, Monte Carlo interval |
+| Error-budget framework | **Implemented, demo-validated** | `armpi_analysis/error_budget.py`; measured/unmeasured sources stay separate; RSS, worst case, dominance, Monte Carlo interval, Markdown/JSON report and SVG chart |
 | Partial project budget | **Reported, partial** | Measured hand-eye + fiducial terms; repeatability, backlash, execution, gripper and fixture pose remain required and unmeasured |
 | Paired-trial recorder | **Implemented, simulated-validated** | append-only JSONL; seeded within-pair randomization; exact paired tests |
 | Host/DDS benchmark | **Implemented, hardware-measured (read-only)** | laptop + Pi host, robot-container and cross-host ROS topics, ping; no command sent |

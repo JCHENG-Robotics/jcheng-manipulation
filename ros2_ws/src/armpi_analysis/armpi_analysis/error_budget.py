@@ -26,6 +26,7 @@ import math
 import os
 import random
 import sys
+from xml.sax.saxutils import escape
 SCHEMA_VERSION = 1
 METRICS = ('translation_mm', 'rotation_deg')
 KINDS = ('random', 'bounded', 'systematic')
@@ -533,6 +534,126 @@ def render_markdown(report):
     return '\n'.join(lines)
 
 
+def _svg_text(x, y, value, size=13, weight='normal', fill='#222222'):
+    """Return one escaped SVG text element."""
+    return (
+        '<text x="{}" y="{}" font-family="monospace" font-size="{}" '
+        'font-weight="{}" fill="{}">{}</text>'
+    ).format(x, y, size, weight, fill, escape(str(value)))
+
+
+def render_svg(report):
+    """Render a dependency-free SVG contribution chart."""
+    width = 920
+    row = 26
+    bar_x = 250
+    bar_width = 450
+    parts = []
+    y = 32
+    parts.append(
+        '<rect width="{}" height="100%" fill="#ffffff"/>'.format(width)
+    )
+    parts.append(
+        _svg_text(24, y, 'Error Budget — {}'.format(report['name']),
+                  size=18, weight='bold')
+    )
+    y += 22
+    parts.append(
+        _svg_text(
+            24,
+            y,
+            'Bar length = share of the squared total; dominant source '
+            'highlighted. Status: {}.'.format(report['status'].upper()),
+            size=12,
+            fill='#555555',
+        )
+    )
+    y += 34
+    for metric, result in report['metrics'].items():
+        unit = 'mm' if metric == 'translation_mm' else 'deg'
+        parts.append(
+            _svg_text(
+                24, y, metric, size=16, weight='bold', fill='#1f3b57'
+            )
+        )
+        y += 24
+        if not result['contributions']:
+            parts.append(
+                _svg_text(24, y, 'no measured sources', size=12,
+                          fill='#888888')
+            )
+            y += row
+        ordered = sorted(
+            result['contributions'],
+            key=lambda item: item['percent'],
+            reverse=True,
+        )
+        source_by_id = {
+            source['id']: source for source in result['sources']
+        }
+        for index, contribution in enumerate(ordered):
+            source = source_by_id[contribution['id']]
+            length = max(
+                2, int(round(contribution['percent'] / 100.0 * bar_width))
+            )
+            color = '#d1495b' if index == 0 else '#4c78a8'
+            parts.append(
+                '<rect x="{}" y="{}" width="{}" height="16" '
+                'rx="2" fill="{}"/>'.format(
+                    bar_x, y - 13, length, color
+                )
+            )
+            parts.append(
+                _svg_text(
+                    24, y, contribution['id'][:34], size=12
+                )
+            )
+            parts.append(
+                _svg_text(
+                    bar_x + length + 10,
+                    y,
+                    '{:.1f}%  ({:.3f} {})'.format(
+                        contribution['percent'],
+                        source['value'],
+                        unit,
+                    ),
+                    size=12,
+                )
+            )
+            y += row
+        summary = 'RSS {:.3f} {} | worst {:.3f} {}'.format(
+            result['rss'], unit, result['worst_case'], unit
+        )
+        if result['tolerance'] is not None:
+            summary += ' | tolerance {:.3f} {} | RSS pass {}'.format(
+                result['tolerance'],
+                unit,
+                result['pass_rss'],
+            )
+        parts.append(_svg_text(24, y, summary, size=12, fill='#333333'))
+        y += 20
+        if result['missing_required']:
+            parts.append(
+                _svg_text(
+                    24,
+                    y,
+                    'missing required: {}'.format(
+                        ', '.join(result['missing_required'])
+                    ),
+                    size=11,
+                    fill='#b5651d',
+                )
+            )
+            y += 20
+        y += 16
+    height = y + 24
+    header = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="{}" height="{}" '
+        'viewBox="0 0 {} {}">'
+    ).format(width, height, width, height)
+    return '\n'.join([header] + parts + ['</svg>'])
+
+
 def template_budget():
     """Return a minimal budget template."""
     return {
@@ -744,6 +865,7 @@ def _parse_args(argv):
     )
     parser.add_argument('--json-out', default=None)
     parser.add_argument('--markdown-out', default=None)
+    parser.add_argument('--svg-out', default=None)
     parser.add_argument('--samples', type=int, default=10000)
     parser.add_argument('--seed', type=int, default=7)
     return parser.parse_args(argv)
@@ -771,6 +893,8 @@ def main(argv=None):
         _write_json(args.json_out, report)
     if args.markdown_out:
         _write_text(args.markdown_out, render_markdown(report))
+    if args.svg_out:
+        _write_text(args.svg_out, render_svg(report))
     return _print_summary(report)
 
 

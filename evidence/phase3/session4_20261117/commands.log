@@ -8,7 +8,8 @@
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
   --demo \
   --json-out evidence/phase3/session4_20261117/error_budget_demo.json \
-  --markdown-out evidence/phase3/session4_20261117/error_budget_demo.md
+  --markdown-out evidence/phase3/session4_20261117/error_budget_demo.md \
+  --svg-out evidence/phase3/session4_20261117/error_budget_demo.svg
 # ERROR_BUDGET name=synthetic_error_budget_demo status=complete
 # METRIC translation_mm rss=2.311 worst=3.800 tolerance=4.000 pass_rss=True pass_worst_case=True ci95=[0.503, 4.674]
 # METRIC rotation_deg rss=0.447 worst=0.600 tolerance=1.000 pass_rss=True pass_worst_case=True ci95=[0.063, 0.923]
@@ -17,7 +18,8 @@ PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
   --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
   --json-out evidence/phase3/session4_20261117/error_budget_baseline_report.json \
-  --markdown-out evidence/phase3/session4_20261117/error_budget_baseline_report.md
+  --markdown-out evidence/phase3/session4_20261117/error_budget_baseline_report.md \
+  --svg-out evidence/phase3/session4_20261117/error_budget_baseline_report.svg
 # ERROR_BUDGET name=fiducial_grasp_partial_20261117 status=partial
 # METRIC translation_mm rss=3.699 worst=4.980 tolerance=5.000 pass_rss=True pass_worst_case=True ci95=n/a
 # MISSING translation_mm required=arm_repeatability,arm_backlash,grasp_execution,gripper_placement,object_fixture_pose
@@ -67,7 +69,7 @@ colcon build --symlink-install --packages-select \
 colcon test --packages-select \
   arm_interfaces armpi_grasp_planner armpi_safety \
   armpi_fiducial_localizer armpi_analysis
-# Summary: 93 tests, 0 errors, 0 failures, 0 skipped
+# Summary: 94 tests, 0 errors, 0 failures, 0 skipped
 
 python3 -m flake8 ros2_ws/src/armpi_analysis tools/phase4 \
   --select=E,F,W --ignore=W503 --max-line-length=79
@@ -79,7 +81,7 @@ PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
   tools/phase2/tests/test_measurement_protocol.py \
   tools/phase4/tests
-# 48 passed
+# 49 passed
 
 ## Host/DDS benchmark (read-only)
 # No camera:

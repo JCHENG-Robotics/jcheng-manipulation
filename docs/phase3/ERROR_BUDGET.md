@@ -68,8 +68,13 @@ worst_case  = sum(value_i)               # linear, conservative
 ```
 
 The report also gives each source's share of the squared total, the RSS if
-that source were removed, and the dominant source. A 95% interval is computed
-only when every measured random/bounded source has a distribution:
+that source were removed, and the dominant source. It is available as JSON,
+Markdown and a dependency-free SVG contribution chart (`--svg-out`). The
+chart's bar length is the share of the squared total; the dominant source is
+highlighted, and missing required sources are printed below each metric.
+
+A 95% interval is computed only when every measured random/bounded source has
+a distribution:
 
 - `normal`: draw `N(0, sigma)`;
 - `uniform`: draw `U(-value, +value)`;
@@ -91,7 +96,9 @@ categories, not a validated task error.
 Input:
 [`ros2_ws/src/armpi_analysis/config/error_budget_baseline.json`](../../ros2_ws/src/armpi_analysis/config/error_budget_baseline.json).
 Evidence:
-[`evidence/phase3/session4_20261117/error_budget_baseline_report.md`](../../evidence/phase3/session4_20261117/error_budget_baseline_report.md).
+[`evidence/phase3/session4_20261117/error_budget_baseline_report.md`](../../evidence/phase3/session4_20261117/error_budget_baseline_report.md)
+and
+[`error_budget_baseline_report.svg`](../../evidence/phase3/session4_20261117/error_budget_baseline_report.svg).
 
 | Metric | RSS | Worst case | Tolerance | Status |
 |---|---:|---:|---:|---|
@@ -131,7 +138,8 @@ it can support a reliability claim.
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
   --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
   --json-out evidence/phase3/session4_20261117/error_budget_baseline_report.json \
-  --markdown-out evidence/phase3/session4_20261117/error_budget_baseline_report.md
+  --markdown-out evidence/phase3/session4_20261117/error_budget_baseline_report.md \
+  --svg-out evidence/phase3/session4_20261117/error_budget_baseline_report.svg
 
 # Synthetic demo with known inputs and distributions
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \

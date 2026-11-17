@@ -9,10 +9,10 @@ All notable changes to this project are documented here. Format based on
 
 - `armpi_analysis` ROS 2 Python package (dependency-free): `error_budget.py`
   (measured/unmeasured source schema, RSS/worst-case aggregation, dominance,
-  seeded Monte-Carlo interval, Markdown report), `paired_trials.py` (seeded
-  within-pair randomization, append-only JSONL recorder, bootstrap/sign/McNemar
-  analysis) and `host_benchmark.py` (host metrics and read-only ROS topic
-  rate/jitter/header-age measurement).
+  seeded Monte-Carlo interval, Markdown/JSON report and an SVG contribution
+  chart), `paired_trials.py` (seeded within-pair randomization, append-only
+  JSONL recorder, bootstrap/sign/McNemar analysis) and `host_benchmark.py`
+  (host metrics and read-only ROS topic rate/jitter/header-age measurement).
 - `armpi_analysis/config/error_budget_baseline.json`: partial project budget
   with measured hand-eye/fiducial terms and explicit unmeasured required terms.
 - `tools/phase4/run_benchmark.sh` and `tools/phase4/tests`: one-command
@@ -39,8 +39,8 @@ All notable changes to this project are documented here. Format based on
 - `colcon build --symlink-install` for `arm_interfaces`,
   `armpi_grasp_planner`, `armpi_safety`, `armpi_fiducial_localizer` and
   `armpi_analysis`: **5 packages finished**.
-- `colcon test` for the same packages: **93 tests, 0 errors, 0 failures**.
-- Pure-Python CI command: **flake8 rc 0**; **48 tests passed**.
+- `colcon test` for the same packages: **94 tests, 0 errors, 0 failures**.
+- Pure-Python CI command: **flake8 rc 0**; **49 tests passed**.
 - Error budget demo: translation RSS 2.311 mm / worst 3.800 mm; rotation RSS
   0.447° / worst 0.600°; both gates pass.
 - Partial project budget: translation RSS 3.699 mm / worst 4.980 mm (5 mm

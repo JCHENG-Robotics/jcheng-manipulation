@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="388" viewBox="0 0 920 388">
+<rect width="920" height="100%" fill="#ffffff"/>
+<text x="24" y="32" font-family="monospace" font-size="18" font-weight="bold" fill="#222222">Error Budget — synthetic_error_budget_demo</text>
+<text x="24" y="54" font-family="monospace" font-size="12" font-weight="normal" fill="#555555">Bar length = share of the squared total; dominant source highlighted. Status: COMPLETE.</text>
+<text x="24" y="88" font-family="monospace" font-size="16" font-weight="bold" fill="#1f3b57">translation_mm</text>
+<rect x="250" y="99" width="337" height="16" rx="2" fill="#d1495b"/>
+<text x="24" y="112" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">calibration_translation</text>
+<text x="597" y="112" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">74.9%  (2.000 mm)</text>
+<rect x="250" y="125" width="84" height="16" rx="2" fill="#4c78a8"/>
+<text x="24" y="138" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">perception_translation</text>
+<text x="344" y="138" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">18.7%  (1.000 mm)</text>
+<rect x="250" y="151" width="21" height="16" rx="2" fill="#4c78a8"/>
+<text x="24" y="164" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">repeatability_translation</text>
+<text x="281" y="164" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">4.7%  (0.500 mm)</text>
+<rect x="250" y="177" width="8" height="16" rx="2" fill="#4c78a8"/>
+<text x="24" y="190" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">guard_translation</text>
+<text x="268" y="190" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">1.7%  (0.300 mm)</text>
+<text x="24" y="216" font-family="monospace" font-size="12" font-weight="normal" fill="#333333">RSS 2.311 mm | worst 3.800 mm | tolerance 4.000 mm | RSS pass True</text>
+<text x="24" y="252" font-family="monospace" font-size="16" font-weight="bold" fill="#1f3b57">rotation_deg</text>
+<rect x="250" y="263" width="360" height="16" rx="2" fill="#d1495b"/>
+<text x="24" y="276" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">calibration_rotation</text>
+<text x="620" y="276" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">80.0%  (0.400 deg)</text>
+<rect x="250" y="289" width="90" height="16" rx="2" fill="#4c78a8"/>
+<text x="24" y="302" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">perception_rotation</text>
+<text x="350" y="302" font-family="monospace" font-size="12" font-weight="normal" fill="#222222">20.0%  (0.200 deg)</text>
+<text x="24" y="328" font-family="monospace" font-size="12" font-weight="normal" fill="#333333">RSS 0.447 deg | worst 0.600 deg | tolerance 1.000 deg | RSS pass True</text>
+</svg>
