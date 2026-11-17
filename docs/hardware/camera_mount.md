@@ -111,13 +111,30 @@ fraction is invalid/no-return pixels, not a valid 0 mm reading.
 - The camera enumerates at USB 2.0 (480 Mbps), not USB 3.0. 8 Hz at 640×400 is
   adequate for static AprilTag localization but not for high-rate visual
   servoing.
-- The first saved frame at the current arm pose looks at a white surface with
-  dark edges (arm/ceiling), not a work surface. Aim the arm down before
-  collecting calibration data.
-- Intrinsics are driver-reported, not independently calibrated. Do not use them
-  as metrology without a calibration check.
-- Mount rigidity, repeatability and the real `link4 → camera` extrinsic are
-  unknown.
+- The first saved frame at an early pose looked at a white surface with dark
+  edges (arm/ceiling). With the chessboard in front, the RGB stream is usable
+  for detection; aim the arm at the work surface before collecting data.
+- Intrinsics are driver-reported. A first chessboard refinement (8 close-range
+  views) gave fx 446 vs the driver's 418 and is **inconclusive**; use the
+  driver K/D until a better intrinsic dataset exists.
+- Mount rigidity and repeatability are still open; the first `link4 → camera`
+  hand-eye estimate is in the next section, not yet a validated calibration.
+
+## First hand-eye baseline (2026-11-17)
+
+- Board: 11×8 inner corners, 20 mm squares; 8 usable poses out of 13.
+- `cv2.calibrateHandEye` PARK: `T_link4_camera` translation
+  `[0.0053, -0.0090, 0.0326] m`, RPY `[-3.823, -0.527, -101.586]°`.
+- Board pose in `base_link`: std **13.4 mm / 2.06°**; corner RMS 0.06–0.34 px.
+- The vendor static TF `link4 → rgb_camera_link` is the **body** frame. The
+  image/PnP optical frame differs by roughly **101° roll**, so the static TF
+  alone must not be used as the measured optical extrinsic.
+- The fit is limited by the open-loop arm: the same base command before/after a
+  joint1 move differed 14–24 mm / 2.5°; a **joint1-only pre-pose**
+  (`target − 0.08 rad`, then target) reduced the same-command difference to
+  0.8 mm. The full pre-pose dataset was interrupted by a robot WiFi drop.
+- Evidence: [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/)
+  and [`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md).
 
 ## Calibration note
 
@@ -130,11 +147,12 @@ state this limitation explicitly.
 
 1. Reconnect the direct Ethernet/power and confirm the camera with the
    persistent launch command.
-2. Print an AprilTag 36h11 and run `armpi_fiducial_localizer` with
-   `image_topic=/depth_cam/rgb/image_raw`,
-   `camera_info_topic=/depth_cam/rgb/camera_info` and camera frame
-   `rgb_camera_link`.
-3. Measure the real `link4 → camera` transform; do not treat the vendor static
-   TF as a calibrated extrinsic.
-4. If higher frame rate/resolution is needed, check whether the camera can be
+2. Secure the chessboard and verify stationary frames before/after capture.
+3. Rerun the full capture with `--pre-offset 0.08 --pre-joint1-only` over
+   Ethernet; solve with `tools/phase2/chessboard_hand_eye.py`; target a board
+   residual below 5 mm / 2°.
+4. Place a 36h11 AprilTag at a measured `base_link` position and use
+   `armpi_fiducial_localizer` to validate the calibrated transform
+   independently.
+5. If higher frame rate/resolution is needed, check whether the camera can be
    moved to a USB 3 port/cable.

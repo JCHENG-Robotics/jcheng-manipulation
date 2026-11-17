@@ -36,6 +36,14 @@ Frame facts:
 - The camera is mounted on `link4`, before `joint5`; the camera transform is
   therefore pose-dependent (joint1–joint4).
 
+> **Calibration note (2026-11-17):** the live static TF
+> `link4 → rgb_camera_link` is the vendor **body** frame. A first chessboard
+> hand-eye fit found the image/PnP optical frame rolled roughly **101°** about
+> the optical axis relative to it, with a 13.4 mm / 2.06° board-consistency
+> residual. The fit is not yet validated; use the calibrated transform for
+> perception and keep the static TF labelled as the body-frame nominal. See
+> [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
+
 ## Live transform snapshots
 
 At the reset pose (joint1–5 = 0, 2026-11-17 ~09:50):
@@ -88,7 +96,7 @@ world (MoveIt virtual joint, fixed)
 | `base_link → camera_optical_frame` | `[V]` **does not exist** (negative control) |
 | `world → base_link` real transform | `[U]` (MoveIt uses a fixed 0,0,0 virtual joint) |
 | Joint names match the real robot | `[V]` `/joint_states` |
-| Camera extrinsic accuracy | `[U]` (static config, not measured) |
+| Camera extrinsic accuracy | **First hand-eye estimate** (13.4 mm / 2.06° board residual; ~101° optical/body difference); not validated |
 
 ## Commands
 

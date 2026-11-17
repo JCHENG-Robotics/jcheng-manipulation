@@ -24,8 +24,8 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | Fiducial 目标定位 | 已实现，合成验证 | AprilTag 36h11；5/5 合成位姿，最大 1.82 mm / 1.49°；ROS TF 检查 0.44 mm / 0.03° |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
-| 相机 / 标定 | **相机可用；标定未开始** | Aurora 930 RGB 8 Hz / depth 8 Hz，已读取内参；手眼外参**未测量** |
-| 视觉抓取 | 进行中 | 感知与抓取搜索已实现；真实相机可用；尚无标定或实机抓取 |
+| 相机 / 标定 | **相机可用；首次手眼基线（未验证）** | Aurora 930 RGB/depth 实时；8 姿态棋盘手眼 13.4 mm / 2.06°；光轴与静态 TF 差约 101°；开环重复性受限 |
+| 视觉抓取 | 进行中 | 感知、抓取搜索和首次相机标定；尚无验证过的标定或实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | 仅 G1-**Mock** | 41 个后端测试通过；前端可构建；E7 网关未实现 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
