@@ -1,0 +1,43 @@
+schema_version: 1
+# Measured body -> optical frame for the real Aurora 930 on link4.
+#
+# The driver's rgb_camera_link is a BODY frame. OpenCV solvePnP returns the
+# marker pose in the OPTICAL frame (x right, y down, z forward). This contract
+# publishes the optical frame as a static child of rgb_camera_link so TF and
+# perception code can use one unambiguous name.
+#
+# Composition:
+#   T_link4_rgb_body  = live tf2 link4 -> rgb_camera_link (full precision)
+#   T_link4_camera    = validated chessboard hand-eye (TSAI)
+#   T_rgb_optical     = inv(T_link4_rgb_body) @ T_link4_camera
+parent_frame: rgb_camera_link
+child_frame: camera_optical_calibrated
+translation_m:
+  - 0.005408130881513019
+  - 0.010058265866049462
+  - -0.0273800671474835
+quaternion_xyzw:
+  - 0.008837589577726668
+  - -0.009540882953808531
+  - -0.7057404452700348
+  - 0.7083511081892725
+source:
+  calibration: evidence/calibration/20261117/calibration_servo_20261117.json
+  link4_to_parent: evidence/phase2/frames_20261117/frame_contract.json
+  composition: inv(T_link4_rgb_body) @ T_link4_camera_optical
+  hand_eye_method: TSAI
+  validated_at: "2026-11-17"
+validation:
+  board_translation_std_mm: 2.94
+  board_rotation_std_deg: 0.39
+  heldout_translation_mm: 3.29
+  heldout_rotation_deg: 0.43
+  rotation_angle_deg: 89.798
+notes:
+  - The live depth_cam_color_optical_frame is identity to rgb_camera_link; it
+    is a body frame despite its name and must not be used for PnP.
+  - The model-only camera_optical_frame in armpi_ultra_description is a
+    nominal REP-103 frame for the mock path; it is not published on hardware
+    and is not this measured frame.
+  - Camera remounting invalidates this transform; re-run the chessboard
+    hand-eye before updating this file.

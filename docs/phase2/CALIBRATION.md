@@ -21,13 +21,19 @@ forward). The live `depth_cam_color_optical_frame` and
 `depth_cam_depth_optical_frame` are **identity to `rgb_camera_link`** in the
 driver TF; they are body frames, not the OpenCV optical frame despite their
 names. The live static TF `link4 → rgb_camera_link` is the vendor **body**
-frame. The body→optical transform is the 89.34° rotation about -z below; use
-`T_link4_camera` directly in perception code, or publish that body→optical
-transform as a new frame before relying on TF. For the validated result, `inv(static_tf) @ T_link4_camera` is
-an **89.34° rotation about the -z axis** with a translation of
-`[15.4, 10.0, -28.3] mm`, which is the expected body/optical 90° roll plus an
-optical-centre offset. Do not replace the URDF static TF with the optical
-transform; add a separate optical frame if the URDF needs one.
+frame. The measured body→optical adapter is
+`inv(T_link4_rgb_body) @ T_link4_camera` with the full-precision live TF:
+**89.798° about -z**, translation `[5.4, 10.1, -27.4] mm`. It is published as
+`camera_optical_calibrated`; see
+[`docs/hardware/camera_frames.md`](../hardware/camera_frames.md). Use
+`T_link4_camera` directly in perception code, or use the published frame in
+TF. Do not replace the URDF static TF with the optical transform; add a
+separate optical frame if the URDF needs one.
+
+> The earlier 89.34° / `[15.4, 10.0, -28.3] mm` numbers came from a
+> three-decimal `tf2_echo` snapshot with x = -0.050 m. The full-precision live
+> TF has x = -0.040 m. The hand-eye fit did not use the snapshot, so the
+> calibration result is unchanged; only the body→optical adapter changed.
 
 ## Target and procedure
 
@@ -124,8 +130,11 @@ Method agreement (`board_translation_std_m` / `board_rotation_std_deg`):
 | odd | 3.16 mm / 0.42° | 3.19 mm / 0.43° | 3.19 mm / 0.43° |
 
 The static-TF comparison is **informational**, not a pass gate: 33.7 mm /
-89.34°, dominated by the body-vs-optical frame convention. The board scatter,
-held-out base and cross-validation are the meaningful checks.
+89.34° against the three-decimal snapshot, dominated by the body-vs-optical
+frame convention. With the full-precision live TF the measured body→optical
+adapter is **89.798° / `[5.4, 10.1, -27.4] mm`** (see
+[`docs/hardware/camera_frames.md`](../hardware/camera_frames.md)). The board
+scatter, held-out base and cross-validation are the meaningful checks.
 
 ## Why the first run failed
 
@@ -165,8 +174,9 @@ hardware read.
 
 1. Add an independent validation: place a fiducial at a measured base-frame
    position and compare the calibrated prediction.
-2. Wire `T_link4_camera` into the fiducial localizer / grasp planner and run a
-   supervised, no-object approach.
+2. `T_link4_camera` is now wired into the localizer through the
+   `camera_optical_calibrated` frame; next run a supervised, no-object
+   approach through the grasp planner.
 3. If better than ~3 mm is required, add an external measurement (e.g. a dial
    indicator or a second fixed camera) rather than more chessboard poses; the
    remaining error is the open-loop arm, not the detector.

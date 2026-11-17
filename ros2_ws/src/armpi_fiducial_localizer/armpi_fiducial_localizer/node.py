@@ -2,9 +2,11 @@
 ROS 2 fiducial target localizer.
 
 Subscribes to an image and ``CameraInfo``, detects a square fiducial, estimates
-its 6D pose, and publishes ``target_pose``. The default output frame is the
-camera optical frame from ``CameraInfo``; set ``output_frame`` to ``base_link``
-to use TF.
+its 6D pose, and publishes ``target_pose``. OpenCV PnP returns the pose in the
+camera **optical** frame, so the pose is tagged with the measured
+``camera_optical_calibrated`` frame (published as a static child of
+``rgb_camera_link`` by ``camera_frame_publisher``). Set ``output_frame`` to
+``base_link`` to use TF.
 
 The node does not move the robot. It is the perception input to the grasp
 candidate search.
@@ -22,18 +24,21 @@ import tf2_geometry_msgs  # noqa: F401 - registers PoseStamped for TF2
 from tf2_ros import Buffer, TransformListener
 
 from .detector import DEFAULT_DICTIONARY, FiducialDetector
+from .frames import CAMERA_OPTICAL_FRAME, resolve_pose_frame
 
 
 class FiducialLocalizer(Node):
     """Detect one fiducial marker and publish its pose."""
 
     def __init__(self):
+        """Create subscriptions, TF listeners and the pose publisher."""
         super().__init__('armpi_fiducial_localizer')
         self.declare_parameter('image_topic', 'image_raw')
         self.declare_parameter('camera_info_topic', 'camera_info')
         self.declare_parameter('marker_dictionary', DEFAULT_DICTIONARY)
         self.declare_parameter('marker_size_m', 0.06)
         self.declare_parameter('marker_id', -1)
+        self.declare_parameter('camera_frame', CAMERA_OPTICAL_FRAME)
         self.declare_parameter('output_frame', '')
         self.declare_parameter('max_reprojection_error_px', 3.0)
         self.declare_parameter('tf_timeout_s', 0.1)
@@ -44,6 +49,9 @@ class FiducialLocalizer(Node):
             'camera_info_topic'
         ).value
         self.marker_id = int(self.get_parameter('marker_id').value)
+        self.camera_frame = str(
+            self.get_parameter('camera_frame').value
+        ).strip()
         self.output_frame = str(
             self.get_parameter('output_frame').value
         ).strip()
@@ -81,11 +89,18 @@ class FiducialLocalizer(Node):
         )
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        if not self.camera_frame:
+            self.get_logger().warn(
+                'camera_frame is empty: PnP poses will be tagged with the '
+                'CameraInfo body frame; set camera_frame to the optical '
+                'frame')
         self.get_logger().info(
-            'fiducial localizer: image={} camera_info={} output_frame={}'.format(
+            'fiducial localizer: image={} camera_info={} camera_frame={} '
+            'output_frame={}'.format(
                 self.image_topic,
                 self.camera_info_topic,
-                self.output_frame or '(camera)',
+                self.camera_frame or '(camera_info)',
+                self.output_frame or '(same as camera)',
             )
         )
 
@@ -177,10 +192,10 @@ class FiducialLocalizer(Node):
         if stamp.sec == 0 and stamp.nanosec == 0:
             stamp = self.get_clock().now().to_msg()
         pose.header.stamp = stamp
-        pose.header.frame_id = (
-            message.header.frame_id
-            or self.camera_info.header.frame_id
-            or 'camera_optical_frame'
+        pose.header.frame_id = resolve_pose_frame(
+            self.camera_frame,
+            message.header.frame_id,
+            self.camera_info.header.frame_id,
         )
         pose.pose.position.x = detection.tvec[0]
         pose.pose.position.y = detection.tvec[1]

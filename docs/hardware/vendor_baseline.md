@@ -23,8 +23,8 @@
 | File | Content | Status |
 |---|---|---|
 | `driver/servo_controller/config/servo_controller.yaml` | joint1 ID 6, joint2 ID 5, joint3 ID 4 (min 1000 / max 500 inverted), joint4 ID 3, joint5 ID 2, r_joint ID 1 (`init: 700`) | `[S]` |
-| Camera `transform.yaml` | `extristric`, `plane`, `white_area_pose_cam`, `white_area_pose_world`, `corners`; vendor table/plane/white-area calibration, **not** a hand-eye matrix | `[S]` |
-| Camera `camera_info.yaml` | `hand2cam_tf_matrix`; vendor hand-eye matrix. The name is misleading: this is **not** camera intrinsics | `[S]` |
+| Camera `transform.yaml` | `extristric`, `plane`, `white_area_pose_cam`, `white_area_pose_world`, `corners`; vendor **table/white-area** calibration, **not** a hand-eye matrix. Decoded in [vendor_calibration_baseline.md](vendor_calibration_baseline.md) | `[S]` |
+| Camera `camera_info.yaml` | `hand2cam_tf_matrix`; vendor end-effector←camera matrix. The name is misleading: this is **not** camera intrinsics. The shipped matrix is **stale/different for the current mount** (89.6 mm from the validated link5-relative result) | `[S]` + static analysis |
 
 The live RGB/depth intrinsics come from the camera driver, not from
 `camera_info.yaml`; see `docs/hardware/camera_mount.md`.
@@ -53,8 +53,11 @@ install), not in the public repository:
    action servers per action.
 2. Robot `.zshrc`: added `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and
    `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`.
-3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to `wlan0` only (office WiFi;
-   the direct `eth0` path is an SSH fallback, not the DDS interface).
+3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to the active link. Since
+   2026-11-17 evening this is **`eth0`** (the earlier `wlan0` config failed
+   with `wlan0: does not match an available interface`; backup
+   `cyclonedds.xml.bak_wlan0_20261117`). Switch back to `wlan0` only together
+   with the laptop config.
 4. Restarted `start_node.service` and verified one `/controller_manager`, one
    `/servo_manager`, one action server and one MoveIt client.
 
@@ -66,7 +69,7 @@ install), not in the public repository:
 | Camera open transient | `aurora930_node` failed with `0x21003` before a restart; opened after it | `[V]` observed |
 | IMU quiet | `/ros_robot_controller/imu_raw` has a publisher but no messages in 5–12 s | `[U]` |
 | Wrong Wi-Fi module | The Realtek RTL8188GU adapter (`0bda:1a2b`, CDROM mode) is not an `rtw88_8821cu` device; loading that module crashed the kernel and wedged USB | `[V]` |
-| Root disk 95% | ≈2.9 GiB free; boot/fsck and logging risk | `[V]` |
+| Root disk | 87% used, ≈6.8 GiB free (2026-11-17 evening); boot/fsck and logging risk | `[V]` |
 | Single `/dev/rrc` owner | Multiple paths can open the CH340; no single-owner guarantee | `[S]` |
 
 ## Version caution

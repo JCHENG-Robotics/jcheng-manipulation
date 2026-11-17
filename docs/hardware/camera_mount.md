@@ -33,10 +33,11 @@ sudo docker exec -d -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
 link4
 └── camera_connet_link          (vendor URDF mount)
     └── depth_camera_link       (driver static: x=0.038 m, pitch=+90°)
-        └── rgb_camera_link     (identity)
+        └── rgb_camera_link     (identity; CameraInfo frame)
             ├── depth_cam_color_frame
             │   └── depth_cam_color_optical_frame
-            └── depth_cam_depth_optical_frame
+            ├── depth_cam_depth_optical_frame
+            └── camera_optical_calibrated   (measured, project-published)
 ```
 
 | Transform | Value | Status |
@@ -47,10 +48,13 @@ link4
 | `rgb_camera_link → depth_cam_color_frame` | identity | `[V]` |
 | `depth_cam_color_frame → depth_cam_color_optical_frame` | identity | `[V]` |
 | `rgb_camera_link → depth_cam_depth_optical_frame` | identity | `[V]` |
+| `rgb_camera_link → camera_optical_calibrated` | measured: `[0.005408, 0.010058, -0.027380] m`, quaternion `[0.008838, -0.009541, -0.705740, 0.708351]` | `[V]` |
 
 The project model's `camera_link` / `camera_optical_frame` are **not** published
 by the robot. Use `rgb_camera_link` for the RGB stream (it matches the RGB
-`camera_info`) and `depth_camera_link` for the depth stream.
+`camera_info`) and `depth_camera_link` for the depth stream. Use
+`camera_optical_calibrated` for PnP poses and TF; see
+[camera_frames.md](camera_frames.md).
 
 ## Validated optical extrinsic (2026-11-17)
 
@@ -66,19 +70,23 @@ RPY         = [0.951, -0.058, -89.789] deg
 The calibrated frame is the OpenCV/PnP optical frame. Important: the live
 `depth_cam_color_optical_frame` and `depth_cam_depth_optical_frame` are
 **identity to `rgb_camera_link`** in TF, so they are body frames, not the
-OpenCV optical frame. The body→optical transform is the 89.34°/-z transform
-above; use the calibrated transform directly in perception code, or publish a
-new optical frame before relying on TF.
+OpenCV optical frame. The measured body→optical adapter is published as
+`camera_optical_calibrated`; use it in TF, or use the calibrated transform
+directly in perception code. See [camera_frames.md](camera_frames.md).
 
 Validation: board-pose scatter 2.94 mm / 0.39° (max 5.44 mm / 0.74°),
 held-out final base 3.29 mm / 0.43°, 2-fold cross-validation 2.5–3.2 mm.
 See [`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md) and
 [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
 
-`inv(static_tf_link4_rgb) @ T_link4_camera` is an 89.34° rotation about -z with
-translation `[15.4, 10.0, -28.3] mm` — the expected body/optical 90° roll and
-an optical-centre offset. Do **not** replace the URDF static TF with this
-optical transform; use it as the perception extrinsic.
+`inv(T_link4_rgb_body) @ T_link4_camera` with the **full-precision live TF**
+(`link4 → rgb_camera_link` translation `[-0.039995, -0.019122, 0.086003] m`)
+is an **89.798° rotation about -z** with translation
+`[5.4, 10.1, -27.4] mm`. An earlier three-decimal `tf2_echo` snapshot
+(`[-0.050, -0.019, 0.087] m`) gave the superseded 89.34° /
+`[15.4, 10.0, -28.3] mm` numbers; the hand-eye fit did not use that snapshot.
+Do **not** replace the URDF static TF with this optical transform; publish it
+as a separate frame.
 
 ## Intrinsics (driver-reported, 2026-11-17)
 
@@ -171,10 +179,10 @@ state this limitation explicitly.
 ## Next steps
 
 1. Place a 36h11 AprilTag at a measured `base_link` position and use
-   `armpi_fiducial_localizer` to validate the calibrated transform
-   independently.
-2. Wire the validated optical transform into the fiducial/grasp pipeline; the
-   live `depth_cam_color_optical_frame` is not the OpenCV optical frame, so use
-   `T_link4_camera` directly or publish the body→optical transform first.
+   `armpi_fiducial_localizer` (with `camera_frame:=camera_optical_calibrated`)
+   to validate the calibrated transform independently.
+2. Wire the validated optical frame into the grasp planner; the live
+   `depth_cam_color_optical_frame` is not the OpenCV optical frame. Use the
+   project `camera_frame_publisher` / `camera_optical_calibrated` frame.
 3. If higher frame rate/resolution is needed, check whether the camera can be
    moved to a USB 3 port/cable.

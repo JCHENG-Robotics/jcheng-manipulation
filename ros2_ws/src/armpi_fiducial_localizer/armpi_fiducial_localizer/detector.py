@@ -8,8 +8,9 @@ frame:
 
     p_camera = R_camera_marker * p_marker + t_camera_marker
 
-The pose is computed with ``solvePnP(SOLVEPNP_IPPE_SQUARE)`` and filtered by a
-mean corner reprojection error. This module has no ROS dependency.
+The pose is computed with ``solvePnP(SOLVEPNP_IPPE_SQUARE)`` and refined with
+``solvePnPRefineLM`` when available, then filtered by a mean corner
+reprojection error. This module has no ROS dependency.
 """
 
 import dataclasses
@@ -172,12 +173,16 @@ class FiducialDetector:
         marker_size_m=DEFAULT_MARKER_SIZE_M,
         max_reprojection_error_px=DEFAULT_MAX_REPROJECTION_ERROR_PX,
         refine_corners=True,
+        refine_pose=True,
     ):
+        """Create a detector for one dictionary and marker size."""
         self.dictionary_name = dictionary
         self.marker_size_m = float(marker_size_m)
         self.max_reprojection_error_px = float(
             max_reprojection_error_px
         )
+        self.refine_corners = bool(refine_corners)
+        self.refine_pose = bool(refine_pose)
         self.dictionary = make_dictionary(dictionary)
         self.parameters = make_detector_parameters(refine_corners)
         half = self.marker_size_m / 2.0
@@ -213,6 +218,18 @@ class FiducialDetector:
             )
             if not solved:
                 continue
+            if self.refine_pose and hasattr(cv2, 'solvePnPRefineLM'):
+                try:
+                    rvec, tvec = cv2.solvePnPRefineLM(
+                        self.object_points,
+                        points.reshape(-1, 1, 2),
+                        camera,
+                        distortion,
+                        rvec,
+                        tvec,
+                    )
+                except cv2.error:
+                    pass
             reprojection = self._reprojection_error(
                 rvec, tvec, points, camera, distortion
             )

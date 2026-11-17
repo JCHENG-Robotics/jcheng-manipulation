@@ -3,6 +3,51 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Session 1: camera frame contract, vendor baseline, real-background check
+
+### Added
+
+- `armpi_fiducial_localizer/frames.py` and
+  `config/camera_optical_frame.yaml`: the measured
+  `rgb_camera_link → camera_optical_calibrated` contract, derived from the
+  validated hand-eye and the full-precision live body TF.
+- `armpi_fiducial_localizer/camera_frame_publisher.py`: publishes the measured
+  optical frame as a static TF; `fiducial_localizer.launch.py` starts it by
+  default (`publish_optical_frame:=true`).
+- `tools/phase2/capture_still.py`: no-motion RGB/depth/TF capture inside the
+  robot container.
+- `tools/phase2/real_background_fiducial_check.py`: negative control plus
+  semi-synthetic marker accuracy on real frames.
+- `docs/hardware/camera_frames.md` and `docs/hardware/vendor_calibration_baseline.md`.
+- Evidence: `evidence/phase2/frames_20261117/`,
+  `evidence/phase2/real_background_20261117/`,
+  `evidence/phase2/vendor_calibration_20261117/`.
+
+### Changed
+
+- `FiducialLocalizer` now tags `target_pose` with `camera_frame`
+  (`camera_optical_calibrated` by default), not the incoming `CameraInfo`
+  body frame; `output_frame:=base_link` still works through TF.
+- `FiducialDetector` refines the PnP pose with `solvePnPRefineLM` by default
+  (`refine_pose=True`), removing the fronto-parallel IPPE ambiguity.
+- `tools/humble_moveit/cyclonedds-laptop.xml` now binds the direct-Ethernet NIC
+  `enx00e04ca373c7` (the robot config is on `eth0`).
+- Hardware/phase docs corrected: 95% → 87% disk, wired link current, and the
+  superseded body→optical numbers (89.34°, `[15.4, 10.0, -28.3] mm`) replaced
+  by the full-precision result (89.798°, `[5.4, 10.1, -27.4] mm`).
+
+### Verified (real hardware, 2026-11-17)
+
+- Full-precision `link4 → rgb_camera_link` = `[-0.039995, -0.019122, 0.086003] m`;
+  composing it with `T_link4_camera` reproduces the hand-eye to `1.4e-17`.
+- 8 real RGB frames: **0** false detections with `DICT_APRILTAG_36h11`.
+- Semi-synthetic 36h11 overlay on real frames: **15/15** detected, max
+  **1.69 mm / 0.53°**, mean 1.12 mm / 0.30° (gate 5 mm / 2°).
+- Vendor `transform.yaml` decoded as a table/white-area calibration; the
+  shipped `hand2cam_tf_matrix` is **89.6 mm** from the validated
+  link5-relative optical transform, so it is **not valid Baseline A** for the
+  current camera mount.
+
 ## [Unreleased] — 2026-11-17 Phase 2 hand-eye validation
 
 ### Added

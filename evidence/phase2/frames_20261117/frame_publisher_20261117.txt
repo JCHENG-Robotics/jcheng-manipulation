@@ -1,0 +1,1 @@
+[INFO] [1794913645.823134565] [armpi_camera_frame_publisher]: published static frame rgb_camera_link -> camera_optical_calibrated from /home/jerichocheng/jcheng/jcheng-manipulation/install/armpi_fiducial_localizer/share/armpi_fiducial_localizer/config/camera_optical_frame.yaml

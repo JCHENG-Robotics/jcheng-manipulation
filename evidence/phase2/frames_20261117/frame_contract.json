@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-17",
+  "mode": "real_frame_contract",
+  "motion": "none",
+  "live_tf": {
+    "parent_frame": "link4",
+    "child_frame": "rgb_camera_link",
+    "translation_m": [
+      -0.03999494483597176,
+      -0.019122,
+      0.08600332248415501
+    ],
+    "quaternion_xyzw": [
+      0.0,
+      0.004699982696185691,
+      0.0,
+      0.999988955020332
+    ],
+    "source": "full-precision tf2 lookup inside the robot container during still capture",
+    "driver_note": "depth_camera_link and rgb_camera_link are identity in the live chain; depth_cam_color_optical_frame is identity to rgb_camera_link"
+  },
+  "hand_eye": {
+    "T_link4_camera": [
+      [
+        0.00368842776439271,
+        0.9998555260011366,
+        -0.01659284862877692,
+        -0.0348444217248839
+      ],
+      [
+        -0.9999926898175493,
+        0.0037046418410173754,
+        0.0009465412259709385,
+        -0.009063734133950539
+      ],
+      [
+        0.0010078750366667687,
+        0.016589236083088054,
+        0.9998618811786406,
+        0.0585736292974927
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "translation_m": [
+      -0.0348444217248839,
+      -0.009063734133950539,
+      0.0585736292974927
+    ],
+    "quaternion_xyzw": [
+      0.005520524085961919,
+      -0.006211539623636754,
+      -0.7057741868992572,
+      0.708388126450474
+    ],
+    "rpy_deg": [
+      0.950537297527167,
+      -0.05774699566248543,
+      -89.78866806954503
+    ],
+    "source": "evidence/calibration/20261117/calibration_servo_20261117.json (TSAI)"
+  },
+  "body_to_optical": {
+    "parent_frame": "rgb_camera_link",
+    "child_frame": "camera_optical_calibrated",
+    "composition": "inv(T_link4_rgb_body) @ T_link4_camera_optical",
+    "translation_m": [
+      0.005408130881513019,
+      0.010058265866049462,
+      -0.0273800671474835
+    ],
+    "translation_mm": [
+      5.40813088151302,
+      10.058265866049462,
+      -27.380067147483498
+    ],
+    "quaternion_xyzw": [
+      0.008837589577726668,
+      -0.009540882953808531,
+      -0.7057404452700348,
+      0.7083511081892725
+    ],
+    "rpy_deg": [
+      1.4891142539416744,
+      -0.059730930830874704,
+      -89.78922021631254
+    ],
+    "rotation_angle_deg": 89.7981703322157,
+    "composition_error_vs_T_link4_camera": 1.3877787807814457e-17
+  },
+  "old_three_decimal_snapshot": {
+    "translation_m": [
+      -0.05,
+      -0.019,
+      0.087
+    ],
+    "quaternion_xyzw": [
+      0.001,
+      0.005,
+      -0.004,
+      1.0
+    ],
+    "note": "superseded three-decimal tf2_echo snapshot; x differs by ~10 mm from the full-precision live TF. The hand-eye fit did not use this snapshot, but the body->optical document numbers did.",
+    "body_to_optical_translation_mm": [
+      15.358811501900265,
+      9.974228242248017,
+      -28.30270527221504
+    ],
+    "body_to_optical_rotation_deg": 89.34076776561997
+  },
+  "validation": {
+    "board_translation_std_mm": 2.94,
+    "board_rotation_std_deg": 0.39,
+    "heldout_translation_mm": 3.29,
+    "heldout_rotation_deg": 0.43,
+    "note": "hand-eye validation is independent of the static body TF; the static TF only sets the optical frame adapter."
+  },
+  "contract": {
+    "rgb_camera_link": "driver body frame; matches CameraInfo; never tag a PnP pose with it",
+    "camera_optical_calibrated": "measured optical frame published as a static child of rgb_camera_link; canonical PnP frame",
+    "depth_cam_color_optical_frame": "identity to rgb_camera_link; body frame despite its name",
+    "camera_optical_frame": "model-only nominal REP-103 frame in armpi_ultra_description; not published on hardware"
+  }
+}

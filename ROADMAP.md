@@ -11,13 +11,13 @@
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; project `camera_optical_frame` is model-only |
+| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; model `camera_optical_frame` stays mock-only |
 | MoveIt 2 constrained planning | **Implemented, mock-validated; real reset_servo verified** | Pilz `PTP` 6D-constrained goal (plan-only); one supervised real motion through Humble Docker MoveIt |
 | 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware trials |
-| Fiducial target localization | **Implemented, synthetic-validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; ROS TF check 0.44 mm / 0.03° |
+| Fiducial target localization | **Implemented, synthetic + real-background validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
-| Calibration and visual grasping | **In progress — hand-eye validated** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.3° optical/body roll; integration and real grasp not started |
+| Calibration and visual grasping | **In progress — hand-eye validated and wired into the optical frame** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; real grasp not started |
 | Error budget and tolerance envelope | **Planned** | Requires measured repeatability, backlash and calibration |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
@@ -27,11 +27,14 @@ in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
 and depth (8 Hz, `mono16`, mm). Joint limits are **not measured** and the IMU is
 not publishing. The chessboard hand-eye is **validated** with 14 poses and
 measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter and a
-3.29 mm / 0.43° held-out final base. The image optical frame is rolled ~89.3°
-relative to the vendor static body frame, as expected. The Phase 2
-grasp-candidate search and fiducial localization remain mock/synthetic-validated;
-the calibrated transform is not yet wired into the grasp pipeline and no real
-visual grasp has been executed.
+3.29 mm / 0.43° held-out final base. The measured body→optical adapter
+(89.798°, `[5.4, 10.1, -27.4] mm`) is published as
+`camera_optical_calibrated` and is now used by the fiducial localizer. The
+real-background semi-synthetic check passes 15/15 poses (max 1.69 mm / 0.53°)
+with zero false detections on 8 real frames. The shipped vendor
+`hand2cam_tf_matrix` is **stale for the current mount** and is not valid
+Baseline A. The grasp-candidate search remains mock-validated; the fiducial →
+grasp bridge and a real visual grasp are not started.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal
@@ -115,10 +118,11 @@ Status (2026-11-17), evidence in
 - [x] Control/feedback interfaces audited live; `joint_states` are cached
   commands.
 - [x] Camera topics and TF verified; the live frames are `rgb_camera_link` /
-  `depth_camera_link`, not `camera_optical_frame`.
-- [ ] Correct URDF and frame definitions for the real path — documented, but
-  the project model still carries model-only `camera_link` /
-  `camera_optical_frame`.
+  `depth_camera_link`; the measured optical frame
+  `camera_optical_calibrated` is project-published.
+- [x] Correct frame definitions for the real path — body/optical contract and
+  `camera_optical_calibrated` are implemented; the model keeps its nominal
+  `camera_link` / `camera_optical_frame` for mock only.
 
 ## 6. Milestone B — Calibration
 

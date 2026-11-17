@@ -16,7 +16,7 @@ the 16 GB vendor tree.
 > [`docs/weekly-log/`](docs/weekly-log/). The old roadmap is at
 > [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md).
 
-## Status (2026-11-16)
+## Status (2026-11-17)
 
 Status convention: **Implemented / Validated / In Progress / Planned**. Vendor
 functionality is marked separately. `Validated` means there is a command, log or
@@ -28,11 +28,12 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | ArmPi URDF / TF | Implemented; model + live TF verified | `xacro` + `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; **limits provisional** |
 | ArmPi MoveIt 2 | Implemented, mock-validated; real `reset_servo` verified | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` (mock); Humble Docker MoveIt with one supervised real motion |
 | ArmPi constrained grasp | Implemented, mock-validated | 5-DoF grasp search: 80 joint-space candidates → 40 IK OK → 26 collision-free → 3 Pilz `PTP` plans; plan-only |
-| Fiducial target localization | Implemented, synthetic-validated | AprilTag 36h11; 5/5 synthetic poses, max 1.82 mm / 1.49°; ROS TF check 0.44 mm / 0.03° |
+| Fiducial target localization | Implemented, synthetic + real-background semi-synthetic validated | AprilTag 36h11; 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic on real frames (max 1.69 mm / 0.53°); 0 false detections on 8 real frames |
+| Camera frame contract | Implemented, validated | `camera_optical_calibrated` = measured body→optical adapter (89.798°, 5.4/10.1/−27.4 mm); model `camera_optical_frame` stays mock-only |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
-| Camera / calibration | **Camera + validated hand-eye** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.3° optical/body roll |
-| Visual grasping | In progress | perception + grasp search + validated camera calibration; no real grasp yet |
+| Camera / calibration | **Camera + validated hand-eye** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame published |
+| Visual grasping | In progress | perception + grasp search + validated camera calibration and frame; no real grasp yet |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
@@ -143,27 +144,34 @@ plan-only Pilz `PTP`. It never executes. On 2026-11-16 the joint sampler produce
 [`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
 and [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/).
 
-### Fiducial target localization (synthetic camera)
+### Fiducial target localization (real camera + synthetic checks)
 
 ```bash
 # synthetic accuracy check: 5 known poses, JSON + overlays
 ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
   --output-dir evidence/fiducial/20261116
 
-# node-level check with a synthetic image stream (no camera)
-ros2 run armpi_fiducial_localizer fiducial_localizer --ros-args \
-  -p image_topic:=/image_raw -p camera_info_topic:=/camera_info \
-  -p marker_size_m:=0.06 -p output_frame:=base_link
+# real camera: localizer + measured optical frame publisher
+ros2 launch armpi_fiducial_localizer fiducial_localizer.launch.py \
+  image_topic:=/depth_cam/rgb/image_raw \
+  camera_info_topic:=/depth_cam/rgb/camera_info \
+  marker_size_m:=0.06 output_frame:=base_link
 
+# synthetic image stream (no camera) for a quick node check
 ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
   --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
 ```
 
-The AprilTag 36h11 detector publishes `target_pose` in the camera optical frame
-by default, or in `base_link` after TF. Synthetic results: 5/5 detected, max
-1.82 mm / 1.49°; ROS TF check: 0.44 mm / 0.03°. See
-[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)
-and [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/).
+The AprilTag 36h11 detector publishes `target_pose` in
+`camera_optical_calibrated` (the measured optical frame) by default, or in
+`base_link` after TF. It uses `solvePnPRefineLM` to remove the fronto-parallel
+IPPE ambiguity. Results: 5/5 synthetic poses, max 1.82 mm / 1.49°; 15/15
+semi-synthetic poses on real frames, max 1.69 mm / 0.53°; 0 false detections on
+8 real frames. See
+[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md),
+[`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md),
+[`evidence/fiducial/20261116/`](evidence/fiducial/20261116/) and
+[`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/).
 
 ### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
@@ -211,9 +219,13 @@ limits remain provisional; the read-only survey and the torque-off tool are in
   intersection of URDF and vendor software range. Mechanical limits and all
   `effort="1000"` values are unmeasured; every arm limit carries a
   `PROVISIONAL` comment.
-- **Camera frames are nominal.** `camera_connet_link` is the vendor mount;
-  `camera_link` and `camera_optical_frame` were added with an identity/REP-103
-  rotation. The real `link4 → camera` extrinsic is unknown.
+- **Camera frames split model vs hardware.** `camera_connet_link` is the vendor
+  mount; the model `camera_link` / `camera_optical_frame` are nominal mock
+  frames (identity/REP-103). On the real robot `rgb_camera_link` is a body
+  frame and the measured optical frame is `camera_optical_calibrated`, derived
+  from the validated hand-eye and the full-precision live TF. The old
+  model-only frame is not published on hardware; see
+  [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md).
 - **IK is KDL, full-pose by default.** TRAC-IK is not installed.
   `position_only_ik: false` is the checked-in default, so a 6D goal is not
   silently reduced to position. Use `config/kinematics_reachability.yaml` only
@@ -228,15 +240,19 @@ limits remain provisional; the read-only survey and the torque-off tool are in
   neighbours fail IK. Use the joint-space sampler (`--sampler joint`) for a
   target point; it reports the residual `target_offset_m` for each candidate.
   The TCP offset is nominal and all plans are plan-only.
-- **Fiducial localization is synthetic-validated only.** The AprilTag detector
-  uses a printed edge length (`marker_size_m`, default 0.06 m) and the camera
-  `CameraInfo`. The real intrinsics, the `link4 → camera` extrinsic, lighting and
-  lens distortion are unmeasured; do not treat the synthetic accuracy as real
-  camera metrology.
+- **Fiducial localization is synthetic + real-background validated, not a
+  physical-target test.** The AprilTag detector uses a printed edge length
+  (`marker_size_m`, default 0.06 m) and the real camera `CameraInfo`. The
+  measured intrinsics and the `link4 → camera` optical frame are validated;
+  the real-background test composites the marker, so it does not measure
+  lighting/printing/mount errors or a physical target.
 - **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
   r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
   xacro only.
-- **No hardware.** No `/dev/rrc`, no camera, no base, no real motion.
+- **Hardware is live but motion is limited.** The Pi/ROS/servo/camera stack runs
+  and one supervised `reset_servo` motion plus plan-only checks were verified.
+  Joint limits and the IMU remain open; there is no autonomous motion and no
+  real grasp.
 
 ## Evidence and reproducibility
 
@@ -247,7 +263,13 @@ limits remain provisional; the read-only survey and the torque-off tool are in
 - `evidence/armpi_grasp/` — grasp candidate search JSON and headless MoveIt log
   (mock, plan-only).
 - `evidence/fiducial/` — synthetic marker accuracy JSON/overlays and the ROS
-  localizer/TF integration logs (no real camera).
+  localizer/TF integration logs.
+- `evidence/phase2/real_background_20261117/` — real-background negative
+  control and semi-synthetic pose accuracy.
+- `evidence/phase2/frames_20261117/` — full-precision body→optical frame
+  contract.
+- `evidence/phase2/vendor_calibration_20261117/` — decoded vendor calibration
+  and Baseline A status.
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
@@ -262,7 +284,12 @@ Never present Mock/Gazebo results as hardware validation.
 - [Phase 2 grasp search](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — candidate
   generation, screening pipeline, mock results and limitations.
 - [Phase 2 fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
-  AprilTag detection, pose convention, synthetic accuracy and ROS integration.
+  AprilTag detection, pose convention, real-background accuracy and frame
+  contract.
+- [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical
+  frames and `camera_optical_calibrated`.
+- [Vendor calibration baseline](docs/hardware/vendor_calibration_baseline.md) —
+  decoded vendor matrices and Baseline A status.
 - [Phase 2 joint limits](docs/phase2/JOINT_LIMITS.md) — read-only bus-servo
   evidence, the torque-off measurement procedure and the CycloneDDS gotcha.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,

@@ -12,6 +12,7 @@ from armpi_fiducial_localizer.synthetic import (
     default_camera_matrix,
     render_scene,
 )
+
 import numpy as np
 import pytest
 
@@ -125,3 +126,35 @@ def test_synthetic_pose_round_trip(rvec, tvec):
     assert translation_error < 4.0
     assert _rotation_error_deg(rvec, detection.rvec) < 3.0
     assert detection.reprojection_error_px < 1.0
+
+
+def test_fronto_parallel_pose_refinement():
+    """Pose refinement removes the fronto-parallel IPPE ambiguity."""
+    detector = FiducialDetector()
+    camera = default_camera_matrix()
+    rvec = (math.pi, 0.0, 0.0)
+    image, _ = render_scene(
+        marker_id=0,
+        marker_size_m=0.06,
+        camera_matrix=camera,
+        rvec=rvec,
+        tvec=(0.0, 0.0, 0.30),
+    )
+    detections = detector.detect(image, camera)
+    assert detections
+    assert _rotation_error_deg(rvec, detections[0].rvec) < 0.5
+    assert detections[0].reprojection_error_px < 1.0
+
+
+def test_pose_refinement_can_be_disabled():
+    """A detector with refinement disabled still returns a pose."""
+    detector = FiducialDetector(refine_pose=False)
+    camera = default_camera_matrix()
+    image, _ = render_scene(
+        marker_id=0,
+        marker_size_m=0.06,
+        camera_matrix=camera,
+        rvec=(math.pi, 0.0, 0.0),
+        tvec=(0.0, 0.0, 0.30),
+    )
+    assert detector.detect(image, camera)

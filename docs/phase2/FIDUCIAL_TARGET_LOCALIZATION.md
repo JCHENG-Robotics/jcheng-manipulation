@@ -1,7 +1,10 @@
 # Fiducial Target Localization
 
-> Status: **Implemented, synthetic-validated.** No real camera was used.
-> The camera intrinsic and the `link4 → camera` extrinsic are still unmeasured.
+> Status: **Implemented; synthetic and real-background semi-synthetic
+> validated (2026-11-16/17)**. The real Aurora 930 streams RGB/depth and the
+> camera optical extrinsic is validated (2.94 mm / 0.39° board scatter). The
+> detector now refines the PnP pose with `solvePnPRefineLM`. A **physical**
+> marker at a surveyed position and a real grasp have not been run.
 >
 > Plan reference: `MASTER_PLAN_V3_PRIVATE.md` §7 and §8 (fiducial detection →
 > target pose → TF → constrained grasp).
@@ -28,22 +31,26 @@ the marker centre, not a grasp point offset on an object.
 ```text
 ros2_ws/src/armpi_fiducial_localizer/
 ├── armpi_fiducial_localizer/
-│   ├── detector.py             # OpenCV detection + solvePnP, no ROS
+│   ├── detector.py             # OpenCV detection + solvePnP + LM refine
+│   ├── frames.py               # frame contract + pose-frame resolution
+│   ├── camera_frame_publisher.py  # measured body→optical static TF
 │   ├── synthetic.py            # synthetic marker renderer for tests
 │   ├── node.py                 # ROS 2 localizer node
 │   ├── synthetic_publisher.py  # image + CameraInfo publisher
 │   └── cli.py                  # synthetic accuracy check
+├── config/camera_optical_frame.yaml  # measured frame contract
 ├── launch/fiducial_localizer.launch.py
-└── test/                       # 11 tests: detector, synthetic, lint
+└── test/                       # detector, frame contract, lint
 ```
 
-`detector.py` and `synthetic.py` are pure OpenCV/NumPy. The node depends on
-`cv_bridge`, `tf2_ros` and `tf2_geometry_msgs`.
+`detector.py`, `frames.py` and `synthetic.py` are pure OpenCV/NumPy/yaml. The
+node depends on `cv_bridge`, `tf2_ros` and `tf2_geometry_msgs`.
 
 ## 3. Marker convention
 
 The default dictionary is `DICT_APRILTAG_36h11` (AprilTag 36h11). The detector
-uses the square marker's four corners and `solvePnP(SOLVEPNP_IPPE_SQUARE)`.
+uses the square marker's four corners, `solvePnP(SOLVEPNP_IPPE_SQUARE)` and,
+when available, `solvePnPRefineLM`.
 
 The marker frame is:
 
@@ -87,6 +94,7 @@ not the white quiet zone. The default is **0.06 m**.
 | `marker_dictionary` | `DICT_APRILTAG_36h11` | ArUco dictionary name |
 | `marker_size_m` | `0.06` | printed marker edge length |
 | `marker_id` | `-1` | `-1` = any; otherwise filter one ID |
+| `camera_frame` | `camera_optical_calibrated` | frame that owns the PnP pose |
 | `output_frame` | `''` | empty = camera frame; e.g. `base_link` |
 | `max_reprojection_error_px` | `3.0` | reject poor corner fits |
 | `tf_timeout_s` | `0.1` | TF lookup timeout |
@@ -95,44 +103,47 @@ not the white quiet zone. The default is **0.06 m**.
 The node selects the detection with the lowest reprojection error after the
 optional marker-ID filter. It does not average or filter across frames.
 
-### Run
+### Frames
+
+The RGB `CameraInfo` is tagged `rgb_camera_link`, which is a **body** frame.
+PnP returns the **optical** frame. The node therefore tags `target_pose` with
+`camera_optical_calibrated` (or the `camera_frame` override), never with the
+incoming body frame. The measured body→optical transform is published as a
+static child of `rgb_camera_link` by `camera_frame_publisher`, which the launch
+file starts by default. See
+[`docs/hardware/camera_frames.md`](../hardware/camera_frames.md).
+
+### Run on the real camera
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ros2_ws/install/setup.bash
 
 ros2 launch armpi_fiducial_localizer fiducial_localizer.launch.py \
-  image_topic:=/image_raw camera_info_topic:=/camera_info \
+  image_topic:=/depth_cam/rgb/image_raw \
+  camera_info_topic:=/depth_cam/rgb/camera_info \
   marker_size_m:=0.06 marker_id:=0 output_frame:=base_link
 ```
 
-The real camera is not connected. The node can be exercised with the synthetic
-publisher:
+The tool `tools/phase2/capture_still.py` captures real frames (no motion) for
+offline tests:
 
 ```bash
-# terminal 1: localizer
-ros2 run armpi_fiducial_localizer fiducial_localizer --ros-args \
-  -p image_topic:=/image_raw -p camera_info_topic:=/camera_info \
-  -p marker_size_m:=0.06 -p marker_id:=0 -p output_frame:=base_link
-
-# terminal 2: synthetic image at 0.4 m in the camera frame
-ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
-  --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
+# inside the robot container
+python3 /tmp/capture_still.py --output-dir /tmp/real_capture_20261117 \
+  --count 8 --interval 0.4 --depth --tf link4:rgb_camera_link
 ```
 
-## 5. Synthetic accuracy check
+For a synthetic-only check, start the synthetic publisher with the localizer
+(e.g. `--tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06`).
 
-```bash
-ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
-  --output-dir evidence/fiducial/20261116
-```
+## 5. Validation
+
+### Synthetic accuracy (2026-11-16)
 
 The check renders five markers at known camera-frame poses (0.30–0.45 m,
 tilts up to 0.25 rad), runs detection and pose estimation, and reports
-translation, rotation and reprojection errors. It writes JSON and overlay
-images.
-
-### Results (2026-11-16)
+translation, rotation and reprojection errors.
 
 | Metric | Value |
 |---|---|
@@ -143,25 +154,60 @@ images.
 | Mean rotation error | 0.64° |
 | Max corner reprojection error | 0.32 px |
 
-This validates the geometry and the detector wiring. It does **not** measure a
-real camera, lens distortion, lighting, motion blur or the camera mount.
+Re-running the same five poses with the current detector (which enables
+`solvePnPRefineLM`) gives max **1.63 mm / 0.96°**, mean 0.61 mm / 0.56°; the
+2026-11-16 JSON remains the pre-refinement record. The real-background check
+below is the current end-to-end detector result.
 
-## 6. ROS integration check
+### Real-background semi-synthetic (2026-11-17)
+
+Eight real RGB frames were captured at the current pose (no motion) with the
+Aurora 930 and the driver intrinsics. A 36h11 marker with a white quiet zone
+was composited at 15 known camera-frame poses (3 backgrounds × 5 poses;
+0.23–0.30 m, in-plane rotations up to ±30°, tilts up to 12°).
+
+| Metric | Value |
+|---|---|
+| Unmodified real frames | 8 frames, **0** false detections |
+| Semi-synthetic poses detected | **15 / 15** |
+| Max translation error | **1.69 mm** |
+| Mean translation error | 1.12 mm |
+| Max rotation error | **0.53°** |
+| Mean rotation error | 0.30° |
+| Gate (5 mm / 2°) | PASS |
+
+The detector refinement matters: without `solvePnPRefineLM`, the
+fronto-parallel case had a 1.82° rotation error from the IPPE ambiguity; with
+refinement it is 0.10°.
+
+Evidence:
+[`evidence/phase2/real_background_20261117/`](../../evidence/phase2/real_background_20261117/)
+(JSON + contact sheet). Raw frames stay private in
+`~/jcheng/phase2/real_capture_20261117/`.
+
+### Frame contract (2026-11-17)
+
+The measured body→optical adapter is 89.798° about -z,
+`[5.4, 10.1, -27.4] mm`; composing it with the full-precision live
+`link4 → rgb_camera_link` reproduces `T_link4_camera` to `1.4e-17`. Evidence:
+[`evidence/phase2/frames_20261117/`](../../evidence/phase2/frames_20261117/).
+
+### ROS integration check (2026-11-16)
 
 The localizer was exercised through ROS with a synthetic image, a static
 `base_link → camera_optical_frame` transform (0.5 m) and the pose check tool
 [`tools/phase2/fiducial_ros_check.py`](../../tools/phase2/fiducial_ros_check.py).
 
 | Output frame | Expected position | Position error | Angle error | Result |
-|---|---|---:|---:|---|
+|---|---|---|---:|---:|---|
 | `camera_optical_frame` | (0, 0, 0.4) m | 0.44 mm | 0.03° | PASS |
 | `base_link` | (0, 0, 0.9) m | 0.44 mm | 0.03° | PASS |
 
-The base-frame result uses the static transform `(0, 0, 0.5)`, identity
-rotation. All evidence is in
+That check predates the `camera_optical_calibrated` frame; it validates the
+TF wiring, not the real optical extrinsic. Evidence:
 [`evidence/fiducial/20261116/`](../../evidence/fiducial/20261116/).
 
-## 7. OpenCV 4.6 compatibility note
+## 6. OpenCV 4.6 compatibility note
 
 OpenCV 4.6 exposes the newer `DetectorParameters` type but constructing it
 directly and setting `cornerRefinementMethod` segfaults. The code therefore
@@ -169,11 +215,13 @@ prefers the legacy `DetectorParameters_create()` / `detectMarkers()` API when
 it exists, and falls back to the newer API on later OpenCV versions. This is a
 practical portability fix, not a claim about OpenCV quality.
 
-## 8. Limitations
+## 7. Limitations
 
-- No real camera, lens, lighting or motion; no hardware validation.
-- Camera intrinsics are synthetic in the test; the real `camera_info` and the
-  `link4 → camera` extrinsic are unmeasured.
+- The real-background check is **semi-synthetic**: the marker is composited,
+  not physically present. It validates detection and pose math, not the camera
+  extrinsic or a real grasp.
+- The marker interior is warped with a planar homography; lens distortion is
+  applied to the corners but not inside the marker.
 - Marker size must be measured on the printed target; a size error scales the
   translation error directly.
 - Single-marker, single-frame detection. No temporal filtering, multi-view
@@ -182,14 +230,12 @@ practical portability fix, not a claim about OpenCV quality.
   is not modelled.
 - The node does not verify that the detected marker is the intended object.
 
-## 9. Next steps
+## 8. Next steps
 
-1. Mount the camera and measure `camera_info` plus the real `link4 → camera`
-   transform (Phase 1/2 hardware baseline).
-2. Print a 36h11 marker with a measured edge length and run the node on the real
-   camera; compare the published pose with a physical fixture.
-3. Add temporal filtering and outlier rejection if the real detection is noisy.
-4. Feed `target_pose` (with a grasp-point offset) into
+1. Print a 36h11 marker with a measured edge length and place it at a surveyed
+   `base_link` position; compare the localizer output with the surveyed pose.
+2. Feed `target_pose` (with a grasp-point offset) into
    `armpi_grasp_planner --target-point --sampler joint`.
-5. Re-run calibration with the same marker family; the calibration validation
-   poses should use the measured camera/arm geometry.
+3. Add temporal filtering and outlier rejection if the real detection is noisy.
+4. Re-run the frame-contract check after any camera remount; the hand-eye and
+   `camera_optical_frame.yaml` must be updated together.

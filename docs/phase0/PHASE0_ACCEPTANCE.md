@@ -5,6 +5,11 @@
 > Scope: simulation / `mock_components` only. **No real ArmPi hardware was
 > used.** Phase 0 checks model coherence and planning configuration; it cannot
 > validate mechanical limits, servo torque, the camera or the gripper.
+>
+> **Update (2026-11-17):** Phase 1/2 later measured the real camera optical
+> frame (`camera_optical_calibrated`, 2.94 mm / 0.39° hand-eye); see
+> [`docs/hardware/camera_frames.md`](../hardware/camera_frames.md). This
+> acceptance remains the mock-scope record for Phase 0.
 
 ## 1. Acceptance checklist (MASTER_PLAN_V3 §5)
 
@@ -13,7 +18,7 @@
 | 1 | ArmPi loads in RViz | **Pass (mock)** | `rviz_load_20261116.log`: `rviz2` loaded `armpi_ultra` and KDL via the MoveIt demo; `display.launch.py` was rewritten to load the same model without the vendor `need_compile` trap (`display_headless_20261116.log`) |
 | 2 | TF tree is coherent | **Pass (model)** | `xacro` + `check_urdf`: 17 links, 16 joints, single root `base_link`; `tf2_echo base_link camera_optical_frame` returns the expected chain in the display launch |
 | 3 | Joint types are corrected | **Pass** | `joint1…joint5` are `revolute`; the stale vendor URDF with `joint1`/`r_joint` fixed is archived at `docs/archive/armpi_ultra.urdf.stale` |
-| 4 | Camera optical frame exists | **Pass (nominal)** | `camera_connet_link → camera_link → camera_optical_frame`; REP-103 rotation; real extrinsic **not measured** |
+| 4 | Camera optical frame exists | **Pass (nominal)** | `camera_connet_link → camera_link → camera_optical_frame`; REP-103 rotation; real extrinsic later measured as `camera_optical_calibrated` (2026-11-17, see hardware docs) |
 | 5 | MoveIt2 can plan constrained targets | **Pass (mock)** | Pilz `PTP` planned a 6D-constrained goal on `gripper_link` (position + orientation): `SUCCESS`, 66 trajectory points. A +20° tool-roll perturbation failed, so the orientation constraint is enforced |
 | 6 | 5-DoF limitations are documented | **Pass** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | 7 | Simulated limits are explicitly marked provisional where not verified | **Pass** | URDF block + per-joint `PROVISIONAL` comments; `joint_limits.yaml` header; `docs/hardware/measured_joint_limits.md` |

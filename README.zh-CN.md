@@ -11,7 +11,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 > [`docs/weekly-log/`](docs/weekly-log/)。旧路线图位于
 > [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md)。
 
-## 状态（2026-11-16）
+## 状态（2026-11-17）
 
 状态约定：**已实现 / 已验证 / 进行中 / 计划中**。厂商功能单独标注。`已验证` 表示 `evidence/` 中存在命令、日志或数据文件；它**不**代表已完成硬件验证。
 
@@ -21,11 +21,12 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | ArmPi URDF / TF | 已实现；模型 + 实机 TF 验证 | `xacro` + `check_urdf`；实机 `base_link → rgb_camera_link` / `depth_camera_link`；**关节限位仍为暂定值** |
 | ArmPi MoveIt 2 | 已实现，Mock 验证；实机 `reset_servo` 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP`（Mock）；Humble Docker MoveIt 完成一次受监督实机运动 |
 | ArmPi 约束抓取 | 已实现，Mock 验证 | 5-DoF 抓取搜索：80 个关节空间候选 → 40 个 IK 成功 → 26 个无碰撞 → 3 条 Pilz `PTP` 规划；仅规划 |
-| Fiducial 目标定位 | 已实现，合成验证 | AprilTag 36h11；5/5 合成位姿，最大 1.82 mm / 1.49°；ROS TF 检查 0.44 mm / 0.03° |
+| Fiducial 目标定位 | 已实现，合成 + 真实背景半合成验证 | AprilTag 36h11；5/5 合成位姿（最大 1.82 mm / 1.49°）；真实背景 15/15 半合成位姿（最大 1.69 mm / 0.53°）；8 帧真实图像 0 误检 |
+| 相机 frame 契约 | 已实现，已验证 | `camera_optical_calibrated` = 实测 body→optical 适配（89.798°，5.4/10.1/−27.4 mm）；模型 `camera_optical_frame` 仅用于 Mock |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
-| 相机 / 标定 | **相机可用；手眼标定已验证** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°；光轴与静态 TF 差约 89.3° |
-| 视觉抓取 | 进行中 | 感知、抓取搜索和已验证的相机标定；尚无实机抓取 |
+| 相机 / 标定 | **相机可用；手眼标定已验证** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°；实测光轴 frame 已发布 |
+| 视觉抓取 | 进行中 | 感知、抓取搜索、已验证的相机标定与 frame；尚无实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
@@ -135,27 +136,33 @@ ros2 run armpi_grasp_planner grasp_candidate_check \
 [`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
 和 [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/)。
 
-### Fiducial 目标定位（合成相机）
+### Fiducial 目标定位（真实相机 + 合成检查）
 
 ```bash
 # 合成精度检查：5 个已知位姿，输出 JSON + 叠加图
 ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
   --output-dir evidence/fiducial/20261116
 
-# 节点级检查：合成图像流（无真实相机）
-ros2 run armpi_fiducial_localizer fiducial_localizer --ros-args \
-  -p image_topic:=/image_raw -p camera_info_topic:=/camera_info \
-  -p marker_size_m:=0.06 -p output_frame:=base_link
+# 真实相机：定位器 + 实测光学 frame 发布器
+ros2 launch armpi_fiducial_localizer fiducial_localizer.launch.py \
+  image_topic:=/depth_cam/rgb/image_raw \
+  camera_info_topic:=/depth_cam/rgb/camera_info \
+  marker_size_m:=0.06 output_frame:=base_link
 
+# 快速节点检查：合成图像流（无真实相机）
 ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
   --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
 ```
 
-AprilTag 36h11 检测器默认在相机光学坐标系发布 `target_pose`，设置
-`output_frame:=base_link` 后经 TF 转换。合成结果：5/5 检测，最大
-1.82 mm / 1.49°；ROS TF 检查：0.44 mm / 0.03°。详见
-[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)
-和 [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/)。
+AprilTag 36h11 检测器默认在 `camera_optical_calibrated`（实测光学 frame）发布
+`target_pose`，设置 `output_frame:=base_link` 后经 TF 转换；使用
+`solvePnPRefineLM` 消除正对相机的 IPPE 二义性。结果：合成 5/5，最大
+1.82 mm / 1.49°；真实背景半合成 15/15，最大 1.69 mm / 0.53°；8 帧真实图像
+0 误检。详见
+[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)、
+[`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md)、
+[`evidence/fiducial/20261116/`](evidence/fiducial/20261116/) 和
+[`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/)。
 
 ### M2.2 控制器配置（Gazebo，2-DOF `simple_arm`）
 
@@ -201,9 +208,12 @@ provisional；只读实测与关力矩测量工具见
   `+2.09`。`r_joint` 上限为 `1.257`，取 URDF 与厂商软件范围的交集。
   机械限位和所有 `effort="1000"` 数值均未测量；每个机械臂限位都带有
   `PROVISIONAL` 注释。
-- **相机坐标系是标称值。** `camera_connet_link` 是厂商安装座；
-  `camera_link` 和 `camera_optical_frame` 以单位变换/REP-103 旋转添加。
-  真实的 `link4 → camera` 外参未知。
+- **相机 frame 分为模型与实机两套。** `camera_connet_link` 是厂商安装座；
+  模型中的 `camera_link` / `camera_optical_frame` 是 Mock 用的名义 frame
+  （单位变换/REP-103）。实机上 `rgb_camera_link` 是 body frame，实测光学
+  frame 是 `camera_optical_calibrated`，由已验证的手眼和全精度实机 TF 组合
+  得到；模型 frame 不会在实机上发布。详见
+  [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md)。
 - **IK 默认是 KDL 全位姿。** 未安装 TRAC-IK。
   `position_only_ik: false` 是仓库中的默认值，因此 6D 目标不会被静默降级为
   位置目标。仅在“机械臂能否到达该点？”检查中使用
@@ -232,8 +242,9 @@ provisional；只读实测与关力矩测量工具见
   Phase 0 约束规划证据。
 - `evidence/armpi_grasp/` — 抓取候选搜索 JSON 与无头 MoveIt 日志
   （Mock，仅规划）。
-- `evidence/fiducial/` — 合成标记精度 JSON/叠加图与 ROS 定位器/TF 集成日志
-  （无真实相机）。
+- `evidence/fiducial/` — 合成标记精度 JSON/叠加图与 ROS 定位器/TF 集成日志。
+- `evidence/phase2/real_background_20261117/` — 真实背景负对照 + 半合成位姿精度。
+- `evidence/phase2/frames_20261117/` — 全精度 body→optical frame 契约。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
 
 永远不要把 Mock/Gazebo 结果当作硬件验证。
@@ -244,7 +255,9 @@ provisional；只读实测与关力矩测量工具见
 - [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 检查清单、证据和剩余缺口。
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
 - [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
-- [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、合成精度与 ROS 集成。
+- [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、真实背景精度与 frame 契约。
+- [相机 frame 契约](docs/hardware/camera_frames.md) — body/optical frame 与 `camera_optical_calibrated`。
+- [Vendor 标定基线](docs/hardware/vendor_calibration_baseline.md) — vendor 矩阵解码与 Baseline A 状态。
 - [Phase 2 关节限位](docs/phase2/JOINT_LIMITS.md) — 舵机只读证据、关力矩测量流程与 CycloneDDS 注意事项。
 - [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态、合并计划、待决事项。
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)

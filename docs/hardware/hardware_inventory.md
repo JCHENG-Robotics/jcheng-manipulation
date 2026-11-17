@@ -17,14 +17,14 @@
 | Camera | Deptrum Aurora 930; USB `3251:1930`; serial `HY400523001036827G00179`; firmware 2.0.8; SDK 1.1.19 | `aurora930_node` log | `[V]` |
 | Camera link | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `lsusb -t` | `[V]`; bandwidth ceiling |
 | Camera streams | RGB 8.0 Hz, 640×400 `bgr8`; depth 8.2 Hz, 640×400 `mono16` (mm) | `camera_stream_check.py` | `[V]` |
-| Camera frames | RGB `rgb_camera_link`; depth `depth_camera_link`; no `camera_optical_frame` | `camera_info`, TF | `[V]` |
-| Camera calibration | RGB/depth intrinsics read from the driver; `link4 → camera` hand-eye extrinsic **not measured** | `camera_info`, TF | `[V]` intrinsics, `[U]` extrinsic |
+| Camera frames | RGB `rgb_camera_link`; depth `depth_camera_link`; measured optical `camera_optical_calibrated` (project-published); no live `camera_optical_frame` | `camera_info`, TF | `[V]` |
+| Camera calibration | RGB/depth intrinsics read from the driver; `link4 → camera` hand-eye **validated** (2.94 mm / 0.39°); body→optical published as `camera_optical_calibrated` | `camera_info`, TF, `evidence/calibration/20261117/` | `[V]` |
 | Base | Mecanum chassis; `CHASSIS_TYPE=Mecanum` | container env | `[S]` config, `[U]` motion |
 | E-stop / power cut | physical stop not verified | — | `[U]` |
 | Battery | 2S pack; 7651 mV latest (7704 mV after reboot, 7385 mV earlier) | `/ros_robot_controller/battery` | `[V]` |
-| Storage | root filesystem 95% used, ≈2.9 GiB free | `df -h /` | `[V]`; boot/log risk |
+| Storage | root filesystem 87% used, ≈6.8 GiB free (2026-11-17 evening) | `df -h /` | `[V]`; boot/log risk |
 | Thermal | 48.8 °C after boot, `throttled=0x0` | `vcgencmd` | `[V]` |
-| Network | `wlan0 10.51.128.226/23` (DDS + SSH); `eth0 10.42.0.218/24` (SSH fallback; link down at end) | `ip -brief addr` | `[V]` |
+| Network | `eth0 10.42.0.218/24` (SSH + DDS, current); `wlan0 10.51.128.226/23` (fallback; office WiFi) | `ip -brief addr` | `[V]` |
 | Wi-Fi USB adapter | Realtek RTL8188GU `0bda:1a2b` in CDROM mode; `rtw88_8821cu` is the wrong module and crashed the kernel | `lsusb`, `dmesg` | `[V]` |
 
 ## Notes
@@ -49,12 +49,12 @@
   [`measured_joint_limits.md`](measured_joint_limits.md).
 - **Battery.** 7.651 V is usable but below the earlier 7.704 V. Charge before
   long motion trials and avoid charging while the arm is moving.
-- **DDS over WiFi.** The container's CycloneDDS is bound to `wlan0` only; the
-  laptop uses `wlp4s0`. The direct `eth0` link is an SSH fallback. The laptop's
-  direct NIC showed no link at the end of the session, but the robot remained
-  reachable over WiFi `10.51.128.226`.
-- **Storage.** 95% root usage is a boot/fsck and logging risk. Free space before
-  recording bags.
+- **DDS link.** The container's CycloneDDS is bound to `eth0` (since
+  2026-11-17 evening); the laptop config binds `enx00e04ca373c7`. The office
+  WiFi (`wlan0` / `wlp4s0`) is the fallback and requires switching both
+  configs together.
+- **Storage.** 87% root usage (≈6.8 GiB free on 2026-11-17 evening) is still a
+  boot/fsck and logging risk. Free space before recording bags.
 
 ## To collect
 
@@ -62,4 +62,5 @@
 - Servo EEPROM offsets (read-only tool) and measured joint stops.
 - A verified physical power cut / E-stop.
 - Battery/charger specs and brown-out behavior.
-- Camera mount rigidity and a real `link4 → camera` extrinsic.
+- A physical fiducial at a surveyed `base_link` position (for an independent
+  check of the validated optical extrinsic).

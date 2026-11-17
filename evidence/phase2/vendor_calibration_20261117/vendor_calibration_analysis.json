@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-17",
+  "mode": "vendor_calibration_static_analysis",
+  "motion": "none",
+  "inputs": {
+    "transform_yaml": {
+      "path": "armpi_ultra_ws_clean/src/app/config/transform.yaml",
+      "sha256": "2a3c90b6219400870524fbada910d38f05e619ace5d4e5794a4bbbb747e0f1c1"
+    },
+    "camera_info_yaml": {
+      "path": "armpi_ultra_ws_clean/src/peripherals/config/camera_info.yaml",
+      "sha256": "6ebe1c1617c423bd58da7f4721a345df250e42b53d8e4fdc577bfe278965b8da"
+    },
+    "vendor_handeye_source": "ArmPiUltra/ROS2/Armpi_ultra-main/armpi_ultra/software/hand2cam_tf_matrix_software/calibration/handeye_calibration.py",
+    "vendor_downstream": "ros2_ws/src/app/app/{tag_stackup.py,calibration.py,object_sorting.py}"
+  },
+  "transform_yaml": {
+    "role": "table/white-area calibration used by the vendor vision app, not a hand-eye matrix",
+    "extristric_shape": [
+      4,
+      3
+    ],
+    "extristric_interpretation": "[t; R] world->camera projection matrix used by cv2.projectPoints; t is the white-area origin in the camera frame; R is the camera orientation in a white-area frame rotated 180 deg about x",
+    "white_area_pose_cam_shape": [
+      4,
+      4
+    ],
+    "white_area_pose_world_shape": [
+      4,
+      4
+    ],
+    "white_area_size_m": {
+      "x": 0.108,
+      "y": 0.167
+    },
+    "extristric_equals_cam_pose_white_rotated_x180": false,
+    "extristric_vs_C_rot180_x_max_abs": 0.0022965624130809534,
+    "plane_from_white_area_pose_cam": [
+      -0.02209791438905001,
+      0.5360245806182575,
+      0.843911173474525,
+      -0.2007837670482892
+    ],
+    "vendor_plane": [
+      -0.01050732355638385,
+      -0.5189342536621288,
+      -0.8547495753305823,
+      0.1952341679797693
+    ],
+    "plane_normal_dot": -0.9992620428953677,
+    "white_area_pose_world_translation_m": [
+      0.2270160525711577,
+      0.0010748838056983262,
+      0.03338856399606101
+    ],
+    "white_area_pose_world_rotation_is_identity": true,
+    "note": "white_area_pose_world is the white area in the vendor robot/world frame at an unknown calibration pose; it cannot be compared with the current live TF without that pose.",
+    "extristric_vs_white_area_pose_rot180_x": {
+      "rotation_deg": 0.1719637186176714,
+      "translation_mm": 0.017682582863523894,
+      "max_abs_matrix_element": 0.0022965624130809534,
+      "note": "extristric and white_area_pose_cam agree within 0.17 deg / 0.02 mm; the small difference is consistent with separate calibration saves."
+    },
+    "plane_normal_opposite": true,
+    "plane_d_difference_after_normal_flip_m": 0.00555,
+    "plane_difference_note": "The vendor plane normal is opposite to the white-area +z normal; after flipping it, the plane offset differs by 5.6 mm."
+  },
+  "camera_info_yaml": {
+    "role": "hand-eye matrix only; it is NOT camera intrinsics",
+    "hand2cam_tf_matrix": [
+      [
+        0.005655761182867591,
+        0.11881697523968093,
+        0.9929000648405335,
+        -0.11791806302667919
+      ],
+      [
+        -0.9988399626279826,
+        -0.04681064360986875,
+        0.011291266632232566,
+        0.0035382059689457327
+      ],
+      [
+        0.047819885223332304,
+        -0.9918121243661638,
+        0.11841439328689907,
+        0.035678972325286475
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "translation_m": [
+      -0.11791806302667919,
+      0.0035382059689457327,
+      0.035678972325286475
+    ],
+    "translation_norm_m": 0.12324843834966481,
+    "rpy_deg": [
+      -83.19157264297046,
+      -2.740922908045179,
+      -89.67557587335112
+    ],
+    "rotation_angle_deg": 117.4755622806239,
+    "vendor_usage": "tag_stackup.py computes H @ T_cam_tag then T_base_end @ that; H is used as end-effector <- camera (T_end_cam) in the vendor stack. calibration.py left-multiplies the driver body TF before use."
+  },
+  "comparison_with_validated_result": {
+    "validated_T_link4_camera": [
+      [
+        0.00368842776439271,
+        0.9998555260011366,
+        -0.01659284862877692,
+        -0.0348444217248839
+      ],
+      [
+        -0.9999926898175493,
+        0.0037046418410173754,
+        0.0009465412259709385,
+        -0.009063734133950539
+      ],
+      [
+        0.0010078750366667687,
+        0.016589236083088054,
+        0.9998618811786406,
+        0.0585736292974927
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "validated_T_link5_camera": [
+      [
+        0.0036994872925253173,
+        0.9999786274434328,
+        -0.0053905890328021944,
+        -0.03483818158492979
+      ],
+      [
+        -0.9999910113285749,
+        0.0036882589187642425,
+        -0.002091412967887546,
+        0.010127539256152042
+      ],
+      [
+        -0.0020714863809679586,
+        0.005398277734266715,
+        0.9999832836311201,
+        0.0028878733163970466
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "validated_T_link5_rgb_body": [
+      [
+        0.9997877657031576,
+        6.776688835237623e-21,
+        0.020601542424969966,
+        -0.039681093060650534
+      ],
+      [
+        6.258738961248719e-05,
+        0.9999953852815493,
+        -0.003037350560025013,
+        -1.4181536910830295e-05
+      ],
+      [
+        -0.020601447354652025,
+        0.0030379953268270124,
+        0.9997831519641086,
+        0.030342861509042557
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "vendor_H_vs_T_link4_camera": {
+      "translation_mm": 87.08733599881974,
+      "rotation_deg": 84.17420468722001
+    },
+    "vendor_H_vs_T_link5_camera": {
+      "translation_mm": 89.55971297271898,
+      "rotation_deg": 83.53832904874889
+    },
+    "vendor_H_vs_T_link5_camera_after_Rx_minus90": {
+      "translation_mm": 89.55971297271898,
+      "rotation_deg": 7.103050756954652
+    },
+    "interpretation": "After the -90 deg x body/optical convention the rotation agrees to 7.1 deg, but the translation is 89.6 mm off. The shipped matrix corresponds to a different camera location/mount (12.3 cm from link5 versus 3.6 cm now), not to the current camera."
+  },
+  "conclusion": {
+    "baseline_a_status": "NOT VALID for the current camera mount; the shipped hand2cam_tf_matrix is stale/different",
+    "transform_yaml_status": "useful vendor table calibration; not a hand-eye and not directly comparable to the current optical extrinsic",
+    "required_action": "Re-run the vendor hand-eye procedure on the current hardware (tag36h11, 25 mm, vendor GUI) and evaluate Baseline A with an independent surveyed target, not by matrix difference."
+  }
+}

@@ -1,0 +1,6 @@
+[INFO] [launch]: All log files can be found below /home/jerichocheng/.ros/log/2026-11-17-19-09-49-677456-jerichocheng-Lenovo-Legion-R9000P2021H-1756385
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [camera_frame_publisher-1]: process started with pid [1756391]
+[INFO] [fiducial_localizer-2]: process started with pid [1756392]
+[camera_frame_publisher-1] [INFO] [1794913790.441811378] [armpi_camera_frame_publisher]: published static frame rgb_camera_link -> camera_optical_calibrated from /home/jerichocheng/jcheng/jcheng-manipulation/install/armpi_fiducial_localizer/share/armpi_fiducial_localizer/config/camera_optical_frame.yaml
+[fiducial_localizer-2] [INFO] [1794913790.446574613] [armpi_fiducial_localizer]: fiducial localizer: image=image_raw camera_info=camera_info camera_frame=camera_optical_calibrated output_frame=(same as camera)

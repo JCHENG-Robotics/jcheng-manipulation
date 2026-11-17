@@ -34,10 +34,17 @@ RPY         = [0.951, -0.058, -89.789] deg
 body-frame → optical-frame 90° roll plus an optical-centre offset. The static
 TF is **not** an optical extrinsic and is not a pass gate.
 
+> **Update (2026-11-17, Session 1):** the three-decimal snapshot used above had
+> x = -0.050 m. The full-precision live TF is
+> `[-0.039995, -0.019122, 0.086003] m`; the measured adapter is **89.798°**
+> with translation **`[5.4, 10.1, -27.4] mm`** and is published as
+> `camera_optical_calibrated`. The hand-eye fit is unchanged. See
+> [`evidence/phase2/frames_20261117/`](../../phase2/frames_20261117/).
+
 Frame note: the live `depth_cam_color_optical_frame` is identity to
 `rgb_camera_link` in TF, so it is a body frame, not the OpenCV/PnP optical
-frame. Use `T_link4_camera` directly in perception code, or publish the
-body→optical transform above as a new frame before using TF.
+frame. Use `T_link4_camera` directly in perception code, or the published
+`camera_optical_calibrated` frame in TF.
 
 ## Why the second run succeeded
 
@@ -96,8 +103,10 @@ spread.
 - **Intrinsics**: the chessboard refinement (fx 418.31 vs driver 418.05) now
   agrees with the driver, unlike the first run (446.3). This is an independent
   check that the camera and dataset are clean.
-- **Frame convention**: the 89.34° roll about -z matches the expected 90°
-  body/optical difference.
+- **Frame convention**: the 89.34° roll about -z (three-decimal snapshot) and
+  the full-precision 89.798° adapter both match the expected 90° body/optical
+  difference. The full-precision value is the published
+  `camera_optical_calibrated` transform.
 
 ## First run (baseline, cached commands)
 

@@ -19,6 +19,10 @@ setup(
             os.path.join('share', package_name, 'launch'),
             glob(os.path.join('launch', '*.*')),
         ),
+        (
+            os.path.join('share', package_name, 'config'),
+            glob(os.path.join('config', '*.*')),
+        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -30,6 +34,10 @@ setup(
     entry_points={
         'console_scripts': [
             'fiducial_localizer = armpi_fiducial_localizer.node:main',
+            (
+                'camera_frame_publisher = '
+                'armpi_fiducial_localizer.camera_frame_publisher:main'
+            ),
             (
                 'synthetic_marker_publisher = '
                 'armpi_fiducial_localizer.synthetic_publisher:main'
