@@ -14,11 +14,13 @@ All endpoints require `X-Armpi-Token` when a token is configured.
 from __future__ import annotations
 
 import json
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
-from .node import GatewayNode
+if TYPE_CHECKING:
+    from .node import GatewayNode
 
 
 class GatewayHTTPServer(ThreadingHTTPServer):
@@ -35,6 +37,26 @@ class GatewayHTTPServer(ThreadingHTTPServer):
         self.node = node
         self.token = token
         super().__init__(server_address, GatewayRequestHandler)
+
+    def serve_until(self, stop_event: threading.Event, *, join_timeout_s: float = 5.0) -> None:
+        """Serve in a worker thread until *stop_event* is set, then shut down.
+
+        ``BaseServer.shutdown()`` must not be called from the thread running
+        ``serve_forever()`` or it deadlocks. Keeping the serving loop in a
+        worker thread lets a signal handler (main thread) only set an event.
+        """
+        serve_thread = threading.Thread(
+            target=self.serve_forever,
+            name="gateway-http",
+            daemon=True,
+        )
+        serve_thread.start()
+        try:
+            stop_event.wait()
+        finally:
+            self.shutdown()
+            serve_thread.join(timeout=join_timeout_s)
+            self.server_close()
 
 
 class GatewayRequestHandler(BaseHTTPRequestHandler):

@@ -1,0 +1,82 @@
+# persistent gateway lifecycle
+captured_at=2026-11-17T18:38:25+08:00
+host=raspberrypi
+enabled=enabled
+active=active
+container=true restart=always
+grep: /etc/armpi-gateway/gateway.env: Permission denied
+bind=
+
+## health (before stop)
+{
+    "status": "ok",
+    "ros_ready": true,
+    "battery_ready": true,
+    "camera_ready": true,
+    "joints_ready": true,
+    "motion_enabled": false,
+    "node": "armpi_debug_gateway",
+    "wall_time": "2026-11-17T10:38:26.006213Z",
+    "topics": {
+        "battery": "/ros_robot_controller/battery",
+        "camera": "/depth_cam/rgb/image_raw",
+        "joint_state": "/controller_manager/joint_states"
+    }
+}
+
+## battery
+{
+    "available": true,
+    "voltage_mv": 7424,
+    "voltage_v": 7.424,
+    "percent_estimate": 51.2,
+    "cell_count": 2,
+    "status": "ok",
+    "truth": "measured",
+    "validity": "valid",
+    "source": "armpi_debug_gateway",
+    "topic": "/ros_robot_controller/battery",
+    "received_at": "2026-11-17T10:38:26.021038Z",
+    "sample_age_ms": 48,
+    "notes": []
+}
+
+## camera status
+{
+    "available": true,
+    "truth": "measured",
+    "validity": "valid",
+    "source": "armpi_debug_gateway",
+    "topic": "/depth_cam/rgb/image_raw",
+    "width": 640,
+    "height": 400,
+    "encoding": "bgr8",
+    "fps": 6.8,
+    "last_frame_at": "2026-11-17T10:38:26.040144Z",
+    "sample_age_ms": 87,
+    "frame_count": 94,
+    "notes": []
+}
+
+## unauthorized
+http_status=401
+
+## stop
+active_after_stop=inactive
+listening_sockets_after_stop=0
+in_container_gateway_processes_after_stop=0
+Nov 17 18:38:11 raspberrypi armpi-gateway-run.sh[104798]: [INFO] [1794911891.677593723] [armpi_debug_gateway]: read-only gateway topics: battery=/ros_robot_controller/battery camera=/depth_cam/rgb/image_raw joint_state=/controller_manager/joint_states
+Nov 17 18:38:16 raspberrypi armpi-gateway-run.sh[104798]: armpi_debug_gateway listening on http://10.42.0.218:8765
+Nov 17 18:38:26 raspberrypi systemd[1]: Stopping armpi-gateway.service - ArmPi Debug Studio read-only gateway (inside the ArmPiUltra container)...
+Nov 17 18:38:26 raspberrypi armpi-gateway-run.sh[104798]:   battery: /ros_robot_controller/battery
+Nov 17 18:38:26 raspberrypi armpi-gateway-run.sh[104798]:   camera:  /depth_cam/rgb/image_raw
+Nov 17 18:38:26 raspberrypi armpi-gateway-run.sh[104798]:   joints:  /controller_manager/joint_states
+Nov 17 18:38:26 raspberrypi armpi-gateway-run.sh[104798]:   motion:  DISABLED (read-only gateway)
+Nov 17 18:38:26 raspberrypi armpi-gateway-run.sh[104798]: armpi_debug_gateway: received signal 15, shutting down
+Nov 17 18:38:26 raspberrypi systemd[1]: armpi-gateway.service: Deactivated successfully.
+Nov 17 18:38:26 raspberrypi systemd[1]: Stopped armpi-gateway.service - ArmPi Debug Studio read-only gateway (inside the ArmPiUltra container).
+
+## start
+active_after_start=active
+health_after_start=200
+in_container_gateway_processes_after_start=1

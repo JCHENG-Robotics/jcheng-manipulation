@@ -6,8 +6,11 @@ joint-command state to the Debug Studio backend over local HTTP. It has **no
 motion write path**.
 
 > Verified 2026-11-17 on the Pi 5 vendor container: `/health`, `/battery`,
-> `/camera/status`, `/camera/snapshot`, `/state`, token 401 and motion 501. See
-> [`docs/e7-gateway-verification.md`](../docs/e7-gateway-verification.md) and
+> `/camera/status`, `/camera/snapshot`, `/state`, token 401 and motion 501.
+> It now runs as an enabled host systemd service; stop/start and clean SIGTERM
+> are verified (reboot test deferred). See
+> [`docs/e7-gateway-verification.md`](../docs/e7-gateway-verification.md),
+> [`deploy/README.md`](deploy/README.md) and
 > [`evidence/studio_gateway/20261117/`](../../evidence/studio_gateway/20261117/).
 
 ## Data sources
@@ -33,6 +36,13 @@ port itself.
 - The vendor stack already running, e.g. `ros_robot_controller` and
   `servo_controller` (do **not** start `bringup.launch.py`, which moves the arm
   during startup check)
+- The gateway subscribes only, so it works under the default RMW (Fast DDS)
+  even though the vendor nodes use CycloneDDS. **Services are not interoperable
+  across RMW implementations**: if a future gateway feature calls a vendor
+  service, start it with the vendor environment
+  (`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`,
+  `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`) or source `~/.zshrc`.
+  See `docs/phase2/JOINT_LIMITS.md` for the field evidence.
 
 ## Run
 
@@ -47,6 +57,18 @@ python3 -m armpi_debug_gateway.main \
   --battery-topic /ros_robot_controller/battery \
   --camera-topic /depth_cam/rgb/image_raw
 ```
+
+For a service, prefer a token file over the environment variable so the
+secret is not in the process environment:
+
+```bash
+install -m 600 /dev/null /path/to/gateway-token
+openssl rand -hex 24 > /path/to/gateway-token
+python3 -m armpi_debug_gateway.main --host 10.42.0.218 --token-file /path/to/gateway-token
+```
+
+Binding to a non-loopback address without a token now fails closed with exit
+code 2. SIGTERM/SIGINT stop the HTTP server and rclpy cleanly.
 
 ### Start inside the vendor container
 
@@ -66,7 +88,10 @@ docker exec -d -u ubuntu \
    exec python3 -m armpi_debug_gateway.main --host <robot-eth0-ip> --port 8765'
 ```
 
-This is a manual start; it does not survive a reboot or container restart.
+This manual form does not survive a reboot or container restart. Use the
+systemd deployment in [`deploy/README.md`](deploy/README.md) for a persistent
+service (host unit → `docker exec` → container, token file, restart policy and
+clean SIGTERM handling).
 
 For a private Tailscale/LAN setup, bind to the Tailscale address and keep the
 token enabled:

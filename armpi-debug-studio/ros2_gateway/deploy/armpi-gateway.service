@@ -1,0 +1,21 @@
+[Unit]
+Description=ArmPi Debug Studio read-only gateway (inside the ArmPiUltra container)
+Documentation=file:/usr/local/lib/armpi-gateway/README.md
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/armpi-gateway/gateway.env
+ExecStart=/usr/local/lib/armpi-gateway/armpi-gateway-run.sh
+# `docker exec` may not forward signals to the command inside the container.
+# Stop the in-container gateway explicitly; the gateway turns SIGTERM into a
+# clean rclpy/HTTP shutdown.
+ExecStop=/bin/bash -c '/usr/bin/docker exec ArmPiUltra pkill -TERM -f "armpi_debug_gateway.main" || true'
+TimeoutStopSec=20
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

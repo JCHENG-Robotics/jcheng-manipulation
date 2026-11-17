@@ -80,19 +80,56 @@ The browser DOM snapshot and a screenshot were taken during the run. The
 screenshot contains the live workspace image and is **not** committed; the
 numerical evidence and the exact UI text are in the evidence directory.
 
-## 5. What this does NOT prove
+## 5. Persistent service (2026-11-17, later)
+
+The manual `docker exec` start was replaced by a host systemd unit:
+
+| Item | Value |
+|---|---|
+| Unit | `armpi-gateway.service` (`enabled`, `active`) |
+| Start | `/usr/local/lib/armpi-gateway/armpi-gateway-run.sh` → `docker exec` into `ArmPiUltra` |
+| Bind | `10.42.0.218:8765` |
+| Token | `/home/pi/docker/tmp/armpi_gateway_deploy/token` (mode 0600, uid 1000) |
+| Container restart policy | `always` (pre-existing) |
+
+Verified:
+
+```text
+systemctl is-enabled armpi-gateway   enabled
+systemctl stop                        clean SIGTERM, "received signal 15", service inactive
+in-container process after stop       none; port 8765 free
+systemctl start                       active; GET /health 200
+GET /health                           ros/battery/camera/joints ready, motion_enabled=false
+GET /battery                          7424 mV
+GET /camera/status                    640x400 bgr8
+GET /health without token             401
+```
+
+Not verified: a full reboot or a vendor-container restart. Both trigger the
+vendor `startup_check`, which moves the arm, so the operator deferred them.
+The unit is enabled, `Requires=docker.service`, waits up to 60 s for the
+container, and `Restart=always`; the reboot path is therefore configured but
+not hardware-tested. See
+[`ros2_gateway/deploy/README.md`](../ros2_gateway/deploy/README.md).
+
+## 6. What this does NOT prove
 
 - No hardware motion: execute is blocked, and the gateway has no write path.
 - No encoder feedback: `/controller_manager/joint_states` is a command echo.
-- No validated joint limits or mapping (`provisional`).
-- No persistent deployment: the gateway was started manually with
-  `docker exec`; it will not survive a reboot/container restart.
-- No Playwright suite: the UI check was a one-off browser session, not a
-  committed automated test.
+- No validated joint limits (`provisional`). A read-only bus-servo survey and
+  the torque-off measurement tool exist; the physical survey is pending. See
+  [`docs/phase2/JOINT_LIMITS.md`](../../../docs/phase2/JOINT_LIMITS.md).
+- No reboot/container-restart test (see section 5).
+- No hardware-mode Playwright run: the committed suite covers mock mode only;
+  the hardware UI check above was a one-off browser session.
 - No authentication review: the gateway uses a shared token and was bound only
   to the direct-Ethernet address. Do not expose it on a shared/public network.
+- The gateway currently uses the default RMW (Fast DDS). DDS topics are
+  readable across it and the vendor CycloneDDS stack, but services are not
+  interoperable. This is harmless for the read-only gateway, which subscribes
+  only; any future service call must run with the vendor `.zshrc` environment.
 
-## 6. Reproduce
+## 7. Reproduce
 
 See
 [`evidence/studio_gateway/20261117/README.md`](../../../evidence/studio_gateway/20261117/README.md)

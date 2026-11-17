@@ -12,16 +12,21 @@ from __future__ import annotations
 
 import argparse
 import os
+import signal
+import sys
 import threading
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
+from .auth import TokenError, resolve_token as resolve_shared_token
 from .node import GatewayNode
 from .server import GatewayHTTPServer
 
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
-def parse_args() -> argparse.Namespace:
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="ArmPi Debug Studio read-only ROS 2 gateway")
     parser.add_argument("--battery-topic", default="/ros_robot_controller/battery")
     parser.add_argument("--camera-topic", default="/depth_cam/rgb/image_raw")
@@ -29,15 +34,45 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jpeg-quality", type=int, default=80)
     parser.add_argument("--host", default="127.0.0.1", help="bind address; keep localhost unless using a private tailnet")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--token", default=os.getenv("ARMPI_GATEWAY_TOKEN"))
-    return parser.parse_args()
+    parser.add_argument("--token", default=None, help="shared token (prefer --token-file or ARMPI_GATEWAY_TOKEN)")
+    parser.add_argument(
+        "--token-file",
+        default=os.getenv("ARMPI_GATEWAY_TOKEN_FILE"),
+        help="read the shared token from this file (recommended for service deployment)",
+    )
+    return parser.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
-    if args.host not in {"127.0.0.1", "localhost", "::1"} and not args.token:
-        print("WARNING: binding beyond localhost without ARMPI_GATEWAY_TOKEN is not allowed for shared networks.")
-        print("Set ARMPI_GATEWAY_TOKEN or keep --host 127.0.0.1 and use an SSH tunnel.")
+def _resolve_token(args: argparse.Namespace) -> str | None:
+    """Resolve the shared token and turn configuration errors into exit code 2."""
+    try:
+        return resolve_shared_token(token=args.token, token_file=args.token_file)
+    except TokenError as exc:
+        raise SystemExit(f"ERROR: {exc}") from exc
+
+
+def _install_signal_handlers(stop_event: threading.Event) -> None:
+    def _stop(signum: int, _frame: object) -> None:
+        print(f"armpi_debug_gateway: received signal {signum}, shutting down", flush=True)
+        stop_event.set()
+
+    signal.signal(signal.SIGTERM, _stop)
+    signal.signal(signal.SIGINT, _stop)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    token = _resolve_token(args)
+    if args.host not in LOOPBACK_HOSTS and not token:
+        print(
+            "ERROR: refusing to bind beyond localhost without a token. "
+            "Set --token-file/ARMPI_GATEWAY_TOKEN, or keep --host 127.0.0.1 and use an SSH tunnel.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    stop_event = threading.Event()
+    _install_signal_handlers(stop_event)
 
     rclpy.init()
     node = GatewayNode(
@@ -51,22 +86,22 @@ def main() -> None:
     spin_thread = threading.Thread(target=executor.spin, name="gateway-spin", daemon=True)
     spin_thread.start()
 
-    server = GatewayHTTPServer((args.host, args.port), node, token=args.token)
-    print(f"armpi_debug_gateway listening on http://{args.host}:{args.port}")
-    print(f"  battery: {args.battery_topic}")
-    print(f"  camera:  {args.camera_topic}")
-    print(f"  joints:  {args.joint_state_topic}")
-    print("  motion:  DISABLED (read-only gateway)")
+    server: GatewayHTTPServer | None = None
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
+        server = GatewayHTTPServer((args.host, args.port), node, token=token)
+        print(f"armpi_debug_gateway listening on http://{args.host}:{args.port}", flush=True)
+        print(f"  battery: {args.battery_topic}")
+        print(f"  camera:  {args.camera_topic}")
+        print(f"  joints:  {args.joint_state_topic}")
+        print("  motion:  DISABLED (read-only gateway)")
+        server.serve_until(stop_event)
     finally:
-        server.shutdown()
-        server.server_close()
+        if server is not None:
+            server.server_close()
         executor.shutdown()
         node.destroy_node()
         rclpy.shutdown()
+        print("armpi_debug_gateway: stopped", flush=True)
 
 
 if __name__ == "__main__":

@@ -86,8 +86,11 @@ two expected blockers.
   gateway, and the backend rejected execute even with a valid preview token.
 - `/controller_manager/joint_states` is the vendor command echo, not encoder
   feedback. Do not treat these positions as measured joint angles.
-- The gateway was started manually for this test. It is not a systemd service
-  and does not survive a robot reboot/container restart.
+- The gateway was started manually for the original test. It was later
+  installed as `armpi-gateway.service`; see
+  [`persistent/`](persistent/README.md) for the enabled/stop/start evidence.
+  A reboot/container-restart test was deferred (the vendor startup check moves
+  the arm).
 - The bind address is the direct-Ethernet IP. If the robot moves back to WiFi,
   bind the `wlan0` address or use an SSH tunnel.
 - A shared token is the only authentication; keep the port on a private link.
