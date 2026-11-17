@@ -35,7 +35,7 @@ review and a physical support/stop check.
 | `repeatability` | 30 visits to one 5-joint target | per-axis and radial spread, nominal error | radial RMS ≤ 5 mm (placeholder) |
 | `backlash` | 30 visits alternating pre-approach direction on one joint | forward/reverse mean offset | hysteresis magnitude ≤ 2 mm (placeholder) |
 | `visual_displacement` | ±`max_offset` grid in x/y, repeated | per-axis bias, RMSE, max error vs known displacement | max error ≤ 5 mm (placeholder) |
-| `gripper_envelope` | offset grid in x/y/z, repeated | success rate per offset; largest single-axis offset with rate ≥ threshold | success threshold 0.8 |
+| `gripper_envelope` | x/y/z offset grid plus a yaw grid, repeated | success rate per offset/yaw; largest passing linear offset and yaw | success threshold 0.8 |
 
 The pass gates are initial analysis thresholds, not yet the master-plan task
 tolerance. They will be replaced by the measured task tolerance after the
@@ -118,7 +118,9 @@ For `backlash`, `samples` is `{"forward": [...], "reverse": [...]}`. For
 - **Hysteresis**: `mean(forward) - mean(reverse)`; magnitude is the norm.
 - **Visual error**: `measured_displacement - nominal_displacement` in mm.
 - **Gripper envelope**: for each axis, the largest `|offset|` on that axis with
-  the other axes at zero whose success rate is at least the threshold.
+  the other axes at zero whose success rate is at least the threshold; the
+  angular envelope is the largest `|yaw|` at zero translation with the same
+  success threshold.
 
 ## Mock results (2026-11-17)
 
@@ -131,7 +133,7 @@ and `measurement_*_simulate.json`.
 | repeatability | 30 trials | radial RMS 0.483 mm, radial max 0.919 mm, nominal-error mean 1.130 mm (1 mm injected x bias) |
 | backlash | 30 trials | hysteresis 0.939 mm (1 mm injected) |
 | visual displacement | 21 placements | RMSE 1.139 mm, max 1.876 mm |
-| gripper envelope | 33 offsets | 6.0 mm on x, y and z (injected boundary) |
+| gripper envelope | 42 offsets (33 linear + 9 yaw) | 6.0 mm on x, y and z; 10.0° yaw (injected boundary) |
 
 These numbers validate that the schedules and analyzers run end to end. They
 are **not** measurements of the ArmPi.
@@ -148,6 +150,8 @@ are **not** measurements of the ArmPi.
   pass/fail and any aborted trial. The analyzer cannot recover a missing sample.
 - **Placeholder gates.** 5 mm/2 mm are analysis defaults, not the final task
   tolerance envelope.
+- **Angular envelope is yaw-only.** The gripper schedule varies yaw about the
+  approach axis; pitch/roll and object-shape effects are not covered.
 - **No error-budget aggregation yet.** The reports are inputs to the Phase 3
   error budget; they are not the budget itself.
 

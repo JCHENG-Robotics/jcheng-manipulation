@@ -27,10 +27,10 @@ ANALYSIS rmse_mm=1.139 max_error_mm=1.876 pass_5mm=True
 RESULT PASS
 ===== gripper_envelope dry-run =====
 MEASUREMENT protocol=gripper_envelope mode=dry-run dry_run=True
-SCHEDULE offsets=33
+SCHEDULE offsets=33 yaw_offsets=9
 RESULT PASS
 ===== gripper_envelope simulate =====
 MEASUREMENT protocol=gripper_envelope mode=simulate dry_run=False
-SCHEDULE offsets=33
-ANALYSIS envelope_mm={'x': 6.0, 'y': 6.0, 'z': 6.0}
+SCHEDULE offsets=33 yaw_offsets=9
+ANALYSIS envelope_mm={'x': 6.0, 'y': 6.0, 'z': 6.0} envelope_deg=10.0
 RESULT PASS

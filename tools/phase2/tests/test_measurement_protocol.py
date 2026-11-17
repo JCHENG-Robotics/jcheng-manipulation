@@ -74,6 +74,27 @@ def test_gripper_envelope_finds_single_axis_limit():
     }
 
 
+def test_gripper_envelope_finds_angular_limit():
+    """The largest passing yaw sets the angular envelope."""
+    records = []
+    for yaw in (-20.0, -10.0, 0.0, 10.0, 20.0):
+        records.append(
+            {
+                'offset_m': [0.0, 0.0, 0.0],
+                'yaw_deg': yaw,
+                'trials': 10,
+                'successes': 10 if abs(yaw) <= 10.0 else 0,
+            }
+        )
+    report = protocol.analyze_gripper_envelope(records)
+    assert report['envelope_deg'] == pytest.approx(10.0)
+    assert report['envelope_mm'] == {
+        'x': pytest.approx(0.0),
+        'y': pytest.approx(0.0),
+        'z': pytest.approx(0.0),
+    }
+
+
 def test_dry_run_writes_a_30_trial_schedule(tmp_path):
     """The default dry-run writes a schedule and does not import ROS."""
     output = tmp_path / 'repeatability.json'

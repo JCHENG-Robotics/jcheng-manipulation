@@ -24,7 +24,7 @@ All notable changes to this project are documented here. Format based on
   reproducible mock E2E and safety service negative controls.
 - `tools/phase2/measurement_protocol.py`: dry-run/simulate/analyze schedules and
   analyzers for repeatability, backlash, visual displacement and gripper
-  envelope.
+  envelope (x/y/z translation plus yaw).
 - Docs: `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`, `SAFETY_LAYER.md`,
   `MEASUREMENT_PROTOCOL.md`; evidence bundle
   `evidence/phase2/session3_20261117/`.
@@ -44,7 +44,7 @@ All notable changes to this project are documented here. Format based on
 
 - `colcon test --packages-select arm_interfaces armpi_grasp_planner armpi_safety armpi_fiducial_localizer`:
   **58 tests, 0 failures**.
-- `python3 -m pytest tools/phase2/tests -q`: **25 passed**.
+- `python3 -m pytest tools/phase2/tests -q`: **26 passed**.
 - Mock E2E: synthetic marker → localizer → bridge → 80 candidates → 40 IK →
   40 FK → 26 collision-free → 3 `PLAN_OK`; safety approved 3/3; best `js_0249`,
   87 points, 8.51 s; `E2E PASS`.

@@ -14,7 +14,7 @@ Repo: `jcheng-manipulation` (Session 3 changes).
 |---|---|---|
 | Package build | `colcon build --symlink-install --packages-select arm_interfaces armpi_grasp_planner armpi_safety armpi_fiducial_localizer` | 4 packages, no errors |
 | Package tests | `colcon test --packages-select ...` | **58 tests, 0 failures** |
-| Tool tests | `python3 -m pytest tools/phase2/tests -q` | **25 passed** |
+| Tool tests | `python3 -m pytest tools/phase2/tests -q` | **26 passed** |
 | Mock visual-grasp E2E | `tools/phase2/run_mock_visual_grasp_e2e.sh evidence/phase2/session3_20261117` | **E2E PASS**, exit 0 |
 | Safety negative controls | `tools/phase2/safety_service_check.py --input mock_visual_grasp_bridge.json` | **4/4 cases PASS** |
 | Measurement dry-run/simulate | `tools/phase2/measurement_protocol.py <protocol> --mode ...` | 4 protocols, all PASS |
@@ -64,7 +64,7 @@ No hardware sample exists. The `simulate` reports use injected
 | repeatability | 30 trials | radial RMS 0.483 mm, max 0.919 mm, nominal-error mean 1.130 mm |
 | backlash | 30 trials | hysteresis 0.939 mm |
 | visual displacement | 21 placements | RMSE 1.139 mm, max 1.876 mm |
-| gripper envelope | 33 offsets | 6.0 mm on x/y/z (injected boundary) |
+| gripper envelope | 42 offsets (33 linear + 9 yaw) | 6.0 mm on x/y/z; 10.0° yaw (injected boundaries) |
 
 These validate the analysis path, not the robot.
 

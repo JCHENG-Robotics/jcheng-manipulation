@@ -288,13 +288,17 @@ def analyze_visual_displacement(records, nominal=None):
 
 def analyze_gripper_envelope(records, success_threshold=0.8):
     """
-    Find the largest single-axis offset that still grasps reliably.
+    Find the largest single-axis offset and yaw that still grasp reliably.
 
-    Each record has ``offset_m``, ``successes`` and ``trials``.
+    Each record has ``offset_m``, optional ``yaw_deg``, ``successes`` and
+    ``trials``.
     """
     rows = []
+    has_yaw = False
     for record in records:
         offset = [float(value) for value in record['offset_m']]
+        yaw = float(record.get('yaw_deg', 0.0))
+        has_yaw = has_yaw or abs(yaw) > 1e-12
         trials = int(record['trials'])
         successes = int(record['successes'])
         rate = successes / trials if trials else 0.0
@@ -302,6 +306,7 @@ def analyze_gripper_envelope(records, success_threshold=0.8):
             {
                 'offset_m': offset,
                 'offset_mm': [value * 1000.0 for value in offset],
+                'yaw_deg': yaw,
                 'trials': trials,
                 'successes': successes,
                 'success_rate': rate,
@@ -314,6 +319,7 @@ def analyze_gripper_envelope(records, success_threshold=0.8):
             abs(row['offset_m'][index])
             for row in rows
             if row['pass']
+            and abs(row['yaw_deg']) < 1e-12
             and all(
                 abs(row['offset_m'][other]) < 1e-12
                 for other in range(3)
@@ -323,10 +329,19 @@ def analyze_gripper_envelope(records, success_threshold=0.8):
         envelope[axis] = (
             max(candidates) * 1000.0 if candidates else None
         )
+    yaw_candidates = [
+        abs(row['yaw_deg'])
+        for row in rows
+        if row['pass']
+        and all(abs(value) < 1e-12 for value in row['offset_m'])
+    ]
     return {
         'kind': 'gripper_envelope',
         'records': rows,
         'envelope_mm': envelope,
+        'envelope_deg': (
+            max(yaw_candidates) if has_yaw and yaw_candidates else None
+        ),
         'success_threshold': success_threshold,
     }
 
@@ -409,7 +424,8 @@ def _visual_schedule(step_mm, max_offset_mm, repeats):
     }
 
 
-def _gripper_schedule(step_mm, max_offset_mm, trials):
+def _gripper_schedule(step_mm, max_offset_mm, trials, yaw_step_deg=5.0,
+                      max_yaw_deg=20.0):
     offsets = []
     for index, axis in enumerate('xyz'):
         for step in range(-int(max_offset_mm // step_mm),
@@ -420,14 +436,30 @@ def _gripper_schedule(step_mm, max_offset_mm, trials):
                 {
                     'id': '{}_{:+d}mm'.format(axis, step * int(step_mm)),
                     'offset_m': offset,
+                    'yaw_deg': 0.0,
                     'trials': trials,
                 }
             )
+    yaw_offsets = []
+    for step in range(-int(max_yaw_deg // yaw_step_deg),
+                      int(max_yaw_deg // yaw_step_deg) + 1):
+        yaw = step * yaw_step_deg
+        yaw_offsets.append(
+            {
+                'id': 'yaw_{:+d}deg'.format(int(yaw)),
+                'offset_m': [0.0, 0.0, 0.0],
+                'yaw_deg': yaw,
+                'trials': trials,
+            }
+        )
     return {
         'step_mm': step_mm,
         'max_offset_mm': max_offset_mm,
         'trials_per_offset': trials,
+        'yaw_step_deg': yaw_step_deg,
+        'max_yaw_deg': max_yaw_deg,
         'offsets': offsets,
+        'yaw_offsets': yaw_offsets,
     }
 
 
@@ -472,16 +504,23 @@ def _simulate_visual(step_mm, max_offset_mm, repeats, noise_mm, bias_mm,
     return records
 
 
-def _simulate_gripper(step_mm, max_offset_mm, trials, envelope_mm, seed):
+def _simulate_gripper(step_mm, max_offset_mm, trials, envelope_mm,
+                      envelope_deg, seed, yaw_step_deg=5.0,
+                      max_yaw_deg=20.0):
     generator = random.Random(seed)
-    schedule = _gripper_schedule(step_mm, max_offset_mm, trials)
+    schedule = _gripper_schedule(
+        step_mm, max_offset_mm, trials, yaw_step_deg, max_yaw_deg
+    )
     records = []
-    for entry in schedule['offsets']:
+    entries = schedule['offsets'] + schedule['yaw_offsets']
+    for entry in entries:
         offset = entry['offset_m']
+        yaw = entry.get('yaw_deg', 0.0)
         successes = 0
         for _ in range(trials):
-            success = all(
-                abs(value) * 1000.0 <= envelope_mm for value in offset
+            success = (
+                all(abs(value) * 1000.0 <= envelope_mm for value in offset)
+                and abs(yaw) <= envelope_deg
             )
             if success and generator.random() < 0.9:
                 successes += 1
@@ -491,6 +530,7 @@ def _simulate_gripper(step_mm, max_offset_mm, trials, envelope_mm, seed):
             {
                 'id': entry['id'],
                 'offset_m': offset,
+                'yaw_deg': yaw,
                 'trials': trials,
                 'successes': successes,
             }
@@ -546,12 +586,14 @@ def _build_report(args):
             analysis = analyze_visual_displacement(records)
     elif args.protocol == 'gripper_envelope':
         schedule = _gripper_schedule(
-            args.step_mm, args.max_offset_mm, args.repeats
+            args.step_mm, args.max_offset_mm, args.repeats,
+            args.yaw_step_deg, args.max_yaw_deg,
         )
         if args.mode == 'simulate':
             records = _simulate_gripper(
                 args.step_mm, args.max_offset_mm, args.repeats,
-                args.gripper_envelope_mm, args.seed,
+                args.gripper_envelope_mm, args.gripper_envelope_deg,
+                args.seed, args.yaw_step_deg, args.max_yaw_deg,
             )
             analysis = analyze_gripper_envelope(
                 records, success_threshold=args.success_threshold
@@ -652,6 +694,11 @@ def _parse_args(argv):
     parser.add_argument(
         '--gripper-envelope-mm', type=float, default=6.0
     )
+    parser.add_argument(
+        '--gripper-envelope-deg', type=float, default=10.0
+    )
+    parser.add_argument('--yaw-step-deg', type=float, default=5.0)
+    parser.add_argument('--max-yaw-deg', type=float, default=20.0)
     parser.add_argument('--success-threshold', type=float, default=0.8)
     return parser.parse_args(argv)
 
@@ -719,14 +766,16 @@ def main(argv=None):
             )
     elif report['protocol'] == 'gripper_envelope':
         print(
-            'SCHEDULE offsets={}'.format(
-                len(report['schedule']['offsets'])
+            'SCHEDULE offsets={} yaw_offsets={}'.format(
+                len(report['schedule']['offsets']),
+                len(report['schedule']['yaw_offsets']),
             )
         )
         if report['analysis']:
             print(
-                'ANALYSIS envelope_mm={}'.format(
-                    report['analysis']['envelope_mm']
+                'ANALYSIS envelope_mm={} envelope_deg={}'.format(
+                    report['analysis']['envelope_mm'],
+                    report['analysis']['envelope_deg'],
                 )
             )
     print('RESULT PASS')

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol": "visual_displacement",
   "mode": "simulate",
-  "generated_at": "2026-11-17T11:48:32.991456+00:00",
+  "generated_at": "2026-11-17T11:51:07.156964+00:00",
   "dry_run": false,
   "no_hardware": true,
   "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
