@@ -13,6 +13,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import Response
+from starlette.types import Scope
 
 from . import __version__
 from .adapters.hardware import HardwareAdapter
@@ -23,6 +26,26 @@ from .domain.enums import Mode
 from .errors import ServiceError
 from .persistence.store import EventStore
 from .service import RobotService
+
+
+class SPAStaticFiles(StaticFiles):
+    """Static files with an index.html fallback for client-side routes.
+
+    The frontend uses history routing (`/joints`, `/settings`, ...). Serving
+    `dist/` with a plain StaticFiles mount returns 404 for a deep link because
+    no such file exists. Fall back to index.html for non-API paths so the
+    router can handle them; keep unknown `/api/...` paths as real 404s.
+    """
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        if path == "api" or path.startswith("api/"):
+            return await super().get_response(path, scope)
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code != 404:
+                raise
+            return await super().get_response("index.html", scope)
 
 
 async def _ticker(service: RobotService) -> None:
@@ -121,7 +144,7 @@ def create_app(
 
     dist = resolved.frontend_dist
     if (dist / "index.html").is_file():
-        app.mount("/", StaticFiles(directory=str(dist), html=True), name="frontend")
+        app.mount("/", SPAStaticFiles(directory=str(dist), html=True), name="frontend")
 
     return app
 

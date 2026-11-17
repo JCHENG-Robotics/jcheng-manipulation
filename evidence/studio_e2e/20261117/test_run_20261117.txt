@@ -1,0 +1,23 @@
+# Studio test run 2026-11-17T18:39:07+08:00
+
+## backend
+................................................                         [100%]
+48 passed, 1 warning in 0.79s
+
+## gateway
+............                                                             [100%]
+12 passed in 3.06s
+
+## frontend E2E
+
+Running 7 tests using 1 worker
+
+  ✓  1 [chromium] › e2e/api-contract.spec.ts:4:3 › Served API contract (mock mode) › health, state and peripherals keep the frontend contract (73ms)
+  ✓  2 [chromium] › e2e/api-contract.spec.ts:38:3 › Served API contract (mock mode) › safety gate is ready and mock preview issues a token (18ms)
+  ✓  3 [chromium] › e2e/dashboard.spec.ts:9:3 › Dashboard (mock mode) › renders the simulation source, camera, battery and five joints (531ms)
+  ✓  4 [chromium] › e2e/dashboard.spec.ts:39:3 › Dashboard (mock mode) › navigates the five G1 pages (588ms)
+  ✓  5 [chromium] › e2e/dashboard.spec.ts:52:3 › Dashboard (mock mode) › settings page reports mock mode and provisional mapping (389ms)
+  ✓  6 [chromium] › e2e/motion-flow.spec.ts:4:3 › Joint Control (mock mode) › preview rejects a step beyond max_step_rad (406ms)
+  ✓  7 [chromium] › e2e/motion-flow.spec.ts:21:3 › Joint Control (mock mode) › lease → preview → confirm → execute completes (2.2s)
+
+  7 passed (5.8s)

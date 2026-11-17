@@ -13,12 +13,15 @@ copied into this directory.
 > `docs/audit/2026-11-15/PROJECT_STATUS_AUDIT.md` and `DECISION_REQUIRED.md`.
 
 > Status note (2026-11-17, later): camera/battery and the read-only gateway are
-> now verified on the real robot over direct Ethernet. `pytest` reports
-> **46 passed**, `npm run build` succeeds, gateway `/battery`,
+> verified on the real robot over direct Ethernet, and the gateway now runs as
+> an enabled systemd service (clean SIGTERM stop/start verified; reboot test
+> deferred). `pytest` reports **48 passed**, `npm run build` succeeds, the
+> Playwright mock E2E suite reports **7 passed**, gateway `/battery`,
 > `/camera/status`, `/camera/snapshot` and `/state` return live data, and the
 > backend `hardware` mode rejects execute with `GATE_REJECTED`. See
-> [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md).
-> Hardware motion remains disabled.
+> [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md) and
+> [`frontend/e2e/README.md`](frontend/e2e/README.md). Hardware motion remains
+> disabled.
 
 ## Status
 
@@ -31,9 +34,10 @@ copied into this directory.
 | Dashboard / Joint Control / Diagnostics / Event Timeline / Settings | Implemented | `frontend/src/pages/` |
 | Frontend type-check + production build | Verified | `tsc -b && vite build` |
 | Mock HTTP end-to-end | Verified | preview → execute → Completed; see below |
+| Playwright browser E2E (mock) | **Verified (2026-11-17)** | `npm run test:e2e`, 7 passed; [`frontend/e2e/README.md`](frontend/e2e/README.md) |
 | Camera + battery (Mock) | Implemented | `/api/peripherals`, Dashboard panels |
 | Camera + battery (hardware) | **Verified read-only (2026-11-17)** | live RGB 640×400 `bgr8` and 7.424 V battery via gateway |
-| Read-only ROS 2 gateway for camera/battery/state | **Verified read-only (2026-11-17)** | [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md) |
+| Read-only ROS 2 gateway for camera/battery/state | **Verified read-only + persistent service (2026-11-17)** | [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md), [`ros2_gateway/deploy/README.md`](ros2_gateway/deploy/README.md) |
 | Hardware motion | **Disabled by design** | `capabilities.hardware_motion=false` |
 | Gripper (`r_joint`) | **Excluded from G1** | `configs/joint_mapping.yaml` |
 | Trajectory Inspector / Experiment Lab / 3D / depth-cloud | **Not implemented** | Settings → Roadmap |
@@ -77,10 +81,15 @@ armpi-debug-studio/
 │   │   ├── config.py
 │   │   ├── service.py
 │   │   └── main.py
-│   └── tests/              46 unit/API tests
+│   └── tests/              48 unit/API tests
 ├── configs/
 │   └── joint_mapping.yaml  provisional vendor-derived mapping
+├── ros2_gateway/           read-only gateway (runs on the robot)
+│   ├── armpi_debug_gateway/
+│   ├── deploy/             host systemd unit, runner, token rotation
+│   └── tests/              12 unit tests (no ROS needed)
 └── frontend/
+    ├── e2e/                Playwright suite (mock mode)
     ├── src/api/            typed client + zod contract checks
     ├── src/components/     AppShell and shared UI primitives
     ├── src/pages/          five G1 pages
@@ -139,8 +148,18 @@ If `frontend/dist/index.html` exists, the FastAPI app serves it at `/`.
 ```bash
 cd backend
 . .venv/bin/activate
-pytest
+pytest                       # 48 passed
+
+cd ../ros2_gateway
+../backend/.venv/bin/python -m pytest   # 12 passed (no ROS needed)
+
+cd ../frontend
+npm run test:e2e             # builds, then 7 Playwright tests
 ```
+
+The E2E suite starts its own mock backend on `127.0.0.1:8766` with a temporary
+SQLite database and serves `frontend/dist`; it never touches the robot. See
+[`frontend/e2e/README.md`](frontend/e2e/README.md).
 
 ## Access from another device
 
@@ -352,32 +371,41 @@ camera image is private and not committed.
 
 ## Known limitations
 
-1. The read-only gateway is hardware-verified for battery, RGB camera and
-   joint-command state. It is not a persistent service: it was started manually
-   with `docker exec` and does not survive reboots or container restarts. Joint
-   positions are the vendor command echo, not encoder feedback.
+1. The read-only gateway now runs as an enabled host systemd service and
+   stop/start with clean SIGTERM is verified. A full reboot or vendor-container
+   restart is **not** tested because the vendor `startup_check` moves the arm.
+   Joint positions are still the vendor command echo, not encoder feedback.
+   Rotate the shared token with `deploy/rotate-token.sh` before sharing the
+   robot; the script is provided but was not exercised in this run.
 2. Hardware motion is disabled; there is no motion write path in the gateway.
    The vendor driver defects (no ACK, blocking reads, `joint_states` command
    echo) are not repaired.
 3. The joint mapping and limits are provisional (`configs/joint_mapping.yaml`).
-   They are not mechanical measurements.
+   Read-only bus-servo positions and torque states were captured on 2026-11-17,
+   but the mechanical-limit survey (torque off, hand movement) is pending. See
+   [`docs/phase2/JOINT_LIMITS.md`](../docs/phase2/JOINT_LIMITS.md).
 4. Backend API is unauthenticated and bound to localhost by default. The
    gateway uses a shared token. Do not expose either on a LAN/public interface
    without a separate security review.
-5. Frontend has no committed Playwright suite. A one-off browser check (DOM
-   snapshot + screenshot) verified the camera/battery panels in hardware mode,
-   but it is not reproducible in CI yet.
+5. The committed Playwright suite covers mock mode only. The hardware-mode UI
+   check is still a manual browser session; there are no visual-regression
+   baselines.
 6. The vendor container has no `cv_bridge`; the gateway uses its numpy fallback
    for `bgr8`/`rgb8`/`mono8`. Other encodings report an error frame instead of
    being guessed.
-7. G2–G4 (trajectory, experiments, 3D, depth/point cloud) are not implemented.
+7. The gateway uses the default RMW (Fast DDS). Topics interoperate with the
+   vendor CycloneDDS nodes, but services do not; the read-only gateway does not
+   call services. Any future service call must run with the vendor `.zshrc`
+   environment (`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`, `CYCLONEDDS_URI`).
+8. G2–G4 (trajectory, experiments, 3D, depth/point cloud) are not implemented.
 
 ## Next steps
 
-1. Make the gateway deployment persistent (systemd unit or container restart
-   policy), bind the active interface, and rotate the shared token.
-2. Hardware mapping/limit verification with torque off and manual movement.
-3. Add a guarded single-joint motion path only after Board approval; keep
+1. Hardware mapping/limit verification with torque off and manual movement
+   (`tools/phase2/joint_limit_survey.py --mode survey`), with the arm supported.
+2. Add a guarded single-joint motion path only after Board approval; keep
    `hardware_motion=false` until then.
-4. E8: Playwright E2E + contract tests for the frontend.
-5. G2 offline trajectory recording/replay before any hardware trajectory work.
+3. G2 offline trajectory recording/replay before any hardware trajectory work.
+4. Verify reboot/container-restart persistence when arm motion is acceptable.
+5. Optional: a hardware-mode Playwright run behind an explicit environment gate
+   and a private gateway, never in CI.
