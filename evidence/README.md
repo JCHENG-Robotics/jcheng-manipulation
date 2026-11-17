@@ -11,6 +11,7 @@ gitignored or kept private.
 |---|---|---|
 | `phase1/20261117/` | Robot/ROS/servo/TF/camera baseline, camera retry, RGB frame, logs | Real hardware, read-only + one supervised `reset_servo` |
 | `calibration/20261117/` | Chessboard hand-eye datasets, per-method results, validation | Real hardware; 2.94 mm / 0.39° board scatter |
+| `calibration/20261117/pose_selection/` | 24-pose selection report, slim pose list, diversity/coplanarity plot | Offline computation from validated hardware calibration; no motion |
 | `armpi_moveit/real_camera_forward_20261117/` | `camera_forward` plan-only check from the live pose | Real hardware, plan-only (not executed) |
 | `phase2/joint_limits_20261117/` | Read-only bus-servo positions / torque / battery | Real hardware, read-only |
 | `phase2/frames_20261117/` | Full-precision `link4 → rgb_camera_link`, body→optical composition | Real hardware, no motion |

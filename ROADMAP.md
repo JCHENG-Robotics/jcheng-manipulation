@@ -17,7 +17,7 @@
 | Fiducial target localization | **Implemented, synthetic + real-background validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
-| Calibration and visual grasping | **In progress — hand-eye validated and wired into the optical frame** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; real grasp not started |
+| Calibration and visual grasping | **In progress — hand-eye validated, diverse 24-pose set selected** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; next capture uses 24 offline-selected poses (diversity/coplanarity checks pass, not executed); real grasp not started |
 | Error budget and tolerance envelope | **Planned** | Requires measured repeatability, backlash and calibration |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
@@ -26,11 +26,15 @@ in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
 `reset_servo` motion was verified. The Aurora 930 publishes RGB (8 Hz, `bgr8`)
 and depth (8 Hz, `mono16`, mm). Joint limits are **not measured** and the IMU is
 not publishing. The chessboard hand-eye is **validated** with 14 poses and
-measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter and a
-3.29 mm / 0.43° held-out final base. The measured body→optical adapter
+measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter, a
+3.29 mm / 0.43° held-out final base and 3.41 mm / 0.44° leave-one-out std.
+The measured body→optical adapter
 (89.798°, `[5.4, 10.1, -27.4] mm`) is published as
 `camera_optical_calibrated` and is now used by the fiducial localizer. The
-real-background semi-synthetic check passes 15/15 poses (max 1.69 mm / 0.53°)
+next hand-eye capture uses a 24-pose set selected offline from 14,176
+evaluated poses (3,093 feasible) with 33.5° view-angle spread and
+non-coplanar camera centres; the set is planned, not yet executed. The real-background
+semi-synthetic check passes 15/15 poses (max 1.69 mm / 0.53°)
 with zero false detections on 8 real frames. The shipped vendor
 `hand2cam_tf_matrix` is **stale for the current mount** and is not valid
 Baseline A. The grasp-candidate search remains mock-validated; the fiducial →

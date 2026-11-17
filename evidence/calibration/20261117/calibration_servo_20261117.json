@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-17T10:23:22.324268+00:00",
+  "generated_at": "2026-11-17T11:22:42.611756+00:00",
   "mode": "real_chessboard_hand_eye",
   "board": {
     "cols": 11,
@@ -526,13 +526,94 @@
       "translation_error_m": 0.0032876710842459204,
       "rotation_error_deg": 0.4245238983654434
     },
+    "leave_one_out": {
+      "method": "TSAI",
+      "samples": [
+        {
+          "index": 0,
+          "translation_error_m": 0.003686804541680836,
+          "rotation_error_deg": 0.4389349824374624
+        },
+        {
+          "index": 1,
+          "translation_error_m": 0.00412433818551419,
+          "rotation_error_deg": 0.5223325790921772
+        },
+        {
+          "index": 2,
+          "translation_error_m": 0.006521041583108922,
+          "rotation_error_deg": 0.8063933096665726
+        },
+        {
+          "index": 3,
+          "translation_error_m": 0.000847250457263657,
+          "rotation_error_deg": 0.14949569294425788
+        },
+        {
+          "index": 4,
+          "translation_error_m": 0.0019596495020529283,
+          "rotation_error_deg": 0.27849768357169374
+        },
+        {
+          "index": 5,
+          "translation_error_m": 0.0012213926984481125,
+          "rotation_error_deg": 0.10368667646014432
+        },
+        {
+          "index": 6,
+          "translation_error_m": 0.002271621880868759,
+          "rotation_error_deg": 0.2061389759064088
+        },
+        {
+          "index": 7,
+          "translation_error_m": 0.0010585427038192323,
+          "rotation_error_deg": 0.19169539967828306
+        },
+        {
+          "index": 8,
+          "translation_error_m": 0.0027490806479934676,
+          "rotation_error_deg": 0.28556730935612135
+        },
+        {
+          "index": 9,
+          "translation_error_m": 0.00062051089003327,
+          "rotation_error_deg": 0.16944835065176242
+        },
+        {
+          "index": 10,
+          "translation_error_m": 0.004912317424663528,
+          "rotation_error_deg": 0.8014562818006958
+        },
+        {
+          "index": 11,
+          "translation_error_m": 0.003918888714228911,
+          "rotation_error_deg": 0.44820226057212564
+        },
+        {
+          "index": 12,
+          "translation_error_m": 0.0012610934244609018,
+          "rotation_error_deg": 0.13983301317038332
+        },
+        {
+          "index": 13,
+          "translation_error_m": 0.005365210645124316,
+          "rotation_error_deg": 0.6126936392729838
+        }
+      ],
+      "translation_std_m": 0.003414927170149428,
+      "rotation_std_deg": 0.4354055827827333,
+      "max_translation_error_m": 0.006521041583108922,
+      "max_rotation_error_deg": 0.8063933096665726
+    },
     "success": true,
     "criteria": {
       "board_translation_std_m": 0.005,
       "board_rotation_std_deg": 2.0,
       "intrinsics_rms_px": 1.0,
       "heldout_final_base_translation_m": 0.005,
-      "heldout_final_base_rotation_deg": 2.0
+      "heldout_final_base_rotation_deg": 2.0,
+      "leave_one_out_translation_std_m": 0.005,
+      "leave_one_out_rotation_std_deg": 2.0
     }
   }
 }

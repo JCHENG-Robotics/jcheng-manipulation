@@ -32,7 +32,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Camera frame contract | Implemented, validated | `camera_optical_calibrated` = measured body→optical adapter (89.798°, 5.4/10.1/−27.4 mm); model `camera_optical_frame` stays mock-only |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
-| Camera / calibration | **Camera + validated hand-eye** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame published |
+| Camera / calibration | **Camera + validated hand-eye + selected pose set** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44° std; measured optical frame published; 24 diverse poses selected offline from 14,176 evaluated poses (not executed) |
 | Visual grasping | In progress | perception + grasp search + validated camera calibration and frame; no real grasp yet |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
@@ -264,6 +264,8 @@ limits remain provisional; the read-only survey and the torque-off tool are in
   (mock, plan-only).
 - `evidence/fiducial/` — synthetic marker accuracy JSON/overlays and the ROS
   localizer/TF integration logs.
+- `evidence/calibration/20261117/` — chessboard hand-eye dataset, per-method
+  validation and the offline 24-pose selection.
 - `evidence/phase2/real_background_20261117/` — real-background negative
   control and semi-synthetic pose accuracy.
 - `evidence/phase2/frames_20261117/` — full-precision body→optical frame

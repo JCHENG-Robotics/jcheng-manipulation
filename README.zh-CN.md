@@ -25,7 +25,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 相机 frame 契约 | 已实现，已验证 | `camera_optical_calibrated` = 实测 body→optical 适配（89.798°，5.4/10.1/−27.4 mm）；模型 `camera_optical_frame` 仅用于 Mock |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
-| 相机 / 标定 | **相机可用；手眼标定已验证** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°；实测光轴 frame 已发布 |
+| 相机 / 标定 | **相机可用；手眼标定已验证；已离线选姿** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°，留一验证 3.41 mm / 0.44°（std）；实测光轴 frame 已发布；从 14,176 个评估位姿中离线选出 24 个多样位姿（尚未实机执行） |
 | 视觉抓取 | 进行中 | 感知、抓取搜索、已验证的相机标定与 frame；尚无实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
@@ -243,6 +243,8 @@ provisional；只读实测与关力矩测量工具见
 - `evidence/armpi_grasp/` — 抓取候选搜索 JSON 与无头 MoveIt 日志
   （Mock，仅规划）。
 - `evidence/fiducial/` — 合成标记精度 JSON/叠加图与 ROS 定位器/TF 集成日志。
+- `evidence/calibration/20261117/` — 棋盘手眼数据集、逐方法验证和离线
+  24 位姿选择。
 - `evidence/phase2/real_background_20261117/` — 真实背景负对照 + 半合成位姿精度。
 - `evidence/phase2/frames_20261117/` — 全精度 body→optical frame 契约。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。

@@ -12,14 +12,15 @@ FollowJointTrajectory action server and the bus-servo state service):
          --delta 0.12 --pre-offset 0.08 --pre-joint1-only --final-base'
 
 The script moves the arm through small joint offsets around a capture base
-pose, waits for the arm and auto-exposure to settle, captures three RGB frames
-per pose, detects the 11x8 chessboard (20 mm squares) with IPPE + LM, and reads
-the physical bus-servo positions through
-``/ros_robot_controller/bus_servo/get_state``. The dataset stores both the
-commanded joint_states and ``measured_joints``; the solver prefers the measured
-values because the controller's joint_states are cached commands. Raw images
-stay in the private output directory; do not commit them if they contain
-people.
+pose, or through absolute targets from ``--poses-file`` (the offline
+``calibration_pose_selector.py`` output), waits for the arm and auto-exposure
+to settle, captures three RGB frames per pose, detects the 11x8 chessboard
+(20 mm squares) with IPPE + LM, and reads the physical bus-servo positions
+through ``/ros_robot_controller/bus_servo/get_state``. The dataset stores both
+the commanded joint_states and ``measured_joints``; the solver prefers the
+measured values because the controller's joint_states are cached commands.
+Raw images stay in the private output directory; do not commit them if they
+contain people.
 """
 
 import argparse
@@ -422,6 +423,46 @@ def pose_offsets(delta):
     return [list(offset) for offset in values]
 
 
+def load_poses_file(path):
+    """Load absolute five-joint targets from a pose-selection JSON.
+
+    Accepts the full selector report (top-level ``poses``) or a bare list.
+    Each entry must contain ``joints`` (or ``target_joints``).
+    """
+    with open(path, 'r', encoding='utf-8') as handle:
+        data = json.load(handle)
+    entries = data.get('poses') if isinstance(data, dict) else data
+    if not isinstance(entries, list) or not entries:
+        raise RuntimeError(
+            '{} has no non-empty poses list'.format(path))
+    poses = []
+    for index, entry in enumerate(entries):
+        if isinstance(entry, dict):
+            joints = entry.get('joints', entry.get('target_joints'))
+        else:
+            joints = entry
+        if joints is None or len(joints) != len(ARM_JOINTS):
+            raise RuntimeError(
+                'pose {} needs {} joint values'.format(
+                    index, len(ARM_JOINTS)))
+        values = [float(value) for value in joints]
+        if not all(np.isfinite(values)):
+            raise RuntimeError(
+                'pose {} has non-finite joint values'.format(index))
+        poses.append(values)
+    return poses
+
+
+def validate_target(target, label):
+    """Raise when a target is outside the provisional joint limits."""
+    for name, value in zip(ARM_JOINTS, target):
+        lower, upper = ARM_LIMITS[name]
+        if not lower <= value <= upper:
+            raise RuntimeError(
+                '{} {}={} outside [{}, {}]'.format(
+                    label, name, value, lower, upper))
+
+
 def main():
     """Run the capture sequence."""
     parser = argparse.ArgumentParser()
@@ -451,7 +492,16 @@ def main():
         '--base-pose', default='',
         help='comma-separated joint1..joint5 capture base pose; '
              'the arm moves there before the sequence')
+    parser.add_argument(
+        '--poses-file', default='',
+        help='absolute five-joint targets from '
+             'calibration_pose_selector.py; incompatible with --base-pose '
+             'and --check-only')
     args = parser.parse_args()
+    if args.poses_file and args.base_pose:
+        parser.error('--poses-file and --base-pose are mutually exclusive')
+    if args.poses_file and args.check_only:
+        parser.error('--poses-file and --check-only are mutually exclusive')
 
     os.makedirs(args.output_dir, exist_ok=True)
     rclpy.init()
@@ -464,61 +514,57 @@ def main():
         node.wait_ready()
         base = node.arm_positions()
         print('START', [round(value, 5) for value in base])
-        if args.base_pose:
-            base_target = [
-                float(value) for value in args.base_pose.split(',')
-            ]
-            if len(base_target) == 4:
-                base_target.append(float(base[4]))
-            if len(base_target) != len(ARM_JOINTS):
-                raise RuntimeError(
-                    '--base-pose needs 4 or 5 joint values')
-            for name, value in zip(ARM_JOINTS, base_target):
-                lower, upper = ARM_LIMITS[name]
-                if not lower <= value <= upper:
-                    raise RuntimeError(
-                        'base-pose {}={} outside [{}, {}]'.format(
-                            name, value, lower, upper))
-            if args.pre_offset > 0.0:
-                pre_base = list(base_target)
-                if args.pre_joint1_only:
-                    pre_base[0] -= args.pre_offset
-                else:
-                    pre_base = [
-                        base_target[i] - args.pre_offset
-                        for i in range(4)
-                    ] + [base_target[4]]
-                for name, value in zip(ARM_JOINTS, pre_base):
-                    lower, upper = ARM_LIMITS[name]
-                    if not lower <= value <= upper:
-                        raise RuntimeError(
-                            'base pre-pose {}={} outside [{}, {}]'.format(
-                                name, value, lower, upper))
-                print('APPROACH BASE PRE', [round(value, 4)
-                                            for value in pre_base])
-                node.move_to(
-                    pre_base, duration=max(6.0, 0.5 * args.duration))
-            print('APPROACH BASE', [round(value, 4)
-                                    for value in base_target])
-            node.move_to(base_target, duration=max(8.0, args.duration))
-            node.wait_positions(base_target)
-            base = node.arm_positions()
-            print('BASE', [round(value, 5) for value in base])
+        if args.poses_file:
+            targets = load_poses_file(args.poses_file)
+            if args.test:
+                targets = targets[:2]
+            # The first selected pose is the validated base; return there for
+            # the held-out final-base capture instead of the arbitrary startup
+            # pose.
+            base = list(targets[0])
+            print('POSES', len(targets), args.poses_file)
         else:
-            print('BASE', [round(value, 5) for value in base])
-        offsets = pose_offsets(args.delta)
-        if args.test:
-            offsets = offsets[:2]
-        if args.check_only:
-            offsets = []
-        for index, offset in enumerate(offsets):
-            target = [base[i] + offset[i] for i in range(4)] + [base[4]]
-            for name, value in zip(ARM_JOINTS, target):
-                lower, upper = ARM_LIMITS[name]
-                if not lower <= value <= upper:
+            if args.base_pose:
+                base_target = [
+                    float(value) for value in args.base_pose.split(',')
+                ]
+                if len(base_target) == 4:
+                    base_target.append(float(base[4]))
+                if len(base_target) != len(ARM_JOINTS):
                     raise RuntimeError(
-                        'target {}={} outside [{}, {}]'.format(
-                            name, value, lower, upper))
+                        '--base-pose needs 4 or 5 joint values')
+                validate_target(base_target, 'base-pose')
+                if args.pre_offset > 0.0:
+                    pre_base = list(base_target)
+                    if args.pre_joint1_only:
+                        pre_base[0] -= args.pre_offset
+                    else:
+                        pre_base = [
+                            base_target[i] - args.pre_offset
+                            for i in range(4)
+                        ] + [base_target[4]]
+                    validate_target(pre_base, 'base pre-pose')
+                    print('APPROACH BASE PRE', [round(value, 4)
+                                                for value in pre_base])
+                    node.move_to(
+                        pre_base, duration=max(6.0, 0.5 * args.duration))
+                print('APPROACH BASE', [round(value, 4)
+                                        for value in base_target])
+                node.move_to(base_target, duration=max(8.0, args.duration))
+                node.wait_positions(base_target)
+                base = node.arm_positions()
+            print('BASE', [round(value, 5) for value in base])
+            offsets = pose_offsets(args.delta)
+            if args.test:
+                offsets = offsets[:2]
+            if args.check_only:
+                offsets = []
+            targets = [
+                [base[i] + offset[i] for i in range(4)] + [base[4]]
+                for offset in offsets
+            ]
+        for index, target in enumerate(targets):
+            validate_target(target, 'target')
             if args.pre_offset > 0.0:
                 pre = list(target)
                 if args.pre_joint1_only:
@@ -527,16 +573,15 @@ def main():
                     pre = [
                         target[i] - args.pre_offset for i in range(4)
                     ] + [target[4]]
-                for name, value in zip(ARM_JOINTS, pre):
-                    lower, upper = ARM_LIMITS[name]
-                    if not lower <= value <= upper:
-                        raise RuntimeError(
-                            'pre-pose {}={} outside [{}, {}]'.format(
-                                name, value, lower, upper))
+                validate_target(pre, 'pre-pose')
                 print('PRE', index, [round(value, 4) for value in pre])
                 node.move_to(pre)
-            if index == 0 and args.pre_offset <= 0.0:
-                print('SAMPLE 0 at base pose')
+            current = node.arm_positions()
+            unchanged = max(
+                abs(target[i] - current[i]) for i in range(len(ARM_JOINTS))
+            ) <= 0.005
+            if unchanged and args.pre_offset <= 0.0:
+                print('SAMPLE', index, 'at current pose')
             else:
                 print('MOVE', index, [round(value, 4) for value in target])
                 node.move_to(target)
@@ -607,6 +652,10 @@ def main():
                 'delta_rad': args.delta,
                 'pre_offset_rad': args.pre_offset,
                 'pre_joint1_only': args.pre_joint1_only,
+                'pose_source': (
+                    'poses_file' if args.poses_file else 'joint_offsets'),
+                'poses_file': os.path.abspath(args.poses_file)
+                if args.poses_file else None,
                 'samples': samples,
             }, handle, indent=2)
         node.destroy_node()

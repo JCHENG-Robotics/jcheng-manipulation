@@ -3,6 +3,51 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Session 2: calibration pose selection and synthetic hand-eye gate
+
+### Added
+
+- `tools/phase2/calibration_pose_selector.py`: offline selection of 20–30
+  diverse, executable chessboard poses over `joint1..joint4`. It evaluates
+  URDF FK with the validated `T_link4_camera`, filters projected board
+  visibility/distance/incidence, and runs greedy farthest-point selection in
+  a weighted camera-pose/image feature space. The report includes camera
+  spread, view-angle spread, image coverage, rotation-axis rank and camera
+  coplanarity.
+- `tools/phase2/tests/`: pytest coverage for the synthetic hand-eye recovery,
+  board projection, greedy selection, pose serialization and the real
+  validated board/camera pair.
+- `chessboard_capture.py --poses-file`: executes absolute five-joint targets
+  from the selector’s `poses.json`, validates them against the provisional
+  joint limits, and records `pose_source`/`poses_file` in `samples.json`.
+- Evidence: `evidence/calibration/20261117/pose_selection/` (24-pose report,
+  slim pose list, three-panel plot, README) and
+  `docs/phase2/CALIBRATION_POSES.md`.
+
+### Changed
+
+- `tools/phase2/chessboard_hand_eye.py`: hand-eye math split into
+  `solve_hand_eye_methods()` and `select_best_method()`; added
+  `leave_one_out()` validation (every sample held out once); the URDF import
+  is lazy so the math can be tested without a ROS environment. The refactor
+  reproduces the committed 2026-11-17 calibration bit-for-bit.
+- Phase 2 docs/status now distinguish the validated 14-pose result from the
+  planned 24-pose capture.
+
+### Verified (offline, 2026-11-17)
+
+- Pose selector: 14,176 evaluated poses → 3,093 feasible → 24 selected, including
+  the exact validated base pose. All checks pass: camera spread 0.096 m,
+  view-angle spread 33.5°, image-centre std 92.8/50.6 px, rotation-axis rank
+  ratio 0.067, planarity ratio 0.283.
+- `python3 -m pytest tools/phase2/tests -q`: **13 passed**.
+- The refactored solver on the committed dataset reproduces TSAI
+  `T_link4_camera` exactly (max matrix difference 0.0), board scatter
+  2.94 mm / 0.39°, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44°
+  std (max 6.52 mm / 0.81°), result PASS.
+- The 24-pose set has **not** been executed on hardware; it is a plan for the
+  next supervised capture.
+
 ## [Unreleased] — 2026-11-17 Session 1: camera frame contract, vendor baseline, real-background check
 
 ### Added

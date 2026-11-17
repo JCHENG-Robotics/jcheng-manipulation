@@ -3,9 +3,15 @@
 > Status: **VALIDATED (second run, measured bus-servo positions)**.
 > 14 usable poses; board-pose scatter **2.94 mm / 0.39°** (max 5.44 mm /
 > 0.74°); held-out final base **3.29 mm / 0.43°**; 2-fold cross-validation
-> **2.5–3.2 mm / 0.31–0.43°**. The 5 mm / 2° gate passes. The first run
+> **2.5–3.2 mm / 0.31–0.43°**; leave-one-out **3.41 mm / 0.44°** std (max
+> 6.52 mm / 0.81°). The 5 mm / 2° gate passes. The first run
 > (cached commands only) is kept below as the 13.4 mm / 2.06° baseline.
 > Raw RGB images are private and are **not** in this repository.
+>
+> **Session 2 addendum (2026-11-17):** a 24-pose diverse set was selected
+> offline for the next capture (14,176 evaluated poses → 3,093 feasible → 24
+> selected; diversity and non-coplanarity checks pass). It is a plan, not a
+> hardware run. See [`pose_selection/`](pose_selection/).
 
 ## Validated result (servo feedback)
 
@@ -24,6 +30,7 @@ RPY         = [0.951, -0.058, -89.789] deg
 | Board pose in `base_link`, rotation std | **0.39°** (max 0.74°) |
 | Held-out `final_base` translation / rotation | **3.29 mm / 0.43°** |
 | Cross-validation held-out (even / odd) | 2.51–2.54 / 3.16–3.19 mm; 0.30–0.31 / 0.42–0.43° |
+| Leave-one-out (std / max) | **3.41 mm / 0.44°** std; max 6.52 mm / 0.81° |
 | Chessboard intrinsic refinement | fx 418.31 / fy 418.34 vs driver 418.05 / 419.10; RMS **0.060 px** |
 | Corner RMS | 0.09–0.19 px |
 | Servo shift during a capture | 0–1 pulse (≤ 0.24°) |
@@ -133,7 +140,7 @@ bus-servo read captures.
 
 | File | Content |
 |---|---|
-| `calibration_servo_20261117.json` | validated solver report: all methods, selected TSAI, board stats, held-out base, intrinsics, joint source |
+| `calibration_servo_20261117.json` | validated solver report: all methods, selected TSAI, board stats, held-out base, leave-one-out, intrinsics, joint source |
 | `dataset_servo_20261117.json` | 16 samples: 15 targets (14 detected) + final base, with commands, measured joints, pulses, K/D, board corners/PnP (no images) |
 | `validation_servo_20261117.json` | held-out base, 2-fold CV, static-TF relation, method agreement |
 | `capture_servo_20261117.log` | capture console log: base approach, per-pose pre-pose/target, board RMS/spread/servo shift, return to base |

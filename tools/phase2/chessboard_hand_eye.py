@@ -32,8 +32,6 @@ import os
 import cv2
 import numpy as np
 
-from armpi_grasp_planner.reachability import ArmKinematics
-
 BOARD_COLS = 11
 BOARD_ROWS = 8
 SQUARE_M = 0.020
@@ -128,6 +126,8 @@ def link4_pose(kinematics, joints):
 
 def link4_poses(samples):
     """Compute T_base_link4 for each sample from its arm joints."""
+    from armpi_grasp_planner.reachability import ArmKinematics
+
     kinematics = ArmKinematics(tip_link='link4')
     if kinematics.joint_names != ['joint1', 'joint2', 'joint3', 'joint4']:
         raise RuntimeError(
@@ -193,6 +193,8 @@ def heldout_final_base(samples, t_link4_camera, mean_board,
     ]
     if not held:
         return None
+    from armpi_grasp_planner.reachability import ArmKinematics
+
     kinematics = ArmKinematics(tip_link='link4')
     translation_errors = []
     rotation_errors = []
@@ -209,6 +211,117 @@ def heldout_final_base(samples, t_link4_camera, mean_board,
         'sample_indices': [sample['index'] for sample in held],
         'translation_error_m': max(translation_errors),
         'rotation_error_deg': max(rotation_errors),
+    }
+
+
+def solve_hand_eye_methods(t_base_link4, t_cam_board):
+    """Run every OpenCV hand-eye method and return their result tables.
+
+    The math is deliberately separated from the dataset/URDF code so the
+    synthetic regression test can pass known transforms directly.
+    """
+    r_gripper2base = [transform[:3, :3] for transform in t_base_link4]
+    t_gripper2base = [
+        transform[:3, 3].reshape(3, 1) for transform in t_base_link4]
+    r_target2cam = [transform[:3, :3] for transform in t_cam_board]
+    t_target2cam = [
+        transform[:3, 3].reshape(3, 1) for transform in t_cam_board]
+    method_results = {}
+    for name, method in HAND_EYE_METHODS.items():
+        try:
+            rotation, translation = cv2.calibrateHandEye(
+                r_gripper2base, t_gripper2base,
+                r_target2cam, t_target2cam, method=method)
+        except cv2.error as exc:
+            method_results[name] = {'error': str(exc)}
+            continue
+        t_link4_cam = make_transform(rotation, translation)
+        t_base_board = [
+            t_base_link4[index] @ t_link4_cam @ t_cam_board[index]
+            for index in range(len(t_base_link4))
+        ]
+        stats = board_pose_stats(t_base_board)
+        difference = np.linalg.inv(STATIC_TF_LINK4_RGB) @ t_link4_cam
+        method_results[name] = {
+            'T_link4_camera': t_link4_cam.tolist(),
+            'translation_m': t_link4_cam[:3, 3].tolist(),
+            'rpy_deg': cv2.RQDecomp3x3(t_link4_cam[:3, :3])[0],
+            'board_translation_std_m': stats['translation_std_m'],
+            'board_rotation_std_deg': stats['rotation_std_deg'],
+            'board_max_translation_error_m':
+                stats['max_translation_error_m'],
+            'board_max_rotation_error_deg':
+                stats['max_rotation_error_deg'],
+            'board_mean_transform': stats['mean_transform'],
+            'difference_from_static_translation_m': float(
+                np.linalg.norm(difference[:3, 3])),
+            'difference_from_static_rotation_deg': rotation_angle_deg(
+                difference[:3, :3]),
+        }
+    return method_results
+
+
+def select_best_method(method_results):
+    """Select the method with the smallest board-scatter score."""
+    valid_methods = {
+        name: result for name, result in method_results.items()
+        if 'error' not in result
+    }
+    if not valid_methods:
+        raise RuntimeError('all hand-eye methods failed')
+    return min(
+        valid_methods,
+        key=lambda name: (
+            valid_methods[name]['board_translation_std_m']
+            + 0.002 * valid_methods[name]['board_rotation_std_deg']))
+
+
+def leave_one_out(t_base_link4, t_cam_board, method_name):
+    """Fit on all but one sample and score the held-out board pose.
+
+    This is a stronger check than the two-fold split: every sample is used
+    once as an unseen validation pose while the remaining samples fit the
+    hand-eye transform.
+    """
+    errors = []
+    total = len(t_base_link4)
+    for held_index in range(total):
+        train = [
+            index for index in range(total) if index != held_index]
+        results = solve_hand_eye_methods(
+            [t_base_link4[index] for index in train],
+            [t_cam_board[index] for index in train])
+        if method_name not in results or 'error' in results[method_name]:
+            continue
+        result = results[method_name]
+        t_link4_camera = np.asarray(
+            result['T_link4_camera'], dtype=np.float64)
+        mean_board = np.asarray(
+            result['board_mean_transform'], dtype=np.float64)
+        t_base_board = (
+            t_base_link4[held_index]
+            @ t_link4_camera
+            @ t_cam_board[held_index])
+        errors.append({
+            'index': held_index,
+            'translation_error_m': float(np.linalg.norm(
+                t_base_board[:3, 3] - mean_board[:3, 3])),
+            'rotation_error_deg': rotation_angle_deg(
+                mean_board[:3, :3].T @ t_base_board[:3, :3]),
+        })
+    if not errors:
+        return None
+    return {
+        'method': method_name,
+        'samples': errors,
+        'translation_std_m': float(np.sqrt(np.mean(np.square([
+            error['translation_error_m'] for error in errors])))),
+        'rotation_std_deg': float(np.sqrt(np.mean(np.square([
+            error['rotation_error_deg'] for error in errors])))),
+        'max_translation_error_m': float(max(
+            error['translation_error_m'] for error in errors)),
+        'max_rotation_error_deg': float(max(
+            error['rotation_error_deg'] for error in errors)),
     }
 
 
@@ -255,57 +368,9 @@ def main():
 
     t_base_link4 = link4_poses(usable)
     t_cam_board = board_poses(usable)
-    r_gripper2base = [t[:3, :3] for t in t_base_link4]
-    t_gripper2base = [t[:3, 3].reshape(3, 1) for t in t_base_link4]
-    r_target2cam = [t[:3, :3] for t in t_cam_board]
-    t_target2cam = [t[:3, 3].reshape(3, 1) for t in t_cam_board]
-
-    method_results = {}
-    for name, method in HAND_EYE_METHODS.items():
-        try:
-            rotation, translation = cv2.calibrateHandEye(
-                r_gripper2base, t_gripper2base,
-                r_target2cam, t_target2cam, method=method)
-        except cv2.error as exc:
-            method_results[name] = {'error': str(exc)}
-            continue
-        t_link4_cam = make_transform(rotation, translation)
-        t_base_board = [
-            t_base_link4[i] @ t_link4_cam @ t_cam_board[i]
-            for i in range(len(usable))
-        ]
-        stats = board_pose_stats(t_base_board)
-        difference = np.linalg.inv(
-            STATIC_TF_LINK4_RGB) @ t_link4_cam
-        method_results[name] = {
-            'T_link4_camera': t_link4_cam.tolist(),
-            'translation_m': t_link4_cam[:3, 3].tolist(),
-            'rpy_deg': cv2.RQDecomp3x3(t_link4_cam[:3, :3])[0],
-            'board_translation_std_m': stats['translation_std_m'],
-            'board_rotation_std_deg': stats['rotation_std_deg'],
-            'board_max_translation_error_m':
-                stats['max_translation_error_m'],
-            'board_max_rotation_error_deg':
-                stats['max_rotation_error_deg'],
-            'board_mean_transform': stats['mean_transform'],
-            'difference_from_static_translation_m': float(
-                np.linalg.norm(difference[:3, 3])),
-            'difference_from_static_rotation_deg': rotation_angle_deg(
-                difference[:3, :3]),
-        }
-
-    valid_methods = {
-        name: result for name, result in method_results.items()
-        if 'error' not in result
-    }
-    if not valid_methods:
-        raise RuntimeError('all hand-eye methods failed')
-    selected = min(
-        valid_methods,
-        key=lambda name: (
-            valid_methods[name]['board_translation_std_m']
-            + 0.002 * valid_methods[name]['board_rotation_std_deg']))
-    selected_result = valid_methods[selected]
+    method_results = solve_hand_eye_methods(t_base_link4, t_cam_board)
+    selected = select_best_method(method_results)
+    selected_result = method_results[selected]
 
     intrinsics = refine_intrinsics(usable)
     heldout = heldout_final_base(
@@ -313,6 +378,7 @@ def main():
         np.asarray(selected_result['T_link4_camera'], dtype=np.float64),
         np.asarray(
             selected_result['board_mean_transform'], dtype=np.float64))
+    leave_out = leave_one_out(t_base_link4, t_cam_board, selected)
     success = (
         selected_result['board_translation_std_m'] <= 0.005
         and selected_result['board_rotation_std_deg'] <= 2.0
@@ -322,6 +388,13 @@ def main():
             or (
                 heldout['translation_error_m'] <= 0.005
                 and heldout['rotation_error_deg'] <= 2.0
+            )
+        )
+        and (
+            leave_out is None
+            or (
+                leave_out['translation_std_m'] <= 0.005
+                and leave_out['rotation_std_deg'] <= 2.0
             )
         )
     )
@@ -370,6 +443,7 @@ def main():
             'board_max_rotation_error_deg':
                 selected_result['board_max_rotation_error_deg'],
             'heldout_final_base': heldout,
+            'leave_one_out': leave_out,
             'success': bool(success),
             'criteria': {
                 'board_translation_std_m': 0.005,
@@ -377,6 +451,8 @@ def main():
                 'intrinsics_rms_px': 1.0,
                 'heldout_final_base_translation_m': 0.005,
                 'heldout_final_base_rotation_deg': 2.0,
+                'leave_one_out_translation_std_m': 0.005,
+                'leave_one_out_rotation_std_deg': 2.0,
             },
         },
     }
@@ -408,6 +484,14 @@ def main():
             'HELDOUT final base: dt={:.4f} m dr={:.3f} deg'.format(
                 heldout['translation_error_m'],
                 heldout['rotation_error_deg']))
+    if leave_out is not None:
+        print(
+            'LEAVE-ONE-OUT: max dt={:.4f} m dr={:.3f} deg '
+            '(std {:.4f} m / {:.3f} deg)'.format(
+                leave_out['max_translation_error_m'],
+                leave_out['max_rotation_error_deg'],
+                leave_out['translation_std_m'],
+                leave_out['rotation_std_deg']))
     print(
         'INTRINSICS driver fx={:.3f} fy={:.3f}; refined fx={:.3f} '
         'fy={:.3f}; rms={:.3f}px'.format(

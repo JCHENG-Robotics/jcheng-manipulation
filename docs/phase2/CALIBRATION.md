@@ -3,8 +3,9 @@
 > Status: **Validated on 2026-11-17 (second run)**. Using the physical
 > bus-servo positions in FK, 14 chessboard poses give a board-pose scatter of
 > **2.94 mm / 0.39°** (max 5.44 mm / 0.74°), the held-out final base is
-> **3.29 mm / 0.43°**, and 2-fold cross-validation gives **2.5–3.2 mm /
-> 0.31–0.43°**. The 5 mm / 2° board gate passes. The first run (cached
+> **3.29 mm / 0.43°**, 2-fold cross-validation gives **2.5–3.2 mm /
+> 0.31–0.43°**, and leave-one-out gives **3.41 mm / 0.44°** std (max
+> 6.52 mm / 0.81°). The 5 mm / 2° board gate passes. The first run (cached
 > `joint_states` only) reached 13.4 mm / 2.06° and is kept as the baseline in
 > [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
 
@@ -72,6 +73,23 @@ Tools:
   board-pose consistency, runs all five `cv2.calibrateHandEye` methods,
   compares with the static TF as information, refines the chessboard
   intrinsics and checks a held-out `final_base` sample.
+- `tools/phase2/calibration_pose_selector.py` — offline selector for 20–30
+  diverse, executable poses; see
+  [CALIBRATION_POSES.md](CALIBRATION_POSES.md). The slim `poses.json` output
+  is consumed by `chessboard_capture.py --poses-file`.
+
+## Pose selection (Session 2, 2026-11-17)
+
+The validated 14-pose result used hand-picked small offsets. Session 2
+replaced that with an explicit selection: 14,176 evaluated poses (the 14,175
+grid points plus the exact base), 3,093 feasible poses, and a 24-pose
+farthest-point set including the exact base pose. The
+set has 33.5° maximum view-angle spread, 0.096 m maximum camera-position
+spread, 15.1–25.0% board image area, and passes the rotation-excitation and
+non-coplanarity checks (rotation-axis rank ratio 0.067, planarity ratio
+0.283). It has **not** been executed yet. The full pose list, metrics and
+on-site command are in [CALIBRATION_POSES.md](CALIBRATION_POSES.md); evidence
+is in [`evidence/calibration/20261117/pose_selection/`](../../evidence/calibration/20261117/pose_selection/).
 
 Reproduction (inside the robot container):
 
@@ -108,6 +126,7 @@ RPY         = [0.951, -0.058, -89.789] deg
 | Board max translation error | 5.44 mm | — |
 | Board max rotation error | 0.74° | — |
 | Held-out `final_base` translation / rotation | **3.29 mm / 0.43°** | ≤ 5 mm / 2° |
+| Leave-one-out board pose, std | **3.41 mm / 0.44°** (max 6.52 mm / 0.81°) | ≤ 5 mm / 2° (std) |
 | Chessboard intrinsic refinement | fx 418.31 / fy 418.34 vs driver 418.05 / 419.10; RMS **0.060 px** | ≤ 1 px |
 | Corner RMS | 0.09–0.19 px | — |
 | Servo shift during a capture | 0–1 pulse (≤ 0.24°) | — |
