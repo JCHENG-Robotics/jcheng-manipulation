@@ -1,0 +1,6 @@
+HOST name=raspberrypi arch=aarch64 python=3.11.2 container=False
+CPU model=Raspberry Pi 5 Model B Rev 1.1 cores=4 util_percent=1.763 load1=0.650
+MEM total_mb=8052.5 available_mb=7304.9 used_percent=9.283 cgroup_limit_mb=n/a
+DISK total_gb=51.7 free_gb=6.6 used_percent=84.695
+TEMP c=45.8 ROS distro=None rmw=None domain=None
+RESULT PASS

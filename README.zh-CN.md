@@ -25,11 +25,13 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 相机 frame 契约 | 已实现，已验证 | `camera_optical_calibrated` = 实测 body→optical 适配（89.798°，5.4/10.1/−27.4 mm）；模型 `camera_optical_frame` 仅用于 Mock |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
-| 相机 / 标定 | **相机可用；手眼标定已验证；已离线选姿** | Aurora 930 RGB/depth 实时；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°，留一验证 3.41 mm / 0.44°（std）；实测光轴 frame 已发布；从 14,176 个评估位姿中离线选出 24 个多样位姿（尚未实机执行） |
+| 相机 / 标定 | **相机可用；手眼标定已验证；已离线选姿** | Aurora 930 RGB/depth 实时；RGB 跨主机实测约 12 Hz（容器内订阅会低估到约 8 Hz）；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°，留一验证 3.41 mm / 0.44°（std）；实测光轴 frame 已发布；从 14,176 个评估位姿中离线选出 24 个多样位姿（尚未实机执行） |
 | 视觉抓取 | 进行中 — Mock 链路已验证 | 感知、抓取搜索、已验证的相机标定与 frame；fiducial → 抓取桥接 + 安全否决通过合成 Mock E2E；尚无实机抓取 |
 | 安全层 | 已实现，Mock 验证 | 状态看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；`ValidateTrajectory` 否决服务；限位仍为暂定值，无急停集成 |
 | 测量协议 | 已实现，dry-run/simulate 验证 | 重复性/回差/视觉位移/夹爪包络的计划与分析器；尚无实机数据 |
-| 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
+| 误差预算框架 | 已实现，demo 验证；项目预算**仍不完整** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md)；已测量手眼 + fiducial 项，RSS 3.699 mm / 0.682°；重复性/回差/执行/夹爪/夹具位姿仍未测量 |
+| 配对试验框架 | 已实现，仿真验证 | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md)；24 对随机计划、种子化 bootstrap/sign/McNemar 分析；尚无实机试验 |
+| 主机/DDS 基准 | 已实现，只读实机快照 | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md)；笔记本 + Pi 主机指标、20 Hz 状态、跨主机约 12 Hz 相机、0.24 ms ping |
 | ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
 
@@ -46,6 +48,7 @@ docs/
 ├── hardware/              # 硬件基线（2026-11-17 实机；关节限位/IMU 待完成）
 ├── phase0/                # Phase 0 验收、5-DoF 约束、历史审计
 ├── phase2/                # 抓取候选搜索；标定/视觉抓取准备
+├── phase3/                # 误差预算、配对试验、主机/DDS 基准
 ├── archive/               # 旧 README/ROADMAP、过期 URDF、Phase II 分支说明
 └── weekly-log/            # 8 周学习记录
 evidence/
@@ -54,7 +57,8 @@ evidence/
 ├── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
 ├── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
 ├── phase1/                # 实机 Pi/ROS/舵机/TF/相机基线（2026-11-17）
-└── phase2/                # frame、关节限位、桥接 E2E、安全层、测量
+├── phase2/                # frame、关节限位、桥接 E2E、安全层、测量
+└── phase3/                # 误差预算、配对试验、主机/DDS 基准证据
 ros2_ws/src/
 ├── arm_basics/            # 学习节点（历史遗留）
 ├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
@@ -63,12 +67,14 @@ ros2_ws/src/
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco 目标定位
 ├── armpi_grasp_planner/   # 5-DoF 候选生成 + 桥接 + Mock E2E launch
 ├── armpi_safety/          # 状态看门狗 + 轨迹否决
+├── armpi_analysis/        # 误差预算、配对试验、主机/DDS 基准
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（Mock + 实机 launch）
 tools/
 ├── humble_moveit/         # 实机使用的 Humble Docker MoveIt/RViz
 ├── phase1/                # 实机基线辅助工具
-└── phase2/                # 标定、fiducial、桥接 E2E 与测量工具
+├── phase2/                # 标定、fiducial、桥接 E2E 与测量工具
+└── phase4/                # 只读主机/DDS 基准采集
 ```
 
 ## 构建
@@ -207,6 +213,32 @@ Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在
 provisional；只读实测与关力矩测量工具见
 [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md)。
 
+### 误差预算、配对试验与主机基准（离线/只读）
+
+```bash
+# 误差预算：仓库内的部分项目预算 + 合成 demo
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
+  --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
+  --markdown-out /tmp/error_budget.md
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget --demo
+
+# 配对试验：随机计划、合成仿真、分析
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  plan --pairs 24 --seed 7 --json-out /tmp/paired_plan.json
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  simulate --pairs 24 --seed 7 --jsonl-out /tmp/paired.jsonl
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  analyze --input /tmp/paired.jsonl --markdown-out /tmp/paired.md
+
+# 只读主机/DDS 基准（笔记本 + 机器人；不运动）
+tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
+```
+
+误差预算**仍不完整**：重复性、回差、抓取执行、夹爪放置和夹具位姿尚未测量。
+配对试验分析只在合成数据上验证。基准为只读，不向机器人发送命令。详见
+[`docs/phase3/`](docs/phase3/README.md) 和
+[`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/)。
+
 ## 模型注意事项（重要）
 
 - **关节限位是暂定值。** `joint3` 上限为 `0.0`（厂商软件映射），而不是
@@ -253,6 +285,7 @@ provisional；只读实测与关力矩测量工具见
 - `evidence/phase2/real_background_20261117/` — 真实背景负对照 + 半合成位姿精度。
 - `evidence/phase2/frames_20261117/` — 全精度 body→optical frame 契约。
 - `evidence/phase2/session3_20261117/` — 合成标记 → 抓取 → 安全 E2E、安全服务负对照、测量 dry-run/simulate 报告。
+- `evidence/phase3/session4_20261117/` — 部分误差预算、配对试验仿真、只读笔记本/机器人主机/DDS 基准。
 - `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
 
 永远不要把 Mock/Gazebo 结果当作硬件验证。
@@ -267,6 +300,9 @@ provisional；只读实测与关力矩测量工具见
 - [Phase 2 Fiducial → 抓取桥接](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — `target_pose` → TF → 抓取搜索 → 安全否决，Mock E2E 结果。
 - [Phase 2 安全层](docs/phase2/SAFETY_LAYER.md) — 看门狗、限位、工作空间与轨迹否决服务。
 - [Phase 3 测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移与夹爪包络。
+- [Phase 3 误差预算](docs/phase3/ERROR_BUDGET.md) — 误差源 schema、RSS/最坏情况、部分项目预算与缺失测量。
+- [Phase 3 配对试验](docs/phase3/PAIRED_TRIALS.md) — 配对记录器、随机化与精确配对分析。
+- [Phase 3 主机/DDS 基准](docs/phase3/HOST_BENCHMARK.md) — 只读笔记本/Pi 指标、topic 速率/抖动/延迟与相机速率修正。
 - [相机 frame 契约](docs/hardware/camera_frames.md) — body/optical frame 与 `camera_optical_calibrated`。
 - [Vendor 标定基线](docs/hardware/vendor_calibration_baseline.md) — vendor 矩阵解码与 Baseline A 状态。
 - [Phase 2 关节限位](docs/phase2/JOINT_LIMITS.md) — 舵机只读证据、关力矩测量流程与 CycloneDDS 注意事项。

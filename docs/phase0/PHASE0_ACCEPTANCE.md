@@ -100,7 +100,8 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
 | Phase 2 fiducial localization | **Implemented, synthetic + real-background validated** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; real camera frames, no physical target |
 | Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; synthetic marker, plan-only |
 | Phase 2 calibration + real visual grasp | **Calibration validated; mock visual chain validated; real grasp not started** | Hardware + physical target/object + execution decision |
-| Phase 3 Error Budget v1 | **Protocols implemented, dry-run/simulate only; no hardware data** | Hardware measurements |
+| Phase 3 Error Budget v1 | **Framework + partial budget implemented (2026-11-17 Session 4)**; measured hand-eye/fiducial terms only, required repeatability/backlash/execution/gripper/fixture terms unmeasured; paired-trial framework simulated only | Hardware measurements and a physical tolerance experiment |
+| Host/DDS benchmark | **Read-only snapshot measured** (2026-11-17 Session 4); one laptop/Pi run, no load sweep | Repeated runs under controlled load |
 | Bonus mobile base | **Not started** | Hardware purchase deadline 2027-01-31 |
 
 Phase 1 started on 2026-11-17. Do not promote any hardware-dependent item to

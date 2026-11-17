@@ -18,6 +18,7 @@ gitignored or kept private.
 | `phase2/real_background_20261117/` | 8 real RGB frames: negative control + semi-synthetic marker accuracy | Real camera frames; marker composited |
 | `phase2/vendor_calibration_20261117/` | Static decoding of vendor `transform.yaml` / `hand2cam_tf_matrix` | Vendor config/source analysis |
 | `studio_gateway/20261117/` | Persistent gateway live checks | Real hardware, read-only; execute disabled |
+| `phase3/session4_20261117/no_camera/`, `with_camera/` | Host + ROS/DDS benchmark on laptop and robot; camera run started/stopped for measurement | Real hardware, read-only; no motion |
 | `studio_e2e/` | Playwright browser tests | Mock mode |
 
 ## Model / mock / synthetic evidence
@@ -29,6 +30,7 @@ gitignored or kept private.
 | `armpi_grasp/20261116/` | 5-DoF grasp candidate search (mock, plan-only) |
 | `fiducial/20261116/` | Synthetic fiducial localization and ROS TF wiring |
 | `phase2/session3_20261117/` | Synthetic marker → localizer → grasp bridge → safety veto E2E, safety service negative controls, measurement dry-run/simulate reports |
+| `phase3/session4_20261117/` | Partial error budget, paired-trial plan/simulation/analysis, host/DDS benchmark reports |
 | `armpi_moveit/phase0_20261116/` | Phase 0 constrained-planning acceptance |
 
 ## Rules

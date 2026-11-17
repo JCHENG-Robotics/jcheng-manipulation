@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "mode": "ros",
+  "collected_at": "2026-11-17T12:03:13.866148+00:00",
+  "node_name": "armpi_host_benchmark",
+  "duration_s": 10.0,
+  "qos": "sensor_data",
+  "topics": {
+    "/joint_states": {
+      "topic": "/joint_states",
+      "type": "sensor_msgs/msg/JointState",
+      "count": 200,
+      "rate_hz": 20.000070900753858,
+      "interval": {
+        "n": 199,
+        "mean_ms": 49.99982274874372,
+        "std_ms": 0.13236188126006787,
+        "min_ms": 49.270463,
+        "max_ms": 50.648214,
+        "p95_ms": 50.174495
+      },
+      "header_age": {
+        "n": 200,
+        "mean_ms": 0.55365571,
+        "std_ms": 0.08907476341333503,
+        "min_ms": 0.398034,
+        "max_ms": 1.203751,
+        "p95_ms": 0.650589
+      },
+      "publishers": 1,
+      "payload_bytes": 0,
+      "error": null
+    },
+    "/controller_manager/joint_states": {
+      "topic": "/controller_manager/joint_states",
+      "type": "sensor_msgs/msg/JointState",
+      "count": 487,
+      "rate_hz": 48.67040317884212,
+      "interval": {
+        "n": 486,
+        "mean_ms": 20.546367703703705,
+        "std_ms": 0.10643663538059117,
+        "min_ms": 19.997076,
+        "max_ms": 21.167254,
+        "p95_ms": 20.718349
+      },
+      "header_age": {
+        "n": 487,
+        "mean_ms": 0.5915845277207392,
+        "std_ms": 0.08823571871657652,
+        "min_ms": 0.450405,
+        "max_ms": 1.24077,
+        "p95_ms": 0.737328
+      },
+      "publishers": 1,
+      "payload_bytes": 0,
+      "error": null
+    },
+    "/ros_robot_controller/battery": {
+      "topic": "/ros_robot_controller/battery",
+      "type": "std_msgs/msg/UInt16",
+      "count": 100,
+      "rate_hz": 10.005803487305103,
+      "interval": {
+        "n": 99,
+        "mean_ms": 99.94199878787879,
+        "std_ms": 4.055600297202422,
+        "min_ms": 80.049137,
+        "max_ms": 102.504124,
+        "p95_ms": 101.388371
+      },
+      "header_age": {
+        "n": 0,
+        "mean_ms": null,
+        "std_ms": null,
+        "min_ms": null,
+        "max_ms": null,
+        "p95_ms": null
+      },
+      "publishers": 1,
+      "payload_bytes": 0,
+      "error": null
+    }
+  },
+  "graph": {
+    "nodes": null,
+    "topics": 30
+  },
+  "ros": {
+    "distro": "humble",
+    "rmw": "rmw_cyclonedds_cpp",
+    "domain_id": "0",
+    "localhost_only": "0",
+    "cyclonedds_uri": "file:///home/ubuntu/cyclonedds.xml"
+  },
+  "limitations": [
+    "No command or motion is issued; both modes are read-only.",
+    "Header age across hosts includes sender/receiver clock offset.",
+    "Topic rate is the received rate, not the sensor exposure rate.",
+    "CPU utilization is a short /proc/stat sample, not a long-run average.",
+    "Container CPU/memory limits are reported only when cgroup files are visible."
+  ]
+}

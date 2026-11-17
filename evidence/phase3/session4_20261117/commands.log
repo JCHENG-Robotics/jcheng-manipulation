@@ -1,0 +1,111 @@
+# 2026-11-17 Session 4 commands
+# Environment: repo root /home/jerichocheng/jcheng/jcheng-manipulation
+# Robot: pi@10.42.0.218, container ArmPiUltra (Humble, CycloneDDS on eth0)
+# Laptop: Jazzy host, Fast DDS, ROS_DOMAIN_ID=0
+# No robot motion was commanded.
+
+## Error budget
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
+  --demo \
+  --json-out evidence/phase3/session4_20261117/error_budget_demo.json \
+  --markdown-out evidence/phase3/session4_20261117/error_budget_demo.md
+# ERROR_BUDGET name=synthetic_error_budget_demo status=complete
+# METRIC translation_mm rss=2.311 worst=3.800 tolerance=4.000 pass_rss=True pass_worst_case=True ci95=[0.503, 4.674]
+# METRIC rotation_deg rss=0.447 worst=0.600 tolerance=1.000 pass_rss=True pass_worst_case=True ci95=[0.063, 0.923]
+# RESULT PASS
+
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
+  --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
+  --json-out evidence/phase3/session4_20261117/error_budget_baseline_report.json \
+  --markdown-out evidence/phase3/session4_20261117/error_budget_baseline_report.md
+# ERROR_BUDGET name=fiducial_grasp_partial_20261117 status=partial
+# METRIC translation_mm rss=3.699 worst=4.980 tolerance=5.000 pass_rss=True pass_worst_case=True ci95=n/a
+# MISSING translation_mm required=arm_repeatability,arm_backlash,grasp_execution,gripper_placement,object_fixture_pose
+# METRIC rotation_deg rss=0.682 worst=0.960 tolerance=2.000 pass_rss=True pass_worst_case=True ci95=n/a
+# MISSING rotation_deg required=arm_repeatability_rotation,grasp_execution_rotation
+# RESULT PARTIAL
+
+## Paired trials
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  plan --pairs 24 --seed 7 --fixtures grid_A3_center \
+  --json-out evidence/phase3/session4_20261117/paired_trials_plan.json
+# PLAN pairs=24 entries=48 seed=7
+
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  simulate --pairs 24 --effect-mm 1.0 --noise-mm 0.5 --seed 7 \
+  --json-out evidence/phase3/session4_20261117/paired_trials_simulation.json \
+  --jsonl-out evidence/phase3/session4_20261117/paired_trials_simulated.jsonl \
+  --markdown-out evidence/phase3/session4_20261117/paired_trials_simulation_report.md
+# PAIRED_TRIALS pairs=24 records=48 invalid=0
+# CONTINUOUS n=24 mean_diff_mm=-1.025 improvement_mm=1.025 ci95=[-1.095, -0.950] sign_p=1.19e-07
+# SUCCESS baseline=75.0% intervention=95.8% mcnemar_p=0.1250
+# RESULT PASS
+
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  analyze --input evidence/phase3/session4_20261117/paired_trials_simulated.jsonl \
+  --seed 7 \
+  --json-out evidence/phase3/session4_20261117/paired_trials_analysis.json \
+  --markdown-out evidence/phase3/session4_20261117/paired_trials_analysis.md
+# PAIRED_TRIALS pairs=24 records=48 invalid=0
+# CONTINUOUS n=24 mean_diff_mm=-1.025 improvement_mm=1.025 ci95=[-1.095, -0.950] sign_p=1.19e-07
+# SUCCESS baseline=75.0% intervention=95.8% mcnemar_p=0.1250
+# RESULT PASS
+
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  validate --input evidence/phase3/session4_20261117/paired_trials_simulated.jsonl \
+  --json-out evidence/phase3/session4_20261117/paired_trials_validation.json
+# VALIDATE input=48 valid=48 invalid=0 pairs=24 incomplete=0
+# RESULT PASS
+
+## Build and tests (laptop, Jazzy)
+source /opt/ros/jazzy/setup.bash
+colcon build --symlink-install --packages-select \
+  arm_interfaces armpi_grasp_planner armpi_safety \
+  armpi_fiducial_localizer armpi_analysis
+# Summary: 5 packages finished
+
+colcon test --packages-select \
+  arm_interfaces armpi_grasp_planner armpi_safety \
+  armpi_fiducial_localizer armpi_analysis
+# Summary: 93 tests, 0 errors, 0 failures, 0 skipped
+
+python3 -m flake8 ros2_ws/src/armpi_analysis tools/phase4 \
+  --select=E,F,W --ignore=W503 --max-line-length=79
+# rc 0
+
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m pytest -q \
+  ros2_ws/src/armpi_analysis/test/test_error_budget.py \
+  ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
+  ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
+  tools/phase2/tests/test_measurement_protocol.py \
+  tools/phase4/tests
+# 48 passed
+
+## Host/DDS benchmark (read-only)
+# No camera:
+tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/no_camera
+# Camera running:
+TOPICS=/joint_states,/depth_cam/rgb/image_raw,/ros_robot_controller/battery \
+  tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
+
+# Camera start for the with_camera run:
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
+  "sudo -n docker exec -d -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
+   'source ~/.zshrc >/dev/null 2>&1; \
+    exec ros2 launch bringup vision.launch.py > /tmp/vision.log 2>&1'"
+# publisher poll: READY (publisher count 1)
+
+# Cross-checks:
+bash -c 'source /opt/ros/jazzy/setup.bash; export ROS_DOMAIN_ID=0; \
+  ros2 topic hz /depth_cam/rgb/image_raw'
+# average rate ~12.0 Hz (cross-host)
+
+sudo -n docker exec -u ubuntu ArmPiUltra /bin/zsh -c \
+  'source ~/.zshrc; ROS2CLI_NO_DAEMON=1 ros2 topic hz /depth_cam/rgb/image_raw'
+# average rate ~7.0 Hz (in-container)
+
+# Camera stop:
+sudo -n docker exec -u ubuntu ArmPiUltra /bin/zsh -c \
+  'pkill -f vision.launch.py'
+# The launch exits but aurora930_node can be left as a defunct process entry.
+# Kill it by exact process name if needed; publisher count returned to 0.

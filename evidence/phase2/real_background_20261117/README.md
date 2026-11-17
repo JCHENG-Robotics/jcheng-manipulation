@@ -17,7 +17,7 @@ python3 /tmp/capture_still.py --output-dir /tmp/real_capture_20261117 \
 | Item | Value |
 |---|---|
 | Frames | 8 RGB (640×400, `bgr8`, `rgb_camera_link`) + 8 depth |
-| RGB rate | ~8 Hz (capture interval 0.4 s) |
+| RGB rate | ~8 Hz capture pacing (interval 0.4 s); the sensor publishes ~12 Hz cross-host (2026-11-17 Session 4 correction) |
 | Scene | Chessboard on cardboard, room background |
 | TF | full-precision `link4 → rgb_camera_link` recorded in `capture.json` |
 

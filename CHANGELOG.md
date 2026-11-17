@@ -3,6 +3,72 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Session 4: error budget, paired trials, host/DDS benchmark
+
+### Added
+
+- `armpi_analysis` ROS 2 Python package (dependency-free): `error_budget.py`
+  (measured/unmeasured source schema, RSS/worst-case aggregation, dominance,
+  seeded Monte-Carlo interval, Markdown report), `paired_trials.py` (seeded
+  within-pair randomization, append-only JSONL recorder, bootstrap/sign/McNemar
+  analysis) and `host_benchmark.py` (host metrics and read-only ROS topic
+  rate/jitter/header-age measurement).
+- `armpi_analysis/config/error_budget_baseline.json`: partial project budget
+  with measured hand-eye/fiducial terms and explicit unmeasured required terms.
+- `tools/phase4/run_benchmark.sh` and `tools/phase4/tests`: one-command
+  read-only laptop + Pi host/ROS benchmark collection.
+- `.github/workflows/python-ci.yml`: flake8 and pure-Python tests for the
+  analysis package, measurement protocol and phase-4 tools.
+- Docs: `docs/phase3/README.md`, `ERROR_BUDGET.md`, `PAIRED_TRIALS.md`,
+  `HOST_BENCHMARK.md`; evidence bundle
+  `evidence/phase3/session4_20261117/`.
+
+### Changed
+
+- Camera rate correction: the Aurora 930 RGB stream is **~12 Hz cross-host**;
+  the earlier 8 Hz figure came from an in-container subscriber that undercounts
+  large images. Hardware docs, README/README.zh-CN, ROADMAP and the Phase 1
+  evidence index now state the measurement location.
+- README/README.zh-CN/ROADMAP status tables now distinguish the implemented
+  framework from the still-partial project budget.
+- Phase 0 acceptance and evidence index now reference the Phase 3 framework and
+  the read-only benchmark.
+
+### Verified (offline/synthetic/read-only, 2026-11-17)
+
+- `colcon build --symlink-install` for `arm_interfaces`,
+  `armpi_grasp_planner`, `armpi_safety`, `armpi_fiducial_localizer` and
+  `armpi_analysis`: **5 packages finished**.
+- `colcon test` for the same packages: **93 tests, 0 errors, 0 failures**.
+- Pure-Python CI command: **flake8 rc 0**; **48 tests passed**.
+- Error budget demo: translation RSS 2.311 mm / worst 3.800 mm; rotation RSS
+  0.447° / worst 0.600°; both gates pass.
+- Partial project budget: translation RSS 3.699 mm / worst 4.980 mm (5 mm
+  provisional gate); rotation RSS 0.682° / worst 0.960° (2° gate); status
+  **partial**, 7 required sources unmeasured.
+- Paired-trial simulation: 24 pairs, true 1.0 mm effect recovered as 1.025 mm
+  (95% CI [−1.095, −0.950] mm; sign p=1.19e-07); success 75.0% → 95.8%
+  (McNemar p=0.1250, underpowered).
+- Read-only benchmark: `/joint_states` 20.00 Hz (jitter 0.16 ms local),
+  `/controller_manager/joint_states` 48.8 Hz, camera ~12 Hz cross-host,
+  ping 0.24 ms average; laptop 4–5% CPU, Pi 1.8–10.7%.
+
+### Limits
+
+- The error budget is **partial**; repeatability, backlash, grasp execution,
+  gripper placement, object-fixture pose and angular terms are unmeasured.
+- The 5 mm / 2° tolerance is a provisional protocol gate, not a physical grasp
+  tolerance.
+- Paired-trial results are **synthetic only**; no physical trial exists.
+- The benchmark is one read-only snapshot with different RMW stacks
+  (Jazzy Fast DDS ↔ Humble CycloneDDS); it is not a load sweep or a real-time
+  guarantee.
+- `get_node_names()` fails in the robot container (`empty node name returned by
+  the RMW layer`) and camera/static-TF logs repeat `serdata.cpp` errors; topic
+  data still flows. Root cause unresolved.
+- Robot root disk is 84.7% used (6.6 GiB free); no cleanup was done (R14 is
+  outside Session 4).
+
 ## [Unreleased] — 2026-11-17 Session 3: fiducial → grasp bridge, mock E2E, safety veto, measurement protocols
 
 ### Added

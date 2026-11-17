@@ -1,0 +1,6 @@
+HOST name=jerichocheng-Lenovo-Legion-R9000P2021H arch=x86_64 python=3.12.3 container=False
+CPU model=AMD Ryzen 7 5800H with Radeon Graphics cores=16 util_percent=4.660 load1=1.890
+MEM total_mb=27908.8 available_mb=18444.9 used_percent=33.910 cgroup_limit_mb=n/a
+DISK total_gb=392.7 free_gb=316.5 used_percent=14.288
+TEMP c=n/a ROS distro=None rmw=None domain=None
+RESULT PASS

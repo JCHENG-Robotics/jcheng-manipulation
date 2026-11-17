@@ -28,14 +28,22 @@
 | `servo_states` | boot ID 6 = 700, others 500; reset all 500; goal/error 0; `voltage=0` | `baseline_console_20261117.txt`, `pose_snapshot_20261117.txt` |
 | Battery | 7704 mV after reboot, 7651 mV latest; earlier 7385 mV | `baseline_console_20261117.txt`, `pose_snapshot_20261117.txt` |
 | TF | `base_link → rgb_camera_link` / `depth_camera_link` resolve; **`camera_optical_frame` does not exist** | `tf_camera_20261117.txt` |
-| Camera RGB | 8.0 Hz, 640×400, `bgr8`, frame `rgb_camera_link` | `camera_stream_20261117.txt` |
-| Camera depth | 8.2 Hz, 640×400, `mono16`, frame `depth_camera_link`; values mm; median 2257 mm; 23.11% zeros | `camera_stream_20261117.txt` |
+| Camera RGB | 8.0 Hz **in-container** (undercounts; **~12 Hz cross-host**, 2026-11-17 Session 4), 640×400, `bgr8`, frame `rgb_camera_link` | `camera_stream_20261117.txt` |
+| Camera depth | 8.2 Hz in-container (not re-measured cross-host), 640×400, `mono16`, frame `depth_camera_link`; values mm; median 2257 mm; 23.11% zeros | `camera_stream_20261117.txt` |
 | RGB intrinsics | fx 418.054, fy 419.100, cx 308.783, cy 187.134; D 5-term `plumb_bob` | `camera_stream_20261117.txt` |
 | Depth intrinsics | fx 423.023, fy 423.829, cx 320.096, cy 199.904; D 5-term `plumb_bob` | `camera_stream_20261117.txt` |
 | IMU | `/ros_robot_controller/imu_raw` has a publisher but no message in 5–12 s | `camera_retry_20261117.txt` |
 | Real image | 640×400 `bgr8` frame saved; current view is a white surface with dark edges, not the work surface | `rgb_frame_20261117.png` |
 
 ## Incidents and fixes
+
+0. **Camera-rate correction (2026-11-17 Session 4).** The 8.0 Hz RGB number in
+   this bundle came from an in-container subscriber. A cross-host laptop
+   subscriber measured 11.83 Hz and `ros2 topic hz` ~12.0 Hz for the same
+   topic, while an in-container `ros2 topic hz` measured ~7.0 Hz. Local DDS
+   delivery drops/queues large images; the camera publishes at about 12 Hz.
+   The raw `camera_stream_20261117.txt` is unchanged; see
+   [`docs/phase3/HOST_BENCHMARK.md`](../../../docs/phase3/HOST_BENCHMARK.md).
 
 1. **Camera open failure before the restart.** The first `vision.launch` at
    09:24 failed with `open device failed ret=0x21003` (error 135171) and the
@@ -78,7 +86,9 @@
   IR-to-RGB offset (~9.86 mm x) is not represented in TF.
 - Depth registration and point-cloud accuracy were not validated.
 - The IMU is not publishing.
-- The camera runs on USB 2.0 at 8 Hz; not suitable for high-rate servoing.
+- The camera runs on USB 2.0; the observed cross-host rate is ~12 Hz, adequate
+  for static AprilTag localization but not for high-rate servoing. The
+  in-container 8 Hz measurement undercounts.
 
 ## Reproduce
 

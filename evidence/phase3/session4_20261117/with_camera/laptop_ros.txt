@@ -1,0 +1,5 @@
+ROS_GRAPH nodes=6 topics=35 duration_s=10.0 qos=sensor_data
+TOPIC /depth_cam/rgb/image_raw type=sensor_msgs/msg/Image count=119 rate_hz=11.832 interval_mean_ms=84.516 jitter_ms=20.759 p95_ms=121.459 age_mean_ms=34.708 publishers=1
+TOPIC /joint_states type=sensor_msgs/msg/JointState count=200 rate_hz=20.003 interval_mean_ms=49.993 jitter_ms=0.599 p95_ms=51.223 age_mean_ms=4.162 publishers=1
+TOPIC /ros_robot_controller/battery type=std_msgs/msg/UInt16 count=100 rate_hz=9.996 interval_mean_ms=100.035 jitter_ms=5.049 p95_ms=103.784 age_mean_ms=n/a publishers=1
+RESULT PASS

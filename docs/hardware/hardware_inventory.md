@@ -16,13 +16,13 @@
 | Gripper | `r_joint`, servo ID 1; live open at `r_joint ≈ -0.8378 rad` | `/joint_states`, `servo_states` | `[V]` |
 | Camera | Deptrum Aurora 930; USB `3251:1930`; serial `HY400523001036827G00179`; firmware 2.0.8; SDK 1.1.19 | `aurora930_node` log | `[V]` |
 | Camera link | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `lsusb -t` | `[V]`; bandwidth ceiling |
-| Camera streams | RGB 8.0 Hz, 640×400 `bgr8`; depth 8.2 Hz, 640×400 `mono16` (mm) | `camera_stream_check.py` | `[V]` |
+| Camera streams | RGB **~12 Hz** cross-host, 640×400 `bgr8` (2026-11-17 Session 4); in-container subscribers undercount to ~8 Hz. Depth measured 8.2 Hz in-container (not re-measured cross-host). | `host_benchmark.py`, `ros2 topic hz` | `[V]` |
 | Camera frames | RGB `rgb_camera_link`; depth `depth_camera_link`; measured optical `camera_optical_calibrated` (project-published); no live `camera_optical_frame` | `camera_info`, TF | `[V]` |
 | Camera calibration | RGB/depth intrinsics read from the driver; `link4 → camera` hand-eye **validated** (2.94 mm / 0.39°); body→optical published as `camera_optical_calibrated` | `camera_info`, TF, `evidence/calibration/20261117/` | `[V]` |
 | Base | Mecanum chassis; `CHASSIS_TYPE=Mecanum` | container env | `[S]` config, `[U]` motion |
 | E-stop / power cut | physical stop not verified | — | `[U]` |
 | Battery | 2S pack; 7651 mV latest (7704 mV after reboot, 7385 mV earlier) | `/ros_robot_controller/battery` | `[V]` |
-| Storage | root filesystem 87% used, ≈6.8 GiB free (2026-11-17 evening) | `df -h /` | `[V]`; boot/log risk |
+| Storage | root filesystem 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) | `df -h /` | `[V]`; boot/log risk |
 | Thermal | 48.8 °C after boot, `throttled=0x0` | `vcgencmd` | `[V]` |
 | Network | `eth0 10.42.0.218/24` (SSH + DDS, current); `wlan0 10.51.128.226/23` (fallback; office WiFi) | `ip -brief addr` | `[V]` |
 | Wi-Fi USB adapter | Realtek RTL8188GU `0bda:1a2b` in CDROM mode; `rtw88_8821cu` is the wrong module and crashed the kernel | `lsusb`, `dmesg` | `[V]` |

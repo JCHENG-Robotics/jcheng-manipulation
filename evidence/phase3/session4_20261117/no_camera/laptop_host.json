@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "mode": "host",
+  "collected_at": "2026-11-17T12:02:58.132134+00:00",
+  "hostname": "jerichocheng-Lenovo-Legion-R9000P2021H",
+  "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.39",
+  "kernel": "7.0.0-43-generic",
+  "architecture": "x86_64",
+  "python": "3.12.3",
+  "container": false,
+  "cpu": {
+    "model": "AMD Ryzen 7 5800H with Radeon Graphics",
+    "logical_cores": 16,
+    "utilization_percent": 4.659949622166248,
+    "sample_s": 1.0,
+    "load": {
+      "load_1m": 1.89,
+      "load_5m": 1.74,
+      "load_15m": 1.85
+    }
+  },
+  "memory": {
+    "total_mb": 27908.83984375,
+    "available_mb": 18444.91796875,
+    "used_mb": 9463.921875,
+    "used_percent": 33.910122842742894,
+    "cgroup_limit_mb": null
+  },
+  "disk": {
+    "path": "/",
+    "total_gb": 392.65177154541016,
+    "used_gb": 56.10021209716797,
+    "free_gb": 316.5359344482422,
+    "used_percent": 14.287522981589293
+  },
+  "temperature_c": null,
+  "ros": {
+    "distro": null,
+    "rmw": null,
+    "domain_id": null,
+    "localhost_only": null,
+    "cyclonedds_uri": null
+  },
+  "limitations": [
+    "No command or motion is issued; both modes are read-only.",
+    "Header age across hosts includes sender/receiver clock offset.",
+    "Topic rate is the received rate, not the sensor exposure rate.",
+    "CPU utilization is a short /proc/stat sample, not a long-run average.",
+    "Container CPU/memory limits are reported only when cgroup files are visible."
+  ]
+}

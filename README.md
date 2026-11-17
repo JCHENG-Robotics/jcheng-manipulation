@@ -32,11 +32,13 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Camera frame contract | Implemented, validated | `camera_optical_calibrated` = measured body→optical adapter (89.798°, 5.4/10.1/−27.4 mm); model `camera_optical_frame` stays mock-only |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
-| Camera / calibration | **Camera + validated hand-eye + selected pose set** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44° std; measured optical frame published; 24 diverse poses selected offline from 14,176 evaluated poses (not executed) |
+| Camera / calibration | **Camera + validated hand-eye + selected pose set** | Aurora 930 RGB/depth live; RGB ~12 Hz cross-host (in-container subscribers undercount to ~8 Hz); 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44° std; measured optical frame published; 24 diverse poses selected offline from 14,176 evaluated poses (not executed) |
 | Visual grasping | In progress — mock chain validated | perception + grasp search + validated camera calibration and frame; fiducial → grasp bridge and safety veto pass a synthetic mock E2E; no real grasp yet |
 | Safety layer | Implemented, mock-validated | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; `ValidateTrajectory` veto service; provisional limits, no e-stop |
 | Measurement protocols | Implemented, dry-run/simulate validated | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no hardware data |
-| Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
+| Error budget framework | Implemented, demo-validated; project budget **partial** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md); measured hand-eye + fiducial terms, RSS 3.699 mm / 0.682°, required repeatability/backlash/execution/gripper/fixture terms unmeasured |
+| Paired trial framework | Implemented, simulated-validated | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md); 24-pair randomized plan, seeded bootstrap/sign/McNemar analysis; no physical trial |
+| Host/DDS benchmark | Implemented, read-only hardware snapshot | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md); laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping |
 | ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
@@ -53,6 +55,7 @@ docs/
 ├── hardware/              # hardware baseline (live 2026-11-17; joint limits/IMU open)
 ├── phase0/                # Phase 0 acceptance, 5-DoF constraints, historical audits
 ├── phase2/                # grasp candidate search; calibration/grasping prep
+├── phase3/                # error budget, paired trials, host/DDS benchmark
 ├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
 └── weekly-log/            # 8-week learning record
 evidence/
@@ -61,7 +64,8 @@ evidence/
 ├── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
 ├── fiducial/              # synthetic fiducial detection + ROS TF evidence
 ├── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
-└── phase2/                # frames, joint limits, bridge E2E, safety, measurements
+├── phase2/                # frames, joint limits, bridge E2E, safety, measurements
+└── phase3/                # error budget, paired trial and host/DDS benchmark evidence
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
@@ -70,12 +74,14 @@ ros2_ws/src/
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco target localization
 ├── armpi_grasp_planner/   # 5-DoF candidate generation + bridge + mock E2E launch
 ├── armpi_safety/          # state watchdog + trajectory veto
+├── armpi_analysis/        # error budget, paired trials, host/DDS benchmark
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
 └── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock + real-robot launch)
 tools/
 ├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
 ├── phase1/                # live hardware baseline helpers
-└── phase2/                # calibration, fiducial, bridge E2E and measurement tools
+├── phase2/                # calibration, fiducial, bridge E2E and measurement tools
+└── phase4/                # read-only host/DDS benchmark collector
 ```
 
 ## Build
@@ -235,6 +241,34 @@ needs support). See
 [`docs/phase2/MEASUREMENT_PROTOCOL.md`](docs/phase2/MEASUREMENT_PROTOCOL.md)
 and [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
 
+### Error budget, paired trials and host benchmark (offline/read-only)
+
+```bash
+# Error budget: checked-in partial project budget + synthetic demo
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
+  --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
+  --markdown-out /tmp/error_budget.md
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget --demo
+
+# Paired trials: randomized plan, synthetic simulation, analysis
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  plan --pairs 24 --seed 7 --json-out /tmp/paired_plan.json
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  simulate --pairs 24 --seed 7 --jsonl-out /tmp/paired.jsonl
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
+  analyze --input /tmp/paired.jsonl --markdown-out /tmp/paired.md
+
+# Read-only host/DDS benchmark (laptop + robot; no motion)
+tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
+```
+
+The error budget is **partial**: repeatability, backlash, grasp execution,
+gripper placement and fixture pose are still unmeasured. The paired-trial
+analysis is validated on synthetic data only. The benchmark is read-only and
+does not command the robot. See
+[`docs/phase3/`](docs/phase3/README.md) and
+[`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/).
+
 ### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
 
 ```bash
@@ -336,6 +370,8 @@ limits remain provisional; the read-only survey and the torque-off tool are in
   and Baseline A status.
 - `evidence/phase2/session3_20261117/` — synthetic marker → grasp → safety E2E,
   safety service negative controls, and measurement dry-run/simulate reports.
+- `evidence/phase3/session4_20261117/` — partial error budget, paired-trial
+  simulation, and read-only laptop/robot host/DDS benchmark.
 - `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
 
 Never present Mock/Gazebo results as hardware validation.
@@ -358,6 +394,12 @@ Never present Mock/Gazebo results as hardware validation.
   workspace and trajectory-veto service.
 - [Phase 3 measurement protocols](docs/phase2/MEASUREMENT_PROTOCOL.md) —
   repeatability, backlash, visual displacement and gripper envelope.
+- [Phase 3 error budget](docs/phase3/ERROR_BUDGET.md) — source schema, RSS/worst
+  case, partial project budget and the missing measurements.
+- [Phase 3 paired trials](docs/phase3/PAIRED_TRIALS.md) — matched-pair recorder,
+  randomization and exact paired analysis.
+- [Phase 3 host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only
+  laptop/Pi metrics, topic rates/jitter/age and the camera-rate correction.
 - [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical
   frames and `camera_optical_calibrated`.
 - [Vendor calibration baseline](docs/hardware/vendor_calibration_baseline.md) —

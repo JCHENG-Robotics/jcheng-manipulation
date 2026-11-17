@@ -60,8 +60,10 @@ Camera nodes when `vision.launch.py` is running:
   duplicate-server bug is fixed in the private vendor workspace by removing
   `name='controller_manager'` from `servo_controller.launch.py`.
 - `/joint_states` is published at about **20 Hz**.
-- The camera publishes RGB at **8.0 Hz** (`bgr8`, 640×400) and depth at
-  **8.2 Hz** (`mono16`, 640×400, millimetres).
+- The camera publishes RGB at about **12 Hz** cross-host (`bgr8`, 640×400) and
+  depth at 8.2 Hz in-container (`mono16`, 640×400, millimetres). An
+  in-container RGB subscription undercounts to ~8 Hz; use a cross-host
+  measurement for FPS (2026-11-17 Session 4).
 - Use `real_moveit.launch.py` (move_group + RViz only). Do not run
   `demo.launch.py` or any `mock_components` controller on the same ROS domain
   as the real robot.
@@ -85,11 +87,14 @@ closed; its `aurora930_node` became a zombie. Stop it with
 |---|---|---|
 | Transient camera open failure | `aurora930_node` failed with `0x21003` before a restart; after the restart it opened and streamed | `[V]` observed, root cause `[U]` |
 | IMU topic quiet | `/ros_robot_controller/imu_raw` has a publisher but produced no message in 5–12 s | `[U]` |
-| Root filesystem 87% | ≈6.8 GiB free (2026-11-17 evening); boot/fsck and bag-recording risk | `[V]` |
+| Root filesystem 84.7% | ≈6.6 GiB free (2026-11-17 Session 4); boot/fsck and bag-recording risk | `[V]` |
 | Wi-Fi module crash | A stale command loaded `rtw88_8821cu` for a Realtek RTL8188GU (`0bda:1a2b`) adapter in CDROM mode; the kernel oops wedged USB, `lsusb` hung, and a soft reboot stuck in shutdown. A restart recovered it. Do not reload that module on this robot. | `[V]` |
 | Battery 7.651 V | Charge before long motion trials | `[V]` |
 | Camera launch can die | The first persistent launch later exited with SIGKILL; the static TF publishers logged DDS multicast errors. Restart with the persistent `docker exec -d ... exec` form and check `/aurora/aurora`. | `[V]` |
 | DDS interface change | The robot's `cyclonedds.xml` was reverted from `wlan0` to `eth0` after the WiFi fallback (`wlan0: does not match an available interface`); backup `/home/ubuntu/cyclonedds.xml.bak_wlan0_20261117`. The laptop config now binds `enx00e04ca373c7`. | `[V]` |
+| DDS graph anomaly | `get_node_names()` in the robot container fails with `Failed to get node names: empty node name returned by the RMW layer`; topic discovery/subscription still works. Camera/static-TF logs repeat `serdata.cpp` errors (`string data is not null-terminated` / `invalid data size`). Root cause unresolved (2026-11-17 Session 4). | `[V]` observed, root cause `[U]` |
+| Camera-rate undercount | An in-container subscriber measures ~8.3 Hz for RGB, while a cross-host subscriber on the laptop measures ~11.8–12.0 Hz. Local DDS delivery of large images drops/queues; do not use in-container FPS as the sensor rate. | `[V]` |
+| Camera stop leaves a defunct node | `pkill -f vision.launch.py` exits the launch but can leave `aurora930_node` as a defunct process entry; kill it by exact process name or restart the container. The publisher count returns to 0. | `[V]` |
 
 ## Reproduce the link
 

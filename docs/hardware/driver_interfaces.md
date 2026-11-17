@@ -24,9 +24,9 @@
 
 | Topic | Type | Live observation | Status |
 |---|---|---|---|
-| `/depth_cam/rgb/image_raw` | `sensor_msgs/Image` | 8.0 Hz, 640×400, `bgr8`, frame `rgb_camera_link` | `[V]` |
+| `/depth_cam/rgb/image_raw` | `sensor_msgs/Image` | **~12 Hz cross-host**; in-container subscribers undercount to ~8 Hz; 640×400, `bgr8`, frame `rgb_camera_link` | `[V]` |
 | `/depth_cam/rgb/camera_info` | `sensor_msgs/CameraInfo` | 640×400, `plumb_bob`, frame `rgb_camera_link` | `[V]` |
-| `/depth_cam/depth/image_raw` | `sensor_msgs/Image` | 8.2 Hz, 640×400, `mono16`, frame `depth_camera_link`; values in mm | `[V]` |
+| `/depth_cam/depth/image_raw` | `sensor_msgs/Image` | 8.2 Hz in-container, 640×400, `mono16`, frame `depth_camera_link`; values in mm | `[V]` |
 | `/depth_cam/depth/camera_info` | `sensor_msgs/CameraInfo` | 640×400, `plumb_bob`, frame `depth_camera_link` | `[V]` |
 | `/depth_cam/depth_registered/points` | `sensor_msgs/PointCloud2` | advertised by the driver; not separately validated | `[U]` |
 | `/depth_cam/ir/image_raw` | `sensor_msgs/Image` | advertised by the driver; not separately validated | `[U]` |

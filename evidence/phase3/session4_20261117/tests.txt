@@ -1,0 +1,34 @@
+Session 4 test summary — 2026-11-17
+
+Build (laptop, ROS 2 Jazzy):
+$ colcon build --symlink-install --packages-select arm_interfaces armpi_grasp_planner armpi_safety armpi_fiducial_localizer armpi_analysis
+Summary: 5 packages finished [4.07s]
+
+Package tests:
+$ colcon test --packages-select arm_interfaces armpi_grasp_planner armpi_safety armpi_fiducial_localizer armpi_analysis
+Summary: 93 tests, 0 errors, 0 failures, 0 skipped
+
+Per package:
+- arm_interfaces: 4 tests (2 gtest + lint_cmake + xmllint)
+- armpi_analysis: 35 tests (33 analysis + flake8 + pep257)
+- armpi_fiducial_localizer: 18 tests
+- armpi_grasp_planner: 19 tests
+- armpi_safety: 17 tests
+
+Pure-Python CI command:
+$ python3 -m flake8 ros2_ws/src/armpi_analysis tools/phase4 --select=E,F,W --ignore=W503 --max-line-length=79
+rc 0
+
+$ PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m pytest -q \
+    ros2_ws/src/armpi_analysis/test/test_error_budget.py \
+    ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
+    ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
+    tools/phase2/tests/test_measurement_protocol.py \
+    tools/phase4/tests
+48 passed in 3.23s
+
+Limits:
+- The phase-2 hand-eye/pose-selector tests need numpy/OpenCV and are not in the
+  pure-Python CI job.
+- The GitHub workflow does not run colcon; the ROS build/test was verified
+  locally on the Jazzy host.

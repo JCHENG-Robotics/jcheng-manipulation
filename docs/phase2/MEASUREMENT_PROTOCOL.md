@@ -4,6 +4,11 @@
 > protocols have dry-run schedules and synthetic analysis reports. No hardware
 > measurement has been collected, so no repeatability, backlash, visual or
 > gripper number here is a robot result.
+>
+> Downstream (Session 4): [`docs/phase3/ERROR_BUDGET.md`](../phase3/ERROR_BUDGET.md)
+> consumes these measurements as named error sources, and
+> [`docs/phase3/PAIRED_TRIALS.md`](../phase3/PAIRED_TRIALS.md) provides the
+> baseline/intervention experiment wrapper.
 
 ## Why schedules before motions
 

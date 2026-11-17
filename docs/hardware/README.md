@@ -29,13 +29,13 @@
 | Host / OS / container | Raspberry Pi 5, Debian 12, kernel 6.6.20, Humble container `ArmPiUltra` |
 | ROS graph | one `/controller_manager`, one `/servo_manager`, one arm action server, one MoveIt client; `/joint_states` ~20 Hz |
 | Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` verified; `camera_forward` plan-only verified |
-| Camera | Aurora 930; RGB 8.0 Hz `bgr8`, depth 8.2 Hz `mono16` (mm); intrinsics read |
+| Camera | Aurora 930; RGB **~12 Hz cross-host** (`bgr8`, 640×400; in-container subscribers undercount to ~8 Hz), depth 8.2 Hz `mono16` (mm) prior in-container; intrinsics read |
 | TF | `base_link → … → rgb_camera_link` / `depth_camera_link` verified; measured `camera_optical_calibrated` published; no live model `camera_optical_frame` |
 | Camera optical extrinsic | **Validated** 14-pose chessboard hand-eye: 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43°; body→optical 89.798° |
 | Joint limits | **not measured**; two command snapshots recorded |
 | IMU | topic exists but no messages observed |
 | Battery | 7.651 V latest |
-| Root disk | 87% used, ≈6.8 GiB free (2026-11-17 evening) |
+| Root disk | 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) |
 
 Rules:
 

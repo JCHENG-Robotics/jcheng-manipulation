@@ -15,8 +15,8 @@
 | Firmware / SDK | 2.0.8 / 1.1.19 | `[V]` |
 | Link speed | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `[V]`; bandwidth ceiling |
 | Driver | `deptrum-ros-driver-aurora930`, launched by `bringup vision.launch.py` | `[V]` |
-| RGB stream | 8.0 Hz, 640×400, `bgr8`, frame `rgb_camera_link` | `[V]` |
-| Depth stream | 8.2 Hz, 640×400, `mono16`, frame `depth_camera_link` | `[V]` |
+| RGB stream | **~12 Hz cross-host**, 640×400, `bgr8`, frame `rgb_camera_link` | `[V]` |
+| Depth stream | 8.2 Hz in-container, 640×400, `mono16`, frame `depth_camera_link` | `[V]` |
 
 The camera publishes sensor-data QoS (best effort). A `nohup ... &` inside
 `docker exec` was reaped and left a zombie node; start it persistently with:
@@ -132,6 +132,13 @@ depth: 41 msgs in 5.0 s (8.2 Hz), 640x400 encoding=mono16 step=1280 frame=depth_
        depth values: min=0 max=2551 median=2257.0 zeros=23.11%
 ```
 
+**Rate correction (2026-11-17 Session 4).** The in-container subscription
+undercounts large images. A cross-host subscriber on the laptop measured
+11.83 Hz and `ros2 topic hz` measured ~12.0 Hz for the same RGB topic, while an
+in-container subscriber measured 8.33 Hz (and in-container `ros2 topic hz`
+~7.0 Hz). The camera publishes at about **12 Hz**; use a cross-host measurement
+for FPS and state the location. The raw log above is unchanged.
+
 Depth values are in **millimetres** (max 2551 mm ≈ 2.55 m). The 23% zero
 fraction is invalid/no-return pixels, not a valid 0 mm reading.
 
@@ -145,9 +152,10 @@ fraction is invalid/no-return pixels, not a valid 0 mm reading.
   publishers were logging DDS multicast errors. It was restarted over WiFi and
   published `camera_info` again. Check `/aurora/aurora` before relying on the
   stream; restart with the persistent command above if it is missing.
-- The camera enumerates at USB 2.0 (480 Mbps), not USB 3.0. 8 Hz at 640×400 is
-  adequate for static AprilTag localization but not for high-rate visual
-  servoing.
+- The camera enumerates at USB 2.0 (480 Mbps), not USB 3.0. The observed
+  cross-host rate is ~12 Hz at 640×400; that is adequate for static AprilTag
+  localization but not for high-rate visual servoing. Do not use the
+  in-container 8 Hz number as the sensor rate.
 - The first saved frame at an early pose looked at a white surface with dark
   edges (arm/ceiling). With the chessboard in front, the RGB stream is usable
   for detection; aim the arm at the work surface before collecting data.

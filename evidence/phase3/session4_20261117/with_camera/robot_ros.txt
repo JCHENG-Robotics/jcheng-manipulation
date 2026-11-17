@@ -1,0 +1,41 @@
+
+>>> [rcutils|error_handling.c:108] rcutils_set_error_state()
+This error state is being overwritten:
+
+  'invalid data size, at ./src/serdata.cpp:384'
+
+with this new error message:
+
+  'string data is not null-terminated, at ./src/serdata.cpp:384'
+
+rcutils_reset_error() should be called after error handling to avoid this.
+<<<
+
+>>> [rcutils|error_handling.c:108] rcutils_set_error_state()
+This error state is being overwritten:
+
+  'string data is not null-terminated, at ./src/serdata.cpp:384'
+
+with this new error message:
+
+  'invalid data size, at ./src/serdata.cpp:384'
+
+rcutils_reset_error() should be called after error handling to avoid this.
+<<<
+
+>>> [rcutils|error_handling.c:108] rcutils_set_error_state()
+This error state is being overwritten:
+
+  'invalid data size, at ./src/serdata.cpp:384'
+
+with this new error message:
+
+  'string data is not null-terminated, at ./src/serdata.cpp:384'
+
+rcutils_reset_error() should be called after error handling to avoid this.
+<<<
+ROS_GRAPH nodes=None topics=35 duration_s=10.0 qos=sensor_data
+TOPIC /depth_cam/rgb/image_raw type=sensor_msgs/msg/Image count=84 rate_hz=8.331 interval_mean_ms=120.031 jitter_ms=104.109 p95_ms=313.222 age_mean_ms=24.649 publishers=1
+TOPIC /joint_states type=sensor_msgs/msg/JointState count=201 rate_hz=20.000 interval_mean_ms=49.999 jitter_ms=1.449 p95_ms=52.500 age_mean_ms=0.956 publishers=1
+TOPIC /ros_robot_controller/battery type=std_msgs/msg/UInt16 count=98 rate_hz=9.783 interval_mean_ms=102.219 jitter_ms=21.250 p95_ms=103.551 age_mean_ms=n/a publishers=1
+RESULT PASS

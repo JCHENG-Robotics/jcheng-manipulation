@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "mode": "host",
+  "collected_at": "2026-11-17T12:01:33.527649+00:00",
+  "hostname": "raspberrypi",
+  "platform": "Linux-6.6.20+rpt-rpi-2712-aarch64-with-glibc2.36",
+  "kernel": "6.6.20+rpt-rpi-2712",
+  "architecture": "aarch64",
+  "python": "3.11.2",
+  "container": false,
+  "cpu": {
+    "model": "Raspberry Pi 5 Model B Rev 1.1",
+    "logical_cores": 4,
+    "utilization_percent": 10.687022900763354,
+    "sample_s": 1.0,
+    "load": {
+      "load_1m": 0.47,
+      "load_5m": 0.42,
+      "load_15m": 0.75
+    }
+  },
+  "memory": {
+    "total_mb": 8052.453125,
+    "available_mb": 7241.921875,
+    "used_mb": 810.53125,
+    "used_percent": 10.065643815840282,
+    "cgroup_limit_mb": null
+  },
+  "disk": {
+    "path": "/",
+    "total_gb": 51.65185546875,
+    "used_gb": 43.74660110473633,
+    "free_gb": 6.589347839355469,
+    "used_percent": 84.69512025798096
+  },
+  "temperature_c": 47.95,
+  "ros": {
+    "distro": null,
+    "rmw": null,
+    "domain_id": null,
+    "localhost_only": null,
+    "cyclonedds_uri": null
+  },
+  "limitations": [
+    "No command or motion is issued; both modes are read-only.",
+    "Header age across hosts includes sender/receiver clock offset.",
+    "Topic rate is the received rate, not the sensor exposure rate.",
+    "CPU utilization is a short /proc/stat sample, not a long-run average.",
+    "Container CPU/memory limits are reported only when cgroup files are visible."
+  ]
+}

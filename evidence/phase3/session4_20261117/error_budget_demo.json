@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "name": "synthetic_error_budget_demo",
+  "task": "synthetic_validation",
+  "generated_at": "2026-11-17T12:11:52.776157+00:00",
+  "status": "complete",
+  "complete": true,
+  "samples": 10000,
+  "seed": 7,
+  "tolerance_basis": "synthetic only",
+  "tolerance": {
+    "translation_mm": 4.0,
+    "rotation_deg": 1.0
+  },
+  "metrics": {
+    "translation_mm": {
+      "metric": "translation_mm",
+      "n_sources": 4,
+      "n_measured": 4,
+      "n_missing_required": 0,
+      "complete": true,
+      "rss": 2.3108440016582685,
+      "worst_case": 3.8,
+      "dominant": "calibration_translation",
+      "contributions": [
+        {
+          "id": "calibration_translation",
+          "value": 2.0,
+          "percent": 74.90636704119851,
+          "rss_without": 1.1575836902790224,
+          "reduction": 1.1532603113792461
+        },
+        {
+          "id": "perception_translation",
+          "value": 1.0,
+          "percent": 18.726591760299627,
+          "rss_without": 2.083266665599966,
+          "reduction": 0.22757733605830266
+        },
+        {
+          "id": "repeatability_translation",
+          "value": 0.5,
+          "percent": 4.681647940074907,
+          "rss_without": 2.2561028345356955,
+          "reduction": 0.05474116712257304
+        },
+        {
+          "id": "guard_translation",
+          "value": 0.3,
+          "percent": 1.6853932584269662,
+          "rss_without": 2.29128784747792,
+          "reduction": 0.019556154180348617
+        }
+      ],
+      "ci95": {
+        "samples": 10000,
+        "seed": 7,
+        "mean": 2.0190595238241658,
+        "low": 0.5032566368630088,
+        "high": 4.674172171758886
+      },
+      "sources": [
+        {
+          "id": "calibration_translation",
+          "category": "calibration",
+          "metric": "translation_mm",
+          "value": 2.0,
+          "kind": "random",
+          "basis": "std",
+          "distribution": "normal",
+          "sigma": 2.0,
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null
+        },
+        {
+          "id": "perception_translation",
+          "category": "perception",
+          "metric": "translation_mm",
+          "value": 1.0,
+          "kind": "random",
+          "basis": "std",
+          "distribution": "normal",
+          "sigma": 1.0,
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null
+        },
+        {
+          "id": "repeatability_translation",
+          "category": "repeatability",
+          "metric": "translation_mm",
+          "value": 0.5,
+          "kind": "random",
+          "basis": "std",
+          "distribution": "normal",
+          "sigma": 0.5,
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null
+        },
+        {
+          "id": "guard_translation",
+          "category": "other",
+          "metric": "translation_mm",
+          "value": 0.3,
+          "kind": "bounded",
+          "basis": "max",
+          "distribution": "uniform",
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null,
+          "sigma": null
+        }
+      ],
+      "missing_required": [],
+      "optional_missing": [],
+      "tolerance": 4.0,
+      "pass_rss": true,
+      "pass_worst_case": true,
+      "margin": 1.6891559983417315,
+      "budget_ratio": 0.5777110004145671
+    },
+    "rotation_deg": {
+      "metric": "rotation_deg",
+      "n_sources": 2,
+      "n_measured": 2,
+      "n_missing_required": 0,
+      "complete": true,
+      "rss": 0.447213595499958,
+      "worst_case": 0.6000000000000001,
+      "dominant": "calibration_rotation",
+      "contributions": [
+        {
+          "id": "calibration_rotation",
+          "value": 0.4,
+          "percent": 80.0,
+          "rss_without": 0.2,
+          "reduction": 0.24721359549995797
+        },
+        {
+          "id": "perception_rotation",
+          "value": 0.2,
+          "percent": 20.0,
+          "rss_without": 0.4,
+          "reduction": 0.04721359549995796
+        }
+      ],
+      "ci95": {
+        "samples": 10000,
+        "seed": 7,
+        "mean": 0.3847740352374178,
+        "low": 0.06310760178950371,
+        "high": 0.9228347455299329
+      },
+      "sources": [
+        {
+          "id": "calibration_rotation",
+          "category": "calibration",
+          "metric": "rotation_deg",
+          "value": 0.4,
+          "kind": "random",
+          "basis": "std",
+          "distribution": "normal",
+          "sigma": 0.4,
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null
+        },
+        {
+          "id": "perception_rotation",
+          "category": "perception",
+          "metric": "rotation_deg",
+          "value": 0.2,
+          "kind": "random",
+          "basis": "std",
+          "distribution": "normal",
+          "sigma": 0.2,
+          "evidence": "synthetic",
+          "status": "measured",
+          "required": true,
+          "notes": null
+        }
+      ],
+      "missing_required": [],
+      "optional_missing": [],
+      "tolerance": 1.0,
+      "pass_rss": true,
+      "pass_worst_case": true,
+      "margin": 0.552786404500042,
+      "budget_ratio": 0.447213595499958
+    }
+  },
+  "limitations": [
+    "Synthetic input; not a hardware error budget.",
+    "RSS assumes independent sources; correlated sources would be over-counted.",
+    "Worst case is the linear sum of measured magnitudes and is conservative.",
+    "Unmeasured sources are excluded from the totals; a partial budget is not a validated task error.",
+    "A Monte Carlo interval is only reported when every random/bounded source has a distribution.",
+    "The tolerance is a provisional gate unless a physical tolerance experiment has been recorded."
+  ]
+}

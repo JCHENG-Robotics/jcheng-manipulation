@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-17T12:11:52.987345+00:00",
+  "seed": 7,
+  "bootstrap_samples": 10000,
+  "confidence": 0.95,
+  "validation": {
+    "n_input": 48,
+    "n_valid": 48,
+    "n_invalid": 0,
+    "invalid": [],
+    "n_complete_pairs": 24,
+    "incomplete_pairs": []
+  },
+  "methods": {
+    "baseline": {
+      "n": 24,
+      "error": {
+        "n": 24,
+        "mean": 2.14425,
+        "std": 0.5854898543657416,
+        "min": 1.132,
+        "max": 3.127,
+        "ci95_mean": 0.23424472748617517
+      },
+      "successes": 18,
+      "success_rate": 0.75,
+      "failure_codes": {
+        "MISS": 6
+      }
+    },
+    "intervention": {
+      "n": 24,
+      "error": {
+        "n": 24,
+        "mean": 1.1196249999999999,
+        "std": 0.6669077123104293,
+        "min": 0.0,
+        "max": 2.371,
+        "ci95_mean": 0.2668186547789406
+      },
+      "successes": 23,
+      "success_rate": 0.9583333333333334,
+      "failure_codes": {
+        "MISS": 1
+      }
+    }
+  },
+  "paired": {
+    "n_pairs": 24,
+    "n_pairs_with_error": 24,
+    "difference_mm": {
+      "n": 24,
+      "mean": -1.024625,
+      "std": 0.18642443684285037,
+      "min": -1.3039999999999998,
+      "max": -0.5500000000000003,
+      "ci95_mean": 0.07458530848894643
+    },
+    "improvement_mm": 1.024625,
+    "ci95_difference_mm": {
+      "samples": 10000,
+      "seed": 7,
+      "low": -1.0948760416666665,
+      "high": -0.9501656249999999,
+      "mean": -1.024488425
+    },
+    "effect_size_dz": -5.496194690740704,
+    "sign_test": {
+      "wins": 24,
+      "losses": 0,
+      "ties": 0,
+      "p_value": 1.1920928955078125e-07
+    }
+  },
+  "success": {
+    "baseline_rate": 0.75,
+    "intervention_rate": 0.9583333333333334,
+    "difference": 0.20833333333333337,
+    "discordant": {
+      "baseline_only": 1,
+      "intervention_only": 6
+    },
+    "mcnemar_exact_p": 0.125
+  },
+  "randomization": {
+    "baseline_first": 9,
+    "intervention_first": 15
+  },
+  "order_effect": {
+    "groups": {
+      "baseline_first": {
+        "n": 9,
+        "mean": -1.0424444444444445,
+        "std": 0.1366492875128802,
+        "min": -1.262,
+        "max": -0.885,
+        "ci95_mean": 0.08927753450841507
+      },
+      "intervention_first": {
+        "n": 15,
+        "mean": -1.0139333333333334,
+        "std": 0.2147069320414845,
+        "min": -1.3039999999999998,
+        "max": -0.5500000000000003,
+        "ci95_mean": 0.10865669928929572
+      }
+    },
+    "difference_mm": 0.028511111111111154,
+    "note": "observational; not a randomized crossover of time"
+  },
+  "limitations": [
+    "Analysis is only as good as the recorded fixture and measurement.",
+    "The exact sign test ignores effect size; report it with the mean difference and interval.",
+    "McNemar tests paired success only; it does not explain a failure.",
+    "Order-effect estimates are observational, not a randomized crossover of time.",
+    "A fixture is assumed geometrically identical across its pairs."
+  ]
+}

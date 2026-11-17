@@ -21,13 +21,17 @@
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
 | Calibration and visual grasping | **In progress — hand-eye validated, diverse 24-pose set selected, mock visual chain validated** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; next capture uses 24 offline-selected poses (not executed); synthetic marker → grasp → safety E2E passes plan-only; real grasp not started |
-| Error budget and tolerance envelope | **Planned — measurement protocols ready** | Requires measured repeatability, backlash and calibration; dry-run/simulate scripts exist |
+| Error budget and tolerance envelope | **Framework implemented; project budget partial** | `armpi_analysis` RSS/worst-case/Monte-Carlo framework; measured hand-eye + fiducial terms (3.699 mm / 0.682° RSS) but repeatability, backlash, execution, gripper and fixture terms are unmeasured; tolerance is provisional |
+| Paired trial framework | **Implemented, simulated-validated** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no hardware trial |
+| Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
 Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack
 in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
-`reset_servo` motion was verified. The Aurora 930 publishes RGB (8 Hz, `bgr8`)
-and depth (8 Hz, `mono16`, mm). Joint limits are **not measured** and the IMU is
+`reset_servo` motion was verified. The Aurora 930 publishes RGB at about 12 Hz
+cross-host (`bgr8`) and depth at 8.2 Hz in-container (`mono16`, mm); an
+in-container RGB subscriber undercounts to ~8 Hz, so the cross-host number is
+the sensor rate. Joint limits are **not measured** and the IMU is
 not publishing. The chessboard hand-eye is **validated** with 14 poses and
 measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter, a
 3.29 mm / 0.43° held-out final base and 3.41 mm / 0.44° leave-one-out std.
@@ -43,8 +47,11 @@ with zero false detections on 8 real frames. The shipped vendor
 Baseline A. The grasp-candidate search remains mock-validated. On 2026-11-17
 Session 3, the fiducial → grasp bridge and a safety veto were added and a
 synthetic marker → localizer → grasp search → safety E2E passed (3/3 plans
-approved, plan-only). The measurement protocols have dry-run/simulate
-validation only. A real visual grasp is still not started.
+approved, plan-only). Session 4 added the error-budget framework, the paired
+trial recorder and a read-only host/DDS benchmark; the project budget remains
+partial and no paired hardware trial exists. The measurement protocols still
+have dry-run/simulate validation only. A real visual grasp is still not
+started.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal
@@ -169,6 +176,14 @@ fiducial detection
 ```
 
 ## 8. Milestone D — Error Budget
+
+Status (2026-11-17 Session 4): the aggregation framework, partial project
+budget, paired-trial recorder and host benchmark are implemented. The budget is
+**partial** because repeatability, backlash, grasp execution, gripper placement
+and fixture pose are unmeasured. The 5 mm / 2° tolerance is a provisional gate,
+not a measured physical tolerance. See
+[`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) and
+[`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md).
 
 Measure:
 
