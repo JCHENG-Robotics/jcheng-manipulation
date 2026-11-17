@@ -79,6 +79,21 @@
     <disable_collisions link1="l_out_link" link2="link4" reason="Never"/>
     <disable_collisions link1="l_out_link" link2="link5" reason="Never"/>
     <disable_collisions link1="l_out_link" link2="r_out_link" reason="Default"/>
+    <!-- The two fingers are mechanically independent. The vendor collision
+         meshes overlap at some r_joint values, which makes the closed/open
+         gripper look self-colliding and blocks arm planning. These are not
+         physical finger-finger collisions. -->
+    <disable_collisions link1="l_in_link" link2="r_in_link" reason="Never"/>
+    <disable_collisions link1="l_in_link" link2="r_link" reason="Never"/>
+    <disable_collisions link1="l_in_link" link2="r_out_link" reason="Never"/>
+    <disable_collisions link1="l_link" link2="r_in_link" reason="Never"/>
+    <disable_collisions link1="l_link" link2="r_out_link" reason="Never"/>
+    <disable_collisions link1="l_out_link" link2="r_in_link" reason="Never"/>
+    <disable_collisions link1="l_out_link" link2="r_link" reason="Never"/>
+    <disable_collisions link1="gripper_link" link2="l_out_link" reason="Never"/>
+    <disable_collisions link1="gripper_link" link2="r_out_link" reason="Never"/>
+    <disable_collisions link1="l_link" link2="l_in_link" reason="Never"/>
+    <disable_collisions link1="r_link" link2="r_in_link" reason="Never"/>
     <disable_collisions link1="link1" link2="link2" reason="Adjacent"/>
     <disable_collisions link1="link1" link2="link3" reason="Never"/>
     <disable_collisions link1="link2" link2="link3" reason="Adjacent"/>
