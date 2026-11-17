@@ -17,7 +17,7 @@
 | Fiducial target localization | **Implemented, synthetic-validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; ROS TF check 0.44 mm / 0.03° |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
-| Calibration and visual grasping | **In progress** | First chessboard hand-eye baseline (8 poses; 13.4 mm / 2.06° board consistency; ~101° optical/body frame difference); open-loop repeatability limit; no real grasp |
+| Calibration and visual grasping | **In progress — hand-eye validated** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.3° optical/body roll; integration and real grasp not started |
 | Error budget and tolerance envelope | **Planned** | Requires measured repeatability, backlash and calibration |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
@@ -25,12 +25,13 @@ Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack
 in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
 `reset_servo` motion was verified. The Aurora 930 publishes RGB (8 Hz, `bgr8`)
 and depth (8 Hz, `mono16`, mm). Joint limits are **not measured** and the IMU is
-not publishing. A first chessboard hand-eye baseline exists (8 poses,
-13.4 mm / 2.06° board consistency); it suggests the image optical frame is
-rolled ~101° relative to the vendor static body frame and is limited by
-open-loop arm repeatability. It is **not yet validated**. The Phase 2
+not publishing. The chessboard hand-eye is **validated** with 14 poses and
+measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter and a
+3.29 mm / 0.43° held-out final base. The image optical frame is rolled ~89.3°
+relative to the vendor static body frame, as expected. The Phase 2
 grasp-candidate search and fiducial localization remain mock/synthetic-validated;
-no real visual grasp has been executed.
+the calibrated transform is not yet wired into the grasp pipeline and no real
+visual grasp has been executed.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal

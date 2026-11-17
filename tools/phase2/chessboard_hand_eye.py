@@ -7,15 +7,20 @@ are used by ArmKinematics):
     source /opt/ros/jazzy/setup.bash
     source ros2_ws/install/setup.bash
     python3 tools/phase2/chessboard_hand_eye.py \
-        --samples ~/jcheng/calibration/20261117/chessboard_calib_20261117/samples.json \
-        --output evidence/calibration/20261117/calibration_20261117.json
+        --samples ~/jcheng/calibration/20261117/chessboard_calib_servo_20261117/samples.json \
+        --output evidence/calibration/20261117/calibration_servo_20261117.json
 
 The camera is rigidly mounted on link4; the hand-eye result is
-``T_link4_camera`` (camera frame in link4). It is compared with the live static
-TF ``link4 -> rgb_camera_link``. The board is fixed in the world, so the
-per-sample board pose in base_link should be constant; its spread is the main
-validation metric. This is a calibration result, not an absolute metrology
-claim.
+``T_link4_camera`` (camera frame in link4). The board is fixed in the world, so
+the per-sample board pose in base_link should be constant; its spread is the
+main validation metric. When the dataset has ``measured_joints`` (bus-servo
+readback), FK uses those instead of the cached joint_states commands.
+
+The vendor static TF ``link4 -> rgb_camera_link`` is a **body** frame while PnP
+returns the camera **optical** frame, so the static TF comparison is
+informational (a ~90 deg roll difference is expected) and is not a pass gate.
+A ``final_base`` sample, when present, is held out of the fit and checked
+separately. This is a calibration result, not an absolute metrology claim.
 """
 
 import argparse
@@ -98,6 +103,29 @@ def board_pose_stats(transforms):
     }
 
 
+def sample_joints(sample):
+    """Return the joint angles used for FK.
+
+    Datasets captured after 2026-11-17 include ``measured_joints`` read back
+    from the bus servos. They are the physical servo positions and are more
+    accurate than the controller's cached commands in ``joints``.
+    """
+    measured = sample.get('measured_joints')
+    if measured and len(measured) >= 4:
+        return measured
+    return sample['joints']
+
+
+def link4_pose(kinematics, joints):
+    """Return T_base_link4 for one joint vector."""
+    frame = kinematics.forward(joints[:4])
+    rotation = np.array([
+        [frame.M[i, j] for j in range(3)] for i in range(3)
+    ])
+    translation = np.array([frame.p.x(), frame.p.y(), frame.p.z()])
+    return make_transform(rotation, translation)
+
+
 def link4_poses(samples):
     """Compute T_base_link4 for each sample from its arm joints."""
     kinematics = ArmKinematics(tip_link='link4')
@@ -105,15 +133,10 @@ def link4_poses(samples):
         raise RuntimeError(
             'unexpected link4 chain joints: {}'.format(
                 kinematics.joint_names))
-    poses = []
-    for sample in samples:
-        frame = kinematics.forward(sample['joints'][:4])
-        rotation = np.array([
-            [frame.M[i, j] for j in range(3)] for i in range(3)
-        ])
-        translation = np.array([frame.p.x(), frame.p.y(), frame.p.z()])
-        poses.append(make_transform(rotation, translation))
-    return poses
+    return [
+        link4_pose(kinematics, sample_joints(sample))
+        for sample in samples
+    ]
 
 
 def board_poses(samples):
@@ -160,6 +183,35 @@ def refine_intrinsics(samples):
     }
 
 
+def heldout_final_base(samples, t_link4_camera, mean_board,
+                       max_rms=MAX_BOARD_RMS_PX):
+    """Check final-base samples that were excluded from the hand-eye fit."""
+    held = [
+        sample for sample in samples
+        if sample.get('final_base') and sample.get('board') is not None
+        and sample['board']['rms_px'] <= max_rms
+    ]
+    if not held:
+        return None
+    kinematics = ArmKinematics(tip_link='link4')
+    translation_errors = []
+    rotation_errors = []
+    for sample in held:
+        t_base_board = (
+            link4_pose(kinematics, sample_joints(sample))
+            @ t_link4_camera
+            @ board_poses([sample])[0])
+        translation_errors.append(float(np.linalg.norm(
+            t_base_board[:3, 3] - mean_board[:3, 3])))
+        rotation_errors.append(rotation_angle_deg(
+            mean_board[:3, :3].T @ t_base_board[:3, :3]))
+    return {
+        'sample_indices': [sample['index'] for sample in held],
+        'translation_error_m': max(translation_errors),
+        'rotation_error_deg': max(rotation_errors),
+    }
+
+
 def main():
     """Run the solver and write a JSON report."""
     parser = argparse.ArgumentParser()
@@ -180,6 +232,26 @@ def main():
     if len(usable) < 5:
         raise RuntimeError(
             'only {} usable samples (need >= 5)'.format(len(usable)))
+
+    measured_samples = [
+        sample for sample in usable if sample.get('measured_joints')
+    ]
+    joint_source = {
+        'measured_servo_samples': len(measured_samples),
+        'total_samples': len(usable),
+        'command_vs_measured_max_deg': None,
+        'command_vs_measured_rms_deg': None,
+    }
+    if measured_samples:
+        differences = np.degrees(np.abs(np.array([
+            np.asarray(sample['measured_joints'][:4], dtype=np.float64)
+            - np.asarray(sample['joints'][:4], dtype=np.float64)
+            for sample in measured_samples
+        ])))
+        joint_source['command_vs_measured_max_deg'] = float(
+            differences.max())
+        joint_source['command_vs_measured_rms_deg'] = float(
+            np.sqrt(np.mean(np.square(differences))))
 
     t_base_link4 = link4_poses(usable)
     t_cam_board = board_poses(usable)
@@ -236,14 +308,22 @@ def main():
     selected_result = valid_methods[selected]
 
     intrinsics = refine_intrinsics(usable)
+    heldout = heldout_final_base(
+        dataset['samples'],
+        np.asarray(selected_result['T_link4_camera'], dtype=np.float64),
+        np.asarray(
+            selected_result['board_mean_transform'], dtype=np.float64))
     success = (
         selected_result['board_translation_std_m'] <= 0.005
         and selected_result['board_rotation_std_deg'] <= 2.0
         and intrinsics['rms_px'] <= 1.0
-        and selected_result[
-            'difference_from_static_translation_m'] <= 0.02
-        and selected_result[
-            'difference_from_static_rotation_deg'] <= 5.0
+        and (
+            heldout is None
+            or (
+                heldout['translation_error_m'] <= 0.005
+                and heldout['rotation_error_deg'] <= 2.0
+            )
+        )
     )
 
     report = {
@@ -257,6 +337,7 @@ def main():
         },
         'samples_total': len(dataset['samples']),
         'samples_used': [sample['index'] for sample in usable],
+        'joint_source': joint_source,
         'sample_rms_px': {
             str(sample['index']): sample['board']['rms_px']
             for sample in usable
@@ -269,6 +350,10 @@ def main():
         },
         'static_tf_link4_rgb': {
             'T': STATIC_TF_LINK4_RGB.tolist(),
+            'role': (
+                'informational: the vendor static TF is a body frame, while '
+                'the PnP pose is in the camera optical frame; a ~90 deg '
+                'rotation difference is expected'),
             'difference_translation_m': selected_result[
                 'difference_from_static_translation_m'],
             'difference_rotation_deg': selected_result[
@@ -284,13 +369,14 @@ def main():
                 selected_result['board_max_translation_error_m'],
             'board_max_rotation_error_deg':
                 selected_result['board_max_rotation_error_deg'],
+            'heldout_final_base': heldout,
             'success': bool(success),
             'criteria': {
                 'board_translation_std_m': 0.005,
                 'board_rotation_std_deg': 2.0,
                 'intrinsics_rms_px': 1.0,
-                'static_translation_m': 0.02,
-                'static_rotation_deg': 5.0,
+                'heldout_final_base_translation_m': 0.005,
+                'heldout_final_base_rotation_deg': 2.0,
             },
         },
     }
@@ -313,9 +399,15 @@ def main():
             selected_result['board_max_translation_error_m'],
             selected_result['board_max_rotation_error_deg']))
     print(
-        'STATIC diff: dt={:.4f} m dr={:.3f} deg'.format(
+        'STATIC diff (informational, body vs optical): '
+        'dt={:.4f} m dr={:.3f} deg'.format(
             selected_result['difference_from_static_translation_m'],
             selected_result['difference_from_static_rotation_deg']))
+    if heldout is not None:
+        print(
+            'HELDOUT final base: dt={:.4f} m dr={:.3f} deg'.format(
+                heldout['translation_error_m'],
+                heldout['rotation_error_deg']))
     print(
         'INTRINSICS driver fx={:.3f} fy={:.3f}; refined fx={:.3f} '
         'fy={:.3f}; rms={:.3f}px'.format(

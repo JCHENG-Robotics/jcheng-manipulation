@@ -31,8 +31,8 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Fiducial target localization | Implemented, synthetic-validated | AprilTag 36h11; 5/5 synthetic poses, max 1.82 mm / 1.49°; ROS TF check 0.44 mm / 0.03° |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
 | Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
-| Camera / calibration | **Camera + first hand-eye baseline (not validated)** | Aurora 930 RGB/depth live; 8-pose chessboard fit 13.4 mm / 2.06°; ~101° optical/body difference; open-loop repeatability limit |
-| Visual grasping | In progress | perception + grasp search + first camera calibration; no validated calibration or real grasp |
+| Camera / calibration | **Camera + validated hand-eye** | Aurora 930 RGB/depth live; 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.3° optical/body roll |
+| Visual grasping | In progress | perception + grasp search + validated camera calibration; no real grasp yet |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-Mock + read-only hardware | 46 backend tests pass; frontend builds; E7 gateway hardware-verified read-only; hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |

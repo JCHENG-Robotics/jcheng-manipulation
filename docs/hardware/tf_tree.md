@@ -1,8 +1,11 @@
 # TF Tree — live and model
 
 > Status: the arm + camera TF chain was **verified live on 2026-11-17**. The
-> camera **extrinsic accuracy is not measured**; the project
-> `camera_optical_frame` is model-only and does not exist on the robot.
+> camera **optical extrinsic is validated** by the 14-pose chessboard hand-eye
+> (2.94 mm / 0.39° board scatter). The project `camera_optical_frame` is
+> model-only and does not exist on the robot; the live
+> `depth_cam_color_optical_frame` is identity to `rgb_camera_link` and is a
+> body frame, not the OpenCV/PnP optical frame.
 
 ## Live tree (2026-11-17)
 
@@ -37,11 +40,13 @@ Frame facts:
   therefore pose-dependent (joint1–joint4).
 
 > **Calibration note (2026-11-17):** the live static TF
-> `link4 → rgb_camera_link` is the vendor **body** frame. A first chessboard
-> hand-eye fit found the image/PnP optical frame rolled roughly **101°** about
-> the optical axis relative to it, with a 13.4 mm / 2.06° board-consistency
-> residual. The fit is not yet validated; use the calibrated transform for
-> perception and keep the static TF labelled as the body-frame nominal. See
+> `link4 → rgb_camera_link` is the vendor **body** frame. The validated
+> chessboard hand-eye gives `T_link4_camera` for the OpenCV/PnP optical frame:
+> translation `[-0.0348, -0.0091, 0.0586] m`, RPY
+> `[0.951, -0.058, -89.789]°`, board scatter **2.94 mm / 0.39°**, held-out
+> final base 3.29 mm / 0.43°. `inv(static_tf) @ T_link4_camera` is an
+> **89.34° rotation about -z**, so the static TF must not be used as the
+> optical extrinsic. See
 > [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
 
 ## Live transform snapshots
@@ -96,7 +101,7 @@ world (MoveIt virtual joint, fixed)
 | `base_link → camera_optical_frame` | `[V]` **does not exist** (negative control) |
 | `world → base_link` real transform | `[U]` (MoveIt uses a fixed 0,0,0 virtual joint) |
 | Joint names match the real robot | `[V]` `/joint_states` |
-| Camera extrinsic accuracy | **First hand-eye estimate** (13.4 mm / 2.06° board residual; ~101° optical/body difference); not validated |
+| Camera optical extrinsic | **Validated** chessboard hand-eye: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; 89.34° body/optical roll |
 
 ## Commands
 
@@ -108,6 +113,9 @@ ros2 run tf2_ros tf2_echo base_link depth_cam_color_optical_frame
 ros2 run tf2_ros tf2_echo base_link camera_optical_frame   # expected to fail
 ```
 
-For RGB fiducial PnP use the `rgb_camera_link` frame (matching the RGB
-`camera_info`). The `depth_cam_color_optical_frame` is identity to it. Do not
-use `camera_optical_frame` on the real robot.
+RGB `camera_info` is tagged `rgb_camera_link`, but an RGB PnP pose is in the
+**OpenCV optical** frame. The live `depth_cam_color_optical_frame` is identity
+to `rgb_camera_link`, so it is a body frame, not the PnP optical frame. Use the
+calibrated `T_link4_camera` directly, or publish the body→optical transform
+(89.34° about -z, `[15.4, 10.0, -28.3] mm`) as a new frame. Do not use the
+model-only `camera_optical_frame` on the real robot.

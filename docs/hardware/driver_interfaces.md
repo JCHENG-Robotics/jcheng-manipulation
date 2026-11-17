@@ -2,7 +2,8 @@
 
 > Status: source audit plus **read-only live queries on 2026-11-17**. No servo
 > target was changed by this audit. `joint_states` and `servo_states` are cached
-> commands, not measured encoder feedback.
+> commands, not measured encoder feedback. The bus-servo `get_state` service is
+> a hardware position read and is used by the hand-eye calibration.
 
 ## Live interfaces
 
@@ -16,7 +17,7 @@
 | `/arm_controller/follow_joint_trajectory` | action | one server (`/controller_manager`), one client (`/moveit_simple_controller_manager`) | `[V]` |
 | `/gripper_controller/follow_joint_trajectory` | action | one server | `[V]` |
 | `/servo_controller` | topic | pulse command path | `[S]` |
-| `ros_robot_controller/bus_servo/get_state` | service | on-demand read; can block the single-threaded driver | `[S]` |
+| `ros_robot_controller/bus_servo/get_state` | service | `[V]` 2026-11-17: read arm IDs 2–6; positions differ from the cached commands by up to 8 pulses (1.9°); used by the hand-eye calibration. Each `get_position` read logs at INFO and can block the single-threaded driver. | `[V]` |
 | `/kinematics` services | services | vendor IK/pose services | `[S]` |
 
 ## Camera interfaces (when `vision.launch.py` runs)

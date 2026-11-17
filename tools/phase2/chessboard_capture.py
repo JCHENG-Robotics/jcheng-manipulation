@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 """Capture chessboard samples for camera/hand-eye calibration.
 
-Run this inside the robot container (it has OpenCV and the vendor
-FollowJointTrajectory action server):
+Run this inside the robot container (it has OpenCV, the vendor
+FollowJointTrajectory action server and the bus-servo state service):
 
     sudo docker cp tools/phase2/chessboard_capture.py ArmPiUltra:/tmp/
     sudo docker exec -it -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
-      'source ~/.zshrc >/dev/null 2>&1; python3 /tmp/chessboard_capture.py --test'
+      'source ~/.zshrc >/dev/null 2>&1; python3 /tmp/chessboard_capture.py \
+         --output-dir /tmp/chessboard_calib_servo_20261117 \
+         --base-pose 0.0,0.59888,-1.25664,-0.71209 \
+         --delta 0.12 --pre-offset 0.08 --pre-joint1-only --final-base'
 
-The script moves the arm through small joint offsets around the current pose,
-captures an RGB frame after each move, detects the 11x8 chessboard (20 mm
-squares), and writes images + a JSON dataset. Raw images stay in the private
-output directory; do not commit them if they contain people.
+The script moves the arm through small joint offsets around a capture base
+pose, waits for the arm and auto-exposure to settle, captures three RGB frames
+per pose, detects the 11x8 chessboard (20 mm squares) with IPPE + LM, and reads
+the physical bus-servo positions through
+``/ros_robot_controller/bus_servo/get_state``. The dataset stores both the
+commanded joint_states and ``measured_joints``; the solver prefers the measured
+values because the controller's joint_states are cached commands. Raw images
+stay in the private output directory; do not commit them if they contain
+people.
 """
 
 import argparse
@@ -25,6 +33,8 @@ import numpy as np
 import rclpy
 from builtin_interfaces.msg import Duration
 from control_msgs.action import FollowJointTrajectory
+from ros_robot_controller_msgs.msg import GetBusServoCmd
+from ros_robot_controller_msgs.srv import GetBusServoState
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
@@ -32,6 +42,16 @@ from sensor_msgs.msg import CameraInfo, Image, JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 ARM_JOINTS = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
+# Vendor servo_controller.yaml: joint1..joint5 = IDs 6,5,4,3,2.
+SERVO_IDS = {
+    'joint1': 6,
+    'joint2': 5,
+    'joint3': 4,
+    'joint4': 3,
+    'joint5': 2,
+}
+SERVO_INIT_PULSE = 500
+RADIANS_PER_TICK = 240.0 / 360.0 * (2.0 * 3.141592653589793) / 1000.0
 BOARD_COLS = 11
 BOARD_ROWS = 8
 SQUARE_M = 0.020
@@ -58,6 +78,41 @@ def image_to_bgr(msg):
         return cv2.cvtColor(
             array.reshape(msg.height, msg.width, 3), cv2.COLOR_RGB2BGR)
     raise ValueError('unsupported image encoding {}'.format(msg.encoding))
+
+
+def pulses_to_joints(pulses):
+    """Convert raw bus-servo pulses to joint radians (vendor convention).
+
+    ``pulses`` maps servo ID to the position read from the servo. Joint3 is
+    mounted reversed in the vendor ``servo_controller.yaml`` (min 1000,
+    max 500), so its sign is inverted.
+    """
+    joints = {}
+    for name, servo_id in SERVO_IDS.items():
+        pulse = pulses.get(servo_id)
+        if pulse is None:
+            continue
+        if name == 'joint3':
+            joints[name] = (SERVO_INIT_PULSE - pulse) * RADIANS_PER_TICK
+        else:
+            joints[name] = (pulse - SERVO_INIT_PULSE) * RADIANS_PER_TICK
+    return joints
+
+
+def median_pulses(readings):
+    """Return the per-servo median of several pulse readings."""
+    ids = set()
+    for reading in readings:
+        ids.update(reading)
+    out = {}
+    for servo_id in ids:
+        values = [
+            reading[servo_id] for reading in readings
+            if servo_id in reading
+        ]
+        if values:
+            out[servo_id] = int(np.median(values))
+    return out
 
 
 def detect_board(image, camera_matrix, dist_coeffs):
@@ -125,7 +180,7 @@ class ChessboardCapture(Node):
     """Move the arm, capture frames and detect the chessboard."""
 
     def __init__(self, output_dir, duration, settle=0.5, warmup=3,
-                 repeats=3):
+                 repeats=3, servo_reads=3):
         """Create subscriptions and the arm action client."""
         super().__init__('chessboard_calib_capture')
         self.output_dir = output_dir
@@ -133,6 +188,7 @@ class ChessboardCapture(Node):
         self.settle = settle
         self.warmup = warmup
         self.repeats = repeats
+        self.servo_reads = servo_reads
         self.joint_state = None
         self.camera_info = None
         self.latest_image = None
@@ -148,6 +204,9 @@ class ChessboardCapture(Node):
         self.client = ActionClient(
             self, FollowJointTrajectory,
             '/arm_controller/follow_joint_trajectory')
+        self.servo_client = self.create_client(
+            GetBusServoState,
+            '/ros_robot_controller/bus_servo/get_state')
 
     def _joint_cb(self, msg):
         self.joint_state = msg
@@ -191,6 +250,38 @@ class ChessboardCapture(Node):
                 abs(value - expected) <= tolerance
                 for value, expected in zip(self.arm_positions(), target))
         return self.spin_until(close, timeout)
+
+    def read_servo_pulses(self):
+        """Read the arm bus-servo positions from the controller service."""
+        if not self.servo_client.wait_for_service(timeout_sec=2.0):
+            raise RuntimeError('bus servo state service not available')
+        request = GetBusServoState.Request()
+        for servo_id in sorted(SERVO_IDS.values()):
+            cmd = GetBusServoCmd()
+            cmd.id = int(servo_id)
+            cmd.get_position = 1
+            request.cmd.append(cmd)
+        future = self.servo_client.call_async(request)
+        rclpy.spin_until_future_complete(self, future, timeout_sec=3.0)
+        response = future.result()
+        if response is None or not response.success:
+            raise RuntimeError('bus servo state read failed')
+        pulses = {}
+        for cmd, state in zip(request.cmd, response.state):
+            if state.position:
+                pulses[int(cmd.id)] = int(state.position[0])
+        if len(pulses) != len(request.cmd):
+            raise RuntimeError(
+                'partial bus servo read: {} of {}'.format(
+                    len(pulses), len(request.cmd)))
+        return pulses
+
+    def sample_servo_pulses(self):
+        """Read the servo positions several times and take the median."""
+        readings = [
+            self.read_servo_pulses() for _ in range(max(1, self.servo_reads))
+        ]
+        return median_pulses(readings)
 
     def move_to(self, target, duration=None):
         """Send one FollowJointTrajectory point and wait for completion."""
@@ -238,6 +329,7 @@ class ChessboardCapture(Node):
             if not self.spin_until(
                     lambda: self.latest_image_wall > start, 2.0):
                 raise RuntimeError('no fresh image during warmup')
+        servo_start = self.sample_servo_pulses()
         detections = []
         images = []
         for _ in range(max(1, self.repeats)):
@@ -255,10 +347,36 @@ class ChessboardCapture(Node):
                 os.path.join(self.output_dir, image_name), image)
         image_name = 'sample_{:02d}_r0.png'.format(index)
         board = combine_detections(detections)
+        servo_end = self.sample_servo_pulses()
+        command_joints = self.arm_positions()
+        start_joints = pulses_to_joints(servo_start)
+        end_joints = pulses_to_joints(servo_end)
+        measured_joints = [
+            float(0.5 * (start_joints[name] + end_joints[name]))
+            for name in ARM_JOINTS
+        ]
+        servo_shift = max(
+            abs(servo_start[servo_id] - servo_end[servo_id])
+            for servo_id in SERVO_IDS.values())
         sample = {
             'index': index,
             'target_joints': [float(value) for value in target],
-            'joints': self.arm_positions(),
+            'joints': command_joints,
+            'command_joints': command_joints,
+            'servo_pulses_start': {
+                str(key): value for key, value in servo_start.items()
+            },
+            'servo_pulses_end': {
+                str(key): value for key, value in servo_end.items()
+            },
+            'measured_joints_start': [
+                float(start_joints[name]) for name in ARM_JOINTS
+            ],
+            'measured_joints_end': [
+                float(end_joints[name]) for name in ARM_JOINTS
+            ],
+            'measured_joints': measured_joints,
+            'servo_shift_pulses': int(servo_shift),
             'joint_names': list(self.joint_state.name),
             'joint_positions': [
                 float(value) for value in self.joint_state.position
@@ -313,6 +431,7 @@ def main():
     parser.add_argument('--settle', type=float, default=0.5)
     parser.add_argument('--warmup', type=int, default=3)
     parser.add_argument('--repeats', type=int, default=3)
+    parser.add_argument('--servo-reads', type=int, default=3)
     parser.add_argument('--delta', type=float, default=0.08)
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--final-base', action='store_true')
@@ -338,7 +457,7 @@ def main():
     rclpy.init()
     node = ChessboardCapture(
         args.output_dir, args.duration, args.settle, args.warmup,
-        args.repeats)
+        args.repeats, args.servo_reads)
     samples = []
     base = None
     try:
@@ -428,9 +547,11 @@ def main():
                 print('  board NOT detected')
             else:
                 print(
-                    '  board ok rms={:.3f}px spread={:.2f}mm tvec={}'.format(
+                    '  board ok rms={:.3f}px spread={:.2f}mm shift={}p '
+                    'tvec={}'.format(
                         board['rms_px'],
                         1000.0 * board.get('translation_spread_m', 0.0),
+                        sample.get('servo_shift_pulses', -1),
                         [round(value, 4) for value in board['tvec']]))
         if args.check_only:
             for index in range(args.count):
@@ -441,11 +562,12 @@ def main():
                     print('CHECK {} board NOT detected'.format(index))
                 else:
                     print(
-                        'CHECK {} rms={:.3f}px spread={:.2f}mm tvec={}'
-                        .format(
+                        'CHECK {} rms={:.3f}px spread={:.2f}mm shift={}p '
+                        'tvec={}'.format(
                             index, board['rms_px'],
                             1000.0 * board.get(
                                 'translation_spread_m', 0.0),
+                            sample.get('servo_shift_pulses', -1),
                             [round(value, 4) for value in board['tvec']]))
     finally:
         if base is not None and not args.check_only:

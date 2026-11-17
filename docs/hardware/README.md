@@ -4,7 +4,8 @@
 > Ethernet; ROS 2 discovery/DDS over the office WiFi (`wlan0` ↔ `wlp4s0`).
 > Read-only queries, one supervised `reset_servo` motion and one plan-only
 > `camera_forward` check. Camera RGB/depth streams and intrinsics are verified.
-> Joint limits, the IMU and the camera hand-eye extrinsic remain open. `[U]`
+> The camera optical extrinsic is **validated** (14-pose chessboard hand-eye,
+> 2.94 mm / 0.39° board scatter). Joint limits and the IMU remain open. `[U]`
 > items must not be treated as measured.
 
 `MASTER_PLAN_V3_PRIVATE.md` §6 requires this folder before Phase 1.
@@ -28,6 +29,7 @@
 | Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` verified; `camera_forward` plan-only verified |
 | Camera | Aurora 930; RGB 8.0 Hz `bgr8`, depth 8.2 Hz `mono16` (mm); intrinsics read |
 | TF | `base_link → … → rgb_camera_link` / `depth_camera_link` verified; no `camera_optical_frame` |
+| Camera optical extrinsic | **Validated** 14-pose chessboard hand-eye: 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43° |
 | Joint limits | **not measured**; two command snapshots recorded |
 | IMU | topic exists but no messages observed |
 | Battery | 7.651 V latest |
@@ -39,4 +41,6 @@ Rules:
 2. `[U]` cannot be promoted to `Verified` without a command/log/photo.
 3. Simulation limits are **provisional**; they are not mechanical limits.
 4. `joint_states` and `servo_states` are cached commands, not measured encoder
-   feedback.
+   feedback. The separate
+   `/ros_robot_controller/bus_servo/get_state` service does read the servo
+   position register and is used by the hand-eye calibration.

@@ -44,6 +44,9 @@
 - **Cached commands, not feedback.** `/joint_states` and
   `/controller_manager/servo_states` echo the last commanded values; the servo
   `voltage` field is 0 (not populated). Do not treat them as encoder feedback.
+  The separate `/ros_robot_controller/bus_servo/get_state` service reads the
+  servo position register and is used by the hand-eye calibration; see
+  [`measured_joint_limits.md`](measured_joint_limits.md).
 - **Battery.** 7.651 V is usable but below the earlier 7.704 V. Charge before
   long motion trials and avoid charging while the arm is moving.
 - **DDS over WiFi.** The container's CycloneDDS is bound to `wlan0` only; the

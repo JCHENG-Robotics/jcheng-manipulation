@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "calibration": "calibration_servo_20261117.json",
+  "dataset": "dataset_servo_20261117.json",
+  "board_full_fit": {
+    "samples": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14
+    ],
+    "translation_std_m": 0.002939430854894686,
+    "rotation_std_deg": 0.39307017717188136,
+    "max_translation_m": 0.0054433327472645275,
+    "max_rotation_deg": 0.7393567544055367,
+    "per_sample": [
+      {
+        "index": 0,
+        "translation_error_m": 0.003420115701803587,
+        "rotation_error_deg": 0.4072200858342511
+      },
+      {
+        "index": 1,
+        "translation_error_m": 0.003429897092793774,
+        "rotation_error_deg": 0.44508297792690465
+      },
+      {
+        "index": 2,
+        "translation_error_m": 0.0054433327472645275,
+        "rotation_error_deg": 0.7094100278765114
+      },
+      {
+        "index": 3,
+        "translation_error_m": 0.0007748634781577603,
+        "rotation_error_deg": 0.13661348281042032
+      },
+      {
+        "index": 4,
+        "translation_error_m": 0.0017660630673290117,
+        "rotation_error_deg": 0.25548619557493296
+      },
+      {
+        "index": 5,
+        "translation_error_m": 0.0011058470391368486,
+        "rotation_error_deg": 0.09473164108330501
+      },
+      {
+        "index": 6,
+        "translation_error_m": 0.0020531275134090983,
+        "rotation_error_deg": 0.18902123342792237
+      },
+      {
+        "index": 7,
+        "translation_error_m": 0.0009462879031654463,
+        "rotation_error_deg": 0.17298636452730845
+      },
+      {
+        "index": 8,
+        "translation_error_m": 0.002156874040422424,
+        "rotation_error_deg": 0.24025877568066184
+      },
+      {
+        "index": 9,
+        "translation_error_m": 0.0005555241119787092,
+        "rotation_error_deg": 0.14333402845380536
+      },
+      {
+        "index": 10,
+        "translation_error_m": 0.004228110997116859,
+        "rotation_error_deg": 0.7393567544055367
+      },
+      {
+        "index": 12,
+        "translation_error_m": 0.003635620450205674,
+        "rotation_error_deg": 0.41601758233968766
+      },
+      {
+        "index": 13,
+        "translation_error_m": 0.0011703585412881203,
+        "rotation_error_deg": 0.1297772014026499
+      },
+      {
+        "index": 14,
+        "translation_error_m": 0.004515982945688434,
+        "rotation_error_deg": 0.567868592724409
+      }
+    ]
+  },
+  "heldout_final_base": {
+    "sample_index": 15,
+    "translation_error_m": 0.0032876710842459204,
+    "rotation_error_deg": 0.4245238983654434
+  },
+  "cross_validation": {
+    "even": {
+      "TSAI": {
+        "train_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "test_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "heldout_translation_std_m": 0.0025390179384720385,
+        "heldout_rotation_std_deg": 0.31499375663807644,
+        "heldout_max_translation_m": 0.003992910663819449,
+        "heldout_max_rotation_deg": 0.5111934918827553
+      },
+      "PARK": {
+        "train_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "test_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "heldout_translation_std_m": 0.0025146772451530956,
+        "heldout_rotation_std_deg": 0.30459772523943657,
+        "heldout_max_translation_m": 0.003965425338876145,
+        "heldout_max_rotation_deg": 0.4965279753152541
+      },
+      "HORAUD": {
+        "train_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "test_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "heldout_translation_std_m": 0.002514638348948274,
+        "heldout_rotation_std_deg": 0.3045867524264746,
+        "heldout_max_translation_m": 0.003965264087288603,
+        "heldout_max_rotation_deg": 0.49650616167795925
+      }
+    },
+    "odd": {
+      "TSAI": {
+        "train_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "test_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "heldout_translation_std_m": 0.0031621901044684717,
+        "heldout_rotation_std_deg": 0.4228904082968463,
+        "heldout_max_translation_m": 0.004903584609885653,
+        "heldout_max_rotation_deg": 0.6665976424531664
+      },
+      "PARK": {
+        "train_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "test_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "heldout_translation_std_m": 0.0031904785181811925,
+        "heldout_rotation_std_deg": 0.42504578331665577,
+        "heldout_max_translation_m": 0.00496444954185479,
+        "heldout_max_rotation_deg": 0.6658975232020308
+      },
+      "HORAUD": {
+        "train_indices": [
+          1,
+          3,
+          5,
+          7,
+          9,
+          12,
+          14
+        ],
+        "test_indices": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          13
+        ],
+        "heldout_translation_std_m": 0.0031905357127612883,
+        "heldout_rotation_std_deg": 0.42505242523849185,
+        "heldout_max_translation_m": 0.004964604335688691,
+        "heldout_max_rotation_deg": 0.6658991387083721
+      }
+    }
+  },
+  "static_tf_relation": {
+    "note": "inv(static_tf_link4_rgb) @ T_link4_camera; a ~90 deg roll about -z is the expected body/optical difference",
+    "angle_deg": 89.33914025533097,
+    "axis": [
+      0.011395708670782883,
+      -0.015347604175360179,
+      -0.9998172777412716
+    ],
+    "translation_m": [
+      0.015358811501900264,
+      0.009974228242248017,
+      -0.02830270527221504
+    ],
+    "rpy_deg": [
+      1.5214118593941623,
+      -0.23630130265281782,
+      -89.33091720431858
+    ]
+  },
+  "method_agreement": {
+    "TSAI": {
+      "translation_m": [
+        -0.0348444217248839,
+        -0.009063734133950539,
+        0.0585736292974927
+      ],
+      "rpy_deg": [
+        0.950537297527167,
+        -0.05774699566248543,
+        -89.78866806954503
+      ],
+      "board_translation_std_m": 0.002939430854894686,
+      "board_rotation_std_deg": 0.39307017717188136
+    },
+    "PARK": {
+      "translation_m": [
+        -0.034323183532789736,
+        -0.009070788811823854,
+        0.0588802628857831
+      ],
+      "rpy_deg": [
+        0.39750839542953836,
+        -0.10858863146219408,
+        -89.92972913164512
+      ],
+      "board_translation_std_m": 0.002972424492218029,
+      "board_rotation_std_deg": 0.3911387171911721
+    },
+    "HORAUD": {
+      "translation_m": [
+        -0.03432324892183797,
+        -0.009070696605351286,
+        0.058880242399484424
+      ],
+      "rpy_deg": [
+        0.3975828191860882,
+        -0.1087013987970126,
+        -89.92993298902628
+      ],
+      "board_translation_std_m": 0.0029724256545869444,
+      "board_rotation_std_deg": 0.3911387215172039
+    },
+    "ANDREFF": {
+      "translation_m": [
+        0.029231254681609697,
+        -0.01867739387503021,
+        -0.000798302171427916
+      ],
+      "rpy_deg": [
+        0.4947954043927633,
+        -0.10785679813319185,
+        -89.87418586281846
+      ],
+      "board_translation_std_m": 0.0063122455726379225,
+      "board_rotation_std_deg": 0.39122747096262767
+    },
+    "DANIILIDIS": {
+      "translation_m": [
+        -0.03598254386659186,
+        -0.008341230009678525,
+        0.05996503797661965
+      ],
+      "rpy_deg": [
+        0.9643992075993082,
+        -0.0060148341287183564,
+        -89.94468152120191
+      ],
+      "board_translation_std_m": 0.002997586874759871,
+      "board_rotation_std_deg": 0.39288296648535753
+    }
+  },
+  "intrinsics": {
+    "driver_k": [
+      [
+        418.0541687011719,
+        0.0,
+        308.7825012207031
+      ],
+      [
+        0.0,
+        419.1000061035156,
+        187.13417053222656
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "driver_d": [
+      0.009609770029783249,
+      -0.05017149820923805,
+      0.0005640210001729429,
+      -0.0007090150029398501,
+      0.03192809969186783
+    ],
+    "refined_k": [
+      [
+        418.3101529338908,
+        0.0,
+        309.24655111106046
+      ],
+      [
+        0.0,
+        418.3432362840342,
+        186.9678062788822
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "refined_d": [
+      0.01551666545765212,
+      -0.1001517694934977,
+      3.472864401424617e-05,
+      -0.0003391803225736132,
+      0.14728004910251247
+    ],
+    "rms_px": 0.06017801800067646,
+    "focal_delta_px": {
+      "fx": 0.2559842327189017,
+      "fy": -0.7567698194814056
+    }
+  },
+  "joint_source": {
+    "measured_servo_samples": 14,
+    "total_samples": 14,
+    "command_vs_measured_max_deg": 2.159999999999993,
+    "command_vs_measured_rms_deg": 1.1269554434087299
+  }
+}

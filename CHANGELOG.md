@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Phase 2 hand-eye validation
+
+### Added
+
+- `tools/phase2/chessboard_capture.py`: bus-servo position readback through
+  `/ros_robot_controller/bus_servo/get_state`; records `measured_joints` and
+  raw pulses alongside the cached commands. Adds `--base-pose`,
+  `--servo-reads`, `--settle`, `--warmup` and `--repeats` (3-frame median),
+  IPPE + LM board PnP, and a `--check-only` stationary mode.
+- `evidence/calibration/20261117/calibration_servo_20261117.json`,
+  `dataset_servo_20261117.json` and `validation_servo_20261117.json` — validated
+  14-pose hand-eye result, measured-joint dataset and independent checks.
+
+### Changed
+
+- `tools/phase2/chessboard_hand_eye.py` prefers `measured_joints` for link4 FK,
+  treats the vendor static TF as informational (body vs optical frame), and
+  checks a held-out `final_base` sample. The pass gate is now board scatter
+  ≤5 mm / ≤2°, intrinsics RMS ≤1 px and the held-out base.
+
+### Verified (real hardware, 2026-11-17)
+
+- Hand-eye `T_link4_camera` = `[-0.0348, -0.0091, 0.0586] m`, RPY
+  `[0.951, -0.058, -89.789]°`; board scatter **2.94 mm / 0.39°**, held-out
+  final base **3.29 mm / 0.43°**, 2-fold CV 2.5–3.2 mm / 0.31–0.43°;
+  chessboard intrinsic refinement fx 418.31 vs driver 418.05, RMS 0.060 px.
+- The measured bus-servo positions differ from the cached commands by up to
+  2.16° (RMS 1.13°); using them reduced the board scatter from 13.4 mm to
+  2.9 mm. The ~89.34° static-TF difference is the expected body/optical roll.
+
 ## [Unreleased] — 2026-11-17 Phase 1 hardware baseline
 
 ### Added
@@ -64,10 +94,13 @@ All notable changes to this project are documented here. Format based on
 
 - Joint limits and servo offsets are **not measured**; only command snapshots
   exist. `joint_states`/`servo_states` are cached commands, not encoder
-  feedback.
+  feedback. The separate bus-servo `get_state` service does read the hardware
+  position and is used by the Phase 2 hand-eye calibration.
 - `/ros_robot_controller/imu_raw` has a publisher but produced no message.
-- The camera hand-eye (`link4 → camera`) extrinsic is the vendor static TF, not
-  a measured calibration; intrinsics are driver-reported.
+- ~~The camera hand-eye (`link4 → camera`) extrinsic is the vendor static TF,
+  not a measured calibration~~ — superseded by the Phase 2 hand-eye validation
+  above (2.94 mm / 0.39° board scatter). Intrinsics are driver-reported and
+  independently refined to 0.060 px RMS.
 - The camera enumerates at USB 2.0 (480 Mbps) and the RGB stream is ~8 Hz.
 - A transient camera open failure (`0x21003`) occurred before a clean power
   cycle and was not reproduced afterwards.

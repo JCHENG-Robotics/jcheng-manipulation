@@ -27,8 +27,24 @@ joint5 = ID 2, r_joint = ID 1. At the boot pose, servo ID 6 was 700 and IDs
   joints stayed at 0.
 - The live `r_joint ≈ -0.8378 rad` is consistent with the physically open
   gripper (servo ID 1 = 500).
-- All values above are **commanded** values echoed by `/joint_states` and
-  `/controller_manager/servo_states`; they are not encoder feedback.
+- The values above are **commanded** values echoed by `/joint_states` and
+  `/controller_manager/servo_states`; they are not encoder feedback. The
+  separate bus-servo service does provide a hardware position read (below).
+
+## Actual servo position feedback (2026-11-17)
+
+`/ros_robot_controller/bus_servo/get_state`
+(`ros_robot_controller_msgs/srv/GetBusServoState`, `get_position=1`) reads the
+position register from each bus servo. Unlike `servo_states`, this is a
+hardware read. At the `camera_forward`-derived capture pose it returned
+joint1..joint5 = **497, 642, 808, 331, 500** pulses, while the commanded values
+were 500, 642, 800, 330, 500. That is joint1 −0.72°, joint3 −1.92°,
+joint4 +0.24° from the command. Three reads before/after a 3-frame capture
+moved by only 0–1 pulse.
+
+The 2026-11-17 hand-eye calibration uses these measured positions in FK; see
+[`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md). They are the servo's
+own position register, still not an independent external metrology.
 
 ## Gripper sign warning
 

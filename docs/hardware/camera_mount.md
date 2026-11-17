@@ -1,8 +1,9 @@
 # Camera Mount and Optical Frame
 
-> Status: **camera operational (2026-11-17)** after a restart. The
-> RGB/depth streams and intrinsics are verified; the `link4 → camera` hand-eye
-> extrinsic is **not measured**.
+> Status: **camera operational and optical extrinsic validated (2026-11-17)**.
+> The RGB/depth streams and intrinsics are verified; the chessboard hand-eye
+> gives `T_link4_camera` (camera optical frame) with a 2.94 mm / 0.39° board
+> scatter. The static TF below remains the vendor **body** frame.
 
 ## Hardware
 
@@ -50,6 +51,34 @@ link4
 The project model's `camera_link` / `camera_optical_frame` are **not** published
 by the robot. Use `rgb_camera_link` for the RGB stream (it matches the RGB
 `camera_info`) and `depth_camera_link` for the depth stream.
+
+## Validated optical extrinsic (2026-11-17)
+
+The chessboard hand-eye result for the **camera optical** frame (image/PnP
+frame), from 14 poses with measured bus-servo joint angles:
+
+```text
+T_link4_camera
+translation = [-0.0348, -0.0091, 0.0586] m
+RPY         = [0.951, -0.058, -89.789] deg
+```
+
+The calibrated frame is the OpenCV/PnP optical frame. Important: the live
+`depth_cam_color_optical_frame` and `depth_cam_depth_optical_frame` are
+**identity to `rgb_camera_link`** in TF, so they are body frames, not the
+OpenCV optical frame. The body→optical transform is the 89.34°/-z transform
+above; use the calibrated transform directly in perception code, or publish a
+new optical frame before relying on TF.
+
+Validation: board-pose scatter 2.94 mm / 0.39° (max 5.44 mm / 0.74°),
+held-out final base 3.29 mm / 0.43°, 2-fold cross-validation 2.5–3.2 mm.
+See [`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md) and
+[`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
+
+`inv(static_tf_link4_rgb) @ T_link4_camera` is an 89.34° rotation about -z with
+translation `[15.4, 10.0, -28.3] mm` — the expected body/optical 90° roll and
+an optical-centre offset. Do **not** replace the URDF static TF with this
+optical transform; use it as the perception extrinsic.
 
 ## Intrinsics (driver-reported, 2026-11-17)
 
@@ -114,27 +143,23 @@ fraction is invalid/no-return pixels, not a valid 0 mm reading.
 - The first saved frame at an early pose looked at a white surface with dark
   edges (arm/ceiling). With the chessboard in front, the RGB stream is usable
   for detection; aim the arm at the work surface before collecting data.
-- Intrinsics are driver-reported. A first chessboard refinement (8 close-range
-  views) gave fx 446 vs the driver's 418 and is **inconclusive**; use the
-  driver K/D until a better intrinsic dataset exists.
-- Mount rigidity and repeatability are still open; the first `link4 → camera`
-  hand-eye estimate is in the next section, not yet a validated calibration.
+- Intrinsics are driver-reported. The validated 14-pose chessboard refinement
+  agrees with the driver (fx 418.31 vs 418.05, RMS 0.060 px); the earlier
+  8-view refinement (fx 446) was an outlier from the first run.
+- The camera mount is rigid; the validated hand-eye is in the section above.
 
-## First hand-eye baseline (2026-11-17)
+## First hand-eye baseline (superseded)
 
-- Board: 11×8 inner corners, 20 mm squares; 8 usable poses out of 13.
-- `cv2.calibrateHandEye` PARK: `T_link4_camera` translation
-  `[0.0053, -0.0090, 0.0326] m`, RPY `[-3.823, -0.527, -101.586]°`.
-- Board pose in `base_link`: std **13.4 mm / 2.06°**; corner RMS 0.06–0.34 px.
-- The vendor static TF `link4 → rgb_camera_link` is the **body** frame. The
-  image/PnP optical frame differs by roughly **101° roll**, so the static TF
-  alone must not be used as the measured optical extrinsic.
-- The fit is limited by the open-loop arm: the same base command before/after a
-  joint1 move differed 14–24 mm / 2.5°; a **joint1-only pre-pose**
-  (`target − 0.08 rad`, then target) reduced the same-command difference to
-  0.8 mm. The full pre-pose dataset was interrupted by a robot WiFi drop.
-- Evidence: [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/)
-  and [`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md).
+The first 8-pose run used cached `joint_states` and PARK:
+`T_link4_camera` `[0.0053, -0.0090, 0.0326] m`, RPY
+`[-3.823, -0.527, -101.586]°`, board scatter not validated at
+13.4 mm / 2.06°. It is superseded by the 14-pose measured-servo run
+(2.94 mm / 0.39°). The first run's repeatability finding still applies: the
+same base command differed 14–24 mm after a joint1 move, and a **joint1-only
+pre-pose** (`target − 0.08 rad`, then target) reduced the same-command
+difference to 0.8 mm. Evidence:
+[`evidence/calibration/20261117/`](../../evidence/calibration/20261117/) and
+[`docs/phase2/CALIBRATION.md`](../phase2/CALIBRATION.md).
 
 ## Calibration note
 
@@ -145,14 +170,11 @@ state this limitation explicitly.
 
 ## Next steps
 
-1. Reconnect the direct Ethernet/power and confirm the camera with the
-   persistent launch command.
-2. Secure the chessboard and verify stationary frames before/after capture.
-3. Rerun the full capture with `--pre-offset 0.08 --pre-joint1-only` over
-   Ethernet; solve with `tools/phase2/chessboard_hand_eye.py`; target a board
-   residual below 5 mm / 2°.
-4. Place a 36h11 AprilTag at a measured `base_link` position and use
+1. Place a 36h11 AprilTag at a measured `base_link` position and use
    `armpi_fiducial_localizer` to validate the calibrated transform
    independently.
-5. If higher frame rate/resolution is needed, check whether the camera can be
+2. Wire the validated optical transform into the fiducial/grasp pipeline; the
+   live `depth_cam_color_optical_frame` is not the OpenCV optical frame, so use
+   `T_link4_camera` directly or publish the body→optical transform first.
+3. If higher frame rate/resolution is needed, check whether the camera can be
    moved to a USB 3 port/cable.
