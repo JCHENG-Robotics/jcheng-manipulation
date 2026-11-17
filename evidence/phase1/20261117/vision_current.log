@@ -1,0 +1,90 @@
+[INFO] [launch]: All log files can be found below /home/ubuntu/.ros/log/2026-11-17-01-47-12-675355-raspberrypi-4427
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [aurora930_node-1]: process started with pid [4815]
+[INFO] [static_transform_publisher-2]: process started with pid [4817]
+[INFO] [static_transform_publisher-3]: process started with pid [4819]
+[INFO] [static_transform_publisher-4]: process started with pid [4821]
+[INFO] [static_transform_publisher-5]: process started with pid [4824]
+[INFO] [static_transform_publisher-6]: process started with pid [4827]
+[static_transform_publisher-6] [0m[INFO] [1794880033.116661403] [camera_mount_tf]: Spinning until stopped - publishing transform
+[static_transform_publisher-6] translation: ('0.038000', '0.000000', '0.000000')
+[static_transform_publisher-6] rotation: ('0.000000', '0.707108', '0.000000', '0.707105')
+[static_transform_publisher-6] from 'camera_connet_link' to 'depth_camera_link'[0m
+[static_transform_publisher-2] [0m[INFO] [1794880033.128620452] [depth_camera_to_rgb_camera_link]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'depth_camera_link' to 'rgb_camera_link'[0m
+[static_transform_publisher-4] [0m[INFO] [1794880033.133177809] [rgb_camera_to_depth_optical_frame]: Spinning until stopped - publishing transform
+[static_transform_publisher-4] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-4] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-4] from 'rgb_camera_link' to 'depth_cam_depth_optical_frame'[0m
+[static_transform_publisher-5] [0m[INFO] [1794880033.136398402] [color_frame_to_color_optical_frame]: Spinning until stopped - publishing transform
+[static_transform_publisher-5] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-5] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-5] from 'depth_cam_color_frame' to 'depth_cam_color_optical_frame'[0m
+[static_transform_publisher-3] [0m[INFO] [1794880033.143814297] [rgb_camera_to_color_frame]: Spinning until stopped - publishing transform
+[static_transform_publisher-3] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-3] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-3] from 'rgb_camera_link' to 'depth_cam_color_frame'[0m
+[aurora930_node-1] W1117 01:47:13.234404  4815 ros2_node.cc:35] hello aurora 900/930
+[aurora930_node-1] 2026-11-17 01:47:13.243 (   0.036s) [        BE0E0020] device_manager_impl.cc:89    INFO| hotplug has registed by user
+[aurora930_node-1] device_count==========1
+[aurora930_node-1] I1117 01:47:13.251360  4815 aurora900_ros2_device.cc:153] BOOT_ORDER_1::Found 1 deptrum device
+[aurora930_node-1] I1117 01:47:13.252169  4815 aurora900_ros2_device.cc:162] BOOT_ORDER_1::No serial number provided: picking first device
+[aurora930_node-1] 2026-11-17 01:47:13.252 (   0.044s) [        BE0E0020] device_manager_impl.cc:318   INFO| Device information:
+[aurora930_node-1] 	ir_pid:0x1930, rgb_pid:0x0
+[aurora930_node-1] 	serial number:HY400523001036827G00179
+[aurora930_node-1] I1117 01:47:13.252215  4815 aurora900_ros2_device.cc:206] BOOT_ORDER_1::0:device start opening
+[aurora930_node-1] 2026-11-17 01:47:13.252 (   0.044s) [        BE0E0020]   custom_usb_device.cc:101   INFO| bulk in endpoint addr:129
+[aurora930_node-1] 2026-11-17 01:47:13.252 (   0.044s) [        BE0E0020]   custom_usb_device.cc:98    INFO| bulk out endpoint addr:2
+[aurora930_node-1] 2026-11-17 01:47:13.500 (   0.293s) [        BE0E0020]deptrum_camera_aurora93:53    INFO| doe_broken:0 ito_support:1 crash_count:0 wdt_count:0 hard_reset_count:1 heart_boot_count:0 boot_total:30 last_crash_time:N
+[aurora930_node-1] I1117 01:47:13.501003  4815 aurora900_ros2_device.cc:247] device supported frame_mode:
+[aurora930_node-1] I1117 01:47:13.501039  4815 aurora900_ros2_device.cc:252] [0]:ir_mode:=13 kRes320x200Ir8Bit rgb_mode:=31 kRes320x200RgbYuv depth_mode:=0 kInvalid
+[aurora930_node-1] I1117 01:47:13.501047  4815 aurora900_ros2_device.cc:252] [1]:ir_mode:=17 kRes480x300Depth16Bit rgb_mode:=32 kRes480x300RgbYuv depth_mode:=0 kInvalid
+[aurora930_node-1] I1117 01:47:13.501051  4815 aurora900_ros2_device.cc:252] [2]:ir_mode:=20 kRes640x400Ir8Bit rgb_mode:=33 kRes640x400RgbYuv depth_mode:=0 kInvalid
+[aurora930_node-1] I1117 01:47:13.501056  4815 aurora900_ros2_device.cc:266] current set mode ir_mode:20:kRes640x400Ir8Bit,rgb_mode:33:kRes640x400RgbYuv
+[aurora930_node-1] I1117 01:47:14.042972  4815 aurora900_ros2_device.cc:387] Switch Auto Exposure
+[aurora930_node-1] I1117 01:47:14.226853  4815 aurora900_ros2_device.cc:407] current gain value is 10
+[aurora930_node-1] 2026-11-17 01:47:14.266 (   1.058s) [        BE0E0020]      aurora900_impl.cc:1106  INFO| SetHeartbeat user set heartbeat enable: 0
+[aurora930_node-1] I1117 01:47:14.707574  4815 aurora900_ros2_device.cc:304] BOOT_ORDER_1::Device information:
+[aurora930_node-1] I1117 01:47:14.707623  4815 aurora900_ros2_device.cc:305] 	 sdk version: 1.1.19
+[aurora930_node-1] I1117 01:47:14.707628  4815 aurora900_ros2_device.cc:306] 	 device name: Aurora 930
+[aurora930_node-1] I1117 01:47:14.707631  4815 aurora900_ros2_device.cc:307] 	 serial number: HY400523001036827G00179
+[aurora930_node-1] I1117 01:47:14.707635  4815 aurora900_ros2_device.cc:308] 	 firmware version: 2.0.8
+[aurora930_node-1] I1117 01:47:14.707643  4815 camera_parameters.cc:134] BOOT_ORDER_1::Camera Parameters:
+[aurora930_node-1] I1117 01:47:14.707647  4815 camera_parameters.cc:135] BOOT_ORDER_1::	 Ir Intrinsics:
+[aurora930_node-1] I1117 01:47:14.707651  4815 camera_parameters.cc:146] 		 Resolution:
+[aurora930_node-1] I1117 01:47:14.707655  4815 camera_parameters.cc:147] 			 Rows:400
+[aurora930_node-1] I1117 01:47:14.707659  4815 camera_parameters.cc:148] 			 Cols:640
+[aurora930_node-1] I1117 01:47:14.707664  4815 camera_parameters.cc:149] 		 Intrinsics:
+[aurora930_node-1] I1117 01:47:14.707666  4815 camera_parameters.cc:150] 			 fx: 423.023
+[aurora930_node-1] I1117 01:47:14.707697  4815 camera_parameters.cc:151] 			 fy: 423.829
+[aurora930_node-1] I1117 01:47:14.707703  4815 camera_parameters.cc:152] 			 cx: 320.096
+[aurora930_node-1] I1117 01:47:14.707707  4815 camera_parameters.cc:153] 			 cy: 199.904
+[aurora930_node-1] I1117 01:47:14.707712  4815 camera_parameters.cc:154] 			 k1: 0.0602398
+[aurora930_node-1] I1117 01:47:14.707717  4815 camera_parameters.cc:155] 			 k2: -0.122387
+[aurora930_node-1] I1117 01:47:14.707721  4815 camera_parameters.cc:156] 			 p1: 0.00141327
+[aurora930_node-1] I1117 01:47:14.707726  4815 camera_parameters.cc:157] 			 p2: -0.000307655
+[aurora930_node-1] I1117 01:47:14.707731  4815 camera_parameters.cc:158] 			 k3: 0.0689335
+[aurora930_node-1] I1117 01:47:14.707738  4815 camera_parameters.cc:138] BOOT_ORDER_1::	 Rgb Intrinsics:
+[aurora930_node-1] I1117 01:47:14.707741  4815 camera_parameters.cc:146] 		 Resolution:
+[aurora930_node-1] I1117 01:47:14.707746  4815 camera_parameters.cc:147] 			 Rows:400
+[aurora930_node-1] I1117 01:47:14.707748  4815 camera_parameters.cc:148] 			 Cols:640
+[aurora930_node-1] I1117 01:47:14.707752  4815 camera_parameters.cc:149] 		 Intrinsics:
+[aurora930_node-1] I1117 01:47:14.707755  4815 camera_parameters.cc:150] 			 fx: 418.054
+[aurora930_node-1] I1117 01:47:14.707760  4815 camera_parameters.cc:151] 			 fy: 419.1
+[aurora930_node-1] I1117 01:47:14.707764  4815 camera_parameters.cc:152] 			 cx: 308.783
+[aurora930_node-1] I1117 01:47:14.707769  4815 camera_parameters.cc:153] 			 cy: 187.134
+[aurora930_node-1] I1117 01:47:14.707773  4815 camera_parameters.cc:154] 			 k1: 0.00960977
+[aurora930_node-1] I1117 01:47:14.707777  4815 camera_parameters.cc:155] 			 k2: -0.0501715
+[aurora930_node-1] I1117 01:47:14.707782  4815 camera_parameters.cc:156] 			 p1: 0.000564021
+[aurora930_node-1] I1117 01:47:14.707787  4815 camera_parameters.cc:157] 			 p2: -0.000709015
+[aurora930_node-1] I1117 01:47:14.707790  4815 camera_parameters.cc:158] 			 k3: 0.0319281
+[aurora930_node-1] I1117 01:47:14.707794  4815 camera_parameters.cc:141] BOOT_ORDER_1::	 Ir to Rgb Extrinsic:
+[aurora930_node-1] I1117 01:47:14.707798  4815 camera_parameters.cc:162] 		 Extrinsics:
+[aurora930_node-1] I1117 01:47:14.707801  4815 camera_parameters.cc:163] 			 Rotation[0]: 0.999969, 0.00784129, 0.000758029
+[aurora930_node-1] I1117 01:47:14.707806  4815 camera_parameters.cc:165] 			 Rotation[1]: -0.00783905, 0.999966, -0.00291617
+[aurora930_node-1] I1117 01:47:14.707815  4815 camera_parameters.cc:167] 			 Rotation[2]: -0.000780932, 0.00291014, 0.999995
+[aurora930_node-1] I1117 01:47:14.707820  4815 camera_parameters.cc:169] 			 Translation: -9.86464, 0.136594, 0.5402
+[aurora930_node-1] 2026-11-17 01:47:14.708 (   1.500s) [        BE0E0020]      aurora900_impl.cc:578   INFO| stream_mask_:0, rgb_stream_count_:1
+[aurora930_node-1] 2026-11-17 01:47:15.045 (   1.838s) [        8A8E17E0]deptrum_camera_aurora93:407    ERR| recv first frame time is 1794880035045

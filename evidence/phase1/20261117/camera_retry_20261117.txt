@@ -1,0 +1,100 @@
++ sudo docker exec -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c '
+source ~/.zshrc >/dev/null 2>&1
+export ROS2CLI_NO_DAEMON=1
+echo "===LOGTAIL==="
+tail -40 /tmp/vision.log
+echo "===NODES==="
+ros2 node list | grep -i -E "aurora|depth|camera"
+echo "===TOPICS==="
+ros2 topic list | grep depth_cam
+echo "===INFO==="
+timeout 8 ros2 topic echo /depth_cam/rgb/camera_info --once --qos-profile sensor_data 2>&1 | head -30
+echo "===IMU==="
+timeout 6 ros2 topic echo /ros_robot_controller/imu_raw --once --qos-profile sensor_data 2>&1 | head -15
+'
+===LOGTAIL===
+[aurora930_node-1] I1117 01:43:44.632507  2100 aurora900_ros2_device.cc:306] 	 device name: Aurora 930
+[aurora930_node-1] I1117 01:43:44.632511  2100 aurora900_ros2_device.cc:307] 	 serial number: HY400523001036827G00179
+[aurora930_node-1] I1117 01:43:44.632514  2100 aurora900_ros2_device.cc:308] 	 firmware version: 2.0.8
+[aurora930_node-1] I1117 01:43:44.632524  2100 camera_parameters.cc:134] BOOT_ORDER_1::Camera Parameters:
+[aurora930_node-1] I1117 01:43:44.632527  2100 camera_parameters.cc:135] BOOT_ORDER_1::	 Ir Intrinsics:
+[aurora930_node-1] I1117 01:43:44.632531  2100 camera_parameters.cc:146] 		 Resolution:
+[aurora930_node-1] I1117 01:43:44.632534  2100 camera_parameters.cc:147] 			 Rows:400
+[aurora930_node-1] I1117 01:43:44.632537  2100 camera_parameters.cc:148] 			 Cols:640
+[aurora930_node-1] I1117 01:43:44.632541  2100 camera_parameters.cc:149] 		 Intrinsics:
+[aurora930_node-1] I1117 01:43:44.632544  2100 camera_parameters.cc:150] 			 fx: 423.023
+[aurora930_node-1] I1117 01:43:44.632571  2100 camera_parameters.cc:151] 			 fy: 423.829
+[aurora930_node-1] I1117 01:43:44.632575  2100 camera_parameters.cc:152] 			 cx: 320.096
+[aurora930_node-1] I1117 01:43:44.632579  2100 camera_parameters.cc:153] 			 cy: 199.904
+[aurora930_node-1] I1117 01:43:44.632584  2100 camera_parameters.cc:154] 			 k1: 0.0602398
+[aurora930_node-1] I1117 01:43:44.632588  2100 camera_parameters.cc:155] 			 k2: -0.122387
+[aurora930_node-1] I1117 01:43:44.632592  2100 camera_parameters.cc:156] 			 p1: 0.00141327
+[aurora930_node-1] I1117 01:43:44.632596  2100 camera_parameters.cc:157] 			 p2: -0.000307655
+[aurora930_node-1] I1117 01:43:44.632601  2100 camera_parameters.cc:158] 			 k3: 0.0689335
+[aurora930_node-1] I1117 01:43:44.632606  2100 camera_parameters.cc:138] BOOT_ORDER_1::	 Rgb Intrinsics:
+[aurora930_node-1] I1117 01:43:44.632608  2100 camera_parameters.cc:146] 		 Resolution:
+[aurora930_node-1] I1117 01:43:44.632611  2100 camera_parameters.cc:147] 			 Rows:400
+[aurora930_node-1] I1117 01:43:44.632614  2100 camera_parameters.cc:148] 			 Cols:640
+[aurora930_node-1] I1117 01:43:44.632618  2100 camera_parameters.cc:149] 		 Intrinsics:
+[aurora930_node-1] I1117 01:43:44.632622  2100 camera_parameters.cc:150] 			 fx: 418.054
+[aurora930_node-1] I1117 01:43:44.632625  2100 camera_parameters.cc:151] 			 fy: 419.1
+[aurora930_node-1] I1117 01:43:44.632629  2100 camera_parameters.cc:152] 			 cx: 308.783
+[aurora930_node-1] I1117 01:43:44.632633  2100 camera_parameters.cc:153] 			 cy: 187.134
+[aurora930_node-1] I1117 01:43:44.632642  2100 camera_parameters.cc:154] 			 k1: 0.00960977
+[aurora930_node-1] I1117 01:43:44.632645  2100 camera_parameters.cc:155] 			 k2: -0.0501715
+[aurora930_node-1] I1117 01:43:44.632649  2100 camera_parameters.cc:156] 			 p1: 0.000564021
+[aurora930_node-1] I1117 01:43:44.632653  2100 camera_parameters.cc:157] 			 p2: -0.000709015
+[aurora930_node-1] I1117 01:43:44.632658  2100 camera_parameters.cc:158] 			 k3: 0.0319281
+[aurora930_node-1] I1117 01:43:44.632669  2100 camera_parameters.cc:141] BOOT_ORDER_1::	 Ir to Rgb Extrinsic:
+[aurora930_node-1] I1117 01:43:44.632673  2100 camera_parameters.cc:162] 		 Extrinsics:
+[aurora930_node-1] I1117 01:43:44.632676  2100 camera_parameters.cc:163] 			 Rotation[0]: 0.999969, 0.00784129, 0.000758029
+[aurora930_node-1] I1117 01:43:44.632681  2100 camera_parameters.cc:165] 			 Rotation[1]: -0.00783905, 0.999966, -0.00291617
+[aurora930_node-1] I1117 01:43:44.632690  2100 camera_parameters.cc:167] 			 Rotation[2]: -0.000780932, 0.00291014, 0.999995
+[aurora930_node-1] I1117 01:43:44.632696  2100 camera_parameters.cc:169] 			 Translation: -9.86464, 0.136594, 0.5402
+[aurora930_node-1] 2026-11-17 01:43:44.632 (   1.212s) [        1B9A0020]      aurora900_impl.cc:578   INFO| stream_mask_:0, rgb_stream_count_:1
+[aurora930_node-1] 2026-11-17 01:43:45.113 (   1.692s) [        DFFF57E0]deptrum_camera_aurora93:407    ERR| recv first frame time is 1794879825113
+===NODES===
+/aurora/aurora
+/camera_mount_tf
+/depth_camera_to_rgb_camera_link
+/rgb_camera_to_color_frame
+/rgb_camera_to_depth_optical_frame
+===TOPICS===
+/depth_cam/depth/camera_info
+/depth_cam/depth/image_raw
+/depth_cam/depth_registered/points
+/depth_cam/ir/image_raw
+/depth_cam/rgb/camera_info
+/depth_cam/rgb/image_raw
+===INFO===
+header:
+  stamp:
+    sec: 1794879836
+    nanosec: 492000000
+  frame_id: rgb_camera_link
+height: 400
+width: 640
+distortion_model: plumb_bob
+d:
+- 0.009609770029783249
+- -0.05017149820923805
+- 0.0005640210001729429
+- -0.0007090150029398501
+- 0.03192809969186783
+k:
+- 418.0541687011719
+- 0.0
+- 308.7825012207031
+- 0.0
+- 419.1000061035156
+- 187.13417053222656
+- 0.0
+- 0.0
+- 1.0
+r:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+- 1.0
+===IMU===

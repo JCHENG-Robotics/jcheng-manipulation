@@ -1,0 +1,229 @@
++ uname -a
+Linux raspberrypi 6.6.20+rpt-rpi-2712 #1 SMP PREEMPT Debian 1:6.6.20-1+rpt1 (2024-03-07) aarch64 GNU/Linux
++ head -4 /etc/os-release
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
++ uptime
+ 09:43:16 up 0 min,  2 users,  load average: 2.62, 0.76, 0.26
++ vcgencmd measure_temp
+temp=48.8'C
++ vcgencmd get_throttled
+throttled=0x0
++ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           7.9Gi       1.1Gi       5.8Gi        36Mi       1.1Gi       6.8Gi
+Swap:          5.1Gi          0B       5.1Gi
++ df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   52G   48G  2.9G  95% /
++ ip -brief addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+eth0             UP             10.42.0.218/24 fe80::9bc7:cfd:b325:e3f0/64
+wlan0            UP             10.51.128.226/23 fe80::22c8:4365:e454:7e41/64
+docker0          DOWN           172.17.0.1/16
++ lsusb
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 002: ID 3251:1930 Linux Foundation Aurora 930
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 1a86:7523 QinHeng Electronics CH340 serial converter
+Bus 001 Device 002: ID 0bda:1a2b Realtek Semiconductor Corp. RTL8188GU 802.11n WLAN Adapter (Driver CDROM Mode)
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
++ lsusb -t
+/:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=xhci-hcd/1p, 5000M
+/:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci-hcd/2p, 480M
+    |__ Port 1: Dev 2, If 0, Class=Vendor Specific Class, Driver=, 480M
+/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci-hcd/1p, 5000M
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci-hcd/2p, 480M
+    |__ Port 1: Dev 2, If 0, Class=Mass Storage, Driver=, 480M
+    |__ Port 2: Dev 3, If 0, Class=Vendor Specific Class, Driver=ch341, 12M
++ ls -l /dev/rrc /dev/ttyUSB0
+lrwxrwxrwx 1 root root         7 Nov 17 09:38 /dev/rrc -> ttyUSB0
+crw-rw-rw- 1 root dialout 188, 0 Nov 17 09:38 /dev/ttyUSB0
++ sudo docker ps --format '{{.Names}} {{.Status}}'
+ArmPiUltra Up 4 minutes
++ sudo docker exec -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c '
+source ~/.zshrc >/dev/null 2>&1
+export ROS2CLI_NO_DAEMON=1
+echo "===ENV==="
+env | grep -E "ROS_DISTRO|ROS_DOMAIN_ID|RMW_IMPLEMENTATION|CYCLONEDDS_URI|CAMERA_TYPE|CHASSIS_TYPE"
+echo "===NODES==="
+timeout 10 ros2 node list
+echo "===TOPICS==="
+timeout 10 ros2 topic list
+echo "===JOINTS==="
+timeout 8 ros2 topic echo /joint_states --once
+echo "===SERVO==="
+timeout 8 ros2 topic echo /controller_manager/servo_states --once
+echo "===BATTERY==="
+timeout 8 ros2 topic echo /ros_robot_controller/battery --once
+echo "===TF_LINK5==="
+timeout 8 ros2 run tf2_ros tf2_echo base_link link5 2>&1 | tail -14
+echo "===TF_CAM==="
+timeout 8 ros2 run tf2_ros tf2_echo base_link depth_cam_color_optical_frame 2>&1 | tail -14
+'
+===ENV===
+CAMERA_TYPE=aurora
+CHASSIS_TYPE=Mecanum
+ROS_DOMAIN_ID=0
+ROS_DISTRO=humble
+RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml
+===NODES===
+/controller_manager
+/interactive_marker_display_109634531590704
+/joint_state_publisher
+/kinematics
+/move_group
+/move_group_private_107876598420704
+/moveit_simple_controller_manager
+/robot_state_publisher
+/ros_robot_controller
+/rviz2
+/rviz2_private_126409818512640
+/rviz2_private_126409947221120
+/servo_manager
+/transform_listener_impl_621cfadb3670
+/transform_listener_impl_63b6486498a0
+/transform_listener_impl_63b648687e50
+/transform_listener_impl_72f8145102c0
+/transform_listener_impl_72f81c014640
+===TOPICS===
+/attached_collision_object
+/clicked_point
+/collision_object
+/controller_manager/joint_states
+/controller_manager/servo_states
+/display_contacts
+/display_planned_path
+/goal_pose
+/initialpose
+/joint_controller
+/joint_states
+/monitored_planning_scene
+/motion_plan_request
+/parameter_events
+/planning_scene
+/planning_scene_world
+/recognized_object_array
+/robot_description
+/ros_robot_controller/battery
+/ros_robot_controller/bus_servo/set_position
+/ros_robot_controller/bus_servo/set_state
+/ros_robot_controller/button
+/ros_robot_controller/enable_reception
+/ros_robot_controller/imu_raw
+/ros_robot_controller/joy
+/ros_robot_controller/pwm_servo/set_state
+/ros_robot_controller/sbus
+/ros_robot_controller/set_buzzer
+/ros_robot_controller/set_conveyor_speed
+/ros_robot_controller/set_led
+/ros_robot_controller/set_motor_speeds
+/ros_robot_controller/set_oled
+/ros_robot_controller/set_stepper_subdivision
+/rosout
+/rviz_moveit_motion_planning_display/robot_interaction_interactive_marker_topic/feedback
+/rviz_moveit_motion_planning_display/robot_interaction_interactive_marker_topic/update
+/servo_controller
+/tf
+/tf_static
+/trajectory_execution_event
+===JOINTS===
+header:
+  stamp:
+    sec: 1794879801
+    nanosec: 674940206
+  frame_id: ''
+name:
+- joint1
+- joint2
+- joint3
+- joint4
+- joint5
+- r_joint
+- l_joint
+- l_in_joint
+- l_out_joint
+- r_in_joint
+- r_out_joint
+position:
+- 0.8377580409572781
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- -0.8377580409572781
+- 0.8377580409572781
+- 0.8377580409572781
+- -0.8377580409572781
+- 0.8377580409572781
+- -0.8377580409572781
+velocity: []
+effort: []
+---
+===SERVO===
+header:
+  stamp:
+    sec: 1794879802
+    nanosec: 904852520
+  frame_id: base_link
+servo_state:
+- id: 6
+  goal: 0
+  position: 700
+  error: 0
+  voltage: 0
+- id: 5
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 4
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 3
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 2
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 1
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+---
+===BATTERY===
+data: 7704
+---
+===TF_LINK5===
+  0.743  0.669  0.002  0.008
+  0.002 -0.005  1.000  0.338
+  0.000  0.000  0.000  1.000
+At time 1794879811.625056367
+- Translation: [0.074, 0.008, 0.338]
+- Rotation: in Quaternion [-0.002, -0.002, 0.407, 0.914]
+- Rotation: in RPY (radian) [-0.005, -0.002, 0.838]
+- Rotation: in RPY (degree) [-0.307, -0.101, 47.999]
+- Matrix:
+  0.669 -0.743 -0.005  0.074
+  0.743  0.669  0.002  0.008
+  0.002 -0.005  1.000  0.338
+  0.000  0.000  0.000  1.000
+[0m[INFO] [1794879812.431401255] [rclcpp]: signal_handler(signum=15)[0m
+===TF_CAM===
+[0m[INFO] [1794879812.892959033] [tf2_echo]: Waiting for transform base_link ->  depth_cam_color_optical_frame: Invalid frame ID "base_link" passed to canTransform argument target_frame - frame does not exist[0m
+[0m[INFO] [1794879814.874327772] [tf2_echo]: Waiting for transform base_link ->  depth_cam_color_optical_frame: Invalid frame ID "depth_cam_color_optical_frame" passed to canTransform argument source_frame - frame does not exist[0m
+[0m[INFO] [1794879816.874322123] [tf2_echo]: Waiting for transform base_link ->  depth_cam_color_optical_frame: Invalid frame ID "depth_cam_color_optical_frame" passed to canTransform argument source_frame - frame does not exist[0m
+[0m[INFO] [1794879817.874331104] [tf2_echo]: Waiting for transform base_link ->  depth_cam_color_optical_frame: Invalid frame ID "depth_cam_color_optical_frame" passed to canTransform argument source_frame - frame does not exist[0m
+[0m[INFO] [1794879819.874328658] [tf2_echo]: Waiting for transform base_link ->  depth_cam_color_optical_frame: Invalid frame ID "depth_cam_color_optical_frame" passed to canTransform argument source_frame - frame does not exist[0m
+[0m[INFO] [1794879820.643504824] [rclcpp]: signal_handler(signum=15)[0m

@@ -1,0 +1,10 @@
+[2026-11-17T09:43:16+08:00] waiting for sshd after power cycle
+[2026-11-17T09:43:16+08:00] sshd ready after 10s
+[2026-11-17T09:43:16+08:00] waiting for start_node.service and ArmPiUltra container
+[2026-11-17T09:43:16+08:00] core stack ready after 10s
+[2026-11-17T09:43:16+08:00] capturing host + ROS baseline
+[2026-11-17T09:43:40+08:00] baseline captured (229 lines)
+[2026-11-17T09:43:40+08:00] starting vision.launch once
+[2026-11-17T09:43:53+08:00] capturing camera retry
+[2026-11-17T09:44:03+08:00] camera retry captured (100 lines)
+[2026-11-17T09:44:03+08:00] done

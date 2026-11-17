@@ -1,0 +1,67 @@
+===STREAM===
+rgb: 40 msgs in 5.0s (8.0 Hz), 640x400 encoding=bgr8 step=1920 frame=rgb_camera_link
+saved /tmp/rgb_frame.png
+depth: 41 msgs in 5.0s (8.2 Hz), 640x400 encoding=mono16 step=1280 frame=depth_camera_link
+  depth values: min=0 max=2551 median=2257.0 zeros=23.11%
+===DEPTH_INFO===
+header:
+  stamp:
+    sec: 1794880203
+    nanosec: 389000000
+  frame_id: depth_camera_link
+height: 400
+width: 640
+distortion_model: plumb_bob
+d:
+- 0.060239799320697784
+- -0.12238699942827225
+- 0.0014132700162008405
+- -0.00030765499104745686
+- 0.06893350183963776
+k:
+- 423.02349853515625
+- 0.0
+- 320.09600830078125
+- 0.0
+- 423.8290100097656
+- 199.9040069580078
+- 0.0
+- 0.0
+- 1.0
+r:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+- 1.0
+===RGB_INFO_FULL===
+header:
+  stamp:
+    sec: 1794880205
+    nanosec: 763000000
+  frame_id: rgb_camera_link
+height: 400
+width: 640
+distortion_model: plumb_bob
+d:
+- 0.009609770029783249
+- -0.05017149820923805
+- 0.0005640210001729429
+- -0.0007090150029398501
+- 0.03192809969186783
+k:
+- 418.0541687011719
+- 0.0
+- 308.7825012207031
+- 0.0
+- 419.1000061035156
+- 187.13417053222656
+- 0.0
+- 0.0
+- 1.0
+r:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+- 1.0

@@ -3,6 +3,62 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-17 Phase 1 hardware baseline
+
+### Added
+
+- `tools/humble_moveit/` — Humble MoveIt/RViz Docker environment for the real
+  robot: `Dockerfile`, `run_humble.sh`, `setup_humble_ws.sh`, CycloneDDS
+  configs and README. The robot stays Humble; the laptop runs a matching Humble
+  container instead of Jazzy.
+- `ros2_ws/src/armpi_ultra_moveit_config/launch/real_moveit.launch.py` —
+  move_group + RViz only; deliberately no mock controllers,
+  `robot_state_publisher` or static TF, so the real robot owns state and
+  actions.
+- `tools/phase1/camera_stream_check.py` — sensor-QoS RGB/depth rate, encoding
+  and depth-value check; optional RGB frame save.
+- `docs/hardware/` — live Phase 1 baseline: inventory, ROS environment, driver
+  interfaces, live/model TF, camera mount/intrinsics, vendor baseline.
+- `evidence/phase1/20261117/` — raw host/ROS/camera/TF/pose logs and one real
+  RGB frame.
+
+### Changed
+
+- `armpi_ultra_moveit_config/config/armpi_ultra.srdf`: added
+  `disable_collisions` for the vendor finger-finger and palm-finger mesh
+  overlaps that made the planner report the start state as self-colliding while
+  the physical gripper was open.
+- Private vendor `servo_controller.launch.py` (not in this repository):
+  removed `name='controller_manager'`, which also renamed the internal
+  `ServoManager` and created duplicate nodes/action servers.
+
+### Verified (real hardware, 2026-11-17)
+
+- One `/controller_manager`, one `/servo_manager`, one
+  `/arm_controller/follow_joint_trajectory` server and one MoveIt client;
+  `/joint_states` at ~20 Hz; one supervised `reset_servo` motion.
+- Deptrum Aurora 930 opens and streams: RGB 8.0 Hz, 640×400, `bgr8`; depth
+  8.2 Hz, 640×400, `mono16` in millimetres; RGB/depth `camera_info` captured.
+- Live TF: `base_link → rgb_camera_link` and `base_link → depth_camera_link`
+  resolve; the project `camera_optical_frame` does **not** exist on the robot.
+- Host: Raspberry Pi 5, Debian 12, kernel 6.6.20; battery 7.651 V; 48.8 °C;
+  `throttled=0x0`.
+
+### Known limitations
+
+- Joint limits and servo offsets are **not measured**; only command snapshots
+  exist. `joint_states`/`servo_states` are cached commands, not encoder
+  feedback.
+- `/ros_robot_controller/imu_raw` has a publisher but produced no message.
+- The camera hand-eye (`link4 → camera`) extrinsic is the vendor static TF, not
+  a measured calibration; intrinsics are driver-reported.
+- The camera enumerates at USB 2.0 (480 Mbps) and the RGB stream is ~8 Hz.
+- A transient camera open failure (`0x21003`) occurred before a clean power
+  cycle and was not reproduced afterwards.
+- Root filesystem is 95% full; battery is 7.651 V.
+- No real fiducial detection, calibration, visual grasp or automated trial has
+  been performed.
+
 ## [Unreleased] — 2026-11-16 Fiducial target localization
 
 ### Added

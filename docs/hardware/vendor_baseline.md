@@ -1,32 +1,93 @@
 # Vendor Baseline — read-only reference
 
-> The vendor stack is **not** copied into this repository. Paths below are on
-> R9000P and are reference-only.
+> The vendor stack is **not** copied into this repository. It runs inside the
+> robot container and is also archived privately. Paths below are reference-only.
+
+## Robot-side vendor stack (live, 2026-11-17)
 
 | Item | Path / value | Status |
 |---|---|---|
-| Vendor root | `/home/jerichocheng/ArmPiUltra` (16G) | `[V]` |
-| Vendor source zip | `ROS2/Armpi_ultra-main.zip` (921,882,700 B) | `[V]` |
-| Extracted source | `ROS2/Armpi_ultra-main/armpi_ultra` | `[V]` |
-| Packages | `3 功能包文件/simulations/` | `[V]` |
-| SDK | `ros2_ws/src/driver/ros_robot_controller/ros_robot_controller/ros_robot_controller_sdk.py` SHA `369b11dd…` | `[V]` |
-| Servo mapping | `ros2_ws/src/driver/servo_controller/config/servo_controller.yaml` | `[V]` |
-| Vendor URDF | `simulations/armpi_ultra_description/urdf/armpi_ultra.xacro` | `[V]` |
-| G0 audit | `docs/armpi/g0/` in this repo | `[V]` |
+| Container | `ArmPiUltra` (Humble) | `[V]` |
+| Vendor workspace | `/home/ubuntu/ros2_ws` inside the container | `[V]` |
+| Core launch | `bringup bringup.launch.py` via `start_node.service` | `[V]` |
+| Camera launch | `bringup vision.launch.py` | `[V]` |
+| Servo controller | `driver/servo_controller` | `[V]` |
+| Robot controller | `driver/ros_robot_controller` (CH340 `/dev/rrc`) | `[V]` |
+| Kinematics | vendor `kinematics` package + aarch64 `.so` | `[S]` |
+| Camera driver | `third_party_ros2/third_party_ws/install/deptrum-ros-driver-aurora930` | `[V]` |
+| Camera firmware / SDK | 2.0.8 / 1.1.19 | `[V]` |
+| Camera serial | `HY400523001036827G00179` | `[V]` |
 
-## Separation rule
+## Vendor configuration files
 
-- Vendor code: read-only, not modified, not copied.
-- Personal code: `ros2_ws/src/armpi_*`, `armpi-debug-studio/`, `evidence/`, `docs/`.
-- If a vendor fix is required, record the diff in `docs/hardware/vendor_baseline.md`
-  and get Board approval before touching the original.
+| File | Content | Status |
+|---|---|---|
+| `driver/servo_controller/config/servo_controller.yaml` | joint1 ID 6, joint2 ID 5, joint3 ID 4 (min 1000 / max 500 inverted), joint4 ID 3, joint5 ID 2, r_joint ID 1 (`init: 700`) | `[S]` |
+| Camera `transform.yaml` | `extristric`, `plane`, `white_area_pose_cam`, `white_area_pose_world`, `corners`; vendor table/plane/white-area calibration, **not** a hand-eye matrix | `[S]` |
+| Camera `camera_info.yaml` | `hand2cam_tf_matrix`; vendor hand-eye matrix. The name is misleading: this is **not** camera intrinsics | `[S]` |
+
+The live RGB/depth intrinsics come from the camera driver, not from
+`camera_info.yaml`; see `docs/hardware/camera_mount.md`.
+
+## Private archive
+
+| Item | Value |
+|---|---|
+| Private workspace | `armpi_ultra_ws_clean/` (gitignored; 12 retained vendor packages, aarch64 IK/FK `.so`) |
+| Archive | `~/backups/2026-11-16/armpi_ultra_ws_clean_20261115.tar.gz` |
+| SHA256 | `76b5a4cd379f32845194ccc51c9b4ea357f8f87fc89b8cf823ba9bea811ebfc6` |
+| Manifest | `~/backups/2026-11-16/armpi_ultra_ws_clean_20261115.tar.gz.MANIFEST.md` |
+| Vendor SDK hash | `369b11dd…` (reference) |
+
+The workspace has no declared license, so it must stay out of the public
+GitHub repository.
+
+## Private modifications made for the real-robot stack
+
+These changes are in the private vendor workspace (robot container source and
+install), not in the public repository:
+
+1. `driver/servo_controller/launch/servo_controller.launch.py`: removed
+   `name='controller_manager'`. That remap also renamed the internal
+   `ServoManager` node, producing two `/controller_manager` nodes and two
+   action servers per action.
+2. Robot `.zshrc`: added `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and
+   `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`.
+3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to `eth0` only.
+4. Restarted `start_node.service` and verified one `/controller_manager`, one
+   `/servo_manager`, one action server and one MoveIt client.
+
+## Known vendor issues seen live
+
+| Issue | Detail | Status |
+|---|---|---|
+| Cached joint state | `joint_states` / `servo_states` echo commands; `servo_states.voltage` is always 0 | `[V]` |
+| Camera open transient | `aurora930_node` failed with `0x21003` before a restart; opened after it | `[V]` observed |
+| IMU quiet | `/ros_robot_controller/imu_raw` has a publisher but no messages in 5–12 s | `[U]` |
+| Wrong Wi-Fi module | The Realtek RTL8188GU adapter (`0bda:1a2b`, CDROM mode) is not an `rtw88_8821cu` device; loading that module crashed the kernel and wedged USB | `[V]` |
+| Root disk 95% | ≈2.9 GiB free; boot/fsck and logging risk | `[V]` |
+| Single `/dev/rrc` owner | Multiple paths can open the CH340; no single-owner guarantee | `[S]` |
 
 ## Version caution
 
 Two vendor xacro copies exist:
 
-- `3 功能包文件/...` (2025-07-02, SHA `158224…`) — used by the imported sim package.
+- `3 功能包文件/...` (2025-07-02, SHA `158224…`) — used by the imported sim
+  package.
 - `ROS2/Armpi_ultra-main/...` (2026-04-02, SHA `7ce1d0…`) — newer; only the
   `base_link` collision geometry differs.
 
-Do not silently switch; record which version a model/test uses.
+The robot's live vendor `armpi_ultra_description` publishes
+`camera_connet_link` but **not** the project's `camera_link` /
+`camera_optical_frame`. The public repository's `armpi_ultra_description` adds
+those project frames for the model/mock path. Record which model a test uses;
+do not silently switch.
+
+## Separation rule
+
+- Vendor code: read-only reference, not modified, not copied into the public
+  repository.
+- Personal code: `ros2_ws/src/armpi_*`, `armpi-debug-studio/`, `evidence/`,
+  `docs/`, `tools/`.
+- If a vendor fix is required, record the diff here and get approval before
+  touching the original.

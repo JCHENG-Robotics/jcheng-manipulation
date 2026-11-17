@@ -18,14 +18,14 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 领域 | 状态 | 证据 / 限制 |
 |---|---|---|
 | Panda 学习演示 | 已实现，仿真验证 | `panda-baseline-v1` tag；`docs/archive/README_8WEEK.md`；每周日志 |
-| ArmPi URDF / TF | 已实现，模型检查通过 | `xacro` + `check_urdf`；单一根节点；相机坐标系；**关节限位为暂定值** |
-| ArmPi MoveIt 2 | 已实现，Mock 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP` 规划成功（Mock） |
+| ArmPi URDF / TF | 已实现；模型 + 实机 TF 验证 | `xacro` + `check_urdf`；实机 `base_link → rgb_camera_link` / `depth_camera_link`；**关节限位仍为暂定值** |
+| ArmPi MoveIt 2 | 已实现，Mock 验证；实机 `reset_servo` 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP`（Mock）；Humble Docker MoveIt 完成一次受监督实机运动 |
 | ArmPi 约束抓取 | 已实现，Mock 验证 | 5-DoF 抓取搜索：80 个关节空间候选 → 40 个 IK 成功 → 26 个无碰撞 → 3 条 Pilz `PTP` 规划；仅规划 |
 | Fiducial 目标定位 | 已实现，合成验证 | AprilTag 36h11；5/5 合成位姿，最大 1.82 mm / 1.49°；ROS TF 检查 0.44 mm / 0.03° |
 | Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
-| 真实 ArmPi 硬件 | **未验证** | 无串口设备、未连接机器人、Docker 工作区不可访问 |
-| 相机 / 标定 | 计划中 | 已添加 `link4 → camera` 坐标系；外参和内参**均未测量** |
-| 视觉抓取 | 进行中 | 感知与抓取搜索已分别实现；无真实相机、标定或执行 |
+| 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
+| 相机 / 标定 | **相机可用；标定未开始** | Aurora 930 RGB 8 Hz / depth 8 Hz，已读取内参；手眼外参**未测量** |
+| 视觉抓取 | 进行中 | 感知与抓取搜索已实现；真实相机可用；尚无标定或实机抓取 |
 | 误差预算 v1 | 计划中 | M2.2 是 2-DOF Gazebo 控制器研究，不是项目误差预算 |
 | ArmPi Debug Studio | 仅 G1-**Mock** | 41 个后端测试通过；前端可构建；E7 网关未实现 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
@@ -40,7 +40,7 @@ armpi-debug-studio/        # G1-Mock 控制台（FastAPI + React）；不做硬�
 docs/
 ├── armpi/                 # PRD + G0 厂商审计
 ├── audit/2026-11-15/      # 源码清单、变更核对、状态、合并计划
-├── hardware/              # 硬件基线模板（测量前标记为 [U]）
+├── hardware/              # 硬件基线（2026-11-17 实机；关节限位/IMU 待完成）
 ├── phase0/                # Phase 0 验收、5-DoF 约束、历史审计
 ├── phase2/                # 抓取候选搜索；标定/视觉抓取准备
 ├── archive/               # 旧 README/ROADMAP、过期 URDF、Phase II 分支说明
@@ -49,7 +49,8 @@ evidence/
 ├── m2_2_v2/               # M2.2 bag（已 gitignore）、CSV、报告、快照
 ├── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
 ├── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
-└── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
+├── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
+└── phase1/                # 实机 Pi/ROS/舵机/TF/相机基线（2026-11-17）
 ros2_ws/src/
 ├── arm_basics/            # 学习节点（历史遗留）
 ├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
@@ -58,7 +59,10 @@ ros2_ws/src/
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco 目标定位
 ├── armpi_grasp_planner/   # 5-DoF 候选生成 + MoveIt 筛选
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
-└── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（mock_components）
+└── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（Mock + 实机 launch）
+tools/
+├── humble_moveit/         # 实机使用的 Humble Docker MoveIt/RViz
+└── phase1/                # 实机基线辅助工具
 ```
 
 ## 构建

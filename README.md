@@ -25,14 +25,14 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Area | Status | Evidence / limit |
 |---|---|---|
 | Panda learning demo | Implemented, simulation-validated | `panda-baseline-v1` tag; `docs/archive/README_8WEEK.md`; weekly logs |
-| ArmPi URDF / TF | Implemented, model-checked | `xacro` + `check_urdf`; single root; camera frames; **limits provisional** |
-| ArmPi MoveIt 2 | Implemented, mock-validated | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` plan success (mock) |
+| ArmPi URDF / TF | Implemented; model + live TF verified | `xacro` + `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; **limits provisional** |
+| ArmPi MoveIt 2 | Implemented, mock-validated; real `reset_servo` verified | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` (mock); Humble Docker MoveIt with one supervised real motion |
 | ArmPi constrained grasp | Implemented, mock-validated | 5-DoF grasp search: 80 joint-space candidates → 40 IK OK → 26 collision-free → 3 Pilz `PTP` plans; plan-only |
 | Fiducial target localization | Implemented, synthetic-validated | AprilTag 36h11; 5/5 synthetic poses, max 1.82 mm / 1.49°; ROS TF check 0.44 mm / 0.03° |
 | Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
-| Real ArmPi hardware | **Not validated** | no serial device, no robot connection, Docker workspace inaccessible |
-| Camera / calibration | Planned | `link4 → camera` frames added; extrinsic and intrinsics **not measured** |
-| Visual grasping | In progress | perception and grasp search implemented separately; no real camera, calibration or execution |
+| Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
+| Camera / calibration | **Camera operational; calibration not started** | Aurora 930 RGB 8 Hz / depth 8 Hz, intrinsics read; hand-eye extrinsic **not measured** |
+| Visual grasping | In progress | perception and grasp search implemented; real camera available; no calibration or real grasp |
 | Error Budget v1 | Planned | M2.2 is a 2-DOF Gazebo controller study, not the project error budget |
 | ArmPi Debug Studio | G1-**Mock** only | 41 backend tests pass; frontend builds; E7 gateway not implemented |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
@@ -47,7 +47,7 @@ armpi-debug-studio/        # G1-Mock console (FastAPI + React); no hardware moti
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
-├── hardware/              # hardware baseline templates ([U] until measured)
+├── hardware/              # hardware baseline (live 2026-11-17; joint limits/IMU open)
 ├── phase0/                # Phase 0 acceptance, 5-DoF constraints, historical audits
 ├── phase2/                # grasp candidate search; calibration/grasping prep
 ├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
@@ -56,7 +56,8 @@ evidence/
 ├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
 ├── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
 ├── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
-└── fiducial/              # synthetic fiducial detection + ROS TF evidence
+├── fiducial/              # synthetic fiducial detection + ROS TF evidence
+└── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
 ros2_ws/src/
 ├── arm_basics/            # learning nodes (legacy)
 ├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
@@ -65,7 +66,10 @@ ros2_ws/src/
 ├── armpi_fiducial_localizer/  # AprilTag/ArUco target localization
 ├── armpi_grasp_planner/   # 5-DoF candidate generation + MoveIt screening
 ├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
-└── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock_components)
+└── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock + real-robot launch)
+tools/
+├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
+└── phase1/                # live hardware baseline helpers
 ```
 
 ## Build

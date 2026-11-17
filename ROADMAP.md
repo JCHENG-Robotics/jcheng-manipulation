@@ -7,24 +7,27 @@
 
 > Technical roadmap: this document tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
-## Current status (2026-11-16)
+## Current status (2026-11-17)
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented, model-checked** | 17 links, 16 joints, single root; camera optical frame; provisional limits |
-| MoveIt 2 constrained planning | **Implemented, mock-validated** | Pilz `PTP` 6D-constrained goal on `gripper_link`; plan-only |
-| 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware |
+| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; project `camera_optical_frame` is model-only |
+| MoveIt 2 constrained planning | **Implemented, mock-validated; real reset_servo verified** | Pilz `PTP` 6D-constrained goal (plan-only); one supervised real motion through Humble Docker MoveIt |
+| 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware trials |
 | Fiducial target localization | **Implemented, synthetic-validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; ROS TF check 0.44 mm / 0.03° |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
-| Hardware baseline | **Planned** | No robot connection; templates in `docs/hardware/` |
-| Calibration and visual grasping | **Planned** | Requires hardware and camera |
-| Error budget and tolerance envelope | **Planned** | Requires hardware measurements |
+| Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
+| Calibration and visual grasping | **In progress** | Real RGB/depth camera available; no hand-eye calibration or real grasp |
+| Error budget and tolerance envelope | **Planned** | Requires measured repeatability, backlash and calibration |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
-Phase 0 is complete for the simulation/mock scope. No item is hardware-validated.
-The Phase 2 grasp-candidate search and fiducial target localization are
-implemented and synthetic/mock-validated; calibration, real visual grasping and
-execution still require hardware.
+Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack
+in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
+`reset_servo` motion was verified. The Aurora 930 publishes RGB (8 Hz, `bgr8`)
+and depth (8 Hz, `mono16`, mm). Joint limits are **not measured**, the IMU is
+not publishing, and the camera hand-eye extrinsic is the vendor static TF, not a
+calibration. The Phase 2 grasp-candidate search and fiducial localization remain
+mock/synthetic-validated; no real visual grasp has been executed.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal
@@ -95,6 +98,23 @@ Calibration pose collection must account for the limited orientation diversity o
 - inspect control / feedback interfaces;
 - verify camera topics and TF;
 - correct URDF and frame definitions.
+
+Status (2026-11-17), evidence in
+[`evidence/phase1/20261117/`](evidence/phase1/20261117/):
+
+- [x] Vendor core stack and `vision.launch.py` run; camera RGB/depth streams
+  and intrinsics captured.
+- [x] ROS 2 Humble, CycloneDDS, domain, container and one-action-server graph
+  verified.
+- [ ] Measured joint limits and servo offsets — **open**; only two command
+  snapshots exist.
+- [x] Control/feedback interfaces audited live; `joint_states` are cached
+  commands.
+- [x] Camera topics and TF verified; the live frames are `rgb_camera_link` /
+  `depth_camera_link`, not `camera_optical_frame`.
+- [ ] Correct URDF and frame definitions for the real path — documented, but
+  the project model still carries model-only `camera_link` /
+  `camera_optical_frame`.
 
 ## 6. Milestone B — Calibration
 

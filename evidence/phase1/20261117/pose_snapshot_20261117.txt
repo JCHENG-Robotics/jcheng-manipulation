@@ -1,0 +1,74 @@
+===JOINTS===
+header:
+  stamp:
+    sec: 1794880287
+    nanosec: 13107563
+  frame_id: ''
+name:
+- joint1
+- joint2
+- joint3
+- joint4
+- joint5
+- r_joint
+- l_joint
+- l_in_joint
+- l_out_joint
+- r_in_joint
+- r_out_joint
+position:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- -0.8377580409572781
+- 0.8377580409572781
+- 0.8377580409572781
+- -0.8377580409572781
+- 0.8377580409572781
+- -0.8377580409572781
+velocity: []
+effort: []
+---
+===SERVO===
+header:
+  stamp:
+    sec: 1794880288
+    nanosec: 351652586
+  frame_id: base_link
+servo_state:
+- id: 6
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 5
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 4
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 3
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 2
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+- id: 1
+  goal: 0
+  position: 500
+  error: 0
+  voltage: 0
+---
+===BATTERY===
+data: 7651
+---
