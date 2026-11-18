@@ -294,10 +294,14 @@ class RobotService:
         return jsonable(record)
 
     def _token_targets(self, normalized: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        # ``from_rad`` is deliberately excluded: it comes from the live state
+        # read and can change by small amounts between preview and execute
+        # (hardware command echo). Binding it would turn a genuinely safe
+        # preview into PREVIEW_PAYLOAD_MISMATCH instead of letting the safety
+        # gate evaluate the command against the fresh state.
         return [
             {
                 "joint": item["joint"],
-                "from_rad": item["from_rad"],
                 "target_rad": item["target_rad"],
                 "duration_s": item["duration_s"],
                 "target_raw": item["target_raw"],
@@ -738,7 +742,13 @@ class RobotService:
                 "gateway_status": live_tf.get("status") if live_result is not None else None,
                 "dynamic_edges": live_tf.get("dynamic_edges") if live_result is not None else 0,
                 "static_edges": live_tf.get("static_edges") if live_result is not None else 0,
-                "max_tf_age_ms": live_tf.get("max_age_ms") if live_result is not None else None,
+                # Static TF edges are latched and legitimately old; use the
+                # dynamic maximum so the UI does not call a live graph stale.
+                "max_tf_age_ms": (
+                    live_tf.get("max_dynamic_age_ms", live_tf.get("max_age_ms"))
+                    if live_result is not None
+                    else None
+                ),
                 "frames": frames_out,
                 "camera_frame": camera_frame,
                 "warnings": warnings,

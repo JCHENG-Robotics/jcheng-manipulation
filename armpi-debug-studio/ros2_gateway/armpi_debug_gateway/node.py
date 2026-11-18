@@ -381,6 +381,7 @@ class GatewayNode(Node):
         dynamic = [edge for edge in edges if not edge["static"]]
         static = [edge for edge in edges if edge["static"]]
         dynamic_ages = [int(edge["age_ms"]) for edge in dynamic]
+        static_ages = [int(edge["age_ms"]) for edge in static]
         all_ages = [int(edge["age_ms"]) for edge in edges]
         freshest = min(dynamic_ages) if dynamic_ages else None
         if not edges:
@@ -412,7 +413,12 @@ class GatewayNode(Node):
             "dynamic_edges": len(dynamic),
             "static_edges": len(static),
             "freshest_age_ms": freshest,
+            # Static edges are latched and legitimately old after startup;
+            # report dynamic and static maxima separately. ``max_age_ms`` is
+            # kept for compatibility and is the all-edge maximum.
             "max_age_ms": max(all_ages) if all_ages else None,
+            "max_dynamic_age_ms": max(dynamic_ages) if dynamic_ages else None,
+            "max_static_age_ms": max(static_ages) if static_ages else None,
             "transforms": edges,
             "notes": notes,
         }

@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+  ✓  1 [chromium] › e2e/hardware.spec.ts:27:3 › Hardware mode (read-only gateway) › shows LIVE measured battery/camera and commanded joint state (506ms)
+  ✓  2 [chromium] › e2e/hardware.spec.ts:73:3 › Hardware mode (read-only gateway) › G4 workbench uses live gateway /tf, not model-only FK (339ms)
+  ✓  3 [chromium] › e2e/hardware.spec.ts:85:3 › Hardware mode (read-only gateway) › a full preview/execute attempt is rejected without motion (335ms)
+
+  3 passed (2.8s)

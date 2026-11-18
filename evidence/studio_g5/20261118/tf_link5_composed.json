@@ -1,0 +1,34 @@
+{
+  "age_ms": 15,
+  "child": "link5",
+  "dynamic_edges": 11,
+  "gateway_status": "ok",
+  "matrix_row_major": [
+    0.000758339,
+    -0.007988944,
+    0.9999678,
+    0.007721522,
+    0.999938324,
+    0.007982853,
+    -0.999969901,
+    0.007715219,
+    0.000819979
+  ],
+  "parent": "link4",
+  "quaternion_xyzw": [
+    -9.4587e-05,
+    0.706816809,
+    0.005552384,
+    0.707374837
+  ],
+  "root": "base_link",
+  "source": "live_tf",
+  "static": false,
+  "static_edges": 8,
+  "translation_m": [
+    0.164158495,
+    0.000307417,
+    0.239816373
+  ],
+  "truth": "measured_tf"
+}

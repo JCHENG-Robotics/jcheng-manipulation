@@ -1,8 +1,10 @@
 # G2 Trajectory Inspector (offline)
 
-> Status: **implemented and mock/offline-validated (2026-11-18)**. This is not a
-> PRD G2 hardware acceptance: no hardware trajectory was recorded or analyzed,
-> and replay never touches a robot. All demo data is explicitly simulated.
+> Status: **implemented and mock/offline-validated (2026-11-18)**; a read-only
+> G5 recorder also produced a no-motion capture and one supervised
+> `camera_forward` moving capture, both imported successfully. This is not a
+> PRD G2 hardware acceptance: the moving capture is a single small motion, and
+> replay never touches a robot. All demo data is explicitly simulated.
 
 ## Scope
 
@@ -14,8 +16,11 @@ The Inspector closes the offline part of PRD G2:
 - CSV/JSON exports let another script recompute the metrics;
 - the trajectory API has no motion write path.
 
-It does **not** record from ROS/MoveIt or consume rosbag2 yet. A dataset is
-imported as JSON through the UI or `POST /api/trajectories`.
+It does **not** consume rosbag2. Live capture is provided separately by the
+read-only G5 recorder
+([`g5-trajectory-recorder.md`](g5-trajectory-recorder.md)), which writes this
+dataset contract directly. A dataset can still be imported as JSON through the
+UI or `POST /api/trajectories`.
 
 ## Dataset contract (`schema_version: 1`)
 
@@ -155,9 +160,13 @@ Evidence bundle: [`evidence/studio_g2/20261118/`](../../evidence/studio_g2/20261
 
 ## Limitations
 
-1. No hardware trajectory has been captured. The bundled demo is synthetic and
-   must not be cited as robot evidence.
+1. One small **moving** hardware trajectory has been captured (supervised
+   `camera_forward`, 0.892 s, 2026-11-18), but it is not a grasp, repeatability
+   study or accuracy benchmark. Its measured error is dominated by servo pulse
+   quantization and a one-period start offset. The bundled demo is synthetic
+   and must not be cited as robot evidence.
 2. Import is JSON only; rosbag2/MoveIt action-result import is not implemented.
+   The G5 recorder writes the JSON contract; a bag is still not read directly.
 3. The timebase is a declared shared start; delays across devices are not
    measured and are never reported as latency.
 4. Velocity/acceleration curves are not plotted; only positions and position

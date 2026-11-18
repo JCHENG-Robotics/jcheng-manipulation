@@ -1,0 +1,16 @@
+[0m[INFO] [1794971830.911937579] [armpi_studio_recorder]: read-only recorder: commanded=/controller_manager/joint_states measured=/controller_manager/servo_states mode=motion duration=15.0s[0m
+[0m[INFO] [1794971832.883146936] [armpi_studio_recorder]: commanded=0 measured=0 armed=False elapsed=0.0s[0m
+[0m[INFO] [1794971834.902527012] [armpi_studio_recorder]: commanded=0 measured=0 armed=False elapsed=0.0s[0m
+[0m[INFO] [1794971836.902907162] [armpi_studio_recorder]: commanded=0 measured=0 armed=False elapsed=0.0s[0m
+[0m[INFO] [1794971838.908455031] [armpi_studio_recorder]: commanded=0 measured=0 armed=False elapsed=0.0s[0m
+[0m[INFO] [1794971840.918414003] [armpi_studio_recorder]: commanded=0 measured=0 armed=False elapsed=0.0s[0m
+[0m[INFO] [1794971841.192382433] [armpi_studio_recorder]: recording armed (commanded delta 0.0084 rad)[0m
+[0m[INFO] [1794971842.936846305] [armpi_studio_recorder]: commanded=85 measured=84 armed=True elapsed=1.8s[0m
+[0m[INFO] [1794971844.954027252] [armpi_studio_recorder]: commanded=180 measured=179 armed=True elapsed=3.8s[0m
+[0m[INFO] [1794971846.961013381] [armpi_studio_recorder]: commanded=275 measured=274 armed=True elapsed=5.8s[0m
+[0m[INFO] [1794971848.980893590] [armpi_studio_recorder]: commanded=371 measured=370 armed=True elapsed=7.8s[0m
+[0m[INFO] [1794971850.989783830] [armpi_studio_recorder]: commanded=466 measured=465 armed=True elapsed=9.8s[0m
+[0m[INFO] [1794971853.001759350] [armpi_studio_recorder]: commanded=562 measured=561 armed=True elapsed=11.8s[0m
+[0m[INFO] [1794971855.016302630] [armpi_studio_recorder]: commanded=657 measured=656 armed=True elapsed=13.8s[0m
+stop reason: duration_elapsed
+capture: /home/ubuntu/shared/g5_evidence/moving_capture.json

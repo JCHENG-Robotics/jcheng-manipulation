@@ -16,8 +16,10 @@ Run inside the Humble MoveIt container after sourcing the workspace:
 """
 
 import argparse
+import json
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 from pathlib import Path
 
 import rclpy
@@ -60,6 +62,52 @@ def print_trajectory(trajectory):
     print('  final ' + ' '.join(
         f'{name}={value:.6f}'
         for name, value in zip(names, points[-1].positions)))
+
+
+def trajectory_document(trajectory, *, state, group, error_code,
+                        planning_time_s):
+    """Serialize the planned trajectory for the Studio G5 recorder."""
+    joint_trajectory = trajectory.joint_trajectory
+    points = []
+    for point in joint_trajectory.points:
+        duration = point.time_from_start
+        item = {
+            't_s': duration.sec + duration.nanosec / 1e9,
+            'positions': [float(value) for value in point.positions],
+        }
+        if point.velocities:
+            item['velocities'] = [float(value) for value in point.velocities]
+        if point.accelerations:
+            item['accelerations'] = [
+                float(value) for value in point.accelerations]
+        points.append(item)
+    return {
+        'schema_version': 1,
+        'kind': 'moveit_planned_trajectory',
+        'created_at': datetime.now(timezone.utc).isoformat().replace(
+            '+00:00', 'Z'),
+        'state': state,
+        'group': group,
+        'joint_names': list(joint_trajectory.joint_names),
+        'points': points,
+        'source': 'GetMotionPlan /plan_kinematic_path',
+        'error_code': int(error_code),
+        'planning_time_s': float(planning_time_s),
+    }
+
+
+def write_trajectory(path, trajectory, *, state, group, error_code,
+                     planning_time_s):
+    """Write the planned trajectory JSON used by the G5 recorder."""
+    document = trajectory_document(
+        trajectory, state=state, group=group, error_code=error_code,
+        planning_time_s=planning_time_s)
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(document, indent=2, sort_keys=True) + '\n',
+        encoding='utf-8')
+    print(f'trajectory_json={target}')
 
 
 class NamedStatePlan(Node):
@@ -162,6 +210,9 @@ def main():
     parser.add_argument(
         '--result-timeout', type=float, default=300.0,
         help='seconds to wait for the execute result')
+    parser.add_argument(
+        '--trajectory-json',
+        help='write the inspected plan for the Studio G5 recorder')
     args = parser.parse_args()
 
     if args.execute and not args.i_have_clear_workspace:
@@ -181,6 +232,12 @@ def main():
         result = node.plan()
         if result is None:
             return 1
+        if args.trajectory_json:
+            write_trajectory(
+                args.trajectory_json, result.trajectory,
+                state=args.state, group=group,
+                error_code=result.error_code.val,
+                planning_time_s=result.planning_time)
         if not args.execute:
             print('plan-only: no execute goal sent')
             return 0

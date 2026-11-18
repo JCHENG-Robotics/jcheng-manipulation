@@ -39,7 +39,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Error budget framework | Implemented, demo-validated; project budget **partial** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md); measured hand-eye + fiducial terms, RSS 3.699 mm / 0.682°, required repeatability/backlash/execution/gripper/fixture terms unmeasured |
 | Paired trial framework | Implemented, simulated-validated | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md); 24-pair randomized plan, seeded bootstrap/sign/McNemar analysis; no physical trial |
 | Host/DDS benchmark | Implemented, read-only hardware snapshot | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md); laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + read-only hardware + G2/G3/G4 offline | 74 backend + 12 gateway tests pass; 10 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 read-only visual workbench (optional `/tf`); hardware motion disabled |
+| ArmPi Debug Studio | G1-Mock + read-only hardware + G2/G3/G4/G5 | 76 backend + 24 gateway tests pass; 10 mock + 3 hardware Playwright; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 visual workbench with live `/tf` verified, G5 read-only trajectory recorder with a supervised moving capture; hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
 The detailed audit (sources, conflicts, decisions) is in
@@ -282,7 +282,7 @@ Profiles: `default`, `gain_0p1`, `gain_0p2`. The 2026-11-15 regression sent
 returned `error_code=0`. See
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md).
 
-### ArmPi Debug Studio (Mock and read-only hardware)
+### ArmPi Debug Studio (Mock, read-only hardware, G5 recorder)
 
 ```bash
 cd armpi-debug-studio/backend
@@ -295,18 +295,33 @@ uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 cd armpi-debug-studio/frontend
 npm install && npm run dev
 npm run test:e2e          # builds + 10 Playwright mock tests
+
+# hardware mode, explicit and private; read-only, never in CI
+ARMPI_E2E_HARDWARE=1 \
+ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
+ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
+npm run test:e2e:hardware
 ```
 
 The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the
 read-only gateway running on the robot, the UI shows `LIVE` battery and camera
 data; joint positions are a command echo. Hardware motion remains disabled by
 design. The gateway was hardware-verified on 2026-11-17 and now runs as a host
-systemd service; see
+systemd service; its `/tf` path was verified on 2026-11-18 (11 dynamic + 8
+static edges, `base_link→link5` within 0.4 mm of `tf2_echo`). See
 [`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md),
 [`armpi-debug-studio/ros2_gateway/deploy/README.md`](armpi-debug-studio/ros2_gateway/deploy/README.md)
 and [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md). Joint
 limits remain provisional; the read-only survey and the torque-off tool are in
 [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
+
+The **G5 read-only recorder** captures the vendor command echo and
+`/controller_manager/servo_states` measured positions and writes a G2 dataset.
+A 5 s no-motion capture and a supervised `camera_forward` moving capture
+(0.892 s, 712 commanded / 711 measured samples) both imported successfully;
+the moving dataset reports tracking max 0.008321 rad / RMSE 0.003962 rad, which
+is dominated by servo pulse quantization and a one-period start offset. See
+[`armpi-debug-studio/docs/g5-trajectory-recorder.md`](armpi-debug-studio/docs/g5-trajectory-recorder.md).
 
 ## Model caveats (important)
 

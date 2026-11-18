@@ -3,6 +3,72 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-18 Studio G5 read-only trajectory recorder and live TF verification
+
+### Added
+
+- **G5 read-only trajectory recorder.** New
+  `ros2_gateway/armpi_debug_gateway/recorder.py` and pure-Python
+  `trajectory_capture.py`. The recorder subscribes to the vendor command echo
+  (`/controller_manager/joint_states`, truth `commanded`) and to
+  `/controller_manager/servo_states` (bus-servo positions converted from pulses
+  to radians, truth `measured`), detects the motion start from the last
+  unchanged commanded sample, and writes a raw capture plus an optional G2
+  `schema_version: 1` dataset. It creates no publisher, service client or
+  motion endpoint; an out-of-range servo pulse aborts the capture.
+- `tools/phase2/real_moveit_execute.py --trajectory-json` writes the inspected
+  MoveIt plan in the recorder's planned-stream format.
+- `armpi-debug-studio/tools/build_g5_dataset.py` attaches a plan JSON to a raw
+  capture offline; `dataset_from_capture` preserves capture notes, topics,
+  abort flags and counters in dataset metadata.
+- `armpi-debug-studio/tools/verify_tf_snapshot.py` composes a gateway `/tf`
+  snapshot and prints a root-to-child translation/quaternion for comparison
+  with `tf2_echo`.
+- **Environment-gated hardware Playwright.** `frontend/e2e/hardware.spec.ts`
+  and `start-backend-hardware.sh` run only with `ARMPI_E2E_HARDWARE=1` and a
+  private `ARMPI_GATEWAY_URL`/`ARMPI_GATEWAY_TOKEN_FILE`. The spec checks LIVE
+  battery/camera, commanded joint state, G4's live `/tf`, and that a complete
+  preview/execute attempt is rejected with `GATE_REJECTED`; it never runs in
+  CI and never moves the arm.
+- Gateway `/tf` now reports `max_dynamic_age_ms` and `max_static_age_ms`
+  separately; latched static edges no longer make a live graph look stale.
+- Evidence `evidence/studio_g5/20261118/`: a 5 s no-motion capture (242
+  commanded / 241 measured samples at ~48 Hz) and a supervised
+  `camera_forward` moving capture (0.892 s, 712 commanded / 711 measured
+  samples), their imported G2 analyses, live `/tf` snapshot, `tf2_echo`
+  comparison, hardware Playwright log and screenshots. Docs:
+  `armpi-debug-studio/docs/g5-trajectory-recorder.md`.
+
+### Fixed
+
+- The preview-token payload no longer includes the live `from_rad`. Hardware
+  command echo can move slightly between preview and execute; binding it
+  produced `PREVIEW_PAYLOAD_MISMATCH` before the safety gate could evaluate the
+  command. The token still binds command id, session, mapping hash, targets and
+  durations.
+- `servo_states_to_positions` accepts the vendor's scalar `id`/`position`
+  fields (the first hardware run rejected them as non-integers).
+- The Dashboard feedback-age hint no longer says "simulated in Mock" in
+  hardware mode; it reports the actual command-echo/measured truth.
+
+### Verified
+
+- Backend `pytest` **76 passed**; gateway `pytest` **24 passed**; Playwright
+  mock **10 passed**; hardware **3 passed**; `tsc -b && vite build` succeeds.
+- Live `/tf`: 11 dynamic + 8 static edges, `status=ok`, freshest ~15–50 ms.
+  Gateway `base_link→link5` composition `[0.16416, 0.00031, 0.23982] m` vs
+  `tf2_echo` `[0.164, 0.000, 0.240] m` (below 0.4 mm). A stale laptop mock
+  publisher was stopped before the comparison so the graph had no duplicate
+  `camera_optical_calibrated` frame.
+- A supervised `camera_forward` execute was recorded and imported: 0.892 s
+  plan, 10 waypoints, 712 commanded / 711 measured samples at ~47.4 Hz,
+  tracking max 0.008321 rad / RMSE 0.003962 rad and command-fidelity max
+  0.008326 rad. The error is dominated by servo pulse quantization
+  (`0.00419 rad` per tick) and a one-period start offset from the `0.005` arm
+  threshold used in that run; it is not a full tracking-accuracy result.
+- The recorder default motion threshold is now `0.002` rad, below one servo
+  tick, so a single-tick move arms the capture at the last stable sample.
+
 ## [Unreleased] — 2026-11-18 Studio G4 read-only Visual Workbench
 
 ### Added

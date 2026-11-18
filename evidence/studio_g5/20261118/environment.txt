@@ -1,0 +1,7 @@
+date: 2026-11-18
+laptop: Python 3.12.3, pytest 9.2.0, Node v24.22.3, npm 11.19.1, Playwright 1.65.1 (Chromium)
+robot: ArmPi Ultra, Pi 5, vendor container ArmPiUltra, ROS 2 Humble, CycloneDDS vendor stack
+gateway: armpi-gateway.service, bind 10.42.0.218:8765, read-only (motion_enabled=false)
+robot battery: 7690 mV / 64.5%
+motion: one supervised camera_forward execute (0.892 s plan, execute_status=4, error_code=1)
+post-motion battery: 7562 mV / 58.1%

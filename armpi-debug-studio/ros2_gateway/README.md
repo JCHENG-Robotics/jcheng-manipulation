@@ -7,8 +7,10 @@ local HTTP. It has **no motion write path**.
 
 > Verified 2026-11-17 on the Pi 5 vendor container: `/health`, `/battery`,
 > `/camera/status`, `/camera/snapshot`, `/state`, token 401 and motion 501.
-> It now runs as an enabled host systemd service; stop/start and clean SIGTERM
-> are verified (reboot test deferred). See
+> `/tf` was verified on the robot on 2026-11-18 (11 dynamic + 8 static edges,
+> `base_link→link5` within 0.4 mm of `tf2_echo`). It now runs as an enabled host
+> systemd service; stop/start and clean SIGTERM are verified (reboot test
+> deferred). See
 > [`docs/e7-gateway-verification.md`](../docs/e7-gateway-verification.md),
 > [`deploy/README.md`](deploy/README.md) and
 > [`evidence/studio_gateway/20261117/`](../../evidence/studio_gateway/20261117/).
@@ -128,10 +130,32 @@ Expected:
 - `/camera/status` reports `640×400`, `fps` around 8, `truth: measured`.
 - `/camera/snapshot` is a JPEG.
 - `/tf` reports `available`, `status` (`ok`/`static_only`/`stale`/`unavailable`),
-  edge counts and `transforms[]` with parent/child/translation/quaternion/age.
-  This endpoint is covered by the no-ROS server tests; it has **not** yet been
-  verified against the live robot TF graph.
+  edge counts, `freshest_age_ms`, `max_dynamic_age_ms`, `max_static_age_ms` and
+  `transforms[]` with parent/child/translation/quaternion/age. Static edges are
+  latched and legitimately old; compare dynamic ages for liveness. Verified
+  against the live robot TF graph on 2026-11-18 (11 dynamic + 8 static edges,
+  `base_link→link5` within 0.4 mm of `tf2_echo`).
 - `/motion/dispatch` and `/motion/stop` return `501 NOT_IMPLEMENTED`.
+
+## Trajectory recorder (G5)
+
+The package also contains a read-only recorder, but the systemd unit does not
+start it. It subscribes to the command echo and to
+`/controller_manager/servo_states` (measured bus-servo positions) and writes a
+G2 dataset. It creates no publisher or service client:
+
+```bash
+sudo docker exec -u ubuntu ArmPiUltra /bin/bash -lc '
+  source /opt/ros/humble/setup.bash
+  source /home/ubuntu/ros2_ws/install/setup.bash
+  cd /home/ubuntu/shared/armpi_gateway_deploy
+  python3 -m armpi_debug_gateway.recorder --mode manual --duration 5 \
+    --static-planned --capture-out /home/ubuntu/shared/g5_capture.json
+'
+```
+
+See [`../docs/g5-trajectory-recorder.md`](../docs/g5-trajectory-recorder.md) for
+the moving-capture workflow, plan JSON and dataset assembly.
 
 ## Connect the backend
 

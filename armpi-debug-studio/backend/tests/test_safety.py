@@ -90,3 +90,31 @@ def test_joint3_negative_allowed(mapping: MappingConfig) -> None:
     )
     assert outcome.valid
     assert outcome.normalized[0]["target_raw"] == 524
+
+
+def test_preview_token_payload_excludes_live_from_rad(service) -> None:
+    """The token binds the requested command, not the state snapshot.
+
+    Hardware command echo can move by small amounts between preview and
+    execute. Including ``from_rad`` would reject a safe command as a payload
+    mismatch before the safety gate could evaluate it.
+    """
+    targets = service._token_targets(
+        [
+            {
+                "joint": "joint1",
+                "from_rad": 0.123,
+                "target_rad": 0.2,
+                "duration_s": 1.0,
+                "target_raw": 524,
+            }
+        ]
+    )
+    assert targets == [
+        {
+            "joint": "joint1",
+            "target_rad": 0.2,
+            "duration_s": 1.0,
+            "target_raw": 524,
+        }
+    ]

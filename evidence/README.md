@@ -18,6 +18,7 @@ gitignored or kept private.
 | `phase2/real_background_20261117/` | 8 real RGB frames: negative control + semi-synthetic marker accuracy | Real camera frames; marker composited |
 | `phase2/vendor_calibration_20261117/` | Static decoding of vendor `transform.yaml` / `hand2cam_tf_matrix` | Vendor config/source analysis |
 | `studio_gateway/20261117/` | Persistent gateway live checks | Real hardware, read-only; execute disabled |
+| `studio_g5/20261118/` | G5 no-motion + supervised `camera_forward` recorder captures, G2 imports, live `/tf` vs `tf2_echo`, gated hardware Playwright | Real hardware; one supervised 0.892 s motion |
 | `phase3/session4_20261117/no_camera/`, `with_camera/` | Host + ROS/DDS benchmark on laptop and robot; camera run started/stopped for measurement | Real hardware, read-only; no motion |
 | `studio_e2e/` | Playwright browser tests | Mock mode |
 

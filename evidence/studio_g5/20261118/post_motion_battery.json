@@ -1,0 +1,1 @@
+{"available": true, "voltage_mv": 7562, "voltage_v": 7.562, "percent_estimate": 58.1, "cell_count": 2, "status": "ok", "truth": "measured", "validity": "valid", "source": "armpi_debug_gateway", "topic": "/ros_robot_controller/battery", "received_at": "2026-11-18T03:18:44.187942Z", "sample_age_ms": 16, "notes": []}

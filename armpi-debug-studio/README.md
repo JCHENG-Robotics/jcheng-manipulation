@@ -40,13 +40,28 @@ copied into this directory.
 > **9 passed**. See [`docs/g3-experiment-lab.md`](docs/g3-experiment-lab.md) and
 > [`evidence/studio_g3/20261118/`](../evidence/studio_g3/20261118/README.md).
 
-> Status note (2026-11-18, latest): the **G4 Visual Workbench** is implemented
+> Status note (2026-11-18, later): the **G4 Visual Workbench** is implemented
 > as a read-only URDF forward-kinematics view plus optional gateway `/tf`,
 > camera/calibration/TF warnings and metadata-only camera references. It has no
 > motion path and never enters the safety chain. Backend `pytest` reports
 > **74 passed**, the Playwright mock E2E suite reports **10 passed**. See
 > [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md) and
 > [`evidence/studio_g4/20261118/`](../evidence/studio_g4/20261118/README.md).
+
+> Status note (2026-11-18, latest): the **G5 read-only trajectory recorder** is
+> implemented. It subscribes to the vendor command echo and
+> `/controller_manager/servo_states` (measured bus-servo positions), accepts a
+> MoveIt plan JSON, and writes a G2 dataset. A 5 s no-motion capture produced
+> 242 commanded / 241 measured samples at ~48 Hz; a later **supervised
+> `camera_forward` execute** produced a 0.892 s, 712/711-sample moving capture
+> with `feedback.truth=measured` (G2 tracking max 0.008321 rad, RMSE
+> 0.003962 rad). The gateway `/tf` path is verified on the robot (11 dynamic +
+> 8 static edges, live status, `base_link→link5` within 0.4 mm of `tf2_echo`),
+> and the gated hardware Playwright suite passes 3/3. Backend `pytest` reports
+> **76 passed**, gateway **24 passed**, mock Playwright **10 passed**, hardware
+> Playwright **3 passed**. See
+> [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md) and
+> [`evidence/studio_g5/20261118/`](../evidence/studio_g5/20261118/README.md).
 
 ## Status
 
@@ -60,20 +75,23 @@ copied into this directory.
 | Frontend type-check + production build | Verified | `tsc -b && vite build` |
 | Mock HTTP end-to-end | Verified | preview → execute → Completed; see below |
 | Playwright browser E2E (mock) | **Verified (2026-11-18)** | `npm run test:e2e`, 10 passed; [`frontend/e2e/README.md`](frontend/e2e/README.md) |
+| Playwright browser E2E (hardware) | **Verified read-only (2026-11-18)** | `npm run test:e2e:hardware`, 3 passed against the private gateway; environment-gated, never in CI |
 | Camera + battery (Mock) | Implemented | `/api/peripherals`, Dashboard panels |
 | Camera + battery (hardware) | **Verified read-only (2026-11-17)** | live RGB 640×400 `bgr8` and 7.424 V battery via gateway |
-| Read-only ROS 2 gateway for camera/battery/state | **Verified read-only + persistent service (2026-11-17)** | [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md), [`ros2_gateway/deploy/README.md`](ros2_gateway/deploy/README.md) |
+| Read-only ROS 2 gateway for camera/battery/state/tf | **Verified read-only + persistent service (2026-11-17); `/tf` verified 2026-11-18** | [`docs/e7-gateway-verification.md`](docs/e7-gateway-verification.md), [`ros2_gateway/deploy/README.md`](ros2_gateway/deploy/README.md) |
 | G2 Trajectory Inspector (offline) | **Implemented, offline-validated (2026-11-18)** | [`docs/g2-trajectory-inspector.md`](docs/g2-trajectory-inspector.md); 3-stream JSON import, recomputable metrics, client-side replay |
 | G3 Experiment Lab (offline) | **Implemented, offline-validated (2026-11-18)** | [`docs/g3-experiment-lab.md`](docs/g3-experiment-lab.md); immutable definitions, append-only paired trials, failure codes, CSV/JSON export, paired analysis |
-| G4 Visual Workbench (read-only) | **Implemented, mock/offline-validated (2026-11-18)** | [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md); URDF FK + optional gateway `/tf`, camera/calibration/TF warnings, metadata-only references |
+| G4 Visual Workbench (read-only) | **Implemented; live `/tf` verified (2026-11-18)** | [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md); URDF FK + optional gateway `/tf`, camera/calibration/TF warnings, metadata-only references |
+| G5 read-only trajectory recorder | **Implemented; no-motion + one supervised moving capture (2026-11-18)** | [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md); commanded + measured streams, MoveIt plan JSON, G2 dataset output; `camera_forward` 0.892 s moving capture imported |
 | Hardware motion | **Disabled by design** | `capabilities.hardware_motion=false` |
 | Gripper (`r_joint`) | **Excluded from G1** | `configs/joint_mapping.yaml` |
 | 3D / depth-cloud workbench | **Not implemented** | Settings → Roadmap |
 
 No hardware was accessed while building or testing the Mock slice: no serial
 port, no ROS node, no robot motion. The read-only gateway was later verified on
-the robot host (2026-11-17); its battery and camera payloads are now hardware
-evidence, but joint positions remain a command echo and motion remains off.
+the robot host (2026-11-17), its `/tf` path on 2026-11-18, and the G5 recorder
+captured a 5 s no-motion segment plus one supervised `camera_forward` motion.
+Joint positions remain a command echo and motion remains off in the Studio.
 
 ## Architecture
 
@@ -109,13 +127,13 @@ armpi-debug-studio/
 │   │   ├── config.py
 │   │   ├── service.py
 │   │   └── main.py
-│   └── tests/              74 unit/API tests
+│   └── tests/              76 unit/API tests
 ├── configs/
 │   └── joint_mapping.yaml  provisional vendor-derived mapping
 ├── ros2_gateway/           read-only gateway (runs on the robot)
-│   ├── armpi_debug_gateway/
+│   ├── armpi_debug_gateway/  gateway, /tf cache, G5 recorder
 │   ├── deploy/             host systemd unit, runner, token rotation
-│   └── tests/              12 unit tests (no ROS needed)
+│   └── tests/              24 unit tests (no ROS needed)
 └── frontend/
     ├── e2e/                Playwright suite (mock mode)
     ├── src/api/            typed client + zod contract checks
@@ -176,17 +194,20 @@ If `frontend/dist/index.html` exists, the FastAPI app serves it at `/`.
 ```bash
 cd backend
 . .venv/bin/activate
-pytest                       # 74 passed
+pytest                       # 76 passed
 
 cd ../ros2_gateway
-../backend/.venv/bin/python -m pytest   # 12 passed (no ROS needed)
+../backend/.venv/bin/python -m pytest   # 24 passed (no ROS needed)
 
 cd ../frontend
-npm run test:e2e             # builds, then 10 Playwright tests
+npm run test:e2e             # builds, then 10 mock Playwright tests
+npm run test:e2e:hardware    # gated read-only run; see e2e/README.md
 ```
 
 The E2E suite starts its own mock backend on `127.0.0.1:8766` with a temporary
-SQLite database and serves `frontend/dist`; it never touches the robot. See
+SQLite database and serves `frontend/dist`; it never touches the robot. The
+hardware suite requires `ARMPI_E2E_HARDWARE=1`, a private gateway URL and a
+token file, and is never part of CI. See
 [`frontend/e2e/README.md`](frontend/e2e/README.md).
 
 ## Access from another device
@@ -457,15 +478,37 @@ frontend: tsc -b && vite build → success
 browser:  10 Playwright mock tests passed (new: Visual Workbench)
 model:    URDF FK camera_forward mount matches SRDF note (x≈0.154, z≈0.282 m)
 camera:   mock 640×400, truth=simulated; optical frame from measured hand-eye
-gateway:  /tf endpoint and composition covered by no-ROS tests; live robot TF not yet verified
+gateway:  /tf endpoint and composition covered by no-ROS tests; live robot TF verified later (see G5)
 safety:   read-only; camera references store metadata only; no motion events
 ```
 
-No robot, gateway, serial port or ROS node was involved. URDF limits remain
-provisional, the camera snapshot is synthetic in mock mode, and the model view
-is a read-only projection (not a live TF window). Evidence:
+No robot, gateway, serial port or ROS node was involved in the G4 build. URDF
+limits remain provisional, the camera snapshot is synthetic in mock mode, and
+the model view is a read-only projection (not a live TF window). Evidence:
 [`evidence/studio_g4/20261118/`](../evidence/studio_g4/20261118/). Contract and
 warnings: [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md).
+
+## G5 trajectory recorder and live TF verification (2026-11-18)
+
+```text
+backend:          76 passed (74 existing + G5 contract + token-payload test)
+gateway:          24 passed (12 existing + 12 capture/TF tests)
+frontend:         tsc -b && vite build → success
+mock browser:      10 Playwright tests passed
+hardware browser:  3 Playwright tests passed (LIVE, live /tf, GATE_REJECTED)
+static recorder:   5 s no motion; 242 commanded / 241 measured at ~48 Hz
+moving recorder:   supervised camera_forward, 0.892 s; 712/711 samples
+G2 moving import:  tracking max 0.008321 rad / RMSE 0.003962 rad
+live /tf:          11 dynamic + 8 static edges; status=ok; freshest ~15-50 ms
+link5 comparison:  gateway composition vs tf2_echo < 0.4 mm
+```
+
+The recorder only subscribes; it creates no publisher, service client or motion
+endpoint. The hardware Playwright run is environment-gated and never runs in
+CI. The one moving capture is a small `camera_forward` move, not a grasp or a
+tracking benchmark. Evidence:
+[`evidence/studio_g5/20261118/`](../evidence/studio_g5/20261118/). Contract and
+limitations: [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md).
 
 ## Known limitations
 
@@ -485,9 +528,9 @@ warnings: [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md).
 4. Backend API is unauthenticated and bound to localhost by default. The
    gateway uses a shared token. Do not expose either on a LAN/public interface
    without a separate security review.
-5. The committed Playwright suite covers mock mode only. The hardware-mode UI
-   check is still a manual browser session; there are no visual-regression
-   baselines.
+5. The committed Playwright suite covers mock mode by default; the gated
+   hardware spec runs only with `ARMPI_E2E_HARDWARE=1` against a private
+   gateway. There are no visual-regression baselines.
 6. The vendor container has no `cv_bridge`; the gateway uses its numpy fallback
    for `bgr8`/`rgb8`/`mono8`. Other encodings report an error frame instead of
    being guessed.
@@ -495,17 +538,24 @@ warnings: [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md).
    vendor CycloneDDS nodes, but services do not; the read-only gateway does not
    call services. Any future service call must run with the vendor `.zshrc`
    environment (`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`, `CYCLONEDDS_URI`).
-8. G2 is offline-only: no hardware trajectory or rosbag2 import yet, the demo is
-   synthetic, and the timebase is a declared shared start (no latency claim).
+8. G2 has no **moving** hardware trajectory and no rosbag2 import yet; a G5
+   no-motion capture imported successfully, the demo is synthetic, and the
+   timebase is a declared shared start (no latency claim).
 9. G3 is offline-only: no hardware trial exists, artifact references are not
    read or validated, trial records cannot be edited/voided, and the demo's
    binary endpoint is deliberately underpowered.
-10. G4 has an optional gateway `/tf` snapshot, but it is covered only by no-ROS
-    tests and has **not** been verified against the robot TF graph. Without it,
-    frames are URDF forward kinematics from the current joint truth (commanded
-    in hardware mode), the URDF is provisional, the view is an SVG projection
-    rather than a mesh render, and saved camera references contain metadata
-    only. The live camera still needs a real hardware-mode check.
+10. G4's gateway `/tf` path is now verified on the robot, including a
+    `base_link→link5` comparison with `tf2_echo` below 0.4 mm. Without that
+    endpoint, frames fall back to URDF forward kinematics from the current
+    joint truth (commanded in hardware mode); the URDF is provisional, the view
+    is an SVG projection rather than a mesh render, and saved camera references
+    contain metadata only.
+11. G5 has one **small supervised moving capture** (`camera_forward`, 0.892 s),
+    not a grasp, repeatability study or tracking benchmark. Its measured error
+    is dominated by servo pulse quantization and a one-period start offset. The
+    planned stream must match the executed plan, `rosbag2` is still not
+    imported, and the timebase is the recorder's monotonic clock rather than a
+    cross-device synchronization claim.
 
 ## Next steps
 
@@ -513,12 +563,14 @@ warnings: [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md).
    (`tools/phase2/joint_limit_survey.py --mode survey`), with the arm supported.
 2. Add a guarded single-joint motion path only after Board approval; keep
    `hardware_motion=false` until then.
-3. Capture a real planned/commanded/measured trajectory with the validated
-   bus-servo read path; there is no ROS recorder in the Studio yet.
+3. Run more supervised moving captures (larger motions, repeatability) and
+   refine the start-alignment convention before using G5 data for accuracy
+   claims; one small `camera_forward` capture exists.
 4. Run the first supervised paired grasp experiment only after steps 1–3 and
    size the binary endpoint from pilot discordance, not from a small demo.
 5. Verify reboot/container-restart persistence when arm motion is acceptable.
-6. Verify the gateway `/tf` endpoint on the robot and compare its frames with
-   `tf2_echo`; only then enable live-TF claims for G4.
-7. Optional: a hardware-mode Playwright run behind an explicit environment gate
-   and a private gateway, never in CI.
+
+Completed on 2026-11-18 (was on the previous list): gateway `/tf` verified on
+the robot and compared with `tf2_echo`; hardware-mode Playwright added behind
+`ARMPI_E2E_HARDWARE=1` and passed 3/3; G5 recorder implemented and a supervised
+moving `camera_forward` trajectory captured and imported into G2.

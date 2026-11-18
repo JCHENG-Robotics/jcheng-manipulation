@@ -76,6 +76,13 @@ export function Dashboard() {
 
   const safety = diagnostics.safety;
   const feedbackAge = maxFeedbackAge(robot.joints);
+  const jointTruth = robot.joints[0]?.truth;
+  const feedbackHint =
+    robot.mode === "mock"
+      ? "simulated in Mock"
+      : jointTruth === "commanded"
+        ? "command echo, not encoder feedback"
+        : "measured feedback";
   const activeFaults = robot.faults;
   const latestEvents = events.slice(0, 8);
   const battery = peripherals?.battery ?? null;
@@ -173,7 +180,7 @@ export function Dashboard() {
           label="Feedback age"
           value={feedbackAge === null ? "—" : `${feedbackAge} ms`}
           tone={feedbackAge === null ? "neutral" : feedbackAge > 500 ? "fault" : "ok"}
-          hint="simulated in Mock"
+          hint={feedbackHint}
         />
       </div>
 

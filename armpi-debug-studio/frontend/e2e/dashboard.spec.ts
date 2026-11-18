@@ -56,7 +56,11 @@ test.describe("Dashboard (mock mode)", () => {
     await page.getByRole("link", { name: "Settings" }).click();
     await expect(page.getByRole("heading", { name: "Settings", level: 1 })).toBeVisible();
     await expect(page.getByText("mock", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("vendor-provisional-1").first()).toBeVisible();
+    // The mapping version advances when hardware limits are adopted; the
+    // safety gate still reports provisional until every joint is verified.
+    await expect(
+      page.getByText(/eeprom-bounded-2026-11-18|vendor-provisional-1/).first(),
+    ).toBeVisible();
     await expect(page.getByText("provisional", { exact: true }).first()).toBeVisible();
   });
 });

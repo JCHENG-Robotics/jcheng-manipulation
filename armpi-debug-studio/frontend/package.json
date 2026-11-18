@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "pretest:e2e": "npm run build",
+    "test:e2e:hardware": "playwright test",
+    "pretest:e2e:hardware": "npm run build",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {

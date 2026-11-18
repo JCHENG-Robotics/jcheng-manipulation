@@ -110,13 +110,16 @@ audit event. There is no motion/lease endpoint under `/api/visual`.
 - The model remains explicitly provisional: URDF limits and meshes are not
   mechanically verified.
 
-## Verification (2026-11-18, mock only)
+## Verification (2026-11-18)
 
 ```text
-backend pytest        74 passed total (8 new visual tests; includes a serving cache test already in the worktree)
-gateway pytest        12 passed (includes the /tf read-only endpoint)
-Playwright mock E2E   10 passed (new Visual Workbench spec)
+backend pytest        74 passed at G4 delivery (8 visual tests)
+gateway pytest        12 passed at G4 delivery (includes the /tf endpoint)
+Playwright mock E2E   10 passed (Visual Workbench spec)
 frontend build        tsc -b && vite build OK
+hardware Playwright   3 passed (2026-11-18, later G5 run)
+live TF               11 dynamic + 8 static edges, status=live
+base_link -> link5    gateway composition vs tf2_echo: < 0.4 mm
 ```
 
 Checks include:
@@ -137,19 +140,49 @@ Checks include:
 
 Evidence: [`evidence/studio_g4/20261118/`](../../evidence/studio_g4/20261118/README.md).
 
+## Live robot verification (2026-11-18)
+
+The optional gateway `/tf` path was redeployed and checked against the robot:
+
+- `/tf` returned 11 dynamic edges and 8 static edges; the freshest dynamic edge
+  was 8–50 ms old and the gateway reported `status=ok`.
+- The backend composed `base_link → link5` at
+  `[0.16416, 0.00031, 0.23982] m` with quaternion
+  `[-0.00009, 0.70682, 0.00555, 0.70737]`.
+- `tf2_echo base_link link5` in the vendor container reported
+  `[0.164, 0.000, 0.240] m` and `[-0.000, 0.707, 0.006, 0.707]`; the
+  differences are below 0.4 mm and 0.001 in quaternion components, consistent
+  with different sampling instants and `tf2_echo`'s three-decimal display.
+- `/api/visual` returned `tf.status=live`, `source=tf2_topics`,
+  `truth=measured_tf`, `live=true`, and the camera body/optical frames
+  `rgb_camera_link` / `camera_optical_calibrated`.
+- The first hardware attempt exposed two contamination/staleness issues:
+  orphaned laptop mock nodes published a second `base_link →
+  camera_optical_calibrated` edge, and the reported maximum TF age included
+  latched static edges. The stale nodes were stopped; `max_tf_age_ms` now uses
+  the dynamic-edge maximum, while static ages are reported separately by the
+  gateway.
+
+Evidence: [`evidence/studio_g5/20261118/`](../../evidence/studio_g5/20261118/README.md)
+(`gateway_tf.json`, `tf_link5_composed.json`, `tf2_echo.txt`,
+`hardware_visual.json`, `hardware_visual.png`).
+
 ## Limitations
 
-1. Live TF is available only when the gateway receives `/tf`; this endpoint is
-   covered by no-ROS server tests but has **not** been verified against the
-   robot TF graph. Without it, frames come from URDF FK and the current joint
-   state; in hardware mode that state is the vendor command echo.
+1. Live TF was verified on the robot on 2026-11-18, but it remains optional:
+   without gateway `/tf`, frames fall back to URDF FK and the current joint
+   state. In hardware mode that state is the vendor command echo, and the
+   vendor's dynamic TF may also derive from commanded states rather than
+   independent encoders.
 2. The URDF is provisional. Joint limits and meshes are not mechanically
    measured; `verified=false` is returned.
 3. The view is an SVG isometric projection of link frames/axes, not a mesh or
    depth render. It is intended for structural checks, not collision or
    calibration truth.
-4. The mock camera is a generated SVG. A hardware-mode camera check still needs
-   the live gateway.
+4. The mock camera is a generated SVG. A hardware-mode camera check now passes
+   against the live gateway, but it still depends on the vendor `aurora` node
+   and the `rgb_camera_link` body frame; PnP must use the calibrated optical
+   frame.
 5. Camera references store metadata only; they cannot reproduce the exact image
    later unless an external system saved it.
 6. The Workbench does not show a live target-detection overlay. G2/G3 analysis
