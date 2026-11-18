@@ -24,13 +24,22 @@ The vendor SDK's boolean is inverted on this servo firmware: bit 1 in
 and ``enable_torque=[1, 0]`` (SDK "disable", 0x0C) **engages** it. The
 torque register read reflects the real state.
 
+While the operator moves a released joint, the survey prints the live
+pulse every 0.75 s and warns 30 pulses before the servo EEPROM bound. A
+read that returns a **negative** position crashes the vendor node (the
+``position`` field is uint16), so the operator must stop at the warning;
+the mechanical stops of several joints lie beyond the commandable range,
+where only the EEPROM bound matters. ``--high-only`` measures just the
+high-pulse stop and takes the low stop from the EEPROM limit, which keeps
+the joint away from the negative register range entirely.
+
 The tool waits for the state-topic subscription to match before the first
 publish: a single message sent right after startup can be lost to DDS
 discovery. The recovery path is a **position hold** at the current
 positions; ``--mode restore`` uses it and a running survey preflights it.
 
 ``--mode read`` is safe: it subscribes to the battery topic and reads the
-bus-servo registers (position, torque, EEPROM limits/offset). It sends nothing.
+bus-servo position and torque registers. It sends nothing.
 
 ``--mode restore`` re-engages all five arm servos.
 
@@ -42,6 +51,7 @@ workspace details.
 import argparse
 import json
 import os
+import select
 import statistics
 import sys
 import time
@@ -79,6 +89,25 @@ PROVISIONAL_RAD = {
     'joint4': (-2.0943951023931953, 2.0943951023931953),
     'joint5': (-2.0943951023931953, 2.0943951023931953),
 }
+# Servo EEPROM position limits (read-only capture, 2026-11-18). Commanded
+# positions are clamped to these, so they are the effective commandable
+# range even when a hand-found mechanical stop is farther out.
+EEPROM_PULSE = {
+    'joint1': (50, 950),
+    'joint2': (160, 830),
+    'joint3': (70, 950),
+    'joint4': (100, 900),
+    'joint5': (100, 890),
+}
+# Warn this many pulses before an EEPROM bound. A read that returns a
+# negative position crashes the vendor node (uint16 assertion), so the
+# live monitor has to stop the operator before a joint reaches 0.
+GUARD_MARGIN_PULSES = 30
+# Abort the wait when a released joint drops faster than this between two
+# reads (0.75 s). Joint5 fell 196 pulses in one read on 2026-11-18 while
+# the arm was extended; the next read returned a negative position and
+# killed the vendor node.
+FALL_GUARD_PULSES = 60
 BATTERY_TOPIC = '/ros_robot_controller/battery'
 SERVO_STATE_SERVICE = '/ros_robot_controller/bus_servo/get_state'
 SERVO_STATE_TOPIC = '/ros_robot_controller/bus_servo/set_state'
@@ -191,8 +220,10 @@ class SurveyNode(Node):
         """Read one joint several times with a hard range guard.
 
         A position outside 0..1000 means the joint was back-driven past the
-        servo's reporting range; the 2026-11-18 survey crashed the vendor
-        node on the read after such a sample. Abort before the next read.
+        servo's reporting range. A **negative** position also crashes the
+        vendor node inside the service callback (the message field is
+        uint16), which is why the interactive wait warns before that
+        happens; this guard only turns a bad sample into a clean abort.
         """
         values = []
         for _ in range(self.servo_reads):
@@ -205,6 +236,58 @@ class SurveyNode(Node):
             values.append(pulse)
             self.spin_for(0.1)
         return int(statistics.median(values)), max(values) - min(values)
+
+    def wait_for_stop(self, name, target='one mechanical stop', baseline=None):
+        """Wait for Enter while printing live pulses and guarding the range.
+
+        The operator moves the released joint by hand; every 0.75 s the
+        tool reads the position and prints it, so a pulse approaching 0 or
+        an EEPROM bound is visible before the hand can push a joint into
+        the negative range that kills the vendor node. A fast drop also
+        aborts: a released joint that is not held falls under gravity and
+        can reach the negative range between two reads.
+        """
+        low, high = EEPROM_PULSE[name]
+        warn_low = low + GUARD_MARGIN_PULSES
+        warn_high = high - GUARD_MARGIN_PULSES
+        print('Move {} slowly to {}, then press Enter.'.format(name, target))
+        print(
+            '  live pulse readout every 0.75 s; stop at the first '
+            'mechanical resistance')
+        print(
+            '  guard: stop before pulse {} (low) / {} (high); '
+            'EEPROM {}..{}'.format(warn_low, warn_high, low, high))
+        warned = set()
+        last = baseline
+        while True:
+            ready, _, _ = select.select([sys.stdin], [], [], 0.75)
+            if ready:
+                sys.stdin.readline()
+                print('')
+                return
+            pulse = self.read_joint_pulse(name)
+            if last is not None and last - pulse > FALL_GUARD_PULSES:
+                raise RuntimeError(
+                    '{} fell {} pulses between two reads ({} -> {}); the '
+                    'joint is not held against gravity. Stopping and '
+                    'restoring torque at the current position; support the '
+                    'arm and reposition it before surveying'.format(
+                        name, last - pulse, last, pulse))
+            last = pulse
+            print('\r  {} pulse {}     '.format(name, pulse),
+                  end='', flush=True)
+            if pulse <= warn_low and 'low' not in warned:
+                warned.add('low')
+                print(
+                    '\n  GUARD: {} pulse {} is within {} of the low EEPROM '
+                    'bound {}; stop now, do not push further'.format(
+                        name, pulse, GUARD_MARGIN_PULSES, low))
+            elif pulse >= warn_high and 'high' not in warned:
+                warned.add('high')
+                print(
+                    '\n  GUARD: {} pulse {} is within {} of the high EEPROM '
+                    'bound {}; stop now, do not push further'.format(
+                        name, pulse, GUARD_MARGIN_PULSES, high))
 
     def read_torque(self):
         """Read torque state for all arm servos."""
@@ -368,12 +451,16 @@ def read_payload(node):
     }
 
 
-def survey_one(node, name):
+def survey_one(node, name, high_only=False):
     """Measure one joint and return its record."""
     servo_id = SERVO_IDS[name]
     provisional = PROVISIONAL_RAD[name]
+    eeprom_low, eeprom_high = EEPROM_PULSE[name]
+    guard_low = eeprom_low + GUARD_MARGIN_PULSES
+    guard_high = eeprom_high - GUARD_MARGIN_PULSES
     print('\n=== {} (servo {}) ==='.format(name, servo_id))
     print('provisional range: {:.3f} .. {:.3f} rad'.format(*provisional))
+    print('EEPROM range: {} .. {} pulse'.format(eeprom_low, eeprom_high))
     print('Torque will be OFF for this joint only. Support the arm now.')
     answer = input(
         "Type 'ready' to disable torque on {} (anything else skips): ".format(
@@ -382,18 +469,30 @@ def survey_one(node, name):
         print('skipped {}'.format(name))
         return None
 
+    start_pulse = node.read_joint_pulse(name)
+    print('current {} pulse: {}'.format(name, start_pulse))
     node.set_torque(servo_id, False)
-    first = second = None
-    first_spread = second_spread = None
     try:
-        input(
-            'Move {} slowly to one mechanical stop, then press Enter: '.format(
-                name))
-        first, first_spread = node.sample_joint(name)
-        input(
-            'Move {} to the other mechanical stop, then press Enter: '.format(
-                name))
-        second, second_spread = node.sample_joint(name)
+        if high_only:
+            node.wait_for_stop(
+                name, 'the high-pulse stop', baseline=start_pulse)
+            high_pulse, high_spread = node.sample_joint(name)
+            low_pulse = eeprom_low
+            low_spread = 0
+            low_source = 'eeprom_limit'
+            high_source = 'guard_stop' if high_pulse >= guard_high else 'hand'
+        else:
+            node.wait_for_stop(
+                name, 'one mechanical stop', baseline=start_pulse)
+            first, first_spread = node.sample_joint(name)
+            node.wait_for_stop(
+                name, 'the other mechanical stop', baseline=first)
+            second, second_spread = node.sample_joint(name)
+            low_pulse, high_pulse = sorted((first, second))
+            low_spread = first_spread
+            high_spread = second_spread
+            low_source = 'guard_stop' if low_pulse <= guard_low else 'hand'
+            high_source = 'guard_stop' if high_pulse >= guard_high else 'hand'
     finally:
         try:
             node.hold_positions()
@@ -405,22 +504,20 @@ def survey_one(node, name):
                 'the node, then run --mode restore.'.format(name, exc),
                 file=sys.stderr)
 
-    pulse_a = first[name]
-    pulse_b = second[name]
-    low_pulse, high_pulse = sorted((pulse_a, pulse_b))
-    rad_a = pulse_to_rad(name, pulse_a)
-    rad_b = pulse_to_rad(name, pulse_b)
-    low_rad, high_rad = sorted((rad_a, rad_b))
-    spread = max(first_spread[name], second_spread[name])
+    low_rad = pulse_to_rad(name, low_pulse)
+    high_rad = pulse_to_rad(name, high_pulse)
+    low_rad, high_rad = sorted((low_rad, high_rad))
+    spread = max(low_spread, high_spread)
     inside = (
-        low_pulse >= 0 and high_pulse <= 1000
+        0 <= low_pulse and high_pulse <= 1000
         and provisional[0] <= low_rad and high_rad <= provisional[1]
     )
     record = {
         'joint': name,
         'servo_id': servo_id,
-        'stop_a_pulse': pulse_a,
-        'stop_b_pulse': pulse_b,
+        'mode': 'high_only' if high_only else 'both_sides',
+        'stop_a_pulse': None if high_only else first,
+        'stop_b_pulse': None if high_only else second,
         'low_stop_pulse': low_pulse,
         'high_stop_pulse': high_pulse,
         'low_stop_rad': round(low_rad, 6),
@@ -430,6 +527,14 @@ def survey_one(node, name):
         'provisional_min_rad': round(provisional[0], 6),
         'provisional_max_rad': round(provisional[1], 6),
         'inside_provisional': inside,
+        'eeprom_min_pulse': eeprom_low,
+        'eeprom_max_pulse': eeprom_high,
+        'guard_low_pulse': guard_low,
+        'guard_high_pulse': guard_high,
+        'low_stop_source': low_source,
+        'high_stop_source': high_source,
+        'low_side_guard_stop': low_source != 'hand',
+        'high_side_guard_stop': high_source == 'guard_stop',
     }
     print(
         'measured: raw {}..{} -> {:.3f}..{:.3f} rad (span {:.3f}); '
@@ -475,7 +580,7 @@ def survey_payload(node, args):
     records = []
     try:
         for name in selected:
-            record = survey_one(node, name)
+            record = survey_one(node, name, high_only=args.high_only)
             if record is not None:
                 records.append(record)
     finally:
@@ -516,6 +621,11 @@ def parse_args(argv=None):
     parser.add_argument(
         '--joints', default=','.join(ARM_JOINTS),
         help='comma-separated joints for survey')
+    parser.add_argument(
+        '--high-only', action='store_true',
+        help='measure only the high-pulse stop; take the low stop from the '
+             'servo EEPROM limit (avoids back-driving toward a negative '
+             'register, which crashes the vendor node)')
     parser.add_argument(
         '--i-have-support', action='store_true',
         help='acknowledge that the arm is supported before torque is disabled')

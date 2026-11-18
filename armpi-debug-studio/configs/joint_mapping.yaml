@@ -1,18 +1,28 @@
 # ArmPi Debug Studio — joint mapping (G1)
 #
 # Source: vendor ros2_ws/src/driver/servo_controller/config/servo_controller.yaml
-# Evidence: docs/g0/04_joint_mapping_risks.md
+#         + servo EEPROM position limits (read-only, 2026-11-18)
+#         + on-robot joint-limit survey (2026-11-18)
+# Evidence: docs/phase2/JOINT_LIMITS.md
+#           evidence/phase2/onsite_20261118/
 #
 # IMPORTANT:
-# - These limits are SOFTWARE CONFIG limits, not measured mechanical limits.
-# - They are PROVISIONAL. Hardware motion remains disabled in G1.
+# - The position bounds below are the ADOPTED commandable range: the servo
+#   EEPROM limit minus a 20-pulse margin, or a hand-measured mechanical stop
+#   where that stop is inside the EEPROM range (joint2 low).
+# - `verified` stays false at the file and joint level: joint1's low stop,
+#   joint3's stops and joint5's stops are not formally measured, so the
+#   backend safety gate keeps `mapping_verified=false`.
 # - The vendor stack uses a uniform 240 deg / 1000 tick linear assumption.
-# - joint3 is inverted via min > max in the vendor config. Here the direction is
-#   explicit so the sign error is visible.
+# - joint3 is inverted via min > max in the vendor config. Here the direction
+#   is explicit so the sign error is visible. The vendor mapping is one-sided
+#   (pulse 500..1000 -> 0..-2.094 rad); that convention is kept.
+# - Measured pulses: joint2 low 322 (mechanical); every other bound is the
+#   EEPROM limit. 20 pulses = 0.0838 rad = 4.8 deg.
 
 schema_version: 1
-mapping_version: vendor-provisional-1
-source: "vendor servo_controller.yaml (read-only reference)"
+mapping_version: eeprom-bounded-2026-11-18
+source: "servo EEPROM limits + 2026-11-18 on-robot survey (20-pulse margin)"
 verified: false
 verification_status: provisional
 radians_per_tick: 0.004188790204786391
@@ -21,33 +31,43 @@ joints:
   - name: joint1
     servo_id: 6
     init_raw: 500
-    min_raw: 0
-    max_raw: 1000
+    min_raw: 70
+    max_raw: 930
     direction: 1
+    limit_source: eeprom_limit_2026_11_18
+    verified: false
   - name: joint2
     servo_id: 5
     init_raw: 500
-    min_raw: 0
-    max_raw: 1000
+    min_raw: 342
+    max_raw: 810
     direction: 1
+    limit_source: measured_low_2026_11_18+eeprom_high_2026_11_18
+    verified: false
   - name: joint3
     servo_id: 4
     init_raw: 500
-    min_raw: 1000
+    min_raw: 930
     max_raw: 500
     direction: -1
+    limit_source: eeprom_limit_one_sided_2026_11_18
+    verified: false
   - name: joint4
     servo_id: 3
     init_raw: 500
-    min_raw: 0
-    max_raw: 1000
+    min_raw: 120
+    max_raw: 880
     direction: 1
+    limit_source: eeprom_limit_2026_11_18
+    verified: false
   - name: joint5
     servo_id: 2
     init_raw: 500
-    min_raw: 0
-    max_raw: 1000
+    min_raw: 120
+    max_raw: 870
     direction: 1
+    limit_source: eeprom_limit_2026_11_18
+    verified: false
 
 excluded:
   - name: r_joint

@@ -62,9 +62,11 @@
     <parent link="base_link"/>
     <child link="link1"/>
     <axis xyz="0 0 1"/>
-    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
-         effort="1000" is a placeholder, not servo torque. -->
-    <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
+    <!-- ADOPTED 2026-11-18: servo EEPROM limit 50..950 pulse minus a
+         20-pulse margin (70..930) = -1.801..1.801 rad. The hand-pushed
+         positive stop reached 1164, beyond the EEPROM clamp.
+         Evidence: docs/phase2/JOINT_LIMITS.md. -->
+    <limit effort="1000" lower="-1.8012" upper="1.8012" velocity="10"/>
   </joint>
   <link name="link2">
     <inertial>
@@ -93,9 +95,12 @@
     <parent link="link1"/>
     <child link="link2"/>
     <axis xyz="-0.0010551 -0.99998 0.0068419"/>
-    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
-         effort="1000" is a placeholder, not servo torque. -->
-    <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
+    <!-- ADOPTED 2026-11-18: low stop measured at 322 pulse (mechanical,
+         inside the EEPROM range) + 20 = 342 -> -0.6618 rad; high bound is
+         the EEPROM limit 830 pulse - 20 = 810 -> 1.2985 rad (the high
+         mechanical stop, 873, is beyond the EEPROM clamp).
+         Evidence: docs/phase2/JOINT_LIMITS.md. -->
+    <limit effort="1000" lower="-0.6618" upper="1.2985" velocity="10"/>
   </joint>
   <link name="link3">
     <inertial>
@@ -124,10 +129,12 @@
     <parent link="link2"/>
     <child link="link3"/>
     <axis xyz="0.000275 -1 -0.00032517"/>
-    <!-- PROVISIONAL: vendor servo_controller.yaml maps joint3 to raw 500..1000,
-         i.e. -2.094..0.0 rad. The symmetric +/-2.09 URDF limit is not valid.
-         Mechanical limits are NOT measured. effort="1000" is a placeholder. -->
-    <limit effort="1000" lower="-2.09" upper="0.0" velocity="10"/>
+    <!-- ADOPTED 2026-11-18: vendor one-sided mapping (raw 500..1000 ->
+         0..-2.094 rad) kept; the EEPROM limit 950 pulse - 20 = 930 ->
+         -1.8012 rad. Hand travel reached 23..940 pulse, so both mechanical
+         stops lie beyond the commandable range and the EEPROM bounds bind.
+         Evidence: docs/phase2/JOINT_LIMITS.md. -->
+    <limit effort="1000" lower="-1.8012" upper="0.0" velocity="10"/>
   </joint>
   <link name="link4">
     <inertial>
@@ -156,9 +163,10 @@
     <parent link="link3"/>
     <child link="link4"/>
     <axis xyz="0.00040702 -1 -0.000213"/>
-    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
-         effort="1000" is a placeholder, not servo torque. -->
-    <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
+    <!-- ADOPTED 2026-11-18: EEPROM limit 100..900 pulse - 20 = 120..880 ->
+         -1.5917..1.5917 rad. The high guard stop was measured at 901 pulse,
+         at the EEPROM clamp. Evidence: docs/phase2/JOINT_LIMITS.md. -->
+    <limit effort="1000" lower="-1.5917" upper="1.5917" velocity="10"/>
   </joint>
   <link name="link5">
     <inertial>
@@ -187,9 +195,11 @@
     <parent link="link4"/>
     <child link="link5"/>
     <axis xyz="-0.012028 0.0031146 -0.99992"/>
-    <!-- PROVISIONAL: vendor URDF range, NOT a measured mechanical limit.
-         effort="1000" is a placeholder, not servo torque. -->
-    <limit effort="1000" lower="-2.09" upper="2.09" velocity="10"/>
+    <!-- ADOPTED 2026-11-18: EEPROM limit 100..890 pulse - 20 = 120..870 ->
+         -1.5917..1.5499 rad. Hand travel reached ~875 pulse; the joint
+         falls freely when released, so its stops are not hand-measured.
+         Evidence: docs/phase2/JOINT_LIMITS.md. -->
+    <limit effort="1000" lower="-1.5917" upper="1.5499" velocity="10"/>
   </joint>
   <link
     name="gripper_link">

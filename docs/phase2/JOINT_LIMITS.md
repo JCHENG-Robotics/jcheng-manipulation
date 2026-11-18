@@ -1,33 +1,43 @@
 # Joint limits and mapping verification
 
-> Status: **gripper measured 2026-11-18; torque-off survey UNBLOCKED and
-> PARTIALLY run 2026-11-18; joints 3–5 still unmeasured.** The vendor
-> `SetBusServoState` path works — its torque boolean is simply inverted on
-> this servo firmware (`[1, 1]` / 0x0B releases, `[1, 0]` / 0x0C engages).
-> joint2 was measured (322…873 pulse); joint1's positive stop reached 1164,
-> outside the servo command range, and a command at 1164 was clamped to
-> ~952. A vendor-node crash during joint3 stopped the run. The hand-found
-> mechanical stops are wider than the servo EEPROM position limits on
-> several joints, so the EEPROM limits are the effective commandable range;
-> the provisional ±2.094 rad range is wider than the hardware. Hardware
-> motion remains disabled and the backend keeps `mapping_verified=false`.
+> Status: **gripper measured and arm survey run 2026-11-18; arm limits
+> ADOPTED from the servo EEPROM table with a 20-pulse margin; the mapping
+> stays `verified: false`.** The vendor `SetBusServoState` path works — its
+> torque boolean is simply inverted on this servo firmware (`[1, 1]` / 0x0B
+> releases, `[1, 0]` / 0x0C engages). joint2 was measured (322…873 pulse)
+> and joint4's high stop reached 901; joint3 was observed by hand over
+> 23…940 pulse; joint5 cannot be hand-measured because the released wrist
+> falls under gravity. The hand-found mechanical stops are wider than the
+> servo EEPROM position limits on several joints, so the EEPROM limits are
+> the effective commandable range; the provisional ±2.094 rad range is
+> wider than the hardware. **All four vendor-node crashes had one cause: a
+> negative position register raises a `uint16` `AssertionError` inside the
+> vendor `get_state` callback.** Hardware motion remains disabled and the
+> backend keeps `mapping_verified=false`.
 
-## What the 2026-11-18 survey established
+## What the 2026-11-18 surveys established
 
 The survey required a stand or second person because joints 2–5 carry the
 arm against gravity. The gripper does not carry the arm and was measured
 with a powered, no-object open/close test.
 
-Full record: [`step6_torque_mapping.md`](../../evidence/phase2/onsite_20261118/step6_torque_mapping.md)
-and [`step6_survey_partial.md`](../../evidence/phase2/onsite_20261118/step6_survey_partial.md).
+Full records: [`step6_torque_mapping.md`](../../evidence/phase2/onsite_20261118/step6_torque_mapping.md),
+[`step6_survey_partial.md`](../../evidence/phase2/onsite_20261118/step6_survey_partial.md)
+and [`step6_survey_run2_20261118.md`](../../evidence/phase2/onsite_20261118/step6_survey_run2_20261118.md).
 
 | Joint | Result | State |
 |---|---|---|
-| joint1 | first run 501…503 (no movement); second run positive side **1164**, guard aborted; hold clamped to **952…954** | partial |
-| joint2 | **322…873** (−0.746…1.562 rad, span 2.308), spread 1 pulse | measured |
-| joint3 | pushed to **−41**, vendor node died | not measured |
-| joint4 | — | not measured |
-| joint5 | — | not measured |
+| joint1 | first run 501…503 (no movement); second run positive side **1164**, guard aborted; hold clamped to **952…954** | high bound beyond the EEPROM limit; low side unmeasured |
+| joint2 | **322…873** (−0.746…1.562 rad, span 2.308), spread 1 pulse | measured; the low stop is inside the EEPROM range |
+| joint3 | hand travel **23…940** pulse (+1.998…−1.843 rad), no hard stop; negative reads killed the node twice | observed; EEPROM bounds bind |
+| joint4 | **high stop 901** (+1.680 rad), spread 1 pulse; low taken from the EEPROM limit | high measured; low unmeasured |
+| joint5 | hand travel reached **875**; released at 258 it **fell to 62 in 0.75 s** (196 pulses), then a negative read killed the node | not measurable by hand; EEPROM bounds used |
+
+The wrist fall is a mechanism property, not an operator error: a released
+joint is not held against gravity, and an extended arm gives the wrist a
+large moment. The final tool aborts when a released joint drops more than
+**60 pulses between two 0.75 s reads** and restores torque at the current
+position, which catches the fall before the next (possibly negative) read.
 
 Effective commandable limits from the read-only EEPROM table
 (`rad = (pulse - 500) * 0.00418879`, joint3 inverted):
@@ -40,12 +50,12 @@ Effective commandable limits from the read-only EEPROM table
 | joint4 | 100…900 | −1.676…1.676 |
 | joint5 | 100…890 | −1.676…1.634 |
 
-These are **not adopted** yet. joint2's low mechanical stop (322) is inside
-its EEPROM range, so there the mechanical stop binds; the high side is
-clamped by the EEPROM limit. Stop the hand motion at the first mechanical
-resistance and never force a joint past the 0…1000 register range: doing
-so killed the vendor node once. The tool now samples one servo per request
-and aborts before the next read when a pulse leaves 0…1000.
+The EEPROM limits bind wherever a hand stop is farther out; joint2's low
+mechanical stop (322) is inside its range and binds there instead. **The
+adopted limits are these bounds minus a 20-pulse margin** (see
+[Adopted limits](#adopted-limits) below). Never force a joint past the
+0…1000 register range: a negative register is not merely out of range, it
+kills the vendor node during that read.
 
 ## What was verified (read-only)
 
@@ -118,8 +128,13 @@ them explicitly.
 | Mode | Effect |
 |---|---|
 | `read` (default) | Subscribes to the battery and reads position + torque registers. Sends nothing. |
-| `survey` | Releases torque on one joint at a time, records both hand-found stops, restores torque after each joint. Waits for the DDS subscription, samples one servo per request, and aborts before the next read if a pulse leaves 0…1000. Requires `--i-have-support` and a TTY. |
+| `survey` | Releases torque on one joint at a time, records hand-found stops, restores torque after each joint. Waits for the DDS subscription, samples one servo per request, prints the live pulse every 0.75 s, warns 30 pulses before each EEPROM bound, and aborts when a released joint falls more than 60 pulses between two reads. Requires `--i-have-support` and a TTY. |
 | `restore` | Re-engages torque on all five arm servos with a position hold. |
+
+`--high-only` measures only the high-pulse stop and takes the low stop from
+the EEPROM limit. It is the **preferred** mode for joints whose low side
+lies beyond the register range: it never drives the hand toward 0, where a
+negative read kills the vendor node.
 
 Copy it into the container and run it with the vendor shell:
 
@@ -151,42 +166,61 @@ ssh -i ~/.ssh/id_ed25519_armpi -t pi@<robot> \
            --output /tmp/joint_limits_survey_<date>.json"'
    ```
 
-3. For each joint, type `ready` only after it is supported, move it slowly to
-   one stop, press Enter, move to the other stop, press Enter. Torque is
-   restored immediately after the second reading (and in a `finally` block on
-   Ctrl-C). **Stop at the first mechanical resistance.** A joint forced past
-   the 0…1000 register range killed the vendor node on 2026-11-18; the tool
-   now aborts before the next read, but prevention is the operator's job.
-4. Check the printed `repeat spread` and `inside provisional` values. Repeat a
-   joint if the spread is greater than 5 pulses.
-5. If anything feels wrong, stop the tool and run `--mode restore`. If the
-   vendor node died, keep supporting the arm, restart only
-   `ros_robot_controller` (not the container), then run `--mode restore`.
+3. For each joint, type `ready` only after it is supported, then move it
+   slowly while watching the live pulse readout. Stop at the first
+   mechanical resistance **or at the guard warning** and press Enter while
+   holding the joint still — the tool samples the position at Enter, so
+   moving back before pressing Enter records the wrong value. Torque is
+   restored immediately after the second reading (and in a `finally` block
+   on Ctrl-C or on the free-fall guard).
+4. Never push a joint into the negative register range. The warning at
+   30 pulses before the EEPROM bound is a stop signal, not advice: a
+   **negative** position read crashes the vendor node. Use `--high-only`
+   when the low side is not needed.
+5. Check the printed `repeat spread`, `high_stop_source` and
+   `low_stop_source` values. Repeat a joint if the spread is greater than
+   5 pulses. `guard_stop` means the recorded value is the guard stop, not a
+   mechanical stop; `eeprom_limit` means the bound came from the EEPROM
+   table.
+6. If anything feels wrong, stop the tool and run `--mode restore`. If the
+   vendor node died, keep supporting the arm, move the free joint back into
+   the positive range by hand, restart only `ros_robot_controller` (not the
+   container), then run `--mode restore`.
 
 The tool publishes `SetBusServoState` only for torque (`[1, 1]` releases,
 `[1, 0]` engages on this firmware) and a `ServosPosition` hold at the
 current registers for recovery; it never commands a new joint position.
 
-## Adopting measured limits (separate reviewed change)
+## Adopted limits
 
-Do not set `mapping_verified` from this document alone. After a physical
-survey:
+The adopted limits were applied on 2026-11-18 to
+`armpi-debug-studio/configs/joint_mapping.yaml`
+(`mapping_version: eeprom-bounded-2026-11-18`), the URDF
+(`armpi_ultra.xacro`) and the MoveIt `joint_limits.yaml`. The rule is the
+EEPROM limit minus a **20-pulse margin** (0.0838 rad = 4.8°), except
+joint2's low side, where the measured mechanical stop is inside the EEPROM
+range:
 
-1. Compare every measured stop with the servo EEPROM position limit. If the
-   mechanical stop is outside the EEPROM range, the EEPROM limit binds for
-   commanded motion and the measured stop only proves the joint can be
-   back-driven beyond it.
-2. Convert each stop with the vendor convention (`joint3` is inverted):
-   `rad = (pulse - 500) * 0.00418879` for joint1/2/4/5 and
-   `rad = (500 - pulse) * 0.00418879` for joint3.
-3. Update `armpi-debug-studio/configs/joint_mapping.yaml` with measured
-   `min_raw`/`max_raw` and a new `mapping_version`; keep `verified: false`
-   until the full set is reviewed. Keep `mapping_verified=false` while any
-   joint lacks a measurement.
-4. Add the survey JSON to `evidence/phase2/`, update this document and the
-   calibration/URDF comments, rebuild the backend, and restart the service.
-5. Only then consider a supervised single-joint motion; Board approval is still
-   required before any hardware motion.
+| Joint | Basis | Adopted pulse | Adopted rad |
+|---|---|---|---|
+| joint1 | EEPROM 50…950 − 20 | 70…930 | −1.8012…1.8012 |
+| joint2 | low stop 322 + 20; high EEPROM 830 − 20 | 342…810 | −0.6618…1.2985 |
+| joint3 | vendor one-sided 500…1000; EEPROM 950 − 20 | 500…930 | −1.8012…0.0 |
+| joint4 | EEPROM 100…900 − 20 | 120…880 | −1.5917…1.5917 |
+| joint5 | EEPROM 100…890 − 20 | 120…870 | −1.5917…1.5499 |
+
+`verified` stays **false** at file and joint level, and the backend
+`mapping_verified` gate stays closed, because these bounds are still
+partially unmeasured:
+
+- joint1's low stop and joint4's low stop: the EEPROM limit is assumed to
+  bind; no hand measurement exists.
+- joint3 and joint5: hand travel was observed, but neither joint has a
+  formal stop measurement (joint5 falls freely when released).
+
+Hardware motion therefore remains disabled. A supervised single-joint
+motion still needs Board approval, and the remaining low-side stops (or a
+decision to accept the EEPROM bound) must be recorded first.
 
 ## Limitations
 
@@ -197,10 +231,16 @@ survey:
   the tool records the spread but cannot eliminate it.
 - Backlash and compliance mean the stop can differ depending on approach
   direction. Measure both directions if that matters.
-- `joint3` has a one-sided provisional range (-2.094…0 rad); do not assume a
-  symmetric ±2.09 range.
-- The 2026-11-18 run measured joint2 and part of joint1 only; joints 3–5 are
-  unmeasured, and the vendor node crashed once when joint3 was back-driven
-  past its register range.
+- `joint3` has a one-sided adopted range (−1.8012…0 rad); do not assume a
+  symmetric ±2.09 range. Its positive travel exists mechanically but is not
+  commandable under the vendor mapping.
+- A negative position read **crashes the vendor node** (uint16
+  `AssertionError`); this happened four times on 2026-11-18. Only
+  `--high-only`, the live guard and operator discipline prevent it.
+- A released joint is not held by the mechanism. joint5 fell 196 pulses in
+  0.75 s when released with the arm extended, so its stops cannot be
+  hand-measured safely.
+- joint1's low stop and joint4's low stop are unmeasured; the adopted low
+  bounds are the EEPROM limits minus the margin.
 - The gripper (`r_joint`, servo 1) was measured on 2026-11-18 (see above); the
-  arm joints remain partial.
+  arm joints remain partially measured.

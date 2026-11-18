@@ -1,28 +1,35 @@
 # Measured Joint Limits — [P] arm, [V] gripper
 
 > Status: **gripper measured 2026-11-18; arm joints PARTIALLY measured
-> 2026-11-18.** The torque path is now understood: the vendor SDK boolean is
+> 2026-11-18.** The torque path is understood: the vendor SDK boolean is
 > inverted on this servo firmware (`enable_torque=[1, 1]` / 0x0B **releases**,
-> `[1, 0]` / 0x0C **engages**). joint2 was measured (322…873 pulse);
+> `[1, 0]` / 0x0C **engages**). joint2 was measured (322…873 pulse),
+> joint4's high stop reached 901, joint3 was observed over 23…940, and
+> joint5's released wrist falls under gravity so it could not be measured.
 > joint1's positive side reached 1164 and a command at 1164 was clamped to
-> ~952; joints 3–5 remain unmeasured after a vendor-node crash. The servo
-> EEPROM position limits are the effective commandable range. See
-> [torque mapping](../../evidence/phase2/onsite_20261118/step6_torque_mapping.md)
-> and [partial survey](../../evidence/phase2/onsite_20261118/step6_survey_partial.md).
+> ~952. The servo EEPROM position limits are the effective commandable
+> range. **A negative position read crashes the vendor node** (uint16
+> assertion), which happened four times. See
+> [torque mapping](../../evidence/phase2/onsite_20261118/step6_torque_mapping.md),
+> [partial survey](../../evidence/phase2/onsite_20261118/step6_survey_partial.md)
+> and [survey run 2](../../evidence/phase2/onsite_20261118/step6_survey_run2_20261118.md).
 
-| Joint | URDF (provisional) | Vendor software | Boot pose 09:43 | Reset pose 09:50 | Measured lower | Measured upper | Status |
+| Joint | URDF (adopted) | Vendor software | Boot pose 09:43 | Reset pose 09:50 | Measured lower | Measured upper | Status |
 |---|---:|---:|---:|---:|---:|---:|---|
-| joint1 | -2.09 … 2.09 | -2.094 … 2.094 | **+0.8378** (servo 700) | **0.0** (servo 500) | — | ≥1164 pulse (clamped ~952) | `[P]` |
-| joint2 | -2.09 … 2.09 | -2.094 … 2.094 | 0.0 | 0.0 | 322 pulse (−0.746) | 873 pulse (+1.562) | `[M]` |
-| joint3 | **-2.09 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | — | — | `[U]` |
-| joint4 | -2.09 … 2.09 | -2.094 … 2.094 | 0.0 | 0.0 | — | — | `[U]` |
-| joint5 | -2.09 … 2.09 | -2.094 … 2.094 | 0.0 | 0.0 | — | — | `[U]` |
+| joint1 | **-1.8012 … 1.8012** | -2.094 … 2.094 | **+0.8378** (servo 700) | **0.0** (servo 500) | — (EEPROM 50 assumed) | ≥1164 pulse (clamped ~952) | `[P]` |
+| joint2 | **-0.6618 … 1.2985** | -2.094 … 2.094 | 0.0 | 0.0 | 322 pulse (−0.746) | 873 pulse (+1.562) | `[M]` |
+| joint3 | **-1.8012 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | travel reached 23 pulse, no stop | travel reached 940 pulse, no stop | `[P]` |
+| joint4 | **-1.5917 … 1.5917** | -2.094 … 2.094 | 0.0 | 0.0 | — (EEPROM 100 assumed) | 901 pulse (+1.680) | `[P]` |
+| joint5 | **-1.5917 … 1.5499** | -2.094 … 2.094 | 0.0 | 0.0 | travel reached 62, then fell negative | travel reached 875 | `[P]` |
 | r_joint | **-0.8378 … 0.0** (measured) | -2.932 … 1.257 | -0.8378 (open) | -0.8378 (open) | **-0.8378** (open stop) | **0.0** (closed stop) | `[V]` |
 
 Status legend: `[M]` hand-measured 2026-11-18, `[P]` partial, `[U]`
-unmeasured, `[V]` verified. The joint1 upper value is a hand-pushed
-mechanical stop beyond the servo range; commanded motion is clamped to the
-EEPROM limit (~950 pulse / +1.885 rad).
+unmeasured, `[V]` verified. The URDF column shows the adopted commandable
+range (EEPROM limit − 20 pulses, or the measured stop + 20 where it is
+inside the EEPROM range). joint1's upper value is a hand-pushed mechanical
+stop beyond the servo range; commanded motion is clamped to the EEPROM
+limit (~950 pulse / +1.885 rad). The file-level `verified` flag for the
+mapping stays **false**.
 
 Servo mapping from the vendor `servo_controller.yaml`: joint1 = ID 6,
 joint2 = ID 5, joint3 = ID 4 (min 1000 / max 500 inverted), joint4 = ID 3,
@@ -81,26 +88,47 @@ use the measured `-0.8378 … 0.0` range.
 
 ## Arm-joint survey (2026-11-18) — PARTIAL
 
-The arm was supported, the battery was 7645–7704 mV, and all servos started
-torque-enabled. After the torque mapping was corrected, the survey ran:
+The arm was supported, the battery was 7629–7704 mV, and all servos started
+torque-enabled. Two runs were made after the torque mapping was corrected:
 
 | Joint | Result | Validity |
 |---|---|---|
 | joint1 | first run 501…503 (no movement); second run positive side **1164**, guard aborted; hold at 1164 clamped to **952…954** | partial |
 | joint2 | **322…873** pulse = −0.746…1.562 rad, span 2.308, spread 1 pulse | measured |
-| joint3 | pushed to **−41**; the vendor node then exited with code 1 | not measured |
-| joint4, joint5 | not reached | not measured |
+| joint3 | hand travel **23…940** pulse, no hard stop; negative reads killed the node twice; no JSON record | observed |
+| joint4 | high stop **901** pulse (+1.680 rad), spread 1 pulse; low from the EEPROM limit | high measured, low unmeasured |
+| joint5 | hand travel reached 875; released at 258 it **fell to 62 in 0.75 s**; the next read killed the node | not measurable |
 
-The vendor node was restarted in place (not the container) and torque was
-restored; the final pose was `joint1=503, joint2=596, joint3=830,
-joint4=113, joint5=501`, all torque 1.
+The vendor node was restarted in place (not the container) after every
+crash and torque was restored; the final pose was `joint1=498,
+joint2=596, joint3=834, joint4=109, joint5=500`, all torque 1.
 
 The out-of-range joint1 value and the clamp on restore show that the
 **servo EEPROM position limits bind for commanded motion**, while the
 mechanical stops can be farther out. joint2's low stop (322) is inside its
-EEPROM range 160…830 and therefore binds there. Do not force a joint past
-the 0…1000 register range: the 2026-11-18 crash happened after such a
-sample.
+EEPROM range 160…830 and therefore binds there. **A negative position
+register crashes the vendor node**: `get_state` assigns it to a `uint16`
+field, raising an `AssertionError` in the callback (exit code 1). This is
+the exact cause of all four crashes; positive out-of-range values are
+harmless.
+
+### Adopted commandable limits (2026-11-18)
+
+The URDF and `joint_limits.yaml` now use EEPROM limit − 20 pulses
+(0.0838 rad = 4.8°), with the measured joint2 low stop instead of the
+EEPROM bound:
+
+| Joint | Adopted pulse | Adopted rad |
+|---|---|---|
+| joint1 | 70…930 | −1.8012…1.8012 |
+| joint2 | 342…810 | −0.6618…1.2985 |
+| joint3 | 500…930 | −1.8012…0.0 |
+| joint4 | 120…880 | −1.5917…1.5917 |
+| joint5 | 120…870 | −1.5917…1.5499 |
+
+These are adopted for planning, **not verified**: joint1's and joint4's
+low stops are unmeasured, and joint3/joint5 have no formal stop values.
+`mapping_verified` stays false and hardware motion stays disabled.
 
 ### EEPROM position limits and offsets (read-only, `[V]` firmware bounds)
 
@@ -119,11 +147,14 @@ a safety reference only.
 
 ## Measurement protocol (requires mechanical support)
 
-1. Torque off / mechanically support the arm.
+1. Torque off / mechanically support the arm; a released joint is not held
+   by the mechanism (joint5 fell 196 pulses in 0.75 s).
 2. Read each servo's EEPROM offset; record the raw value.
 3. Hand-turn each joint to its mechanical stops (where safe); stop at the
-   **first mechanical resistance** and never force a joint past the 0…1000
-   register range. Record the raw pulse.
+   **first mechanical resistance**. **Never push toward a negative
+   register** — a negative read crashes the vendor node. Use
+   `joint_limit_survey.py --high-only` when the low side is not needed,
+   and watch the live pulse readout.
 4. Convert with the vendor 240°/1000-tick mapping; compare with the table.
 5. Record direction and zero offset per joint.
 6. Update `joint_limits.yaml` and the URDF only from measured data.

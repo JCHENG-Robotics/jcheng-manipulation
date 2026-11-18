@@ -10,7 +10,7 @@ are recorded here; step 7 (first real visual grasp) is not part of this bundle.
 | 3 | Gripper sign and range (no object) | **PASS — `-0.8378 … 0.0` rad, positive closes** | [step3_gripper.md](step3_gripper.md) |
 | 4 | Real MoveIt Plan → Execute (`camera_forward`) | **Motion PASS; action reporting timed out and was fixed** | [step4_moveit_execute.md](step4_moveit_execute.md) |
 | 5 | Real AprilTag detection | **PASS — 5/5, 0.322 m, ≤1.1 mm translation spread** | [step5_tag/README.md](step5_tag/README.md) |
-| 6 | Arm joint-limit survey with support | **PARTIAL — torque mapping corrected; joint2 measured, joint1 partial, joints 3–5 pending; one vendor-node crash recovered** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md) |
+| 6 | Arm joint-limit survey with support | **PARTIAL — joint4 measured; joint2 measured; joint3 observed by hand; joint5 not measurable (falls freely when released); three vendor-node crashes from negative reads, root cause identified** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md), [step6_survey_run2_20261118.md](step6_survey_run2_20261118.md) |
 
 ## Environment
 
@@ -41,28 +41,40 @@ are recorded here; step 7 (first real visual grasp) is not part of this bundle.
    joint1 reached 1164 by hand, and a position command at 1164 was clamped
    to ~952. The servo EEPROM position limits are the effective commandable
    range; the provisional ±2.094 rad range is wider than the hardware.
-   Back-driving a joint past 0…1000 is unsafe (it killed the vendor node
-   once); stop at the first mechanical resistance.
-7. Final arm state after this session: torque **on** for all servos; pulses
-   `joint1=503, joint2=596, joint3=830, joint4=113, joint5=501`, battery
-   7645 mV. `joint4` sits near its low provisional bound.
+   Back-driving a joint past 0…1000 is unsafe. **Exact cause:** the vendor
+   `get_state` service puts the position register into a `uint16` field, so
+   a **negative** position raises an `AssertionError` in the callback and
+   the node exits with code 1 during that read. Positive out-of-range
+   values are harmless. Keep the register positive; stop at the guard
+   (`step6_survey_run2_20261118.md`).
+7. A released arm joint is **not held by the mechanism**: joint5 fell 196
+   pulses in 0.75 s when released with the arm extended. The survey now has
+   a free-fall guard that aborts at 60 pulses between reads.
+8. Final arm state after this session: torque **on** for all servos; pulses
+   `joint1=498, joint2=596, joint3=834, joint4=109, joint5=500`, battery
+   7629–7690 mV. `joint4` sits near its low EEPROM bound.
 
 ## Changed files from this session
 
 - `ros2_ws/src/armpi_ultra_description/urdf/gripper.urdf.xacro` — measured
   `r_joint` limits.
+- `ros2_ws/src/armpi_ultra_description/urdf/armpi_ultra.xacro` — adopted
+  EEPROM-bounded arm limits (2026-11-18).
 - `ros2_ws/src/armpi_ultra_moveit_config/config/joint_limits.yaml` — measured
-  `r_joint` limits.
+  `r_joint` limits and adopted arm limits.
 - `ros2_ws/src/armpi_ultra_moveit_config/config/armpi_ultra.srdf` — measured
   `open` / `close` named states.
 - `ros2_ws/src/armpi_ultra_moveit_config/config/initial_positions.yaml` —
   simulation rest pose uses the safe open value.
 - `ros2_ws/src/armpi_ultra_moveit_config/config/moveit_controllers.yaml` —
   execution duration scaling 1.2 → 1.6, margin 0.5 → 1.0 s.
+- `armpi-debug-studio/configs/joint_mapping.yaml` — adopted raw limits,
+  `mapping_version: eeprom-bounded-2026-11-18`, `verified: false`.
 - `tools/phase2/real_moveit_execute.py`, `capture_real_frames.py`,
   `analyze_real_tag.py`, `servo_hold.py`, `joint_limit_survey.py`,
   `torque_probe.py`.
 - `evidence/phase2/onsite_20261118/step6_torque_mapping.md`,
-  `step6_survey_partial.md` (this session's step-6 record).
+  `step6_survey_partial.md`, `step6_survey_run2_20261118.md`, and the
+  `joint_limits_*_20261118.json` files recorded by this session.
 - `docs/hardware/measured_joint_limits.md`,
   `docs/hardware/hardware_inventory.md`, `docs/phase2/JOINT_LIMITS.md`.

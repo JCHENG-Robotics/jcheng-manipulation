@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-11-18T03:01:06+00:00",
+  "source": "joint_limit_survey.py --mode survey",
+  "battery_mv": 7690,
+  "joints": [
+    {
+      "joint": "joint4",
+      "servo_id": 3,
+      "mode": "high_only",
+      "stop_a_pulse": null,
+      "stop_b_pulse": null,
+      "low_stop_pulse": 100,
+      "high_stop_pulse": 901,
+      "low_stop_rad": -1.675516,
+      "high_stop_rad": 1.679705,
+      "span_rad": 3.355221,
+      "repeat_spread_pulses": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 2.094395,
+      "inside_provisional": true,
+      "eeprom_min_pulse": 100,
+      "eeprom_max_pulse": 900,
+      "guard_low_pulse": 130,
+      "guard_high_pulse": 870,
+      "low_stop_source": "eeprom_limit",
+      "high_stop_source": "guard_stop",
+      "low_side_guard_stop": true,
+      "high_side_guard_stop": true
+    }
+  ],
+  "not_measured": [
+    "joint1",
+    "joint2",
+    "joint3",
+    "joint5"
+  ],
+  "notes": [
+    "Mechanical stops were found by hand with servo torque off.",
+    "Position is the bus-servo register, not an independent encoder.",
+    "Servo direction/offset is the vendor convention; hand-eye calibration independently validated the mapping signs.",
+    "Adopting these limits into configs/joint_mapping.yaml is a separate reviewed change."
+  ]
+}

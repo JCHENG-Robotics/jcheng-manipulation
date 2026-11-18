@@ -1,54 +1,61 @@
-# joint_limits.yaml — ArmPi Ultra (PROVISIONAL)
+# joint_limits.yaml — ArmPi Ultra (ADOPTED 2026-11-18)
 #
 # Source of the position bounds:
-#   - vendor `servo_controller/config/servo_controller.yaml` (software mapping)
-#   - vendor URDF (`armpi_ultra.xacro`, `gripper.urdf.xacro`)
-# The bounds below are the intersection of the two where they disagree.
-# Mechanical limits have NOT been measured. Do not enable real-hardware motion
-# until `docs/hardware/measured_joint_limits.md` is filled in.
+#   - servo EEPROM position limits (read-only, 2026-11-18) minus a 20-pulse
+#     margin (20 pulses = 0.0838 rad = 4.8 deg)
+#   - the one hand-measured mechanical stop that lies inside the EEPROM
+#     range: joint2 low at 322 pulse
+# Mechanical stops are NOT fully measured; joints 1 (low), 3 and 5 keep
+# `mapping_verified=false`. Evidence: docs/phase2/JOINT_LIMITS.md and
+# evidence/phase2/onsite_20261118/.
 
 default_velocity_scaling_factor: 0.1
 default_acceleration_scaling_factor: 0.1
 
 joint_limits:
   joint1:
+    # EEPROM 50..950 pulse -> adopted 70..930.
     has_position_limits: true
-    min_position: -2.09
-    max_position: 2.09
+    min_position: -1.8012
+    max_position: 1.8012
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
     max_acceleration: 1.0
   joint2:
+    # low mechanical stop 322 + 20 = 342 -> -0.6618; high EEPROM 830 - 20
+    # = 810 -> 1.2985.
     has_position_limits: true
-    min_position: -2.09
-    max_position: 2.09
+    min_position: -0.6618
+    max_position: 1.2985
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
     max_acceleration: 1.0
   joint3:
-    # vendor mapping: raw 500..1000 -> -2.094..0.0; URDF -2.09..+2.09.
-    # Intersection used; do not allow positive joint3.
+    # vendor mapping: raw 500..1000 -> 0..-2.094; EEPROM 950 - 20 = 930 ->
+    # -1.8012. Do not allow positive joint3.
     has_position_limits: true
-    min_position: -2.09
+    min_position: -1.8012
     max_position: 0.0
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
     max_acceleration: 1.0
   joint4:
+    # EEPROM 100..900 pulse -> adopted 120..880.
     has_position_limits: true
-    min_position: -2.09
-    max_position: 2.09
+    min_position: -1.5917
+    max_position: 1.5917
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
     max_acceleration: 1.0
   joint5:
+    # EEPROM 100..890 pulse -> adopted 120..870.
     has_position_limits: true
-    min_position: -2.09
-    max_position: 2.09
+    min_position: -1.5917
+    max_position: 1.5499
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
