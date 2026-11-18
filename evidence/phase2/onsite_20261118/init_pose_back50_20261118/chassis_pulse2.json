@@ -1,0 +1,64 @@
+{
+  "started_at": "2026-11-18T11:48:55.059716Z",
+  "axis": "x",
+  "speed": -0.167,
+  "duration_s": 1.0,
+  "predicted_motor_speeds": [
+    -30.394,
+    30.394,
+    30.394,
+    -30.394
+  ],
+  "preflight": {
+    "cmd_vel_subscribers": 1,
+    "motor_publishers": 1,
+    "motor_subscribers_including_self": 2,
+    "battery_mv": 6720
+  },
+  "zero_before": null,
+  "pulse_messages_sent": 17,
+  "during_pulse_command": {
+    "received_at": "2026-11-18T11:49:00.052450Z",
+    "data": [
+      {
+        "id": 1,
+        "speed": -30.394000000000002
+      },
+      {
+        "id": 2,
+        "speed": 30.394000000000002
+      },
+      {
+        "id": 3,
+        "speed": 30.394000000000002
+      },
+      {
+        "id": 4,
+        "speed": -30.394000000000002
+      }
+    ]
+  },
+  "after_zero_command": {
+    "received_at": "2026-11-18T11:49:00.574754Z",
+    "data": [
+      {
+        "id": 1,
+        "speed": 0.0
+      },
+      {
+        "id": 2,
+        "speed": -0.0
+      },
+      {
+        "id": 3,
+        "speed": -0.0
+      },
+      {
+        "id": 4,
+        "speed": 0.0
+      }
+    ]
+  },
+  "zero_confirmed": true,
+  "finished_at": "2026-11-18T11:49:00.636396Z"
+}
