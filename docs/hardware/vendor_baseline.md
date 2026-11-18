@@ -63,10 +63,12 @@ install), not in the public repository:
 5. `driver/controller/controller/mecanum.py` (chassis node): **hardened fork**
    with a `/cmd_vel` watchdog — `cmd_vel_timeout` (default 0.5 s) and
    `watchdog_rate` (default 20 Hz) parameters, zero duty published when a
-   non-zero command goes stale, and zero duty on shutdown. Vendor original
-   sha256 `9c54a5d5…`; deployed file sha256 `c599517a…`. The change is also in
-   the private workspace copy; diff:
-   [patches/controller_mecanum_watchdog.patch](patches/controller_mecanum_watchdog.patch).
+   non-zero command goes stale, and zero duty on shutdown — plus the measured
+   scale `duty = v[m/s] × 182` (10 % → 55 mm/s, 20 % → 110 mm/s on tile) with
+   a 60-duty cap. Vendor original sha256 `9c54a5d5…`; hardened sha256
+   `6881ae4d…` in both `src` and `build`. The change is also in the private
+   workspace copy; diff:
+   [patches/controller_mecanum_hardened.patch](patches/controller_mecanum_hardened.patch).
 
 ## Known vendor issues seen live
 

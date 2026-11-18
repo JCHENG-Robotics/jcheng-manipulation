@@ -1,10 +1,8 @@
 --- a/src/driver/controller/controller/mecanum.py
 +++ b/src/driver/controller/controller/mecanum.py
-@@ -1,19 +1,33 @@
+@@ -1,22 +1,48 @@
  #!/usr/bin/env python3
  # coding=utf8
-+import math
-+
  import rclpy
 +
 +try:
@@ -19,49 +17,93 @@
 -import math
 +
 +
++# Measured on 2026-11-18 (tile floor, 1.0 s pulses, ruler): duty 10 % gave
++# 55 mm and duty 20 % gave 110 mm, i.e. 0.0055 m/s per duty unit. The vendor
++# mecanum_2.py scale (v * 100) assumes 0.010 m/s per unit, ~1.8x optimistic.
++# duty = v[m/s] * 182 makes the requested m/s match the measured base speed.
++DUTY_PER_MPS = 182.0
++# Safety cap: the base has no e-stop, so 60 duty (~0.33 m/s on the measured
++# tile scale) is the hard limit regardless of the requested Twist.
++MAX_DUTY = 60.0
++
++
 +def watchdog_expired(now_sec, last_cmd_sec, timeout_sec):
 +    """Return True when a non-zero command has been silent for too long."""
 +    return timeout_sec > 0.0 and (now_sec - last_cmd_sec) >= timeout_sec
 +
  
  class MecanumChassis:
-     def __init__(self, wheelbase=0.195, track_width=0.22, wheel_diameter=0.0965):
+-    def __init__(self, wheelbase=0.195, track_width=0.22, wheel_diameter=0.0965):
++    def __init__(self, wheelbase=0.195, track_width=0.22, wheel_diameter=0.0965,
++                 duty_per_mps=DUTY_PER_MPS, max_duty=MAX_DUTY):
          self.wheelbase = wheelbase
          self.track_width = track_width
          self.wheel_diameter = wheel_diameter
 -        
-+
-         self.max_motor_speed_rps = 127.0
+-        self.max_motor_speed_rps = 127.0
 -        self.min_motor_speed_rps = -126.0 
-+        self.min_motor_speed_rps = -126.0
++        if duty_per_mps <= 0.0:
++            raise ValueError('duty_per_mps must be > 0')
++        if not 0.0 < max_duty <= 100.0:
++            raise ValueError('max_duty must be in (0, 100]')
++        self.duty_per_mps = float(duty_per_mps)
++        self.max_duty = float(max_duty)
  
-     def speed_covert(self, speed):
-         return speed / (math.pi * self.wheel_diameter)
-@@ -26,13 +40,12 @@
+-    def speed_covert(self, speed):
+-        return speed / (math.pi * self.wheel_diameter)
++    def speed_to_duty(self, speed):
++        return speed * self.duty_per_mps
+ 
+     def set_velocity(self, linear_x, linear_y, angular_z):
+         K = (self.wheelbase + self.track_width) / 2
+@@ -24,41 +50,54 @@
+         motor2_linear = (linear_x - linear_y + angular_z * K)
+         motor3_linear = (linear_x - linear_y - angular_z * K)
          motor4_linear = (linear_x + linear_y - angular_z * K)
-         # 对应 Motor ID 1, 2, 3, 4
-         motor1_rps = self.speed_covert(motor1_linear)
+-        # 对应 Motor ID 1, 2, 3, 4
+-        motor1_rps = self.speed_covert(motor1_linear)
 -        motor2_rps = self.speed_covert(-motor2_linear) 
-+        motor2_rps = self.speed_covert(-motor2_linear)
-         motor3_rps = self.speed_covert(-motor3_linear)
-         motor4_rps = self.speed_covert(motor4_linear)
- 
-         target_rps_values = [motor1_rps, motor2_rps, motor3_rps, motor4_rps]
- 
+-        motor3_rps = self.speed_covert(-motor3_linear)
+-        motor4_rps = self.speed_covert(motor4_linear)
 -
-         max_abs_target_rps = 0.0
-         if target_rps_values:
-             max_abs_target_rps = max(abs(v) for v in target_rps_values)
-@@ -47,7 +60,7 @@
-         for i in range(len(scaled_rps_values)):
+-        target_rps_values = [motor1_rps, motor2_rps, motor3_rps, motor4_rps]
+-
+-
+-        max_abs_target_rps = 0.0
+-        if target_rps_values:
+-            max_abs_target_rps = max(abs(v) for v in target_rps_values)
+-
+-        scale_factor = 1.0
+-        if max_abs_target_rps > self.max_motor_speed_rps and max_abs_target_rps > 0:
+-            scale_factor = self.max_motor_speed_rps / max_abs_target_rps
+-
+-        scaled_rps_values = [v * scale_factor for v in target_rps_values]
++        # 对应 Motor ID 1, 2, 3, 4. Forward signs [+, -, -, +] measured
++        # 2026-11-18: this pattern moved the robot forward on the floor.
++        target_duties = [
++            self.speed_to_duty(motor1_linear),
++            -self.speed_to_duty(motor2_linear),
++            -self.speed_to_duty(motor3_linear),
++            self.speed_to_duty(motor4_linear),
++        ]
++
++        peak = max(abs(v) for v in target_duties)
++        if peak > self.max_duty:
++            scale = self.max_duty / peak
++            target_duties = [v * scale for v in target_duties]
+ 
+         data = []
+-        for i in range(len(scaled_rps_values)):
++        for i, duty in enumerate(target_duties):
              msg = MotorSpeedControl()
              msg.id = i + 1  # 电机ID从1开始
 -            
+-            msg.speed = float(max(min(scaled_rps_values[i], self.max_motor_speed_rps), self.min_motor_speed_rps))
 +
-             msg.speed = float(max(min(scaled_rps_values[i], self.max_motor_speed_rps), self.min_motor_speed_rps))
++            msg.speed = float(max(min(duty, self.max_duty), -self.max_duty))
              data.append(msg)
  
-@@ -55,9 +68,21 @@
+         motors_speed_msg = MotorsSpeedControl()
          motors_speed_msg.data = data
          return motors_speed_msg
  
@@ -72,18 +114,26 @@
  class MecanumChassisNode(Node):
      def __init__(self):
          super().__init__('mecanum_chassis_node')
+-        self.chassis = MecanumChassis()
 +        self.cmd_vel_timeout = float(self.declare_parameter('cmd_vel_timeout', 0.5).value)
 +        self.watchdog_rate = float(self.declare_parameter('watchdog_rate', 20.0).value)
++        self.duty_per_mps = float(self.declare_parameter('duty_per_mps', DUTY_PER_MPS).value)
++        self.max_duty = float(self.declare_parameter('max_duty', MAX_DUTY).value)
 +
 +        if self.watchdog_rate <= 0.0:
 +            raise ValueError('watchdog_rate must be > 0')
 +        if self.cmd_vel_timeout < 0.0:
 +            raise ValueError('cmd_vel_timeout must be >= 0')
 +
-         self.chassis = MecanumChassis()
++        self.chassis = MecanumChassis(
++            duty_per_mps=self.duty_per_mps, max_duty=self.max_duty)
++        self.get_logger().info(
++            'mecanum duty scale: %.1f duty per m/s, cap %.1f'
++            % (self.duty_per_mps, self.max_duty))
  
          self.sub_cmd_vel = self.create_subscription(
-@@ -68,33 +93,74 @@
+             Twist,
+@@ -68,33 +107,74 @@
  
          self.pub_motors_speed = self.create_publisher(
              MotorsSpeedControl,

@@ -22,20 +22,20 @@ explicit zero and verifies the echoed motor command is zero.
 
 There is **no e-stop** on this robot and no brake: put the robot on the
 floor, tuck the arm, keep the power switch within reach, and measure the
-displacement by hand. The chassis has no odometry, so the distance in the
-record is only an estimate under the assumed wheel-rps interpretation.
+displacement by hand. The chassis has no odometry; the travel estimate uses
+the measured duty scale, not a wheel encoder.
 
-The node's own unit assumption is unverified: ``mecanum.py`` sends wheel rps
-in ``MotorSpeedControl.speed`` while the vendor controller feeds that field
-to ``set_motor_duty`` (SDK sub-command 0x05). A non-zero pulse is the only
-way to measure the real m/s per unit.
+The node now converts m/s to motor **duty** with the 2026-11-18 measurement:
+10 % duty gave 55 mm/s and 20 % gave 110 mm/s, so ``duty = v[m/s] * 182``,
+capped at 60 duty (~0.33 m/s). The vendor controller feeds
+``MotorSpeedControl.speed`` to ``set_motor_duty`` (0x05), so a duty value is
+what the MCU actually receives.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 import time
 from datetime import datetime, timezone
@@ -54,9 +54,8 @@ BATTERY_TOPIC = "/ros_robot_controller/battery"
 
 WHEELBASE = 0.195
 TRACK_WIDTH = 0.22
-WHEEL_DIAMETER = 0.0965
-MAX_RPS = 127.0
-MIN_RPS = -126.0
+DUTY_PER_MPS = 182.0
+MAX_DUTY = 60.0
 
 CAP_LINEAR = 0.30
 CAP_ANGULAR = 0.60
@@ -80,16 +79,16 @@ def predict_motors(
         linear_x - linear_y - angular_z * k,
         linear_x + linear_y - angular_z * k,
     ]
-    rps = [
-        wheel[0] / (math.pi * WHEEL_DIAMETER),
-        -wheel[1] / (math.pi * WHEEL_DIAMETER),
-        -wheel[2] / (math.pi * WHEEL_DIAMETER),
-        wheel[3] / (math.pi * WHEEL_DIAMETER),
+    duty = [
+        wheel[0] * DUTY_PER_MPS,
+        -wheel[1] * DUTY_PER_MPS,
+        -wheel[2] * DUTY_PER_MPS,
+        wheel[3] * DUTY_PER_MPS,
     ]
-    peak = max(abs(v) for v in rps)
-    if peak > MAX_RPS:
-        rps = [v * (MAX_RPS / peak) for v in rps]
-    return [max(min(v, MAX_RPS), MIN_RPS) for v in rps]
+    peak = max(abs(v) for v in duty)
+    if peak > MAX_DUTY:
+        duty = [v * (MAX_DUTY / peak) for v in duty]
+    return [max(min(v, MAX_DUTY), -MAX_DUTY) for v in duty]
 
 
 class ChassisJog(Node):
@@ -242,8 +241,8 @@ def main(argv: list[str] | None = None) -> int:
                 abs(args.speed) * args.duration if args.axis == "yaw" else None
             ),
             "note": (
-                "travel assumes the controller honours wheel rps; "
-                "unverified"
+                "travel uses the measured duty scale; the base has no "
+                "odometry"
             ),
         }, indent=2))
         return 0

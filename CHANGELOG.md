@@ -61,11 +61,12 @@ All notable changes to this project are documented here. Format based on
   `MotorsSpeedControl` (all 0.0), battery 7691 mV. Records the open issues
   (rps-vs-duty unit mismatch, no odometry/IMU, no `/cmd_vel` safety coverage,
   vendor teleop topic mismatch) and the ground-test protocol.
-- `docs/hardware/patches/controller_mecanum_watchdog.patch` and
+- `docs/hardware/patches/controller_mecanum_hardened.patch` and
   `docs/hardware/vendor_baseline.md` item 5 — the deployed chassis node is a
-  hardened fork of the vendor `mecanum.py` (0.5 s `/cmd_vel` watchdog at
-  20 Hz, zero duty on timeout and shutdown; vendor `9c54a5d5…` → deployed
-  `c599517a…`).
+  hardened fork of the vendor `mecanum.py`: 0.5 s `/cmd_vel` watchdog at
+  20 Hz, zero duty on timeout and shutdown, and the measured m/s → duty map
+  (`duty = v × 182`, cap 60) replacing the vendor wheel-rps conversion
+  (vendor `9c54a5d5…` → hardened `6881ae4d…`).
 - `tools/phase2/rgbd_snapshot.py` — same-stamp RGB + registered cloud + raw
   depth/IR + joints snapshot for the Humble container (numpy only; no cv2).
 - `tools/phase2/rgbd_board_check.py` and `rgbd_tag_check.py` — offline
@@ -75,6 +76,14 @@ All notable changes to this project are documented here. Format based on
 
 ### Changed
 
+- **Chassis motion is calibrated end to end.** After the operator adjusted the
+  wheel actuators, the full sign table was re-verified on the floor (forward
+  `[+,−,−,+]`, left `[+,+,+,+]`, CCW yaw `[+,−,+,−]`, reverse = negation) and
+  the two-point scale reconfirmed (10 % → 55 mm/s, 20 % → 110 mm/s,
+  `duty = v × 182`). The hardened `mecanum.py` now maps m/s to duty (cap 60)
+  instead of wheel rps; `/cmd_vel ±0.05 m/s` publishes `±9.1` duty and moves
+  the base ≈55 mm forward/back. Record:
+  `evidence/phase2/onsite_20261118/chassis_motor_channels_20261118.md`.
 - **The wireless link is now the default.** Robot `wlan0` rejoins the open
   office SSID `tjyx_office` (`10.51.128.226/23`, NM profile
   `tjyx_office-robot` recreated, AP `HW-5401EF08` autoconnect off); the robot's

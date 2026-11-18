@@ -52,7 +52,12 @@
 
 The deployed `mecanum.py` is a hardened fork of the vendor file (watchdog
 described in `docs/hardware/vendor_baseline.md` item 5, diff in
-`docs/hardware/patches/controller_mecanum_watchdog.patch`).
+`docs/hardware/patches/controller_mecanum_hardened.patch`).
+
+> **Superseded 2026-11-18:** the ground tests in
+> [chassis_motor_channels_20261118.md](chassis_motor_channels_20261118.md)
+> now verify the wheel map, all three sign tables and the duty scale; the
+> node maps m/s to duty with `duty = v × 182`.
 
 ## Findings
 
