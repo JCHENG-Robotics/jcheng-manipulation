@@ -13,8 +13,10 @@ of this bundle.
 | 4 | Real MoveIt Plan → Execute (`camera_forward`) | **Motion PASS; action reporting timed out and was fixed** | [step4_moveit_execute.md](step4_moveit_execute.md) |
 | 5 | Real AprilTag detection | **PASS — 5/5, 0.322 m, ≤1.1 mm translation spread** | [step5_tag/README.md](step5_tag/README.md) |
 | 6 | Arm joint-limit survey with support | **PARTIAL — joint4 measured; joint2 measured; joint3 observed by hand; joint5 not measurable (falls freely when released); three vendor-node crashes from negative reads, root cause identified** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md), [step6_survey_run2_20261118.md](step6_survey_run2_20261118.md) |
-| V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table RGB z biased by ~40–50 mm at the 48° view (depth 340 mm vs RGB ~380 mm)** | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
-| T | Table-down chessboard calibration + depth check (extra) | **Relative PASS — 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO; absolute RGB depth biased ~40–50 mm (depth 340 vs RGB ~380 mm)** | [../../calibration/20261118/table_down/README.md](../../calibration/20261118/table_down/README.md) |
+| V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°.** The original absolute-z interpretation (RGB biased ~40–50 mm) is **superseded** by step D: the tag's small-plane absolute z is itself biased 6–13 mm low; the lateral scale stands. | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
+| T | Table-down chessboard calibration + depth check (extra) | **Relative PASS — 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO.** The absolute-depth conclusion is **superseded** by step D: the RGB and depth planes agree within the 6.1 mm board thickness. | [../../calibration/20261118/table_down/README.md](../../calibration/20261118/table_down/README.md) |
+| A | Supervised object-free approach at `camera_forward` (plan-only + execution) | **PASS — 3/3 safety-approved plans; executed best plan to TCP (0.259, −0.001, 0.235), 1 mm from the plan.** Kinematic finding: the camera_forward view volume is not a grasp volume (max reach ~0.10 m in front of the lens). | [approach_20261118/README.md](approach_20261118/README.md) |
+| D | Depth table plane + absolute table alignment | **PASS — 147,626-inlier plane, 0.7 mm RMS, normal 3.66°; table z = −0.0787 m (depth) vs −0.0784 m (215 mm ruler), 1.3 mm apart.** RGB board top is 6.1 mm above the depth plane (board thickness). Plan-only alignment target approved but its candidate sits on the joint2 bound, so it was not executed. | [depth_plane_20261118.md](depth_plane_20261118.md) |
 
 ## Environment
 
@@ -23,6 +25,26 @@ of this bundle.
 - DDS: vendor CycloneDDS on `eth0`; commands run through `zsh` + `~/.zshrc`.
 - Battery after the power-cut reboot: **7704 mV**.
 - Root filesystem: **87% used, 6.6 GiB free**.
+
+## Link and DDS fixes (2026-11-18, needed for the MoveIt graph)
+
+The wired link was in NetworkManager `shared` mode. Shared mode drops inbound
+UDP from the robot (measured **0/300** packets) while laptop→robot UDP works
+(300/300), so the laptop's DDS participants never discovered the robot. Even
+after switching to a plain static link, EEE (Energy-Efficient Ethernet) caused
+intermittent loss (ping 23/30, SSH banner timeouts). Fixes:
+
+1. Laptop `armpi-direct`: `ipv4.method manual`, `10.42.0.1/24`, no gateway;
+   robot `Wired connection 1`: static `10.42.0.218/24`, no gateway.
+2. Laptop `ethtool.eee-enabled off` (the robot's older NM has no EEE property;
+   disabling it on one side disables EEE on the link). After this: ping 30/30,
+   UDP 300/300.
+3. The Humble container's `-v .../cyclonedds-laptop.xml:/workspace/cyclonedds-laptop.xml`
+   mount resolved to a **0-byte root-owned placeholder** inside the `/workspace`
+   bind mount. CycloneDDS then had no interface config. Use a workspace-local
+   file (`/workspace/cyclonedds-wired.xml`) instead of mounting a file under
+   `/workspace`.
+
 
 ## Safety facts established
 

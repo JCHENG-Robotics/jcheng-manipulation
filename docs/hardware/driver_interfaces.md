@@ -28,7 +28,7 @@
 | `/depth_cam/rgb/camera_info` | `sensor_msgs/CameraInfo` | 640×400, `plumb_bob`, frame `rgb_camera_link` | `[V]` |
 | `/depth_cam/depth/image_raw` | `sensor_msgs/Image` | 8.2 Hz in-container, 640×400, `mono16`, frame `depth_camera_link`; values in mm | `[V]` |
 | `/depth_cam/depth/camera_info` | `sensor_msgs/CameraInfo` | 640×400, `plumb_bob`, frame `depth_camera_link` | `[V]` |
-| `/depth_cam/depth_registered/points` | `sensor_msgs/PointCloud2` | advertised by the driver; not separately validated | `[U]` |
+| `/depth_cam/depth_registered/points` | `sensor_msgs/PointCloud2` | **Validated 2026-11-18**: unorganized 202k-point cloud, `point_step=16`, x/y/z float32. `frame_id` is `depth_camera_link` but the point layout is the **OpenCV optical** convention (x right, y down, z forward). A table plane fits to **0.7 mm RMS** only with the hand-eye optical transform; the body TF gives a 54° tilted plane. Do not use the `frame_id` as a plain geometry frame. | `[V]` |
 | `/depth_cam/ir/image_raw` | `sensor_msgs/Image` | advertised by the driver; not separately validated | `[U]` |
 
 Camera launch uses `bringup vision.launch.py` and the Deptrum

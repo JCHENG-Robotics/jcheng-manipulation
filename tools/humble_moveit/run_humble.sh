@@ -29,11 +29,11 @@ exec docker run -it --rm --name armpi-humble \
     -e QT_X11_NO_MITSHM=1 \
     -e ROS_DOMAIN_ID=0 \
     -e RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
-    -e CYCLONEDDS_URI=file:///workspace/cyclonedds-laptop.xml \
+    -e CYCLONEDDS_URI=file:///config/cyclonedds-laptop.xml \
     -e ROS2CLI_NO_DAEMON=1 \
     -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     -v "$WS":/workspace \
-    -v "$REPO/tools/humble_moveit/cyclonedds-laptop.xml":/workspace/cyclonedds-laptop.xml:ro \
+    -v "$REPO/tools/humble_moveit/cyclonedds-laptop.xml":/config/cyclonedds-laptop.xml:ro \
     -v "$REPO/ros2_ws/src":"$REPO/ros2_ws/src":ro \
     -w /workspace \
     --user "$(id -u):$(id -g)" \

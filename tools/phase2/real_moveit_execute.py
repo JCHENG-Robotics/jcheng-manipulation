@@ -6,7 +6,11 @@ planned trajectory is sent to ``move_group``'s ``/execute_trajectory`` action;
 there is no replanning between the inspection and the execution.
 
 Execution is refused unless ``--i-have-clear-workspace`` is also passed, so a
-mistyped command cannot move the arm by itself.
+mistyped command cannot move the arm by itself. The planned trajectory is also
+sent to the safety veto (``--safety-service``, default
+``/armpi_safety/validate_trajectory``); when the service is unavailable or does
+not approve, execution is refused. Plan-only inspection still works without a
+safety service.
 
 Run inside the Humble MoveIt container after sourcing the workspace:
 
@@ -111,10 +115,10 @@ def write_trajectory(path, trajectory, *, state, group, error_code,
 
 
 class NamedStatePlan(Node):
-    """Plan one joint-constrained goal and optionally execute it."""
+    """Plan one joint-constrained goal, validate it, optionally execute it."""
 
     def __init__(self, group, joints, tolerance, velocity, acceleration,
-                 timeout):
+                 timeout, safety_service=''):
         super().__init__('named_state_plan_execute')
         self.group = group
         self.joints = joints
@@ -122,6 +126,8 @@ class NamedStatePlan(Node):
         self.velocity = velocity
         self.acceleration = acceleration
         self.timeout = timeout
+        self.safety_service = safety_service
+        self._safety_client = None
         self.plan_client = self.create_client(
             GetMotionPlan, '/plan_kinematic_path')
         if not self.plan_client.wait_for_service(timeout_sec=15.0):
@@ -129,6 +135,35 @@ class NamedStatePlan(Node):
                 '/plan_kinematic_path not available; is move_group up?')
         self.execute_client = ActionClient(
             self, ExecuteTrajectory, '/execute_trajectory')
+        if safety_service:
+            from arm_interfaces.srv import ValidateTrajectory
+
+            self._safety_client = self.create_client(
+                ValidateTrajectory, safety_service)
+            if not self._safety_client.wait_for_service(timeout_sec=5.0):
+                print(
+                    f'warning: safety service {safety_service} is not '
+                    'available; execution will be refused')
+                self._safety_client = None
+
+    def validate(self, trajectory):
+        """Return ``(approved, code, violations)`` from the safety veto."""
+        from arm_interfaces.srv import ValidateTrajectory
+
+        if self._safety_client is None:
+            return False, 'SAFETY_SERVICE_UNAVAILABLE', []
+        request = ValidateTrajectory.Request()
+        request.trajectory = trajectory
+        future = self._safety_client.call_async(request)
+        rclpy.spin_until_future_complete(self, future, timeout_sec=10.0)
+        if not future.done() or future.result() is None:
+            return False, 'SAFETY_SERVICE_TIMEOUT', []
+        response = future.result()
+        return (
+            bool(response.approved),
+            str(response.code),
+            list(response.violations),
+        )
 
     def plan(self):
         """Return the MotionPlanResponse, or None on failure."""
@@ -208,6 +243,10 @@ def main():
         '--i-have-clear-workspace', action='store_true',
         help='operator acknowledgement required with --execute')
     parser.add_argument(
+        '--safety-service',
+        default='/armpi_safety/validate_trajectory',
+        help='safety veto service; an unavailable service blocks --execute')
+    parser.add_argument(
         '--result-timeout', type=float, default=300.0,
         help='seconds to wait for the execute result')
     parser.add_argument(
@@ -228,7 +267,7 @@ def main():
     try:
         node = NamedStatePlan(
             group, joints, args.tolerance, args.velocity_scaling,
-            args.acceleration_scaling, args.timeout)
+            args.acceleration_scaling, args.timeout, args.safety_service)
         result = node.plan()
         if result is None:
             return 1
@@ -238,9 +277,16 @@ def main():
                 state=args.state, group=group,
                 error_code=result.error_code.val,
                 planning_time_s=result.planning_time)
+        approved, code, violations = node.validate(result.trajectory)
+        print(f'safety: approved={approved} code={code}')
+        if violations:
+            print('safety_violations: ' + '; '.join(violations))
         if not args.execute:
             print('plan-only: no execute goal sent')
             return 0
+        if not approved:
+            print('refusing to execute: safety veto')
+            return 1
         print('executing the inspected trajectory')
         executed = node.execute(result.trajectory, args.result_timeout)
         if executed is None:

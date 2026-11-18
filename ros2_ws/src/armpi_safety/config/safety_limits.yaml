@@ -1,37 +1,45 @@
-# Provisional safety limits for ArmPi Ultra.
+# Safety limits for ArmPi Ultra.
 #
-# Position bounds come from the URDF/MoveIt provisional limits; mechanical
-# limits are NOT measured (see docs/phase2/JOINT_LIMITS.md). Velocity and
+# Position bounds are the EEPROM-bounded values adopted on 2026-11-18
+# (`mapping_version: eeprom-bounded-2026-11-18`, servo EEPROM limits minus a
+# 20-pulse margin; see docs/phase2/JOINT_LIMITS.md and the MoveIt
+# joint_limits.yaml). They are still not fully mechanically surveyed, so they
+# are conservative command limits rather than a metrology claim. Velocity and
 # acceleration limits are deliberately far below the URDF limits (10 rad/s,
 # 1 rad/s^2) so a future executor cannot pass a fast trajectory through the
-# veto layer. Update this file only after the limit survey is reviewed.
+# veto layer.
 schema_version: 1
-source: provisional URDF/MoveIt limits; mechanical survey pending
+source: EEPROM-bounded limits adopted 2026-11-18; mechanical survey partial
 
 joint_limits:
   joint1:
-    lower: -2.09
-    upper: 2.09
+    # EEPROM 50..950 pulse -> adopted 70..930.
+    lower: -1.8012
+    upper: 1.8012
     max_velocity: 1.2
     max_acceleration: 0.5
   joint2:
-    lower: -2.09
-    upper: 2.09
+    # low mechanical stop 322 + 20 = 342; high EEPROM 830 - 20 = 810.
+    lower: -0.6618
+    upper: 1.2985
     max_velocity: 1.2
     max_acceleration: 0.5
   joint3:
-    lower: -2.09
+    # vendor mapping 500..1000 -> 0..-2.094; EEPROM 950 - 20 = 930.
+    lower: -1.8012
     upper: 0.0
     max_velocity: 1.2
     max_acceleration: 0.5
   joint4:
-    lower: -2.09
-    upper: 2.09
+    # EEPROM 100..900 pulse -> adopted 120..880.
+    lower: -1.5917
+    upper: 1.5917
     max_velocity: 1.2
     max_acceleration: 0.5
   joint5:
-    lower: -2.09
-    upper: 2.09
+    # EEPROM 100..890 pulse -> adopted 120..870.
+    lower: -1.5917
+    upper: 1.5499
     max_velocity: 1.2
     max_acceleration: 0.5
 

@@ -3,6 +3,55 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
+
+### Added
+
+- `tools/phase2/depth_plane_fit.py` — read-only RANSAC + SVD table-plane fit
+  from `/depth_cam/depth_registered/points`. Composes `base_link` from the
+  **measured bus-servo joints** and the hand-eye; records the driver's cloud
+  frame-label/optical-layout mismatch. It found a **147,626-inlier plane,
+  0.734 mm RMS**, normal **3.66°** from `base_link` +z.
+- `tools/phase2/execute_plan_json.py` — guarded executor for an inspected
+  `grasp_candidate_check` trajectory: re-validates with the safety service,
+  checks the start state against `/joint_states`, and refuses execution unless
+  `--execute --i-have-clear-workspace` is passed.
+- `evidence/phase2/onsite_20261118/approach_20261118/` — supervised object-free
+  approach at `camera_forward`: 3/3 safety-approved plans, best plan executed,
+  final TCP **1 mm** from the plan.
+- `evidence/phase2/onsite_20261118/depth_plane_20261118.md` — depth plane,
+  215 mm ruler check, RGB board comparison, tag absolute-z caveat, and the
+  table-alignment plan-only result.
+- SRDF `table_down` named state (measured bus-servo pose).
+
+### Changed
+
+- **Corrected the absolute table height.** The depth plane gives
+  **z = −0.0787 m** under the camera and the 215 mm gripper-fingertip ruler
+  check **−0.0784 m** (1.3 mm apart). The RGB board top is 6.1 mm above the
+  depth plane (board thickness), so the previous "~40–50 mm RGB depth bias"
+  conclusion (based on a −0.024 m chassis estimate) is **superseded**; the
+  table is at **z ≈ −0.078 m**. The tag's absolute z is separately biased
+  6–13 mm low; its lateral 0.67 % scale result stands.
+- Safety limits now use the adopted EEPROM-bounded joint ranges, and both the
+  named-state executor and the plan-JSON executor require a safety approval
+  before execution.
+- The real MoveIt graph now requires the link fixes: the laptop link is a plain
+  static `10.42.0.1/24` (not NetworkManager `shared`), EEE is disabled, and the
+  container's CycloneDDS config is mounted at `/config/` instead of under
+  `/workspace` (a 0-byte placeholder bug).
+
+### Verified (real hardware, 2026-11-18)
+
+- `camera_forward` supervised approach: 66 candidates → 33 IK/FK → 3 plan-only
+  OK → 3/3 safety approved; executed best plan, `execute_status=4`, final TCP
+  (0.259, −0.001, 0.235) m vs planned (0.259, 0, 0.236) m.
+- Kinematic limit: at `camera_forward` height the arm reaches only ~0.10 m in
+  front of the camera; the 0.22 m optical-axis target is 0.124 m out of reach.
+  The camera_forward view volume is not a grasp volume.
+- Table alignment plan-only: 1 `PLAN_OK` + safety approved, but its candidate
+  sits on the joint2 low bound, so it was not executed.
+
 ## [Unreleased] — 2026-11-18 table-down calibration and absolute-depth correction
 
 ### Added

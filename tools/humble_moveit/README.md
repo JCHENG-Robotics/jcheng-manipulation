@@ -140,8 +140,8 @@ sg docker -c "bash tools/humble_moveit/run_humble.sh"
 
 The script uses `--net=host`, mounts the X11 socket and the workspace, sets
 `ROS_DOMAIN_ID=0`, `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`,
-`CYCLONEDDS_URI=/workspace/cyclonedds-laptop.xml` and
-`ROS2CLI_NO_DAEMON=1`.
+`CYCLONEDDS_URI=/config/cyclonedds-laptop.xml` (mounted outside the workspace
+bind; see the 2026-11-18 pitfalls below) and `ROS2CLI_NO_DAEMON=1`.
 
 ### 5. Build and launch inside the container
 
@@ -225,7 +225,7 @@ execute goal.
 | Two action servers | The robot's `servo_controller.launch.py` still has `name='controller_manager'`; remove it and restart `start_node.service`. A Jazzy/mock demo in the same graph also causes duplicates. |
 | Plan Failed; `Start state appears to be in collision ... l_link ... r_in_link` | Vendor finger meshes overlap. Ensure the SRDF finger-pair `disable_collisions` entries are present and the MoveIt container was restarted after rebuilding. |
 | RViz shows no arm | Check `/joint_states` and TF in the container; Fixed Frame `base_link`; CycloneDDS interfaces (`wlp4s0` laptop, `wlan0` robot). |
-| `does not match an available interface` or no robot nodes | The container was started before `cyclonedds-laptop.xml` was changed. A bind-mounted file keeps the old inode, so restart the container with `run_humble.sh`; editing the host file in place is not enough. Check `CYCLONEDDS_URI` and the interface name. |
+| `does not match an available interface` or no robot nodes | The container was started before `cyclonedds-laptop.xml` was changed. A bind-mounted file keeps the old inode, so restart the container with `run_humble.sh`; editing the host file in place is not enough. Also check that the file is non-empty (`wc -c /config/cyclonedds-laptop.xml`) and that the interface name matches the current link. |
 | No robot nodes, but data arrives | Check `--net=host`, `ROS_DOMAIN_ID=0`, `RMW_IMPLEMENTATION`, `CYCLONEDDS_URI`; run `ros2 daemon stop` inside the container. |
 | Pi load high / SSH stalls | Close Jazzy MoveIt/RViz; the old Jazzy discovery storm overloads the Pi. Use the IPv6 link-local SSH fallback if IPv4 SSH stalls. |
 | `Action server /recognize_objects not available`, `No 3D sensor plugin`, `amdgpu drmGetDevice2 failed` | Expected/harmless in this setup. |
@@ -243,3 +243,46 @@ execute goal.
   unattended until the safety checklist is complete.
 - `armpi_ultra_ws_clean` is a private vendor-derived workspace; keep it out of
   the public repository.
+
+## Wired-link and DDS pitfalls (2026-11-18)
+
+These three issues each look like "no robot nodes" in the container. Check them
+in order:
+
+1. **NetworkManager `shared` mode drops inbound UDP.** With
+   `ipv4.method shared` on the laptop's `armpi-direct` connection, robot→laptop
+   UDP was **0/300** while laptop→robot was 300/300, so DDS discovery never
+   completed. Use a plain static link:
+
+   ```bash
+   nmcli connection modify armpi-direct ipv4.method manual \
+       ipv4.addresses 10.42.0.1/24 ipv4.gateway "" ipv4.dns "" \
+       ipv4.never-default yes
+   nmcli connection modify "Wired connection 1" ipv4.method manual \
+       ipv4.addresses 10.42.0.218/24 ipv4.gateway "" ipv4.dns ""
+   ```
+
+2. **EEE causes intermittent loss.** The RTL8153 USB NIC negotiated
+   Energy-Efficient Ethernet with the Pi: ping 23/30, SSH banner timeouts and
+   DDS flapping. Disable EEE on the laptop (the robot's older NetworkManager
+   has no EEE property; one side is enough):
+
+   ```bash
+   nmcli connection modify armpi-direct ethtool.eee-enabled off
+   nmcli connection up armpi-direct
+   ```
+
+   After this: ping 30/30, UDP 300/300.
+
+3. **A file bind mount under `/workspace` can resolve to a 0-byte
+   placeholder.** `-v .../cyclonedds-laptop.xml:/workspace/cyclonedds-laptop.xml`
+   left an empty root-owned file inside the workspace bind mount; CycloneDDS
+   then had no interface and bound elsewhere. `run_humble.sh` now mounts the
+   config at `/config/cyclonedds-laptop.xml` (outside the workspace bind) and
+   uses `CYCLONEDDS_URI=file:///config/cyclonedds-laptop.xml`. If you start the
+   container by hand, do the same and verify the file is non-empty:
+
+   ```bash
+   wc -c /config/cyclonedds-laptop.xml
+   ```
+

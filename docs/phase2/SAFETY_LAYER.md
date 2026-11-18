@@ -1,8 +1,10 @@
 # Conservative Safety Layer
 
-> Status: **Implemented and mock-validated (2026-11-17, Session 3).** The layer
-> is a state watchdog and trajectory **veto**, not a controller or an e-stop.
-> Joint limits remain provisional and no hardware safety test has been done.
+> Status: **Implemented, mock-validated (2026-11-17) and wired into the real
+> MoveIt execute path (2026-11-18).** The layer is a state watchdog and
+> trajectory **veto**, not a controller or an e-stop. Joint limits now use the
+> adopted EEPROM-bounded ranges (2026-11-18); mechanical limits are still only
+> partially surveyed and no dedicated hardware safety test has been done.
 
 ## Why a veto layer first
 
@@ -57,11 +59,15 @@ not latch the stop.
 ## Configuration
 
 [`ros2_ws/src/armpi_safety/config/safety_limits.yaml`](../../ros2_ws/src/armpi_safety/config/safety_limits.yaml)
-holds the provisional limits. The main values:
+holds the adopted limits. The main values:
 
 ```yaml
-joint_limits:
-  joint3: {lower: -2.09, upper: 0.0, max_velocity: 1.2, max_acceleration: 0.5}
+joint_limits:      # EEPROM-bounded, 20-pulse margin (2026-11-18)
+  joint1: {lower: -1.8012, upper: 1.8012}
+  joint2: {lower: -0.6618, upper: 1.2985}
+  joint3: {lower: -1.8012, upper: 0.0}
+  joint4: {lower: -1.5917, upper: 1.5917}
+  joint5: {lower: -1.5917, upper: 1.5499}
 state: {timeout_s: 0.5}
 start_state: {max_distance_rad: 0.08}
 trajectory: {max_duration_s: 30.0, max_points: 5000}
@@ -73,10 +79,23 @@ workspace:
   upper: [0.45, 0.30, 0.55]
 ```
 
-The position bounds are the intersection of the vendor software mapping and the
-URDF; they are **not measured**. Velocity and acceleration are deliberately
-below the URDF's `10` values, but the planner also uses 0.1 scaling, so this is
-a first conservative envelope rather than a tuned servo limit.
+The position bounds are the servo EEPROM limits minus a 20-pulse margin, not a
+full mechanical survey. Velocity and acceleration (1.2 rad/s, 0.5 rad/s²) are
+deliberately below the URDF's `10` values, and the planner additionally uses 0.1
+scaling.
+
+**Table limitation:** the workspace lower z is `0.00 m`, but the measured table
+is at **z ≈ −0.078 m** (see
+[`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)).
+A table-surface grasp target is therefore **outside** the current workspace
+envelope and will be vetoed. Before a real table grasp, add the table as a
+collision object (or a calibrated lower bound) and re-review this envelope; do
+not simply lower `z` without the collision geometry.
+
+The real MoveIt path now calls the veto: `tools/phase2/real_moveit_execute.py`
+validates the exact planned trajectory before `--execute`, and
+`tools/phase2/execute_plan_json.py` does the same for a grasp-planner trajectory.
+Both refuse execution when the service is unavailable or does not approve.
 
 ## Mock verification
 

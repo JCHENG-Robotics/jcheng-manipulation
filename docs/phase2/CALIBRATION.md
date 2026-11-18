@@ -177,18 +177,20 @@ table-forward move is ~5 % high: it moves the tag farther from the camera
 (0.36 → 0.42 m) and toward the image edge, where the PnP depth axis is weak at
 the ~48° incidence. Orthogonality is good.
 
-**Absolute table-pose depth:** the predicted `base_link` z is about −0.09 m,
-while the physical table is at z ≈ −0.024 m (mecanum chassis 17.54 mm + base
-mesh bottom 6.46 mm). A table-down chessboard calibration (below) reproduces the
-board with 2.7 mm / 0.42° relative scatter but places the board at
-z ≈ −0.070 m; a depth-camera check gives a **340 mm** median versus a **~380 mm**
-RGB PnP distance. The offset is a **view-dependent RGB PnP depth/tilt bias at
-the ~48° table view**, not an FK extrapolation: the chessboard squares are
-20.0 mm, the refined K/D changes z by only ~1 mm, and the bias is nearly
-constant across the table pose offsets. Relative displacements cancel it (the
-lateral 0.67 % result stands); absolute table-top z from RGB only is not
-trustworthy. Use the depth camera for the table plane/z, use a near-normal
-camera view, or calibrate a table-view depth correction. Evidence:
+**Absolute table-pose depth (corrected 2026-11-18):** the tag predicts
+`base_link` z ≈ −0.09 m. The original interpretation compared this with a
+chassis estimate (`−0.024 m`) and concluded that the RGB PnP was biased by
+~40–50 mm. A later depth point-cloud plane and a direct ruler measurement
+overturned that: the table is at **z ≈ −0.078 m**. The depth plane gives
+**−0.0787 m** under the camera, a 215 mm ruler check on the gripper fingertip
+gives **−0.0784 m** (1.3 mm apart), and the RGB chessboard board top
+(**−0.0705 m**) is **6.1 mm above** the depth plane — the board thickness. The
+tag's own absolute z is biased 6–13 mm low at this view (its fitted plane is
+tilted 8.4° while the table is 3.7°); the lateral 0.67 % scale result stands.
+Do **not** use the tag absolute z or the chassis estimate for table height; use
+the depth plane. Evidence:
+[`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)
+and
 [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/).
 
 ## Table-down calibration (2026-11-18)
@@ -200,9 +202,10 @@ RPY `[-1.478, 0.331, -90.187]°`; board scatter **2.7 mm / 0.42°**, held-out
 final base 2.2 mm / 0.29°, leave-one-out 3.1 mm / 0.45° std, intrinsic RMS
 0.052 px. It passes the 5 mm / 2° gate and differs from the camera_forward TSAI
 by `[2.9, 1.0, 0.6] mm` and ~2.5°; both are internally consistent. The
-table-view fit is useful for relative/lateral table tasks but does **not**
-replace the camera_forward transform for near-normal perception, and it does
-not remove the absolute-depth bias above. Evidence:
+table-view fit is the correct hand-eye for this view and its absolute z is
+consistent with the depth plane (the board top is 6.1 mm above the depth
+plane, i.e. the board thickness). It does **not** replace the camera_forward
+transform for near-normal perception. Evidence:
 [`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/).
 
 ## Why the first run failed
@@ -229,12 +232,15 @@ hardware read.
   an independent external metrology. There are no joint encoders.
 - Two board placements were used: a vertical stand at `camera_forward` and a
   flat table at the table-down pose. The relative scale was checked with a
-  ruler (0.67 % lateral), but there is still no absolute external metrology at
-  a surveyed base-frame position.
-- Absolute RGB depth at the ~48° table view is biased by ~40–50 mm (depth
-  camera 340 mm vs RGB PnP ~380 mm; board z −0.070 m vs table ≈ −0.024 m).
-  Relative/lateral results are unaffected; absolute table-top z needs the
-  depth camera or a near-normal view.
+  ruler (0.67 % lateral); the 215 mm fingertip-height check plus the depth
+  plane now anchor the table z in `base_link` to ~1 mm, but there is still no
+  surveyed 3D point in `base_link`.
+- Absolute table z is **−0.078 m**, not the chassis estimate −0.024 m. The
+  depth plane gives −0.0787 m and the 215 mm ruler check −0.0784 m (1.3 mm
+  apart); the RGB board top (−0.0705 m) is 6.1 mm above the plane, i.e. the
+  board thickness. The AprilTag absolute z is still biased 6–13 mm low at the
+  table view (tag-plane tilt 8.4° vs table 3.7°); use the tag only for relative
+  displacement, not absolute z.
 - Link geometry comes from the vendor URDF. Small link/zero errors are absorbed
   into the hand-eye transform and may grow outside the calibration volume
   (roughly 0.25–0.40 m in front of the camera).
@@ -246,13 +252,14 @@ hardware read.
 
 ## Next
 
-1. Use the depth camera for the table-view z/plane (registered point cloud or
-   a small plane fit) and compare it with the RGB PnP; this is the cleanest way
-   to remove the ~40–50 mm absolute-depth bias before table-top grasping.
-2. `T_link4_camera` is wired into the localizer through the
-   `camera_optical_calibrated` frame; run a supervised, no-object approach
-   through the grasp planner in the camera_forward volume, where the absolute
-   error is small.
-3. If better than ~3 mm is required, add an external measurement (e.g. a dial
-   indicator or a second fixed camera) rather than more chessboard poses; the
-   remaining error is the open-loop arm and the oblique-view PnP depth axis.
+1. Add a joint-limit margin to the grasp sampler. The table-alignment plan-only
+   found a valid candidate whose joint2 sits exactly on the adopted low bound;
+   the plan was not executed. Reject poses within a margin (e.g. 0.05 rad) of a
+   limit and re-plan.
+2. Do a same-instant RGB-D capture with the chessboard (or a measured-thickness
+   target) on the table to remove the board-thickness ambiguity in the
+   6.1 mm RGB/depth comparison, and record the board thickness.
+3. If better than ~3 mm absolute metrology is required, add an external
+   measurement (e.g. a dial indicator or a second fixed camera) rather than
+   more chessboard poses; the remaining error is the open-loop arm and the
+   view-dependent PnP depth axis.
