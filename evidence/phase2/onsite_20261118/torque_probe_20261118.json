@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-11-18T02:12:48Z",
+  "pre": {
+    "1": {
+      "position": 522,
+      "torque": 1
+    },
+    "2": {
+      "position": 503,
+      "torque": 1
+    },
+    "3": {
+      "position": 329,
+      "torque": 1
+    },
+    "4": {
+      "position": 956,
+      "torque": 1
+    },
+    "5": {
+      "position": 594,
+      "torque": 1
+    },
+    "6": {
+      "position": 503,
+      "torque": 1
+    }
+  },
+  "position_branch": {
+    "target": 530,
+    "delta": 8,
+    "moved": false,
+    "read_after": {
+      "1": {
+        "position": 521,
+        "torque": 1
+      },
+      "2": {
+        "position": 503,
+        "torque": 1
+      },
+      "3": {
+        "position": 329,
+        "torque": 1
+      },
+      "4": {
+        "position": 955,
+        "torque": 1
+      },
+      "5": {
+        "position": 594,
+        "torque": 1
+      },
+      "6": {
+        "position": 503,
+        "torque": 1
+      }
+    },
+    "after_hold": {
+      "1": {
+        "position": 522,
+        "torque": 1
+      },
+      "2": {
+        "position": 503,
+        "torque": 1
+      },
+      "3": {
+        "position": 329,
+        "torque": 1
+      },
+      "4": {
+        "position": 955,
+        "torque": 1
+      },
+      "5": {
+        "position": 594,
+        "torque": 1
+      },
+      "6": {
+        "position": 503,
+        "torque": 1
+      }
+    }
+  },
+  "callback_not_running": true,
+  "final": {
+    "1": {
+      "position": 522,
+      "torque": 1
+    },
+    "2": {
+      "position": 503,
+      "torque": 1
+    },
+    "3": {
+      "position": 329,
+      "torque": 1
+    },
+    "4": {
+      "position": 955,
+      "torque": 1
+    },
+    "5": {
+      "position": 593,
+      "torque": 1
+    },
+    "6": {
+      "position": 503,
+      "torque": 1
+    }
+  }
+}

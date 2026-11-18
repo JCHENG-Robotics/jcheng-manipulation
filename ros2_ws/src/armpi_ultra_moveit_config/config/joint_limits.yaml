@@ -55,11 +55,14 @@ joint_limits:
     max_acceleration: 1.0
 
   # Gripper. r_joint is the only actuated gripper joint; the others are mimic.
-  # r_joint bounds are the intersection of URDF +/-1.57 and vendor -2.932..+1.257.
+  # MEASURED 2026-11-18: increasing r_joint closes. Mechanical stops are
+  # -0.8378 (open) and 0.0 (closed), measured by a supervised no-object test
+  # with bus-servo position feedback. See
+  # docs/hardware/measured_joint_limits.md.
   r_joint:
     has_position_limits: true
-    min_position: -1.57
-    max_position: 1.257
+    min_position: -0.8378
+    max_position: 0.0
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true

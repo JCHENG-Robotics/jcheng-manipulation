@@ -52,11 +52,14 @@
       link="r_link" />
     <axis
       xyz="0.99996 -0.004699 -0.0070434" />
-    <!-- PROVISIONAL: intersection of the URDF (+/-1.57) and the vendor software
-         range (-2.932..+1.257). Mechanical travel is NOT measured. -->
+    <!-- MEASURED 2026-11-18: supervised no-object open/close test. Increasing
+         r_joint closes the fingers; the mechanical stops are -0.8378 rad
+         (open) and 0.0 rad (closed). The bus-servo register reads 502 at the
+         open stop and 642 at the closed stop (the register is the linkage
+         shaft, not r_joint). See docs/hardware/measured_joint_limits.md. -->
     <limit
-      lower="-1.57"
-      upper="1.257"
+      lower="-0.8378"
+      upper="0.0"
       effort="1000"
       velocity="10" />
   </joint>

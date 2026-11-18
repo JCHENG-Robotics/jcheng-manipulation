@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-11-18T02:01:17+00:00",
+  "source": "joint_limit_survey.py --mode read",
+  "battery_mv": 7704,
+  "joints": [
+    {
+      "joint": "joint1",
+      "servo_id": 6,
+      "pulse": 503,
+      "joint_rad": 0.012566,
+      "torque_enabled": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 2.094395,
+      "within_provisional": true
+    },
+    {
+      "joint": "joint2",
+      "servo_id": 5,
+      "pulse": 594,
+      "joint_rad": 0.393746,
+      "torque_enabled": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 2.094395,
+      "within_provisional": true
+    },
+    {
+      "joint": "joint3",
+      "servo_id": 4,
+      "pulse": 955,
+      "joint_rad": -1.9059,
+      "torque_enabled": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 0.0,
+      "within_provisional": true
+    },
+    {
+      "joint": "joint4",
+      "servo_id": 3,
+      "pulse": 329,
+      "joint_rad": -0.716283,
+      "torque_enabled": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 2.094395,
+      "within_provisional": true
+    },
+    {
+      "joint": "joint5",
+      "servo_id": 2,
+      "pulse": 503,
+      "joint_rad": 0.012566,
+      "torque_enabled": 1,
+      "provisional_min_rad": -2.094395,
+      "provisional_max_rad": 2.094395,
+      "within_provisional": true
+    }
+  ],
+  "notes": [
+    "Position is the bus-servo register, not an independent encoder.",
+    "Provisional limits come from the vendor software range."
+  ]
+}

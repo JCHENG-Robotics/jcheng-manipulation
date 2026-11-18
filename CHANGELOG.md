@@ -105,6 +105,49 @@ All notable changes to this project are documented here. Format based on
   and E2E coverage docs updated. G2 data is offline-only; the bundled demo is
   simulated and no hardware trajectory was captured.
 
+## [Unreleased] — 2026-11-18 onsite: power-cut and gripper baseline
+
+### Added
+
+- `evidence/phase2/onsite_20261118/`: onsite runbook steps 1–5 complete
+  (post-reboot health, power-cut behavior, gripper sign/range, real MoveIt
+  `camera_forward` execution, real AprilTag detection). Step 6 is blocked by a
+  torque-control defect.
+- `tools/phase2/real_moveit_execute.py`: guarded plan/execute client; the
+  inspection and execution use the same trajectory and execution requires
+  `--i-have-clear-workspace`.
+- `tools/phase2/capture_real_frames.py` and `analyze_real_tag.py`: capture
+  PPM + CameraInfo + TF in the CycloneDDS container and detect a physical tag
+  offline.
+- `tools/phase2/servo_hold.py`: verified position-hold recovery after a
+  torque-off.
+
+### Changed
+
+- **Gripper model corrected from measurement.** Supervised no-object test:
+  increasing `r_joint` closes; mechanical range is `-0.8378 … 0.0 rad`
+  (servo register 502 open … 642 closed). Updated `gripper.urdf.xacro`,
+  `joint_limits.yaml`, the SRDF `open`/`close` named states (open was
+  `+1.2`, now `-0.80`; close stays `0.0`), and `initial_positions.yaml`.
+- **Power-cut behavior verified:** no electronic e-stop and no brake; the arm
+  falls immediately when main power is removed. Recovery is automatic in
+  ~89 s and the vendor init re-homes `joint1` to `+0.8378 rad`.
+- **Real `camera_forward` executed:** 101 waypoints at 0.05 scaling; the arm
+  reached the target within 0.013 rad / 5 pulses, smooth and without collision.
+  MoveIt first reported `CONTROL_FAILED` because its 1.25× duration allowance
+  expired while the vendor controller overran; `allowed_execution_duration_scaling`
+  was raised 1.2 → 1.6 and a no-op re-execution then returned `SUCCEEDED`.
+- **Real AprilTag detected:** 5/5 frames, id 0, 0.322 m, ≤0.17 px reprojection,
+  ≤1.1 mm base-translation spread; the live ROS localizer node was not run
+  because Jazzy lacks CycloneDDS.
+- **Arm joint-limit survey blocked:** `SetBusServoState` does not disable
+  torque on the vendor stack (verified on joint1 and the empty gripper), while
+  a `ServosPosition` position hold reliably re-engages the servos. The arm was
+  recovered to torque-on; EEPROM limits were captured read-only. See
+  `evidence/phase2/onsite_20261118/step6_blocked.md`.
+- Hardware docs updated: `measured_joint_limits.md`,
+  `hardware_inventory.md`, `phase2/JOINT_LIMITS.md`.
+
 ## [Unreleased] — 2026-11-17 Session 4: error budget, paired trials, host/DDS benchmark
 
 ### Added

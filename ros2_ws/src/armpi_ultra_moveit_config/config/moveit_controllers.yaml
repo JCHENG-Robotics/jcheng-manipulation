@@ -1,7 +1,12 @@
 # MoveIt uses this configuration for controller management
 trajectory_execution:
-  allowed_execution_duration_scaling: 1.2
-  allowed_goal_duration_margin: 0.5
+  # The vendor JointTrajectoryActionController adds per-segment overhead: a
+  # 10.0 s / 101-waypoint trajectory took ~12.5 s to report completion. The
+  # default 1.2 scaling + 0.5 s margin (12.49 s) therefore cancelled a motion
+  # that had already reached the target. 1.6 + 1.0 s allows ~17 s for a 10 s
+  # trajectory without hiding a real stall.
+  allowed_execution_duration_scaling: 1.6
+  allowed_goal_duration_margin: 1.0
   allowed_start_tolerance: 0.01
 
 moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager

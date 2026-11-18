@@ -16,14 +16,23 @@ implementations** and the bus-servo read will fail.
 ``--mode read`` is safe: it subscribes to the battery topic and reads the
 bus-servo registers (position and torque state). It sends nothing.
 
-``--mode survey`` disables torque on one joint at a time. **The arm will be
-free to move under gravity.** You must support it by hand or with a stand, and
-the tool refuses to run without ``--i-have-support`` and a TTY. After each
-joint the torque is restored, including on Ctrl-C or error. The tool only
-publishes ``SetBusServoState`` for torque enable/disable; it never sends a
-position command.
+``--mode survey`` moves one joint at a time with torque released. A
+selective release was **demonstrated and hand-verified on 2026-11-18** on
+the empty gripper (evidence ``onsite_20261118/step6_torque_mapping.md``).
+The vendor SDK's boolean is inverted on this servo firmware: bit 1 in
+``enable_torque=[1, 1]`` (SDK "enable", command 0x0B) **releases** torque,
+and ``enable_torque=[1, 0]`` (SDK "disable", 0x0C) **engages** it. The
+torque register read reflects the real state.
 
-``--mode restore`` re-enables torque on all five arm servos.
+The tool waits for the state-topic subscription to match before the first
+publish: a single message sent right after startup can be lost to DDS
+discovery. The recovery path is a **position hold** at the current
+positions; ``--mode restore`` uses it and a running survey preflights it.
+
+``--mode read`` is safe: it subscribes to the battery topic and reads the
+bus-servo registers (position, torque, EEPROM limits/offset). It sends nothing.
+
+``--mode restore`` re-engages all five arm servos.
 
 Copy the JSON output into the private calibration area and commit only the
 summary you intend to publish. Raw stops are useful evidence but may include
@@ -43,6 +52,8 @@ from rclpy.node import Node
 from ros_robot_controller_msgs.msg import (
     BusServoState,
     GetBusServoCmd,
+    ServoPosition,
+    ServosPosition,
     SetBusServoState,
 )
 from ros_robot_controller_msgs.srv import GetBusServoState
@@ -57,6 +68,7 @@ SERVO_IDS = {
     'joint4': 3,
     'joint5': 2,
 }
+SERVO_TO_JOINT = {servo_id: name for name, servo_id in SERVO_IDS.items()}
 SERVO_INIT_PULSE = 500
 RADIANS_PER_TICK = 240.0 / 360.0 * (2.0 * 3.141592653589793) / 1000.0
 # Provisional software limits, computed with the vendor convention.
@@ -70,6 +82,7 @@ PROVISIONAL_RAD = {
 BATTERY_TOPIC = '/ros_robot_controller/battery'
 SERVO_STATE_SERVICE = '/ros_robot_controller/bus_servo/get_state'
 SERVO_STATE_TOPIC = '/ros_robot_controller/bus_servo/set_state'
+SERVO_POSITION_TOPIC = '/ros_robot_controller/bus_servo/set_position'
 
 
 def utc_now():
@@ -98,6 +111,8 @@ class SurveyNode(Node):
             GetBusServoState, SERVO_STATE_SERVICE)
         self.torque_pub = self.create_publisher(
             SetBusServoState, SERVO_STATE_TOPIC, 10)
+        self.position_pub = self.create_publisher(
+            ServosPosition, SERVO_POSITION_TOPIC, 10)
 
     def _battery_cb(self, msg):
         self.battery_mv = int(msg.data)
@@ -121,7 +136,9 @@ class SurveyNode(Node):
 
     def _read(self, servo_ids, get_position=False, get_torque=False):
         if not self.servo_client.wait_for_service(timeout_sec=2.0):
-            raise RuntimeError('bus servo state service not available')
+            raise RuntimeError(
+                'the vendor ros_robot_controller node is not available; '
+                'support the arm and restart that node before continuing')
         request = GetBusServoState.Request()
         for servo_id in servo_ids:
             cmd = GetBusServoCmd()
@@ -155,6 +172,40 @@ class SurveyNode(Node):
             pulses[name] = value
         return pulses
 
+    def read_joint_pulse(self, name):
+        """Read one joint's position.
+
+        One servo per request keeps the shared bus-servo reply queue from
+        carrying late replies into the next request. A five-servo read is
+        what preceded the 2026-11-18 node crash.
+        """
+        servo_id = SERVO_IDS[name]
+        states = self._read([servo_id], get_position=True)
+        value = states.get(servo_id, {}).get('position')
+        if value is None:
+            raise RuntimeError(
+                'no position for {} (servo {})'.format(name, servo_id))
+        return value
+
+    def sample_joint(self, name):
+        """Read one joint several times with a hard range guard.
+
+        A position outside 0..1000 means the joint was back-driven past the
+        servo's reporting range; the 2026-11-18 survey crashed the vendor
+        node on the read after such a sample. Abort before the next read.
+        """
+        values = []
+        for _ in range(self.servo_reads):
+            pulse = self.read_joint_pulse(name)
+            if pulse < 0 or pulse > 1000:
+                raise RuntimeError(
+                    '{} is outside the servo range (pulse {}); stopping '
+                    'before the next read and restoring torque'.format(
+                        name, pulse))
+            values.append(pulse)
+            self.spin_for(0.1)
+        return int(statistics.median(values)), max(values) - min(values)
+
     def read_torque(self):
         """Read torque state for all arm servos."""
         states = self._read(sorted(SERVO_IDS.values()), get_torque=True)
@@ -163,48 +214,126 @@ class SurveyNode(Node):
             for name, servo_id in SERVO_IDS.items()
         }
 
-    def sample_pulses(self):
-        """Read several times; return median pulses and per-joint spread."""
-        readings = [self.read_pulses() for _ in range(self.servo_reads)]
-        pulses = {}
-        spread = {}
-        for name in ARM_JOINTS:
-            values = [reading[name] for reading in readings]
-            pulses[name] = int(statistics.median(values))
-            spread[name] = max(values) - min(values)
-        return pulses, spread
+    def hold_positions(self, duration=1.0, repeats=3):
+        """Re-engage torque by commanding the current arm positions.
 
-    def set_torque(self, servo_id, enabled, timeout=3.0):
-        """Enable or disable torque on one servo and verify the register."""
-        msg = SetBusServoState()
-        state = BusServoState()
-        # Vendor convention for SetBusServoState arrays: [flag, value].
-        # The flag must be non-zero; the servo ID is the second element.
-        state.present_id = [1, int(servo_id)]
-        state.enable_torque = [1, 1 if enabled else 0]
-        msg.state.append(state)
-        msg.duration = 0.0
-        self.torque_pub.publish(msg)
+        This is the recovery path: a slow position command at the current
+        register values loads torque and holds the pose. It is used after
+        every survey joint and as a fallback if the 0x0C load command does
+        not come back in the register.
+        """
+        pulses = self.read_pulses()
+        self._wait_for_subscription(self.position_pub)
+        for _ in range(max(1, repeats)):
+            message = ServosPosition()
+            message.duration = float(duration)
+            for name in ARM_JOINTS:
+                entry = ServoPosition()
+                entry.id = SERVO_IDS[name]
+                entry.position = int(pulses[name])
+                message.position.append(entry)
+            self.position_pub.publish(message)
+            self.spin_for(duration + 0.2)
+        torque = self.read_torque()
+        missing = [name for name, value in torque.items() if value != 1]
+        if missing:
+            raise RuntimeError(
+                'torque not restored on: {}'.format(', '.join(missing)))
+        return pulses, torque
+
+    def _wait_for_subscription(self, publisher, timeout=10.0):
+        """Wait until a vendor subscription is matched with this publisher.
+
+        A message published before DDS discovery completes can be dropped;
+        a single gripper command was lost that way on 2026-11-18.
+        """
         deadline = time.monotonic() + timeout
-        expected = 1 if enabled else 0
         while time.monotonic() < deadline:
+            if publisher.get_subscription_count() > 0:
+                return
             self.spin_for(0.1)
-            states = self._read([servo_id], get_torque=True)
-            actual = states.get(servo_id, {}).get('torque')
-            if actual == expected:
+        raise RuntimeError(
+            'no vendor subscription matched on {}'.format(
+                SERVO_STATE_TOPIC))
+
+    def _publish_torque(self, servo_id, value):
+        """Publish ``enable_torque=[1, value]`` three times.
+
+        The vendor convention for the arrays is ``[flag, value]``. Repeat
+        the publish to cover a lost sample; the command is idempotent.
+        """
+        for _ in range(3):
+            message = SetBusServoState()
+            state = BusServoState()
+            state.present_id = [1, int(servo_id)]
+            state.enable_torque = [1, int(value)]
+            message.state.append(state)
+            message.duration = 0.0
+            self.torque_pub.publish(message)
+            self.spin_for(0.1)
+
+    def set_torque(self, servo_id, enabled, timeout=5.0):
+        """Set one servo's torque and verify it through the register.
+
+        The vendor SDK boolean is **inverted on this servo firmware**
+        (measured 2026-11-18, empty gripper): ``enable_torque=[1, 1]``
+        (SDK "enable", 0x0B) releases torque and ``enable_torque=[1, 0]``
+        (SDK "disable", 0x0C) engages it.
+
+        A disable is only accepted if the target servo reads 0 and every
+        other arm servo stays at 1. Any collateral torque-off is treated as
+        a failed selective disable; the caller's recovery hold re-engages
+        all servos.
+        """
+        self._wait_for_subscription(self.torque_pub)
+        joint = SERVO_TO_JOINT.get(servo_id)
+        if joint is None:
+            raise RuntimeError('servo {} is not an arm joint'.format(servo_id))
+        if enabled:
+            self._publish_torque(servo_id, 0)
+            self.spin_for(1.0)
+            states = self.read_torque()
+            if states.get(joint) == 1:
+                return
+            # 0x0C did not take; fall back to the position-hold recovery.
+            self.hold_positions()
+            states = self.read_torque()
+            if states.get(joint) != 1:
+                raise RuntimeError(
+                    'servo {} torque did not become 1'.format(servo_id))
+            return
+
+        attempts = max(1, int(round(timeout / 1.5)))
+        last = None
+        for _ in range(attempts):
+            self._publish_torque(servo_id, 1)
+            self.spin_for(1.5)
+            last = self.read_torque()
+            if last.get(joint) == 0:
+                collateral = [
+                    name for name, value in last.items()
+                    if name != joint and value != 1]
+                if collateral:
+                    raise RuntimeError(
+                        'collateral torque-off on {}; expected only servo {} '
+                        'to be off (state: {})'.format(
+                            ', '.join(collateral), servo_id, last))
                 return
         raise RuntimeError(
-            'servo {} torque did not become {}'.format(servo_id, expected))
+            'servo {} torque did not become 0 (last state: {})'.format(
+                servo_id, last))
 
     def restore_all_torque(self):
-        """Best-effort torque enable for all arm servos."""
-        for name, servo_id in SERVO_IDS.items():
-            try:
-                self.set_torque(servo_id, True)
-                print('restored torque: {} (servo {})'.format(name, servo_id))
-            except Exception as exc:  # noqa: BLE001 - best effort on exit
-                print('WARNING: could not restore torque on {}: {}'.format(
-                    name, exc), file=sys.stderr)
+        """Re-engage all arm servos through the verified position hold."""
+        try:
+            pulses, torque = self.hold_positions()
+            print('restored torque by position hold at {}: {}'.format(
+                pulses, torque))
+        except Exception as exc:  # noqa: BLE001 - report, do not hide
+            print(
+                'ERROR: could not restore torque by position hold: {}'.format(
+                    exc), file=sys.stderr)
+            raise
 
 
 def read_payload(node):
@@ -257,15 +386,24 @@ def survey_one(node, name):
     first = second = None
     first_spread = second_spread = None
     try:
-        input('Move {} slowly to one mechanical stop, then press Enter: '.format(
-            name))
-        first, first_spread = node.sample_pulses()
-        input('Move {} to the other mechanical stop, then press Enter: '.format(
-            name))
-        second, second_spread = node.sample_pulses()
+        input(
+            'Move {} slowly to one mechanical stop, then press Enter: '.format(
+                name))
+        first, first_spread = node.sample_joint(name)
+        input(
+            'Move {} to the other mechanical stop, then press Enter: '.format(
+                name))
+        second, second_spread = node.sample_joint(name)
     finally:
-        node.set_torque(servo_id, True)
-        print('torque restored on {}'.format(name))
+        try:
+            node.hold_positions()
+            print('torque restored on all arm servos after {}'.format(name))
+        except Exception as exc:  # noqa: BLE001 - report and continue
+            print(
+                'ERROR: torque restore failed after {}: {}\n'
+                'If the vendor node died, keep supporting the arm, restart '
+                'the node, then run --mode restore.'.format(name, exc),
+                file=sys.stderr)
 
     pulse_a = first[name]
     pulse_b = second[name]
@@ -323,11 +461,16 @@ def survey_payload(node, args):
     print('battery: {} mV'.format(battery_mv))
     print('initial pulses: {}'.format(node.read_pulses()))
     print('initial torque: {}'.format(node.read_torque()))
+    print('preflight: holding the current pose to verify the recovery path...')
+    pulses, torque = node.hold_positions()
+    print('preflight OK: positions {} torque {}'.format(pulses, torque))
 
-    selected = [name.strip() for name in args.joints.split(',') if name.strip()]
+    selected = [
+        name.strip() for name in args.joints.split(',') if name.strip()]
     unknown = [name for name in selected if name not in ARM_JOINTS]
     if unknown:
-        raise SystemExit('ERROR: unknown joints: {}'.format(', '.join(unknown)))
+        raise SystemExit(
+            'ERROR: unknown joints: {}'.format(', '.join(unknown)))
 
     records = []
     try:
