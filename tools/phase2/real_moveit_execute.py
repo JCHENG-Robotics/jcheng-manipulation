@@ -229,7 +229,12 @@ class NamedStatePlan(Node):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('state', help='SRDF group_state name')
+    parser.add_argument(
+        'state', nargs='?', help='SRDF group_state name')
+    parser.add_argument(
+        '--joints',
+        help='comma-separated joint1..joint5 radians; overrides the '
+             'named state (used for metrology view poses)')
     parser.add_argument(
         '--srdf', help='SRDF path (default: installed package)')
     parser.add_argument('--tolerance', type=float, default=0.01)
@@ -257,8 +262,20 @@ def main():
     if args.execute and not args.i_have_clear_workspace:
         parser.error('--execute requires --i-have-clear-workspace')
 
-    group, joints = load_group_state(args.state, args.srdf)
-    print(f'state={args.state} group={group}')
+    if args.joints:
+        values = [float(value) for value in args.joints.split(',')]
+        if len(values) != 5:
+            parser.error('--joints needs five values (joint1..joint5)')
+        group = 'arm'
+        joints = [('joint%d' % (index + 1), value)
+                  for index, value in enumerate(values)]
+        label = 'joints'
+    else:
+        if not args.state:
+            parser.error('give an SRDF state name or --joints')
+        group, joints = load_group_state(args.state, args.srdf)
+        label = args.state
+    print(f'state={label} group={group}')
     print('target: ' + ' '.join(f'{name}={value:g}' for name, value in joints))
     print(f'scaling: velocity={args.velocity_scaling:g} '
           f'acceleration={args.acceleration_scaling:g}')
@@ -274,7 +291,7 @@ def main():
         if args.trajectory_json:
             write_trajectory(
                 args.trajectory_json, result.trajectory,
-                state=args.state, group=group,
+                state=label, group=group,
                 error_code=result.error_code.val,
                 planning_time_s=result.planning_time)
         approved, code, violations = node.validate(result.trajectory)
