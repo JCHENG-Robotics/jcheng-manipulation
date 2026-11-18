@@ -1,0 +1,154 @@
+# ArmPi Ultra - after lockdown - 2026-11-18T20:18:29+08:00
+
+## ip -br addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             10.42.0.218/24 fe80::7f3b:d93e:bd6c:dd53/64 
+wlan0            UP             10.51.128.226/23 fe80::8a9a:424b:52ff:b308/64 
+docker0          DOWN           172.17.0.1/16 
+
+## ss -lntu
+Netid State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess
+udp   UNCONN 0      0            0.0.0.0:43853      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7400       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7401       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7412       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7413       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7416       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:7417       0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:36163      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:52548      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:56802      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:57049      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:36875      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:45156      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:53349      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:41148      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:37224      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:37369      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:57940      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:41586      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:37642      0.0.0.0:*          
+udp   UNCONN 0      0      10.51.128.226:58124      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:9027       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:54276      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:33956      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:5353       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:50412      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:46397      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:54625      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:42436      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:50672      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:46629      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:34479      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:38602      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:51071      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:34878      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:59894      0.0.0.0:*          
+udp   UNCONN 0      0      10.51.128.226:55811      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:51787      0.0.0.0:*          
+udp   UNCONN 0      0        10.42.0.218:51877      0.0.0.0:*          
+udp   UNCONN 0      0                  *:45067            *:*          
+udp   UNCONN 0      0                  *:5353             *:*          
+tcp   LISTEN 0      511        127.0.0.1:36557      0.0.0.0:*          
+tcp   LISTEN 0      5          127.0.0.1:11511      0.0.0.0:*          
+tcp   LISTEN 0      128        127.0.0.1:631        0.0.0.0:*          
+tcp   LISTEN 0      5        10.42.0.218:8765       0.0.0.0:*          
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*          
+tcp   LISTEN 0      128            [::1]:631           [::]:*          
+tcp   LISTEN 0      128             [::]:22            [::]:*          
+
+## services
+tailscaled       active=inactive   enabled=Failed to get unit file state for tailscaled.service: No such file or directory
+wayvnc           active=inactive   enabled=disabled
+remote           active=inactive   enabled=disabled
+armpi-gateway    active=active     enabled=enabled
+armpi-vision     active=active     enabled=enabled
+start_node       active=active     enabled=enabled
+wifi             active=inactive   enabled=disabled
+nftables         active=active     enabled=enabled
+
+## sshd
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+
+## nft table inet lockdown
+table inet lockdown {
+	chain input {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept
+		ct state established,related accept
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept
+		iifname "eth0" accept
+		counter packets 1113 bytes 501943 comment "inbound-denied"
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+## docker NAT table still present
+table ip nat {
+	chain DOCKER {
+		iifname "docker0" counter packets 0 bytes 0 return
+	}
+
+	chain PREROUTING {
+		type nat hook prerouting priority dstnat; policy accept;
+		fib daddr type local counter packets 60809 bytes 4220976 jump DOCKER
+# Warning: table ip nat is managed by iptables-nft, do not touch!
+
+## gateway bind
+ARMPI_GATEWAY_BIND=10.42.0.218
+ARMPI_GATEWAY_PORT=8765
+
+## robot cyclonedds.xml
+<CycloneDDS>
+  <!-- 2026-11-18 19:20 wired fallback: robot eth0 = 10.42.0.218,
+       laptop enx00e04ca373c7 = 10.42.0.1. The office WiFi (wlan0) path
+       stopped passing data (100% loss), see the laptop
+       humile_ws/cyclonedds-wired.xml note. -->
+  <Domain Id="0">
+    <General>
+      <Interfaces>
+        <NetworkInterface name="eth0" priority="1" multicast="true"/>
+      </Interfaces>
+    </General>
+  </Domain>
+</CycloneDDS>
+
+## wlan0 outbound check (appended 2026-11-18T20:19:52+08:00)
+gw 10.51.128.1: ping 6.276 ms
+DNS: deb.debian.org resolved
+HTTP http://deb.debian.org/ -> 200
+note: ICMP to 1.1.1.1 is dropped upstream (gateway ping and HTTP work)

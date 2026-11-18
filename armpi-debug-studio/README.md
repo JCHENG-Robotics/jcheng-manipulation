@@ -188,7 +188,7 @@ Useful environment variables:
 | `BIND_HOST` | `127.0.0.1` | do not expose publicly |
 | `ARMPI_HARDWARE_MOTION` | `false` | supervised write path opt-in; requires a gateway URL and token |
 | `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required while `mapping_verified=false` |
-| `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.51.128.226:8765` (read-only, office WiFi gateway bind) or `:8766` (supervised); the DDS link is the wired `eth0 10.42.0.218` |
+| `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only, direct Ethernet) or `:8766` (supervised); WiFi is not reachable after the 2026-11-18 lockdown |
 | `ARMPI_GATEWAY_TOKEN` | unset | shared token; never commit it |
 
 ### Frontend
@@ -237,8 +237,7 @@ token file, and is never part of CI. See
 > Replace `<user>` and `<M70Q_TAILSCALE_IP>` with your own SSH user and host.
 
 G1 has **no login/authentication**. Do not expose the backend or the Vite dev
-server to the public internet. Prefer SSH tunneling or a private Tailscale
-network.
+server to the public internet. Prefer SSH tunneling over a private link.
 
 ### Recommended: SSH tunnel, one port
 
@@ -263,7 +262,7 @@ Open <http://127.0.0.1:8000> on that device. FastAPI serves the built frontend
 and the API on the same origin. If the backend was already running before
 `npm run build`, restart it so the static mount is created.
 
-### Remote Vite dev server over Tailscale/LAN
+### Remote Vite dev server over a trusted LAN
 
 Keep the backend on localhost and expose only the Vite dev server:
 
@@ -278,8 +277,8 @@ cd frontend
 npm run dev -- --host 0.0.0.0
 ```
 
-On another device on the same tailnet/LAN, open
-`http://<M70Q_TAILSCALE_IP>:5173`. Vite proxies `/api` and `/ws` to the remote
+On another device on the same trusted LAN, open
+`http://<M70Q_LAN_IP>:5173`. Vite proxies `/api` and `/ws` to the remote
 backend. Allow TCP 5173 only on the trusted network.
 
 ### Frontend on the other device
@@ -300,7 +299,7 @@ npm run dev
 Open <http://127.0.0.1:5173> on that device. Vite proxies to the tunneled
 `127.0.0.1:8000`.
 
-### Direct binding (trusted LAN/Tailscale only)
+### Direct binding (trusted LAN only)
 
 If you explicitly want the backend reachable without a tunnel:
 

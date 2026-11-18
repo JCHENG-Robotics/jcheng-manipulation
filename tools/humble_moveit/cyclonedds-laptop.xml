@@ -1,13 +1,12 @@
 <CycloneDDS>
-  <!-- Current link (2026-11-18): office WiFi. The robot's CycloneDDS is
-       bound to wlan0 (10.51.128.226); this laptop NIC is wlp4s0
-       (10.51.128.246). For the wired fallback, replace the interface name
-       with enx00e04ca373c7 (10.42.0.1) and set the robot config back to eth0. -->
+  <!-- 2026-11-18 wired-only lockdown. DDS must use the direct Ethernet link:
+       laptop enx00e04ca373c7 = 10.42.0.1, robot eth0 = 10.42.0.218.
+       The robot's office WiFi (wlan0) is outbound-only after the inbound
+       lockdown, so a WiFi-bound client can no longer discover it.
+       Do not point this back at wlp4s0 unless the firewall is reverted too. -->
   <Domain Id="0">
     <General>
-      <Interfaces>
-        <NetworkInterface name="wlp4s0" priority="1" multicast="true"/>
-      </Interfaces>
+      <Interfaces><NetworkInterface name="enx00e04ca373c7" priority="1" multicast="true"/></Interfaces>
     </General>
   </Domain>
 </CycloneDDS>

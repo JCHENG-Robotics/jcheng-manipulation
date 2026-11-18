@@ -1,10 +1,11 @@
 # Hardware Baseline — ArmPi Ultra
 
-> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. SSH and DDS now run over
-> office WiFi (`10.51.128.226` ↔ `10.51.128.246`, since 2026-11-18); direct
-> Ethernet (`10.42.0.218` ↔ `10.42.0.1`) stays attached as the fallback.
-> Read-only queries, one supervised `reset_servo` motion and one
-> plan-only `camera_forward` check. Camera RGB/depth streams and intrinsics are
+> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. Since 2026-11-18 20:20 HKT
+> the **direct Ethernet link** (`10.42.0.218` ↔ `10.42.0.1`) is the only
+> inbound path: the robot runs a default-deny firewall and office WiFi
+> (`10.51.128.226`) is outbound-only. See `network_access.md`. Read-only
+> queries, one supervised `reset_servo` motion and one plan-only
+> `camera_forward` check. Camera RGB/depth streams and intrinsics are
 > verified. The camera optical extrinsic is **validated** (14-pose chessboard
 > hand-eye, 2.94 mm / 0.39° board scatter). Joint limits and the IMU remain
 > open. `[U]` items must not be treated as measured.

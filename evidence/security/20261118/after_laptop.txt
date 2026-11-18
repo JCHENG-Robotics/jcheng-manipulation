@@ -1,0 +1,23 @@
+# laptop - after lockdown - 2026-11-18T20:18:35+08:00
+
+## links
+enx00e04ca373c7  UP             10.42.0.1/24 fe80::ae43:61d5:56b5:c108/64 
+wlp4s0           UP             10.51.128.246/23 fe80::985d:35a0:37e3:23c7/64 
+
+## routes
+10.42.0.218 dev enx00e04ca373c7 src 10.42.0.1 uid 1000 
+    cache 
+10.51.128.226 dev wlp4s0 src 10.51.128.246 uid 1000 
+    cache 
+
+## WiFi inbound probes (must fail)
+22 blocked
+8765 blocked
+9026 blocked
+
+## wired gateway
+http=200
+
+## Studio backend (pid 2449959)
+{"status":"ok","mode":"hardware","version":"0.1.0","schema_version":1,"source_label":"LIVE","capabilities":{"hardware_motion":false,"hardware_read":true,"mock_faults":false,"replay":true,"min_duration_s":0.5,"max_duration_s":10.0,"max_step_rad":0.35,"supervised_motion":false,"single_joint_only":false,"motion_mode":"read-only"}}
+{"battery":{"available":true,"voltage_mv":6720,"voltage_v":6.72,"percent_estimate":16.0,"cell_count":2,"status":"low","truth":"measured","validity":"valid","source":"armpi_debug_gateway","topic":"/ros_robot_controller/battery","received_at":"2026-11-18T12:18:49.885087Z","sample_age_ms":31,"notes":[]},"camera":{"available":true,"truth":"measured","validity":"valid","source":"armpi_debug_gateway","topic":"/depth_cam/rgb/image_raw","width":640,"height":400,"encoding":"bgr8","fps":5.1,"last_frame_at":"2026-11-18T12:18:49.867036Z","sample_age_ms":51,"frame_count":1673,"notes":[]}}

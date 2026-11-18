@@ -1,0 +1,28 @@
+# DDS over the wired-only config - 2026-11-18T20:18:54+08:00
+# container armpi-humble, CYCLONEDDS_URI=/repo_tools/humble_moveit/cyclonedds-laptop.xml (enx00e04ca373c7)
+
+## selected topics
+/cmd_vel
+/controller_manager/joint_states
+/controller_manager/servo_states
+/joint_states
+/ros_robot_controller/battery
+
+## total topic count
+44
+
+## /controller_manager/joint_states rate
+average rate: 48.248
+	min: 0.020s max: 0.022s std dev: 0.00028s window: 50
+average rate: 47.932
+	min: 0.020s max: 0.023s std dev: 0.00051s window: 98
+average rate: 47.960
+	min: 0.020s max: 0.023s std dev: 0.00047s window: 147
+average rate: 48.004
+	min: 0.020s max: 0.023s std dev: 0.00045s window: 196
+average rate: 48.032
+	min: 0.020s max: 0.023s std dev: 0.00043s window: 245
+average rate: 48.018
+	min: 0.019s max: 0.023s std dev: 0.00046s window: 293
+average rate: 48.027
+	min: 0.019s max: 0.023s std dev: 0.00046s window: 342

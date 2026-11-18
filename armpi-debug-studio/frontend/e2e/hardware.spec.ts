@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * Private, explicitly gated hardware run.
  *
  *   ARMPI_E2E_HARDWARE=1 \
- *   ARMPI_GATEWAY_URL=http://10.51.128.226:8765 \
+ *   ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
  *   ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
  *   npm run test:e2e:hardware
  *

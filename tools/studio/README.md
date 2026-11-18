@@ -11,7 +11,8 @@ rejected with `GATE_REJECTED`.
 ## Use
 
 ```bash
-# hardware read-only (default; needs the robot reachable at 10.51.128.226)
+# hardware read-only (default; the robot is reachable at 10.42.0.218 over the
+# direct Ethernet cable — office WiFi is outbound-only since 2026-11-18)
 tools/studio/start_studio.sh
 
 # mock only, no robot access
@@ -54,7 +55,7 @@ only when each panel says `truth=measured`.
 |---|---|
 | `PORT` | `8000` |
 | `HOST` | `127.0.0.1` |
-| `ROBOT_HOST` | `10.51.128.226` (gateway HTTP + SSH, office WiFi); the DDS link is the wired `eth0 10.42.0.218` |
+| `ROBOT_HOST` | `10.42.0.218` (gateway HTTP + SSH over the direct Ethernet cable; the same link carries DDS) |
 | `GATEWAY_PORT` | `8765` |
 | `SSH_KEY` | `~/.ssh/id_ed25519_armpi` |
 | `SSH_USER` | `pi` |
@@ -64,5 +65,6 @@ only when each panel says `truth=measured`.
 | `LOG` | `/tmp/studio_studio_8000.log` |
 
 Binding stays on `127.0.0.1`. The backend has no authentication; reach it from
-another device with an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 pi@10.51.128.226`),
-never by binding `0.0.0.0`.
+another device with an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 pi@10.42.0.218`),
+never by binding `0.0.0.0`. The tunnel must ride the direct Ethernet link; a
+WiFi client cannot reach the robot's SSH port anymore.

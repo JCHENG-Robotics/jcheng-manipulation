@@ -1,0 +1,47 @@
+# ArmPi Ultra — before the inbound lockdown
+# Captured 2026-11-18 ~20:05 HKT over SSH on 10.42.0.218, trimmed to the
+# relevant lines. These are the observed pre-change values, not a re-run.
+
+## ip -br addr
+lo      UNKNOWN  127.0.0.1/8 ::1/128
+eth0    UP       10.42.0.218/24 fe80::7f3b:d93e:bd6c:dd53/64
+wlan0   UP       10.51.128.226/23 fe80::8a9a:424b:52ff:b308/64
+docker0 DOWN     172.17.0.1/16
+
+## services
+tailscaled      unit does not exist; no tailscale binary, no tailscale0
+wayvnc          active, enabled
+remote          active, enabled        # /home/pi/hiwonder-toolbox/remote.py, root
+armpi-gateway   active, enabled        # bind 10.51.128.226:8765
+armpi-vision    active, enabled
+start_node      active, enabled
+wifi            inactive, disabled
+nftables        disabled
+
+## TCP listeners (ss -lntp)
+127.0.0.1:36557   node
+127.0.0.1:11511   python3
+10.51.128.226:8765 python3            # gateway, wlan0 only
+127.0.0.1:631     cups
+0.0.0.0:9026      python3             # vendor remote.py (root), all interfaces
+0.0.0.0:22        sshd
+*:5900            wayvnc             # all interfaces
+[::]:22           sshd
+[::1]:631         cups
+
+## sshd effective (sshd -T)
+passwordauthentication yes
+kbdinteractiveauthentication no
+permitrootlogin without-password
+
+## nftables
+No `table inet` and no filter chain. `nft list ruleset` showed only the docker
+daemon's `table ip nat`; all host input was accepted.
+
+## gateway env
+ARMPI_GATEWAY_BIND=10.51.128.226
+ARMPI_GATEWAY_PORT=8765
+
+## CycloneDDS
+robot (container /home/ubuntu/cyclonedds.xml): eth0 only
+laptop repo tools/humble_moveit/cyclonedds-laptop.xml: wlp4s0 (stale WiFi copy)

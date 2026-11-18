@@ -54,9 +54,10 @@ install), not in the public repository:
 2. Robot `.zshrc`: added `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and
    `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`.
 3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to the active link. Since
-   2026-11-18 this is **`wlan0`** (office WiFi); the wired config is backed up
-   as `cyclonedds.xml.bak_eth0_20261118`. A `wlan0: does not match an available
-   interface` failure means the interface is down — bring WiFi up before
+   2026-11-18 the active link is **`eth0`** (direct cable); the WiFi config is
+   backed up as `cyclonedds.xml.wifi.bak` and is unreachable after the inbound
+   lockdown (`docs/hardware/network_access.md`). A `does not match an available
+   interface` failure means the named interface is down — bring it up before
    restarting the core. Change both ends together.
 4. Restarted `start_node.service` and verified one `/controller_manager`, one
    `/servo_manager`, one action server and one MoveIt client.

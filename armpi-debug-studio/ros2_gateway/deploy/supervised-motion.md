@@ -8,10 +8,10 @@ suite and the read-only console untouched.
 > Read [`docs/g6-motion-write-path.md`](../../docs/g6-motion-write-path.md)
 > before running this. The limits are provisional; there is no e-stop or brake.
 >
-> The addresses below use the current office-WiFi link `10.51.128.226`
-> (the G6 procedure was verified on the wired fallback `10.42.0.218` on
-> 2026-11-18). Use whichever address the supervised instance was actually
-> started with.
+> The addresses below use the direct Ethernet link `10.42.0.218`, the only
+> inbound path since the 2026-11-18 lockdown
+> (`docs/hardware/network_access.md`). Start the supervised instance with
+> `--host 10.42.0.218`; a WiFi bind is no longer reachable.
 
 ## 1. Generate and copy the limits JSON
 
@@ -22,8 +22,8 @@ cd armpi-debug-studio
 backend/.venv/bin/python tools/export_gateway_motion_config.py \
   --out /tmp/studio_motion_limits.json --overwrite
 scp -i ~/.ssh/id_ed25519_armpi /tmp/studio_motion_limits.json \
-  pi@10.51.128.226:/home/pi/docker/tmp/armpi_gateway_deploy/motion_limits.json
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226 \
+  pi@10.42.0.218:/home/pi/docker/tmp/armpi_gateway_deploy/motion_limits.json
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
   'chown 1000:1000 /home/pi/docker/tmp/armpi_gateway_deploy/motion_limits.json'
 ```
 
@@ -43,7 +43,7 @@ sudo docker exec -d -u ubuntu ArmPiUltra bash -lc '
   source /home/ubuntu/ros2_ws/install/setup.bash;
   cd /home/ubuntu/shared/armpi_gateway_deploy;
   exec python3 -m armpi_debug_gateway.main \
-    --host 10.51.128.226 --port 8766 \
+    --host 10.42.0.218 --port 8766 \
     --token-file /home/ubuntu/shared/armpi_gateway_deploy/token \
     --enable-motion \
     --motion-config /home/ubuntu/shared/armpi_gateway_deploy/motion_limits.json
@@ -61,8 +61,8 @@ sudo docker exec -u ubuntu ArmPiUltra bash -lc \
 
 ```bash
 TOKEN=$(sudo cat /home/pi/docker/tmp/armpi_gateway_deploy/token)
-curl -s -H "X-Armpi-Token: $TOKEN" http://10.51.128.226:8766/health
-curl -s -H "X-Armpi-Token: $TOKEN" http://10.51.128.226:8766/motion/status
+curl -s -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8766/health
+curl -s -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8766/motion/status
 ```
 
 Expected:
@@ -78,7 +78,7 @@ A rejected probe (no publication, no motion):
 ```bash
 curl -s -X POST -H "X-Armpi-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"command_id":"probe","duration_s":1.0,"joints":[{"joint":"joint1","servo_id":6,"target_pulse":950,"target_rad":1.885}]}' \
-  http://10.51.128.226:8766/motion/dispatch
+  http://10.42.0.218:8766/motion/dispatch
 # 400 MOTION_OUT_OF_LIMIT
 ```
 
@@ -87,7 +87,7 @@ curl -s -X POST -H "X-Armpi-Token: $TOKEN" -H "Content-Type: application/json" \
 On the laptop:
 
 ```bash
-export ARMPI_GATEWAY_URL=http://10.51.128.226:8766
+export ARMPI_GATEWAY_URL=http://10.42.0.218:8766
 export ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token   # from the robot token file
 export ARMPI_SUPERVISED_MOTION_ACK=I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE
 backend/.venv/bin/python tools/start-supervised-backend.sh
@@ -130,7 +130,7 @@ sudo docker exec -u ubuntu ArmPiUltra bash -lc 'kill -TERM <PID>'
 Then confirm 8765 is still healthy and no 8766 process remains:
 
 ```bash
-curl -s -H "X-Armpi-Token: $TOKEN" http://10.51.128.226:8765/health
+curl -s -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8765/health
 sudo docker exec -u ubuntu ArmPiUltra bash -lc "pgrep -af armpi_debug_gateway.main"
 ```
 

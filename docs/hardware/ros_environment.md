@@ -18,8 +18,8 @@
 | RMW | `rmw_cyclonedds_cpp` on both sides | env | `[V]` |
 | Domain ID | 0 | `ROS_DOMAIN_ID` | `[V]` |
 | CycloneDDS (robot) | `file:///home/ubuntu/cyclonedds.xml`, **`eth0` only** (wired, since 2026-11-18 evening; WiFi backup `cyclonedds.xml.wifi.bak`) | container config | `[V]` |
-| CycloneDDS (laptop) | `~/jcheng/humble_ws/cyclonedds-wired.xml`, **`enx00e04ca373c7` only** (wired 10.42.0.1, since 2026-11-18 evening; the WiFi version is `*.wifi.bak`); `cyclonedds-laptop.xml` is the older WiFi copy | config | `[V]` |
-| Robot network | `eth0 10.42.0.218/24` (**SSH + DDS, current**, 0.2 ms); `wlan0 10.51.128.226/23` (office WiFi: up, gateway HTTP bind, 7 ms) | `ip addr` | `[V]` |
+| CycloneDDS (laptop) | `~/jcheng/humble_ws/cyclonedds-wired.xml` and the repo copy `tools/humble_moveit/cyclonedds-laptop.xml` both bind **`enx00e04ca373c7` only** (10.42.0.1, since 2026-11-18); the WiFi copies are `*.wifi.bak` | config | `[V]` |
+| Robot network | `eth0 10.42.0.218/24` (**SSH + DDS + gateway HTTP, current**, 0.2 ms); `wlan0 10.51.128.226/23` (office WiFi: up for internet only, **outbound-only** since the 2026-11-18 lockdown) | `ip addr` | `[V]` |
 | CLI daemon | `ROS2CLI_NO_DAEMON=1` in the Humble containers | env | `[V]` |
 | Core service | `start_node.service` active; `ArmPiUltra` container up | `systemctl`, `docker ps` | `[V]` |
 | Laptop MoveIt launch | `ros2 launch armpi_ultra_moveit_config real_moveit.launch.py` | `tools/humble_moveit/` | `[V]` |
@@ -91,21 +91,29 @@ closed; its `aurora930_node` became a zombie. Stop it with
 | Wi-Fi module crash | A stale command loaded `rtw88_8821cu` for a Realtek RTL8188GU (`0bda:1a2b`) adapter in CDROM mode; the kernel oops wedged USB, `lsusb` hung, and a soft reboot stuck in shutdown. A restart recovered it. Do not reload that module on this robot. | `[V]` |
 | Battery 7.651 V | Charge before long motion trials | `[V]` |
 | Camera launch can die | The first persistent launch later exited with SIGKILL; the static TF publishers logged DDS multicast errors. Restart with the persistent `docker exec -d ... exec` form and check `/aurora/aurora`. | `[V]` |
-| DDS interface change | **Wired is current since 2026-11-18 evening.** The office WiFi path (`wlp4s0 10.51.128.246 ↔ wlan0 10.51.128.226`) suffered a ~10-minute **full data-plane outage** (100 % packet loss, ping and every bulk topic dead) while both nodes stayed up, their addresses were unchanged and DDS *discovery* survived — so the laptop received no `/joint_states`/battery/camera data and `move_group` reported `Failed to receive current joint state`. Both ends were switched to the wired link: robot `cyclonedds.xml` → `eth0` (WiFi backup `.wifi.bak`), laptop → `enx00e04ca373c7`; data returned immediately. The earlier `wlan0: does not match an available interface` failure happens when the XML names an interface that is down — bring the interface up **before** restarting the core. Discovery-only with no data is a **link** symptom, not a ROS bug: check `ping` and the interface before touching the graph. | `[V]` |
+| DDS interface change | **Wired is the only path since 2026-11-18.** The office WiFi path (`wlp4s0 10.51.128.246 ↔ wlan0 10.51.128.226`) suffered a ~10-minute **full data-plane outage** (100 % packet loss, ping and every bulk topic dead) while both nodes stayed up, their addresses were unchanged and DDS *discovery* survived — so the laptop received no `/joint_states`/battery/camera data and `move_group` reported `Failed to receive current joint state`. Both ends were switched to the wired link: robot `cyclonedds.xml` → `eth0` (WiFi backup `.wifi.bak`), laptop → `enx00e04ca373c7`; data returned immediately. The inbound lockdown later made wlan0 outbound-only, so there is no WiFi DDS fallback anymore. The earlier `wlan0: does not match an available interface` failure happens when the XML names an interface that is down — bring the interface up **before** restarting the core. Discovery-only with no data is a **link** symptom, not a ROS bug: check `ping` and the interface before touching the graph. | `[V]` |
 | Vendor stack restart re-initialises the servos | Restarting `start_node.service` does **not** hold the previous posture: the arm moved on its own from a folded grasp pose to the vendor init pose **700/500/500/500/500** (`joint1 = 0.8378 rad`, others 0) while the servo torque stayed on. Plan the restart only at a safe pose. The stop script only `kill -9`s the ROS processes. | `[V]` |
 | DDS graph anomaly | `get_node_names()` in the robot container fails with `Failed to get node names: empty node name returned by the RMW layer`; topic discovery/subscription still works. Camera/static-TF logs repeat `serdata.cpp` errors (`string data is not null-terminated` / `invalid data size`). Root cause unresolved (2026-11-17 Session 4). | `[V]` observed, root cause `[U]` |
 | Camera-rate undercount | An in-container subscriber measures ~8.3 Hz for RGB, while a cross-host subscriber on the laptop measures ~11.8–12.0 Hz. Local DDS delivery of large images drops/queues; do not use in-container FPS as the sensor rate. | `[V]` |
 | Camera stop leaves a defunct node | `pkill -f vision.launch.py` exits the launch but can leave `aurora930_node` as a defunct process entry; kill it by exact process name or restart the container. The publisher count returns to 0. | `[V]` |
 
+## Inbound lockdown (2026-11-18)
+
+The robot runs a default-deny nftables policy. `eth0` (the direct cable to the
+laptop) is the only inbound path; `wlan0` is outbound-only except DHCP replies.
+SSH password authentication is off, and `wayvnc` plus the vendor
+`remote.service` (unauthenticated TCP 9026) are disabled. The gateway now binds
+`10.42.0.218`. Details, verification commands and rollback:
+`docs/hardware/network_access.md`.
+
 ## Reproduce the link
 
 ```bash
-# wired (SSH + DDS); this is the current path (0.2 ms)
+# wired (SSH + DDS + gateway); this is the only inbound path (0.2 ms)
 ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218
 
-# office WiFi (gateway HTTP bind; was the DDS path until the 2026-11-18 evening
-# data-plane outage; to use it for DDS, restore both *.wifi.bak XMLs first)
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226
+# office WiFi: the robot still reaches the internet, but inbound SSH/HTTP/DDS
+# are dropped by the lockdown. Do not use 10.51.128.226 to reach the robot.
 
 sudo docker exec -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
   'source ~/.zshrc >/dev/null 2>&1; ROS2CLI_NO_DAEMON=1 ros2 node list'

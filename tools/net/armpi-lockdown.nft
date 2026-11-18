@@ -1,0 +1,49 @@
+#!/usr/sbin/nft -f
+# ArmPi Ultra inbound lockdown (Plan A, 2026-11-18).
+#
+# Trusted path: the point-to-point Ethernet cable eth0 <-> laptop 10.42.0.1.
+# Office WiFi wlan0 is outbound-only; the sole inbound exception is the DHCP
+# reply, so NetworkManager can keep/renew its lease and the Pi keeps internet.
+#
+# Tailscale was removed on 2026-11-18 (no binary, no tailscale0), so there is
+# no tunnel interface to trust. If a tunnel is ever added, trust its interface
+# explicitly and re-run the verification in docs/hardware/network_access.md.
+#
+# eth0 MUST stay a direct cable to the laptop. If it is ever plugged into a
+# shared office switch, narrow the rule to `ip saddr 10.42.0.1` (see the
+# commented line) or anyone on that switch can reach DDS, which has no auth.
+#
+# Apply:    sudo nft -f /etc/nftables.conf
+# Rollback: sudo nft delete table inet lockdown
+# Never run `nft flush ruleset`: the docker daemon owns `table ip nat`.
+
+table inet lockdown
+delete table inet lockdown
+table inet lockdown {
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        iif lo accept
+        ct state established,related accept
+        ct state invalid drop
+
+        # DHCP replies on either link (wlan0 outbound-only still needs this).
+        udp sport 67 udp dport 68 accept
+
+        # Trusted direct link. Keep this broad so a changed laptop address or
+        # a link-local fallback cannot silently break DDS discovery.
+        iifname "eth0" accept
+        # Narrower alternative if eth0 ever leaves the direct cable:
+        # iifname "eth0" ip saddr 10.42.0.1 accept
+
+        counter comment "inbound-denied"
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}

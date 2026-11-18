@@ -5,6 +5,20 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 
+### Security
+
+- **The robot is now inbound-locked to the direct Ethernet cable.** A
+  default-deny `inet lockdown` table accepts only `eth0` (the point-to-point
+  link to the laptop); `wlan0` is outbound-only except DHCP replies. SSH
+  password authentication is off, `wayvnc` and the vendor `remote.service`
+  (unauthenticated TCP 9026) are disabled, and `armpi-gateway` now binds
+  `10.42.0.218:8765`. Tailscale was already absent. The nftables service is
+  enabled at boot, with a drop-in so `systemctl stop nftables` no longer
+  flushes docker's NAT table. Studio and the Humble MoveIt container were
+  repointed to the wired link; `tools/humble_moveit/cyclonedds-laptop.xml`
+  now binds `enx00e04ca373c7`. Install/rollback/verification:
+  `docs/hardware/network_access.md`.
+
 ### Fixed
 
 - **The gripper open stop was wrong; the range is 2.22 rad, not 0.8378.** The

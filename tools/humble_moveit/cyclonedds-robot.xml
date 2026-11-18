@@ -1,8 +1,14 @@
 <CycloneDDS>
+  <!-- Robot-side DDS config, wired-only since 2026-11-18. eth0 is the direct
+       cable to the laptop (10.42.0.1); wlan0 is outbound-only after the
+       inbound lockdown (docs/hardware/network_access.md).
+       Keep only ONE interface here: a listed interface without an IPv4
+       address makes participant creation fail ("does not match an available
+       interface" / "rmw handle is invalid"). -->
   <Domain Id="0">
     <General>
       <Interfaces>
-        <NetworkInterface name="wlan0" priority="1" multicast="true"/>
+        <NetworkInterface name="eth0" priority="1" multicast="true"/>
       </Interfaces>
     </General>
   </Domain>

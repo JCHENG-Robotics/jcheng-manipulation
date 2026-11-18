@@ -8,19 +8,20 @@
 > arm/gripper action server, MoveIt client connected, `/joint_states` 20 Hz,
 > RViz loaded the `armpi_ultra` model.
 >
-> **WiFi link verified 2026-11-17**: the robot joins the open `tjyx_office`
-> network with its onboard `wlan0` (AP mode disabled, profile
-> `tjyx_office-robot`, DHCP `10.51.128.226`); the laptop uses `wlp4s0`
-> (`10.51.128.246`). Same 20 Hz `/joint_states`, 1 action server, TF OK.
+> **Wired link is the only DDS path since 2026-11-18.** The robot runs a
+> default-deny inbound firewall (`docs/hardware/network_access.md`), so this
+> container must bind `enx00e04ca373c7` (10.42.0.1) and the robot `eth0`
+> (10.42.0.218). A WiFi-bound container can no longer discover the robot.
+> The 2026-11-17 office-WiFi verification is historical.
 
 ## Verified working configuration
 
 | Part | Configuration |
 |---|---|
 | Laptop | Ubuntu 24.04, Docker 29.9.3, image `armpi-humble-moveit` |
-| Laptop RMW | `rmw_cyclonedds_cpp`, `cyclonedds-laptop.xml` on `wlp4s0` (office WiFi) |
+| Laptop RMW | `rmw_cyclonedds_cpp`, `cyclonedds-laptop.xml` on `enx00e04ca373c7` (direct Ethernet 10.42.0.1) |
 | Robot | existing Humble `armpi_ultra_ws_clean`, `rmw_cyclonedds_cpp` |
-| Robot network | `wlan0` (office WiFi) only in `cyclonedds.xml`; robot `10.51.128.226`, laptop `10.51.128.246` |
+| Robot network | `eth0` only in `cyclonedds.xml`; robot `10.42.0.218`, laptop `10.42.0.1` |
 | MoveIt | `real_moveit.launch.py`: `move_group` + RViz only, no mock controllers |
 | Verified | 1 action server arm + 1 gripper; 1 MoveIt client; `/joint_states` 20 Hz |
 
@@ -45,7 +46,7 @@ cat > /home/ubuntu/cyclonedds.xml <<'EOF'
   <Domain Id="0">
     <General>
       <Interfaces>
-        <NetworkInterface name="wlan0" priority="1" multicast="true"/>
+        <NetworkInterface name="eth0" priority="1" multicast="true"/>
       </Interfaces>
     </General>
   </Domain>
@@ -57,8 +58,8 @@ grep -q RMW_IMPLEMENTATION ~/.zshrc || \
   >> ~/.zshrc
 ```
 
-To use the office WiFi, switch the onboard `wlan0` from AP mode to a client
-profile (this disables the `HW-5401EF08` AP):
+To use the office WiFi for internet access (not DDS), switch the onboard
+`wlan0` from AP mode to a client profile (this disables the `HW-5401EF08` AP):
 
 ```bash
 sudo nmcli connection modify HW-5401EF08 connection.autoconnect no
@@ -72,9 +73,10 @@ driver scans but every association ends in `authentication timed out`, and
 reloading it caused a kernel trace and a hard hang on this Pi. It is
 blacklisted via `/etc/modprobe.d/blacklist-rtw88-8821cu.conf`.
 
-Keep **only `wlan0`** in the robot XML. Listing `eth0` as a second interface
-breaks participant creation once the cable is unplugged (`rcl node's rmw
-handle is invalid`), because a listed interface has no IPv4 address then.
+Keep **only `eth0`** in the robot XML. Listing a second interface breaks
+participant creation when that interface has no IPv4 address (`rcl node's rmw
+handle is invalid`), and a WiFi interface is no longer reachable after the
+inbound lockdown.
 
 In the private `armpi_ultra_ws_clean` workspace, remove
 `name='controller_manager'` from
@@ -224,7 +226,7 @@ execute goal.
 | `ros2 node list` empty; `unknown tag 'rclpy.type_hash.TypeHash'` | The Humble CLI connected to the host Jazzy `ros2` daemon. Stop it with Jazzy `ros2 daemon stop`, or use `ROS2CLI_NO_DAEMON=1` (the script sets it). |
 | Two action servers | The robot's `servo_controller.launch.py` still has `name='controller_manager'`; remove it and restart `start_node.service`. A Jazzy/mock demo in the same graph also causes duplicates. |
 | Plan Failed; `Start state appears to be in collision ... l_link ... r_in_link` | Vendor finger meshes overlap. Ensure the SRDF finger-pair `disable_collisions` entries are present and the MoveIt container was restarted after rebuilding. |
-| RViz shows no arm | Check `/joint_states` and TF in the container; Fixed Frame `base_link`; CycloneDDS interfaces (`wlp4s0` laptop, `wlan0` robot). |
+| RViz shows no arm | Check `/joint_states` and TF in the container; Fixed Frame `base_link`; CycloneDDS interfaces (`enx00e04ca373c7` laptop, `eth0` robot). |
 | `does not match an available interface` or no robot nodes | The container was started before `cyclonedds-laptop.xml` was changed. A bind-mounted file keeps the old inode, so restart the container with `run_humble.sh`; editing the host file in place is not enough. Also check that the file is non-empty (`wc -c /config/cyclonedds-laptop.xml`) and that the interface name matches the current link. |
 | No robot nodes, but data arrives | Check `--net=host`, `ROS_DOMAIN_ID=0`, `RMW_IMPLEMENTATION`, `CYCLONEDDS_URI`; run `ros2 daemon stop` inside the container. |
 | Pi load high / SSH stalls | Close Jazzy MoveIt/RViz; the old Jazzy discovery storm overloads the Pi. Use the IPv6 link-local SSH fallback if IPv4 SSH stalls. |

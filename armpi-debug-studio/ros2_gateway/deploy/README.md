@@ -44,9 +44,9 @@ as root:
 # from the laptop, repository root
 scp -i ~/.ssh/id_ed25519_armpi -r \
   armpi-debug-studio/ros2_gateway \
-  pi@10.51.128.226:/home/pi/docker/tmp/armpi_gateway_pkg
+  pi@10.42.0.218:/home/pi/docker/tmp/armpi_gateway_pkg
 
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226 \
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
   'sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/install-gateway.sh'
 ```
 
@@ -71,14 +71,15 @@ sudoedit /etc/armpi-gateway/gateway.env   # ARMPI_GATEWAY_BIND=...
 sudo systemctl restart armpi-gateway
 ```
 
-Use the address the backend actually reaches (office WiFi is the current link
-since 2026-11-18; see `docs/hardware/ros_environment.md`):
+Use the address the backend actually reaches. Since the 2026-11-18 inbound
+lockdown the direct Ethernet link is the only inbound path
+(`docs/hardware/network_access.md`):
 
 | Link | Bind |
 |---|---|
-| Office WiFi (current) | `10.51.128.226` |
-| Direct Ethernet (fallback) | `10.42.0.218` |
-| Tailscale | the tailnet address |
+| Direct Ethernet (current) | `10.42.0.218` |
+| Office WiFi | not reachable; wlan0 is outbound-only |
+| Tailscale | removed 2026-11-18 |
 
 If the address does not exist on the robot, the gateway fails to bind, systemd
 restarts it every 5 s, and `journalctl -u armpi-gateway` shows
@@ -97,7 +98,7 @@ sudo systemctl stop armpi-gateway
 Expected startup journal:
 
 ```text
-armpi_debug_gateway listening on http://10.51.128.226:8765
+armpi_debug_gateway listening on http://10.42.0.218:8765
   battery: /ros_robot_controller/battery
   camera:  /depth_cam/rgb/image_raw
   joints:  /controller_manager/joint_states
@@ -114,7 +115,7 @@ timeout.
 ## Rotate the token
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226 \
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
   'sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/rotate-token.sh'
 ```
 
@@ -148,9 +149,9 @@ sudo systemctl daemon-reload
 
 ## Security notes
 
-- The token is a shared secret, not user authentication. Keep the port on a
-  private link (direct Ethernet, private WiFi, Tailscale) and do not expose it
-  to the internet.
+- The token is a shared secret, not user authentication. The gateway is bound
+  to `10.42.0.218` and the robot's wlan0 is outbound-only; do not expose it to
+  the internet and do not bind `0.0.0.0`.
 - The unit runs the gateway as the container's `ubuntu` user. It does not need
   host root beyond installing the unit; the `docker` group grants effective
   root and is required for `docker exec`.
