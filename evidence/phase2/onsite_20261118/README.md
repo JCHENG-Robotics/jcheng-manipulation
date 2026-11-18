@@ -14,16 +14,24 @@ of this bundle.
 | 5 | Real AprilTag detection | **PASS — 5/5, 0.322 m, ≤1.1 mm translation spread** | [step5_tag/README.md](step5_tag/README.md) |
 | 6 | Arm joint-limit survey with support | **PARTIAL — joint4 measured; joint2 measured; joint3 observed by hand; joint5 not measurable (falls freely when released); three vendor-node crashes from negative reads, root cause identified** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md), [step6_survey_run2_20261118.md](step6_survey_run2_20261118.md) |
 | V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°.** The original absolute-z interpretation (RGB biased ~40–50 mm) is **superseded** by step D: the tag's small-plane absolute z is itself biased 6–13 mm low; the lateral scale stands. | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
-| T | Table-down chessboard calibration + depth check (extra) | **Relative PASS — 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO.** The absolute-depth conclusion is **superseded** by step D: the RGB and depth planes agree within the 6.1 mm board thickness. | [../../calibration/20261118/table_down/README.md](../../calibration/20261118/table_down/README.md) |
+| T | Table-down chessboard calibration + depth check (extra) | **Relative PASS — 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO.** The absolute-depth conclusion is **superseded** by step D. The board is **11 mm** thick and invisible to the depth (holes filled); the same-surface RGB-D gap is −4.6 mm, so the 6.1 mm board-vs-table difference is **not** the board thickness. | [../../calibration/20261118/table_down/README.md](../../calibration/20261118/table_down/README.md) |
 | A | Supervised object-free approach at `camera_forward` (plan-only + execution) | **PASS — 3/3 safety-approved plans; executed best plan to TCP (0.259, −0.001, 0.235), 1 mm from the plan.** Kinematic finding: the camera_forward view volume is not a grasp volume (max reach ~0.10 m in front of the lens). | [approach_20261118/README.md](approach_20261118/README.md) |
-| D | Depth table plane + absolute table alignment | **PASS — 147,626-inlier plane, 0.7 mm RMS, normal 3.66°; table z = −0.0787 m (depth) vs −0.0784 m (215 mm ruler), 1.3 mm apart.** RGB board top is 6.1 mm above the depth plane (board thickness). Plan-only alignment target approved but its candidate sits on the joint2 bound, so it was not executed. | [depth_plane_20261118.md](depth_plane_20261118.md) |
+| D | Depth table plane + absolute table alignment | **PASS — 147,626-inlier plane, 0.7 mm RMS, normal 3.66°; table z = −0.0787 m (depth) vs −0.0784 m (215 mm ruler), 1.3 mm apart.** RGB board top is 6.1 mm above the depth plane, but that is **not** the board thickness (board = 11 mm, invisible to the depth); the same-surface RGB-D gap is −4.6 mm. Plan-only alignment target approved but its candidate sits on the joint2 bound, so it was not executed. | [depth_plane_20261118.md](depth_plane_20261118.md) |
+| S | Same-frame RGB-D same-surface check with a matte AprilTag (extra) | **DONE — RGB tag vs depth paper −4.25 / −4.65 mm (0.37° / 0.76°); depth paper vs table +1.66 mm vs ~0.1 mm paper; RGB absolute z biased −3 to −5 mm.** The chessboard is not a depth target; use the depth table plane for z. | [rgbd_same_surface_20261118.md](rgbd_same_surface_20261118.md) |
+| C | Chassis link, zero wheel motion (extra) | **PARTIAL — the ROS → STM32 path is verified: `/cmd_vel` → `mecanum_chassis_node` → four-motor `MotorsSpeedControl` (all 0.0), battery 7691 mV; node start/stop clean.** Speed scale, direction, odometry and `/cmd_vel` safety coverage are **not verified**; a supervised ground pulse is the next step. | [chassis_link_20261118.md](chassis_link_20261118.md) |
+| W | Wired → office WiFi switch (extra) | **PASS with caveats — SSH, DDS (`/joint_states`, `/battery` 8289 mV, `/tf` 12.5 Hz) and the gateway HTTP all work over `wlp4s0`/`wlan0`; robot DDS `wlan0`, laptop `wlp4s0`, gateway bound to `10.51.128.226`.** The core restart left the arm unmoved; the camera launch was restarted (6.5 fps in-container) but cross-host image topics are only ~2 Hz over WiFi. The SSID is open, so the graph and gateway are LAN-exposed. | [wireless_switch_20261118.md](wireless_switch_20261118.md) |
 
 ## Environment
 
 - Robot: ArmPi Ultra / Pi 5, Debian 12, container `ArmPiUltra`, ROS 2 Humble.
-- Link: direct Ethernet, laptop `10.42.0.1/24` ↔ robot `eth0 10.42.0.218/24`.
-- DDS: vendor CycloneDDS on `eth0`; commands run through `zsh` + `~/.zshrc`.
-- Battery after the power-cut reboot: **7704 mV**.
+- Link: direct Ethernet, laptop `10.42.0.1/24` ↔ robot `eth0 10.42.0.218/24`,
+  until the 2026-11-18 afternoon switch to office WiFi
+  (`wlp4s0 10.51.128.246/23` ↔ `wlan0 10.51.128.226/23`, step W). The cable
+  stays attached as the fallback.
+- DDS: vendor CycloneDDS; `eth0` before step W, `wlan0` after; commands run
+  through `zsh` + `~/.zshrc`.
+- Battery after the power-cut reboot: **7704 mV**; **8289 mV (94.5 %)** after
+  the step-W reboot.
 - Root filesystem: **87% used, 6.6 GiB free**.
 
 ## Link and DDS fixes (2026-11-18, needed for the MoveIt graph)

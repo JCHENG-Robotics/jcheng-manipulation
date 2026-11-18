@@ -51,9 +51,41 @@ All notable changes to this project are documented here. Format based on
   the plane, 1 Hz republish, `--remove`); pure geometry functions are tested.
 - `evidence/phase2/onsite_20261118/table_envelope_20261118.md` — table-envelope
   analysis, service matrix and planning-scene check.
+- `tools/phase2/chassis_jog.py` — chassis link status (`--status`), predicted
+  motor values (`--dry-run`), and a supervised `/cmd_vel` pulse behind `--yes`
+  with hard caps (0.30 m/s, 0.60 rad/s, 3 s). It publishes at 20 Hz so the node
+  watchdog does not fire mid-pulse, sends an explicit zero, verifies the echoed
+  command is zero, and writes a JSON record.
+- `evidence/phase2/onsite_20261118/chassis_link_20261118.md` — zero-motion
+  chassis verification: `/cmd_vel` → `mecanum_chassis_node` → four-motor
+  `MotorsSpeedControl` (all 0.0), battery 7691 mV. Records the open issues
+  (rps-vs-duty unit mismatch, no odometry/IMU, no `/cmd_vel` safety coverage,
+  vendor teleop topic mismatch) and the ground-test protocol.
+- `docs/hardware/patches/controller_mecanum_watchdog.patch` and
+  `docs/hardware/vendor_baseline.md` item 5 — the deployed chassis node is a
+  hardened fork of the vendor `mecanum.py` (0.5 s `/cmd_vel` watchdog at
+  20 Hz, zero duty on timeout and shutdown; vendor `9c54a5d5…` → deployed
+  `c599517a…`).
+- `tools/phase2/rgbd_snapshot.py` — same-stamp RGB + registered cloud + raw
+  depth/IR + joints snapshot for the Humble container (numpy only; no cv2).
+- `tools/phase2/rgbd_board_check.py` and `rgbd_tag_check.py` — offline
+  same-frame RGB-D plane comparisons for a chessboard and a matte AprilTag.
+- `evidence/phase2/onsite_20261118/rgbd_same_surface_20261118.md` and its
+  reports — closes the board-thickness leftover.
 
 ### Changed
 
+- **The wireless link is now the default.** Robot `wlan0` rejoins the open
+  office SSID `tjyx_office` (`10.51.128.226/23`, NM profile
+  `tjyx_office-robot` recreated, AP `HW-5401EF08` autoconnect off); the robot's
+  CycloneDDS binds `wlan0` (wired backup `.bak_eth0_20261118`), the laptop's
+  binds `wlp4s0`, and the gateway binds `10.51.128.226`. Verified SSH, DDS
+  (`/joint_states`, `/battery` 8289 mV, `/tf` 12.5 Hz) and gateway HTTP. The
+  core restart left the arm unmoved; the camera launch was restarted (6.5 fps
+  in-container) but cross-host image topics drop to ~2 Hz over WiFi — use the
+  gateway `/camera/snapshot` or run capture tools inside the container.
+  `eth0` stays attached as the fallback. Log:
+  `evidence/phase2/onsite_20261118/wireless_switch_20261118.md`.
 - **Hardware joint state now reports measured positions.** The gateway
   subscribes to `/controller_manager/servo_states` and `/state` carries both
   the command echo and a `measured` block; the backend uses the measured pulse
@@ -78,6 +110,15 @@ All notable changes to this project are documented here. Format based on
   whole reachable table band. The live `armpi_safety` node must be restarted to
   load the new config. The table collision object is still required for
   link/gripper geometry and must be running during planning/execution.
+- **The 6.1 mm RGB-board-vs-depth-table number is not the board thickness.**
+  The board is **11 mm** (calipered) and the chessboard is invisible to the
+  depth camera (high-contrast/glossy board → depth holes filled with the table
+  plane). A same-frame matte-AprilTag test measured a **−4.25 / −4.65 mm
+  same-surface RGB-vs-depth gap** at the table view (0.37° / 0.76°); the RGB
+  absolute z is biased −3 to −5 mm. The depth table plane remains the
+  absolute-z reference; use RGB XY + depth z with a ≥5 mm vertical margin. The
+  earlier "RGB and depth agree within the board thickness" conclusion is
+  superseded.
 - **Corrected the absolute table height.** The depth plane gives
   **z = −0.0787 m** under the camera and the 215 mm gripper-fingertip ruler
   check **−0.0784 m** (1.3 mm apart). The RGB board top is 6.1 mm above the
