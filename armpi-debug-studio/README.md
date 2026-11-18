@@ -188,7 +188,7 @@ Useful environment variables:
 | `BIND_HOST` | `127.0.0.1` | do not expose publicly |
 | `ARMPI_HARDWARE_MOTION` | `false` | supervised write path opt-in; requires a gateway URL and token |
 | `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required while `mapping_verified=false` |
-| `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only) or `:8766` (supervised) |
+| `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.51.128.226:8765` (read-only, office WiFi gateway bind) or `:8766` (supervised); the DDS link is the wired `eth0 10.42.0.218` |
 | `ARMPI_GATEWAY_TOKEN` | unset | shared token; never commit it |
 
 ### Frontend

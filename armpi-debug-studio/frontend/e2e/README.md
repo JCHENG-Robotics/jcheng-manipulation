@@ -24,7 +24,7 @@ database (`/tmp/armpi_studio_e2e_8766.db`) and port `8766`; override with
 
 ```bash
 ARMPI_E2E_HARDWARE=1 \
-ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
+ARMPI_GATEWAY_URL=http://10.51.128.226:8765 \
 ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
 npm run test:e2e:hardware
 ```

@@ -2,7 +2,7 @@
 # Start the backend in hardware (read-only) mode for the gated Playwright run.
 #
 # Required environment:
-#   ARMPI_GATEWAY_URL       e.g. http://10.42.0.218:8765
+#   ARMPI_GATEWAY_URL       e.g. http://10.51.128.226:8765 (wired: 10.42.0.218)
 #   ARMPI_GATEWAY_TOKEN_FILE path on this host containing the shared token
 #
 # The token is read into ARMPI_GATEWAY_TOKEN and never printed or placed on a

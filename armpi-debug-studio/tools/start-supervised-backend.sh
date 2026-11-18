@@ -15,7 +15,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ACK="I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE"
 
-: "${ARMPI_GATEWAY_URL:?set ARMPI_GATEWAY_URL to the supervised gateway, e.g. http://10.42.0.218:8766}"
+: "${ARMPI_GATEWAY_URL:?set ARMPI_GATEWAY_URL to the supervised gateway, e.g. http://10.51.128.226:8766 (wired: 10.42.0.218)}"
 : "${ARMPI_GATEWAY_TOKEN_FILE:?set ARMPI_GATEWAY_TOKEN_FILE to that gateway's token file}"
 : "${ARMPI_SUPERVISED_MOTION_ACK:?set ARMPI_SUPERVISED_MOTION_ACK=$ACK only after supporting the arm and clearing the workspace}"
 

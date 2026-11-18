@@ -44,9 +44,9 @@ as root:
 # from the laptop, repository root
 scp -i ~/.ssh/id_ed25519_armpi -r \
   armpi-debug-studio/ros2_gateway \
-  pi@10.42.0.218:/home/pi/docker/tmp/armpi_gateway_pkg
+  pi@10.51.128.226:/home/pi/docker/tmp/armpi_gateway_pkg
 
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226 \
   'sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/install-gateway.sh'
 ```
 
@@ -71,12 +71,13 @@ sudoedit /etc/armpi-gateway/gateway.env   # ARMPI_GATEWAY_BIND=...
 sudo systemctl restart armpi-gateway
 ```
 
-Use the address the backend actually reaches:
+Use the address the backend actually reaches (office WiFi is the current link
+since 2026-11-18; see `docs/hardware/ros_environment.md`):
 
 | Link | Bind |
 |---|---|
-| Direct Ethernet | `10.42.0.218` |
-| Office WiFi | `10.51.128.226` |
+| Office WiFi (current) | `10.51.128.226` |
+| Direct Ethernet (fallback) | `10.42.0.218` |
 | Tailscale | the tailnet address |
 
 If the address does not exist on the robot, the gateway fails to bind, systemd
@@ -96,7 +97,7 @@ sudo systemctl stop armpi-gateway
 Expected startup journal:
 
 ```text
-armpi_debug_gateway listening on http://10.42.0.218:8765
+armpi_debug_gateway listening on http://10.51.128.226:8765
   battery: /ros_robot_controller/battery
   camera:  /depth_cam/rgb/image_raw
   joints:  /controller_manager/joint_states
@@ -113,7 +114,7 @@ timeout.
 ## Rotate the token
 
 ```bash
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226 \
   'sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/rotate-token.sh'
 ```
 

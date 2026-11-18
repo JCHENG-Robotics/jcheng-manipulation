@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * Private, explicitly gated hardware run.
  *
  *   ARMPI_E2E_HARDWARE=1 \
- *   ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
+ *   ARMPI_GATEWAY_URL=http://10.51.128.226:8765 \
  *   ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
  *   npm run test:e2e:hardware
  *
@@ -93,7 +93,20 @@ test.describe("Hardware mode (read-only gateway)", () => {
     expect(leaseResponse.ok()).toBeTruthy();
     const lease = await leaseResponse.json();
 
-    const targets = [{ joint: "joint1", target_rad: 0.05, duration_s: 1.0 }];
+    const state = await (await request.get("/api/state")).json();
+    const joint1 = state.joints.find((joint: { name: string }) => joint.name === "joint1");
+    if (!joint1) throw new Error("joint1 missing from /api/state");
+    // The arm's live pose is not fixed (it homes to joint1 = +0.8378 rad), so
+    // derive the target from the measured position. A hard-coded target makes
+    // the preview fail with STEP_EXCEEDED whenever the arm is not near zero.
+    const currentRad: number = joint1.position_rad ?? joint1.target_rad ?? 0;
+    const previewStep = 0.05;
+    const targetRad = [currentRad + previewStep, currentRad - previewStep].find(
+      (value: number) => value >= joint1.limit_min_rad && value <= joint1.limit_max_rad,
+    );
+    if (targetRad === undefined) throw new Error("no in-limit preview target for joint1");
+
+    const targets = [{ joint: "joint1", target_rad: targetRad, duration_s: 1.0 }];
     const previewResponse = await request.post("/api/motion/preview", {
       data: { session_id: sessionId, targets },
     });

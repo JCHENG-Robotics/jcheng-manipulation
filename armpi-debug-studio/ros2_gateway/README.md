@@ -70,7 +70,7 @@ secret is not in the process environment:
 ```bash
 install -m 600 /dev/null /path/to/gateway-token
 openssl rand -hex 24 > /path/to/gateway-token
-python3 -m armpi_debug_gateway.main --host 10.42.0.218 --token-file /path/to/gateway-token
+python3 -m armpi_debug_gateway.main --host 10.51.128.226 --token-file /path/to/gateway-token
 ```
 
 Binding to a non-loopback address without a token now fails closed with exit
