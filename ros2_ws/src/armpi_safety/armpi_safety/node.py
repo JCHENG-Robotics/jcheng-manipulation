@@ -106,10 +106,11 @@ class SafetySupervisor(Node):
         self.publish_status()
         self.get_logger().info(
             'safety supervisor: config={} state_timeout={:.3f}s '
-            'workspace={}'.format(
+            'workspace={} table={}'.format(
                 config_path,
                 self.config.state_timeout_s,
                 'on' if self.config.workspace_enabled else 'off',
+                'on' if self.config.table_plane_enabled else 'off',
             )
         )
 

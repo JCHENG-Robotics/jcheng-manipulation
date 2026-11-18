@@ -63,5 +63,24 @@ workspace:
   enabled: true
   # Fail closed when FK is unavailable.
   required: true
-  lower: [-0.05, -0.30, 0.00]
+  # The lower z is a coarse hard floor, NOT the table guard. The table is
+  # tilted 3.66 deg (z spans about -0.096..-0.063 over y=-0.30..+0.30), so a
+  # flat bound cannot represent it. The `table_plane` check below is the
+  # operative clearance guard; keep it enabled when using this lower z.
+  lower: [-0.05, -0.30, -0.10]
   upper: [0.45, 0.30, 0.55]
+
+table_plane:
+  # MEASURED 2026-11-18 (`depth_plane_optical_20261118.json`) with the depth
+  # camera at table_down and confirmed by a 215 mm ruler check (1.3 mm).
+  # Plane equation: normal . p + offset = 0. Signed height above the table is
+  # normal . p + offset; the normal points up (+z). The table check vetoes a
+  # tool point closer than clearance_m to the plane, which permits table
+  # grasps without allowing the TCP below the surface. This is a TCP-only
+  # guard; the table collision object (tools/phase2/table_collision.py) is
+  # still required for arm/gripper geometry in the MoveIt planning scene.
+  enabled: true
+  frame: base_link
+  normal: [0.010305373291790987, -0.06301369005824492, 0.9979594551616625]
+  offset: 0.07728284112861183
+  clearance_m: 0.01

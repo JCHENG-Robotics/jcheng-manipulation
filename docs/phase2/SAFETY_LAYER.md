@@ -49,7 +49,8 @@ start-state threshold. Nothing in the node publishes a controller command.
 | Accelerations | explicit, else finite differences; ≤ 0.5 rad/s² | `ACCELERATION_LIMIT` |
 | Start state | first point within 0.08 rad of the latest state | `START_STATE` |
 | Workspace | `end_effector_link` TCP inside the `base_link` box on every waypoint | `WORKSPACE` |
-| FK availability | fail closed when workspace FK is unavailable | `WORKSPACE` |
+| Table clearance | TCP at least `clearance_m` above the measured table plane on every waypoint | `TABLE_CLEARANCE` |
+| FK availability | fail closed when workspace or table FK is unavailable | `WORKSPACE` / `TABLE_CLEARANCE` |
 
 A **real state fault latches** the stop: once stale/out-of-range/non-finite
 state is seen, `safety_stop` stays true until `reset_stop` succeeds and the
@@ -75,8 +76,14 @@ workspace:
   frame: base_link
   enabled: true
   required: true
-  lower: [-0.05, -0.30, 0.00]
+  lower: [-0.05, -0.30, -0.10]   # coarse hard floor, not the table guard
   upper: [0.45, 0.30, 0.55]
+table_plane:                     # measured 2026-11-18
+  enabled: true
+  frame: base_link
+  normal: [0.010305, -0.063014, 0.997959]
+  offset: 0.0772828              # normal . p + offset = 0
+  clearance_m: 0.01
 ```
 
 The position bounds are the servo EEPROM limits minus a 20-pulse margin, not a
@@ -84,13 +91,30 @@ full mechanical survey. Velocity and acceleration (1.2 rad/s, 0.5 rad/s²) are
 deliberately below the URDF's `10` values, and the planner additionally uses 0.1
 scaling.
 
-**Table limitation:** the workspace lower z is `0.00 m`, but the measured table
-is at **z ≈ −0.078 m** (see
-[`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)).
-A table-surface grasp target is therefore **outside** the current workspace
-envelope and will be vetoed. Before a real table grasp, add the table as a
-collision object (or a calibrated lower bound) and re-review this envelope; do
-not simply lower `z` without the collision geometry.
+**Table envelope.** The table is at **z ≈ −0.078 m** and tilted **3.66°**, so
+its height varies by about **33 mm** across `y = ±0.30 m`; a single flat z bound
+cannot represent it. The workspace lower z is now a coarse **hard floor** at
+`−0.10 m`, and the operative table guard is the `table_plane` check: the TCP is
+rejected when its signed height above the measured plane is below
+`clearance_m` (10 mm). The check is the calibrated lower bound the left-over
+table issue asked for; it does **not** simply lower z without geometry.
+
+Two limits of the plane check:
+
+- It is **TCP-only**. Link3–5 and the gripper body need the table collision
+  object; `tools/phase2/table_collision.py` publishes the measured plane as an
+  oriented box on `/collision_object` (`table_surface`). Run it before the grasp
+  search and keep it alive for the execute path.
+- The plane was measured at one base pose. It is invalid after the mecanum
+  chassis moves; re-measure the plane (or localize the table) before table work
+  at a new base pose.
+
+Reachability note: a random 120 000-sample FK search over the adopted limits
+found a lowest TCP z of **−0.0445 m**, about **33 mm above the table**. The
+table surface itself is not reachable by the TCP, so the 10 mm clearance is
+satisfied by every reachable configuration; the check permits table grasps of
+sufficiently tall objects while still rejecting an FK or command that would go
+below the surface.
 
 The real MoveIt path now calls the veto: `tools/phase2/real_moveit_execute.py`
 validates the exact planned trajectory before `--execute`, and
@@ -101,8 +125,9 @@ Both refuse execution when the service is unavailable or does not approve.
 
 Unit tests: `armpi_safety/test/test_policy.py` covers a valid trajectory,
 stale state, joint/velocity/acceleration limits, start-state mismatch,
-workspace excursion, missing FK, missing joint, non-monotonic timestamps,
-duration, reset-stop semantics and non-finite positions.
+workspace excursion, table clearance (including the tilted plane and a missing
+FK), missing joint, non-monotonic timestamps, duration, reset-stop semantics
+and non-finite positions.
 
 Service test on a real planned trajectory (mock MoveIt, plan-only):
 
@@ -114,9 +139,31 @@ SAFETY_CASE timestamp  approved=False code=TIMESTAMP
 RESULT PASS
 ```
 
+Table-envelope service test (isolated `ROS_DOMAIN_ID=42`, Jazzy mock, a
+2-point trajectory whose TCP is at z = −0.0317 m, 47.9 mm above the measured
+table plane):
+
+```text
+new config (table on, z floor -0.10)       approved=True  code=OK
+old config (z floor 0.00, table off)       approved=False code=WORKSPACE
+strict test config (clearance 0.06)        approved=False code=TABLE_CLEARANCE
+```
+
+The old row reproduces the left-over veto; the strict row proves the table
+check itself fires. In the same mock the table collision object was confirmed
+in the planning scene:
+
+```text
+id table_surface frame base_link dims [1.0, 1.0, 0.05]
+object pose center [-0.001054, 0.006445, -0.102074]
+object pose quat   [0.031523, 0.005155, 0.0, 0.99949]   (~3.6 deg tilt)
+```
+
 Evidence and the exact E2E command are in
-[`docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`](FIDUCIAL_GRASP_BRIDGE.md) and
-[`evidence/phase2/session3_20261117/`](../../evidence/phase2/session3_20261117/).
+[`docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`](FIDUCIAL_GRASP_BRIDGE.md),
+[`evidence/phase2/session3_20261117/`](../../evidence/phase2/session3_20261117/)
+and
+[`evidence/phase2/onsite_20261118/table_envelope_20261118.md`](../../evidence/phase2/onsite_20261118/table_envelope_20261118.md).
 
 ## Running
 
@@ -139,8 +186,14 @@ fail-closed behaviour. For a real check, pass a planned trajectory from MoveIt.
 - **No execution forwarding.** The layer does not sit between MoveIt and the
   controller, so a client that bypasses it is not protected.
 - **No real-time guarantee.** Python/rclpy timing is not a safety PLC.
-- **Workspace only.** There is no environment collision check, no self-collision
-  check beyond MoveIt's plan, and no velocity smoothing.
+- **TCP-only envelope.** The workspace and table checks only see
+  `end_effector_link`; they do not see the elbow, wrist or gripper body. The
+  table collision object covers the missing geometry only when it is published
+  into the MoveIt planning scene; the safety service itself has no environment
+  collision check and no self-collision check beyond MoveIt's plan.
+- **Static table plane.** The plane is a measured constant in `base_link`; it
+  is invalid after the chassis moves. Re-measure/re-localize the table before
+  table work at a new base pose.
 - **Provisional velocity/acceleration values.** They must be revisited after the
   joint-limit survey and a supervised low-speed test.
 - **State semantics.** `/joint_states` on the real robot is a cached command;

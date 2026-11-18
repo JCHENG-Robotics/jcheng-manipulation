@@ -9,8 +9,8 @@ The policy is a **veto layer**, not a controller. It never sends a command and
 never executes a trajectory. A future executor must call the safety service and
 refuse to execute when ``approved`` is false.
 
-The joint limits are the provisional URDF/MoveIt values. Mechanical limits have
-not been measured on the real robot; see ``docs/phase2/JOINT_LIMITS.md``.
+The joint limits are the EEPROM-bounded adopted values (2026-11-18), not a
+full mechanical survey; see ``docs/phase2/JOINT_LIMITS.md``.
 """
 
 import dataclasses
@@ -56,6 +56,10 @@ class SafetyConfig:
     workspace_frame: str = 'base_link'
     workspace_lower: tuple = (-0.05, -0.30, 0.00)
     workspace_upper: tuple = (0.45, 0.30, 0.55)
+    table_plane_enabled: bool = False
+    table_plane_normal: tuple = (0.0, 0.0, 1.0)
+    table_plane_offset: float = 0.0
+    table_clearance_m: float = 0.01
 
     @classmethod
     def from_dict(cls, config):
@@ -103,6 +107,29 @@ class SafetyConfig:
                 raise ValueError(
                     'workspace lower bound must be below upper bound'
                 )
+        frame = str(workspace.get('frame', 'base_link'))
+        table = config.get('table_plane', {})
+        normal = tuple(
+            float(value)
+            for value in table.get('normal', (0.0, 0.0, 1.0))
+        )
+        if len(normal) != 3:
+            raise ValueError('table plane normal must have 3 values')
+        length = math.sqrt(sum(value * value for value in normal))
+        if length <= EPS:
+            raise ValueError('table plane normal must be non-zero')
+        normal = tuple(value / length for value in normal)
+        if normal[2] <= 0.0:
+            raise ValueError('table plane normal must point up (+z)')
+        table_frame = str(table.get('frame', 'base_link'))
+        if bool(table.get('enabled', False)) and table_frame != frame:
+            raise ValueError(
+                'table plane frame {!r} must match the workspace frame {!r}'
+                .format(table_frame, frame)
+            )
+        table_clearance = float(table.get('clearance_m', 0.01))
+        if table_clearance < 0.0:
+            raise ValueError('table clearance must be non-negative')
         return cls(
             joint_limits=limits,
             state_timeout_s=float(state.get('timeout_s', 0.5)),
@@ -122,9 +149,13 @@ class SafetyConfig:
             ),
             workspace_enabled=bool(workspace.get('enabled', True)),
             workspace_required=bool(workspace.get('required', True)),
-            workspace_frame=str(workspace.get('frame', 'base_link')),
+            workspace_frame=frame,
             workspace_lower=lower,
             workspace_upper=upper,
+            table_plane_enabled=bool(table.get('enabled', False)),
+            table_plane_normal=normal,
+            table_plane_offset=float(table.get('offset', 0.0)),
+            table_clearance_m=table_clearance,
         )
 
 
@@ -311,7 +342,9 @@ class SafetyMonitor:
         ``positions``, optional ``velocities``/``accelerations`` and
         ``time_from_start_s``. ``tcp_fk(positions)`` returns the tool point in
         the workspace frame and is required when workspace checking is enabled
-        and ``workspace_required`` is true.
+        and ``workspace_required`` is true, or when the table-plane check is
+        enabled. The table check rejects any tool point closer than
+        ``table_clearance_m`` to the configured (tilted) table plane.
         """
         now = self.clock() if now is None else float(now)
         violations = []
@@ -470,9 +503,13 @@ class SafetyMonitor:
                 )
 
         workspace_checked = False
-        if self.config.workspace_enabled:
+        table_checked = False
+        if self.config.workspace_enabled or self.config.table_plane_enabled:
             if tcp_fk is None:
-                if self.config.workspace_required:
+                if (
+                    self.config.workspace_enabled
+                    and self.config.workspace_required
+                ):
                     violations.append(
                         _violation(
                             'workspace',
@@ -480,8 +517,18 @@ class SafetyMonitor:
                             'available',
                         )
                     )
+                if self.config.table_plane_enabled:
+                    violations.append(
+                        _violation(
+                            'table',
+                            'table clearance check is required but no FK is '
+                            'available',
+                        )
+                    )
             else:
-                workspace_checked = True
+                workspace_checked = self.config.workspace_enabled
+                table_checked = self.config.table_plane_enabled
+                normal = self.config.table_plane_normal
                 for index, point in enumerate(points):
                     positions = {
                         name: float(value)
@@ -494,7 +541,8 @@ class SafetyMonitor:
                     except Exception as exc:  # noqa: BLE001 - FK failure veto
                         violations.append(
                             _violation(
-                                'workspace',
+                                'workspace'
+                                if self.config.workspace_enabled else 'table',
                                 'FK failed at point {}: {}'.format(
                                     index, exc
                                 ),
@@ -505,37 +553,69 @@ class SafetyMonitor:
                     if tool_point is None:
                         violations.append(
                             _violation(
-                                'workspace',
+                                'workspace'
+                                if self.config.workspace_enabled else 'table',
                                 'FK returned no tool point at point {}'
                                 .format(index),
                                 point_index=index,
                             )
                         )
                         break
-                    for axis, value in enumerate(tool_point):
-                        low = self.config.workspace_lower[axis]
-                        high = self.config.workspace_upper[axis]
-                        if value < low or value > high:
+                    if self.config.workspace_enabled:
+                        for axis, value in enumerate(tool_point):
+                            low = self.config.workspace_lower[axis]
+                            high = self.config.workspace_upper[axis]
+                            if value < low or value > high:
+                                violations.append(
+                                    _violation(
+                                        'workspace',
+                                        'tool point {} at point {} is '
+                                        '{:.4f} outside [{:.4f}, {:.4f}]'
+                                        .format(
+                                            'xyz'[axis], index, value,
+                                            low, high
+                                        ),
+                                        axis='xyz'[axis],
+                                        point_index=index,
+                                        value=float(value),
+                                        lower=low,
+                                        upper=high,
+                                    )
+                                )
+                                break
+                    if self.config.table_plane_enabled:
+                        # Plane equation: normal . p + offset = 0. The signed
+                        # height above the table is normal . p + offset; the
+                        # normal is required to point up, so a positive height
+                        # is above the surface. The plane is tilted (3.66 deg
+                        # on the measured table), which a flat z bound cannot
+                        # represent.
+                        height = (
+                            sum(
+                                normal[axis] * float(tool_point[axis])
+                                for axis in range(3)
+                            )
+                            + self.config.table_plane_offset
+                        )
+                        if height < self.config.table_clearance_m - EPS:
                             violations.append(
                                 _violation(
-                                    'workspace',
-                                    'tool point {} at point {} is {:.4f} '
-                                    'outside [{:.4f}, {:.4f}]'.format(
-                                        'xyz'[axis], index, value,
-                                        low, high
+                                    'table',
+                                    'tool point at point {} is {:.4f} m '
+                                    'above the table plane; clearance is '
+                                    '{:.4f} m'.format(
+                                        index, height,
+                                        self.config.table_clearance_m
                                     ),
-                                    axis='xyz'[axis],
                                     point_index=index,
-                                    value=float(value),
-                                    lower=low,
-                                    upper=high,
+                                    height_m=height,
+                                    clearance_m=self.config.table_clearance_m,
                                 )
                             )
-                            break
 
         return self._finish_validation(
             now, violations, duration, len(points), workspace_checked,
-            max_velocity, max_acceleration,
+            max_velocity, max_acceleration, table_checked=table_checked,
         )
 
     def _check_rates(self, kind, points, joint_names, stamps, violations):
@@ -663,6 +743,7 @@ class SafetyMonitor:
         workspace_checked,
         max_velocity=0.0,
         max_acceleration=0.0,
+        table_checked=False,
     ):
         approved = not violations
         code = 'OK' if approved else _first_code(violations)
@@ -676,6 +757,17 @@ class SafetyMonitor:
             'point_count': point_count,
             'workspace_checked': workspace_checked,
             'workspace_frame': self.config.workspace_frame,
+            'table_checked': bool(table_checked),
+            'table_plane': (
+                {
+                    'frame': self.config.workspace_frame,
+                    'normal': list(self.config.table_plane_normal),
+                    'offset': self.config.table_plane_offset,
+                    'clearance_m': self.config.table_clearance_m,
+                }
+                if self.config.table_plane_enabled
+                else None
+            ),
             'max_velocity_rad_s': max_velocity,
             'max_acceleration_rad_s2': max_acceleration,
             'checked_at_s': now,
@@ -697,6 +789,7 @@ def _first_code(violations):
         ('joint_limit', 'JOINT_LIMIT'),
         ('velocity', 'VELOCITY_LIMIT'),
         ('acceleration', 'ACCELERATION_LIMIT'),
+        ('table', 'TABLE_CLEARANCE'),
         ('workspace', 'WORKSPACE'),
         ('start_state', 'START_STATE'),
         ('duration', 'DURATION'),

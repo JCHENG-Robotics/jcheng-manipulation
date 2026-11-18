@@ -301,8 +301,117 @@ def test_config_defaults_and_invalid_workspace():
     config = SafetyConfig.from_dict({})
     assert set(config.joint_limits) == set(ARM_JOINTS)
     assert config.joint_limits['joint3'].upper == 0.0
+    assert not config.table_plane_enabled
     with pytest.raises(ValueError):
         SafetyConfig.from_dict(
             {'workspace': {'lower': [1.0, 0.0, 0.0],
                            'upper': [0.0, 1.0, 1.0]}}
         )
+
+
+def table_config(**overrides):
+    """Return a config with the table check and a lowered z hard floor."""
+    raw = {
+        'workspace': {
+            'frame': 'base_link',
+            'enabled': True,
+            'required': True,
+            'lower': [-0.05, -0.30, -0.10],
+            'upper': [0.45, 0.30, 0.55],
+        },
+        'table_plane': {
+            'enabled': True,
+            'frame': 'base_link',
+            'normal': [0.0, 0.0, 1.0],
+            'offset': 0.078,
+            'clearance_m': 0.01,
+        },
+    }
+    raw.update(overrides)
+    return make_config(**raw)
+
+
+def test_table_plane_accepts_a_table_grasp_height():
+    """A TCP 28 mm above the table passes the clearance check."""
+    def fk(positions):
+        del positions
+        return (0.20, 0.00, -0.05)
+
+    monitor = monitor_with_state(config=table_config())
+    report = monitor.validate_trajectory(trajectory(), now=0.1, tcp_fk=fk)
+    assert report['approved']
+    assert report['table_checked']
+    assert report['table_plane']['clearance_m'] == pytest.approx(0.01)
+
+
+def test_table_plane_rejects_a_point_inside_clearance():
+    """A TCP 3 mm above the table is inside the 10 mm clearance."""
+    def fk(positions):
+        del positions
+        return (0.20, 0.00, -0.075)
+
+    monitor = monitor_with_state(config=table_config())
+    report = monitor.validate_trajectory(trajectory(), now=0.1, tcp_fk=fk)
+    assert not report['approved']
+    assert report['code'] == 'TABLE_CLEARANCE'
+    violation = next(
+        entry for entry in report['violations']
+        if entry['check'] == 'table'
+    )
+    assert violation['height_m'] == pytest.approx(0.003, abs=1e-9)
+
+
+def test_table_plane_uses_the_tilted_plane():
+    """The same z can pass on the low side and fail on the high side."""
+    config = table_config(table_plane={
+        'enabled': True,
+        'frame': 'base_link',
+        'normal': [0.0, -0.063, 0.998],
+        'offset': 0.078,
+        'clearance_m': 0.01,
+    })
+
+    def high(positions):
+        del positions
+        return (0.20, 0.20, -0.070)
+
+    def low(positions):
+        del positions
+        return (0.20, -0.20, -0.070)
+
+    monitor = monitor_with_state(config=config)
+    high_report = monitor.validate_trajectory(
+        trajectory(), now=0.1, tcp_fk=high
+    )
+    low_report = monitor.validate_trajectory(
+        trajectory(), now=0.1, tcp_fk=low
+    )
+    assert high_report['code'] == 'TABLE_CLEARANCE'
+    assert low_report['approved']
+
+
+def test_table_plane_requires_an_upward_normal():
+    """A downward normal would invert the clearance test."""
+    with pytest.raises(ValueError):
+        make_config(table_plane={'enabled': True, 'normal': [0.0, 0.0, -1.0]})
+
+
+def test_table_plane_requires_a_matching_frame():
+    """The policy has no transform, so the frames must agree."""
+    with pytest.raises(ValueError):
+        make_config(table_plane={'enabled': True, 'frame': 'world'})
+
+
+def test_table_plane_missing_fk_fails_closed():
+    """The table check cannot approve without FK even if the box is off."""
+    config = table_config(workspace={
+        'frame': 'base_link',
+        'enabled': False,
+        'required': False,
+        'lower': [-0.05, -0.30, -0.10],
+        'upper': [0.45, 0.30, 0.55],
+    })
+    monitor = monitor_with_state(config=config)
+    report = monitor.validate_trajectory(trajectory(), now=0.1)
+    assert not report['approved']
+    assert report['code'] == 'TABLE_CLEARANCE'
