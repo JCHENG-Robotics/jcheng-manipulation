@@ -1,0 +1,44 @@
+[
+  {
+    "cmd": 200,
+    "register": 216,
+    "settle_s": 0.73,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 160,
+    "register": 176,
+    "settle_s": 2.36,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 120,
+    "register": 177,
+    "settle_s": 0.73,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 80,
+    "register": 176,
+    "settle_s": 0.75,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 40,
+    "register": 176,
+    "settle_s": 0.74,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 0,
+    "register": 167,
+    "settle_s": 2.06,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 0,
+    "register": 168,
+    "settle_s": 0.75,
+    "direction": "close-to-open"
+  }
+]

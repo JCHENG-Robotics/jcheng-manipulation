@@ -5,6 +5,39 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 
+### Fixed
+
+- **The gripper open stop was wrong; the range is 2.22 rad, not 0.8378.** The
+  2026-11-18 measurement recorded `r_joint = -0.8378` (raw 500, bus-servo
+  register 502) as fully open, but the servo was binding there: `open` only
+  produced a partial finger opening. With the linkage freed by hand (torque
+  released on servo ID 1 only, `enable_torque=[1, 1]`), a staircase sweep
+  found the real linkage stop at register **167** (raw ~150) and the closed
+  stop at register **640** (raw 700). Adopted open is raw **170** /
+  register 188 / `r_joint = -2.22`, i.e. 21 counts inside the stop; the
+  command↔register ratio is ≈0.86 with ~34 counts of backlash. Updated the
+  `r_joint` limit (URDF `-2.22`, `joint_limits.yaml`, SRDF `open`, simulation
+  initial position), widened the five mimic joints from ±1.57 to ±2.22, fixed
+  the grasp planner's stale `GRIPPER_OPEN_POSITION = 1.2` (outside every
+  range) to `-2.20`, and corrected the hardware docs. New instrument:
+  `tools/phase2/gripper_stop_survey.py`. Evidence:
+  `evidence/phase2/onsite_20261118/gripper_stops_20261118/`. Verified after
+  the 20:05 MoveIt rebuild: plan-only `open` reaches `r_joint = -2.210130`.
+  Also found while verifying: a killed
+  `real_moveit.launch.py` can leave its `move_group` orphaned (a second
+  instance from 19:14 was still serving `/plan_kinematic_path` with the old
+  limits; it was terminated), and **`armpi_safety` rejects gripper-only
+  trajectories** (`code=WORKSPACE`, "FK failed: joint1"), so
+  `real_moveit_execute.py --execute` cannot run a MoveIt gripper move until
+  the safety node skips the arm FK checks for `r_joint`-only trajectories.
+- **A `docker exec` shell on the robot needs the RMW too.** Setting
+  `CYCLONEDDS_URI` alone is not enough: without
+  `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` the shell runs Fast DDS, discovers
+  the laptop's `move_group` nodes, and then times out on every service call
+  (`/plan_kinematic_path`, `/armpi_safety/validate_trajectory`). Also
+  documented: the vendor `ServosPosition` path is a serial interpolation
+  command, so publishing at 20 Hz re-baselines each move and creeps.
+
 ### Added
 
 - **Studio G6 supervised motion write path** — gateway `/motion/dispatch` and

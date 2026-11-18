@@ -42,7 +42,8 @@ from .joint_limits import (
 
 ARM_JOINTS = ('joint1', 'joint2', 'joint3', 'joint4', 'joint5')
 GRIPPER_JOINT = 'r_joint'
-GRIPPER_OPEN_POSITION = 1.2
+# Fully open, inside the re-measured 2026-11-18 19:59 range (-2.22 .. 0.0).
+GRIPPER_OPEN_POSITION = -2.20
 
 ERROR_NAMES = {
     1: 'SUCCESS',

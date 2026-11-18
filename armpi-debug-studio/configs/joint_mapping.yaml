@@ -72,7 +72,7 @@ joints:
 excluded:
   - name: r_joint
     servo_id: 1
-    reason: "Q-08: gripper is excluded from G1; direction/range unverified"
+    reason: "Q-08: gripper stays excluded from G1. Direction and range are measured (2026-11-18 19:59: increasing r_joint closes; open raw 170 / register 188, closed raw 700 / register 640, ~34 counts backlash), but the gateway has no gripper single-joint motion path."
 
 safety:
   feedback_max_age_ms: 500

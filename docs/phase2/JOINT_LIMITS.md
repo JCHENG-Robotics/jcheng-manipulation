@@ -83,20 +83,28 @@ The pose is consistent with the controller's command echo (`joint2=0.5948`,
 scatter (up to 2.16°, RMS 1.13°). This is a **consistency check**, not a
 mechanical-limit measurement.
 
-### Gripper (2026-11-18, measured)
+### Gripper (2026-11-18, re-measured 19:59)
 
 | Item | Result |
 |---|---|
 | Sign | Increasing `r_joint` closes; `l_joint` mirrors |
-| Open stop | `r_joint = -0.8378`; servo register 502 |
-| Closed stop | `r_joint = 0.0`; servo register 642 |
-| Range | 0.8378 rad |
-| Evidence | [`evidence/phase2/onsite_20261118/`](../../evidence/phase2/onsite_20261118/) |
+| Open stop | servo register **167**, reached at command raw **~150** |
+| Adopted open | `r_joint = -2.22` (raw 170, register 188), 21 counts inside the stop |
+| Closed stop | `r_joint = 0.0` (raw 700); servo register **640** |
+| Range | **2.22 rad** (command travel 170…700 = 530 raw counts) |
+| Backlash | ~34 register counts (raw 400 reads 417 going open, 383 returning) |
+| Evidence | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](../../evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 
 The register is the linkage shaft, not the joint angle; `/joint_states` reports
 the commanded joint value, so only the bus-servo read shows contact/stall.
-`open = -0.80` in the SRDF keeps ~20 counts of margin from the open stop;
+`open = -2.22` in the SRDF sits ~20 counts inside the open stop;
 `close = 0.0` is the mechanical limit and stalls the empty gripper.
+
+> Superseded: the first 2026-11-18 pass recorded an open stop of
+> `r_joint = -0.8378` / register 502 with a 0.8378 rad range. That was a
+> **binding stall**, not the stop — the fingers only opened part way. The
+> linkage was freed by hand with servo ID 1 torque released, and the sweep
+> above re-measured the real travel.
 
 The sign/offset convention is also supported indirectly by the hand-eye
 calibration: 14 chessboard poses at ±0.06–0.12 rad produced 2.94 mm / 0.39°

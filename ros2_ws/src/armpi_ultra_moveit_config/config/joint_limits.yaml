@@ -62,13 +62,15 @@ joint_limits:
     max_acceleration: 1.0
 
   # Gripper. r_joint is the only actuated gripper joint; the others are mimic.
-  # MEASURED 2026-11-18: increasing r_joint closes. Mechanical stops are
-  # -0.8378 (open) and 0.0 (closed), measured by a supervised no-object test
-  # with bus-servo position feedback. See
-  # docs/hardware/measured_joint_limits.md.
+  # MEASURED 2026-11-18 19:59 (re-measured): increasing r_joint closes. Stops
+  # are 0.0 (closed, raw 700, register 640) and -2.22 (open, raw 170,
+  # register 188; linkage stop register 167 at raw ~150). The earlier -0.8378
+  # open value was a binding stall, not the stop: it produced only a partial
+  # finger opening. See docs/hardware/measured_joint_limits.md and
+  # evidence/phase2/onsite_20261118/gripper_stops_20261118/.
   r_joint:
     has_position_limits: true
-    min_position: -0.8378
+    min_position: -2.22
     max_position: 0.0
     has_velocity_limits: true
     max_velocity: 10.0

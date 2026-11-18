@@ -21,7 +21,7 @@
 | joint3 | **-1.8012 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | travel reached 23 pulse, no stop | travel reached 940 pulse, no stop | `[P]` |
 | joint4 | **-1.5917 … 1.5917** | -2.094 … 2.094 | 0.0 | 0.0 | — (EEPROM 100 assumed) | 901 pulse (+1.680) | `[P]` |
 | joint5 | **-1.5917 … 1.5499** | -2.094 … 2.094 | 0.0 | 0.0 | travel reached 62, then fell negative | travel reached 875 | `[P]` |
-| r_joint | **-0.8378 … 0.0** (measured) | -2.932 … 1.257 | -0.8378 (open) | -0.8378 (open) | **-0.8378** (open stop) | **0.0** (closed stop) | `[V]` |
+| r_joint | **-2.22 … 0.0** (re-measured 2026-11-18 19:59) | -2.932 … 1.257 | -0.8378 (partial open) | -0.8378 (partial open) | **-2.22** (raw 170, register 188) | **0.0** (raw 700, register 640) | `[V]` |
 
 Status legend: `[M]` hand-measured 2026-11-18, `[P]` partial, `[U]`
 unmeasured, `[V]` verified. The URDF column shows the adopted commandable
@@ -43,8 +43,10 @@ joint5 = ID 2, r_joint = ID 1. At the boot pose, servo ID 6 was 700 and IDs
   The other arm joints start at 0 (servo 500).
 - The supervised `reset_servo` test moved joint1 back to 0; the other arm
   joints stayed at 0.
-- The live `r_joint ≈ -0.8378 rad` is consistent with the physically open
-  gripper (servo ID 1 = 500).
+- ~~The live `r_joint ≈ -0.8378 rad` is consistent with the physically open
+  gripper (servo ID 1 = 500).~~ **Superseded 2026-11-18 19:59:** at
+  `r_joint = -0.8378` (raw 500) the fingers are only **partly** open; the
+  real open stop is raw ~150. See the gripper re-measurement below.
 - The values above are **commanded** values echoed by `/joint_states` and
   `/controller_manager/servo_states`; they are not encoder feedback. The
   separate bus-servo service does provide a hardware position read (below).
@@ -71,20 +73,31 @@ Supervised, no-object test through
 from `/ros_robot_controller/bus_servo/get_state` (servo ID 1). Evidence:
 [`evidence/phase2/onsite_20261118/`](../../evidence/phase2/onsite_20261118/).
 
+> **Corrected 2026-11-18 19:59.** The first pass below (`open` at raw 500 /
+> register 502, range 0.8378 rad) is **wrong**: the servo was stalling on a
+> binding linkage, not on the mechanical stop, so `open` opened the fingers
+> only part way. The re-measurement follows the table.
+
 | Observation | Result |
 |---|---|
 | Sign | **Increasing `r_joint` closes the fingers** (operator-confirmed); `l_joint` mirrors with multiplier −1 |
-| Open stop | `r_joint = -0.8378` (command raw 500); servo register settles at **502** |
-| Closed stop | `r_joint = 0.0` (command raw 700); servo register settles at **642**, fingers fully closed |
-| Usable range | **0.8378 rad** (`-0.8378 … 0.0`) |
-| Over-travel probes | `-0.86` / `-0.88` rad moved the register only 508 → 506 pulses → open stop confirmed |
-| Command vs register | The register is the **linkage shaft**, not `r_joint`; it moves 502 → 642 while the command moves 500 → 700. `/joint_states` echoes the command, so it cannot confirm contact or stall |
-| Empty-close caveat | Commanding `0.0` with no object holds the servo against the closed stop (register 642 while commanded 700). Use it only as the mechanical limit, not as a long-held pose |
+| Closed stop | `r_joint = 0.0` (command raw 700); servo register settles at **640**, fingers fully closed; raw 650 also stalls at 640 |
+| **Open stop (re-measured)** | servo register bottoms out at **167**; reached at command raw **~150**. Commanding 160/120/80/40/0 all stall at 167–176 |
+| **Adopted open** | `r_joint = -2.22` (command raw **170**, register **188**) — 21 register counts inside the stop, so the servo is not held against it |
+| Usable range | **2.22 rad** (`-2.22 … 0.0`), command travel 170…700 = 530 raw counts |
+| Command vs register | Linear over the travel: raw 700→640, 600→619, 550→567, 500→520, 450→468, 400→417/383, 350→367, 300→315, 250→266, 200→216, 160→176. Ratio ≈ 0.86 register per raw count, with **~34 counts of backlash** (raw 400 read 417 going open, 383 returning) |
+| `/joint_states` caveat | It echoes the **command**, not the linkage: at raw 509 it reported `r_joint = -0.80` ("open") while the fingers were only partly open |
+| Binding history | Before re-measurement the linkage bound at register 504–521 and would not travel below 516 on its own; torque was released on ID 1 only (`enable_torque=[1, 1]`), the operator opened the fingers by hand, and the mechanism then travelled freely to 167 |
+| Empty-close caveat | Commanding `0.0` with no object holds the servo against the closed stop (register 640 while commanded 700). Use it only as the mechanical limit, not as a long-held pose |
 
-The earlier SRDF values (`open: +1.2`, `close: 0`) were wrong on the open side.
-They are now `open: -0.80` (about 20 counts inside the open stop) and
-`close: 0.0` (mechanical closed limit). The URDF and `joint_limits.yaml` now
-use the measured `-0.8378 … 0.0` range.
+The adopted values are `open: -2.22` (SRDF), `r_joint = -2.22 … 0.0`
+(`joint_limits.yaml` and the URDF), and ±2.22 rad on the five mimic joints.
+The 0.00418879 rad/raw-count scale is unchanged, so the new bound is
+`(170 − 700) × 0.00418879 = −2.220`.
+
+**Pending:** the ~34-count backlash and the 504→516 bind mean the linkage
+should be inspected (rack/pinion) before the gripper is used for grasps; a
+grasp-width check should be re-run after any mechanical service.
 
 ## Arm-joint survey (2026-11-18) — PARTIAL
 

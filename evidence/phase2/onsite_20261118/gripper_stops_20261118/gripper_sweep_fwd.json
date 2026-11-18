@@ -1,0 +1,74 @@
+[
+  {
+    "cmd": 700,
+    "register": 640,
+    "settle_s": 2.05,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 650,
+    "register": 640,
+    "settle_s": 0.74,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 600,
+    "register": 619,
+    "settle_s": 2.39,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 550,
+    "register": 567,
+    "settle_s": 2.06,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 500,
+    "register": 520,
+    "settle_s": 2.04,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 450,
+    "register": 468,
+    "settle_s": 2.04,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 400,
+    "register": 417,
+    "settle_s": 2.06,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 350,
+    "register": 367,
+    "settle_s": 2.06,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 300,
+    "register": 315,
+    "settle_s": 2.39,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 250,
+    "register": 266,
+    "settle_s": 2.38,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 200,
+    "register": 216,
+    "settle_s": 2.04,
+    "direction": "close-to-open"
+  },
+  {
+    "cmd": 200,
+    "register": 217,
+    "settle_s": 1.72,
+    "direction": "close-to-open"
+  }
+]

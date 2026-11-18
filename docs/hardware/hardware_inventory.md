@@ -13,7 +13,7 @@
 | Controller board | STM32 (vendor firmware) | vendor source | `[S]` |
 | Serial link | `/dev/rrc` (CH340) → `/dev/ttyUSB0` | `ls -l /dev/rrc` | `[V]` |
 | Bus servos | IDs 1–6; live positions 500 at the reset pose | `/controller_manager/servo_states` | `[V]` |
-| Gripper | `r_joint`, servo ID 1; **measured 2026-11-18**: increasing `r_joint` closes; range `-0.8378 … 0.0 rad`; servo register 502 (open) … 642 (closed) | action + `bus_servo/get_state` | `[V]` |
+| Gripper | `r_joint`, servo ID 1; **re-measured 2026-11-18 19:59**: increasing `r_joint` closes; range `-2.22 … 0.0 rad` (raw 170 … 700); servo register 167 (open stop) … 640 (closed); ~34 counts of backlash | action + `bus_servo/get_state` | `[V]` |
 | Camera | Deptrum Aurora 930; USB `3251:1930`; serial `HY400523001036827G00179`; firmware 2.0.8; SDK 1.1.19 | `aurora930_node` log | `[V]` |
 | Camera link | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `lsusb -t` | `[V]`; bandwidth ceiling |
 | Camera streams | RGB **~12 Hz** cross-host, 640×400 `bgr8` (2026-11-17 Session 4); in-container subscribers undercount to ~8 Hz. Depth measured 8.2 Hz in-container (not re-measured cross-host). | `host_benchmark.py`, `ros2 topic hz` | `[V]` |

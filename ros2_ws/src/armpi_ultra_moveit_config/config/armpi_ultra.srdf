@@ -61,14 +61,17 @@
         <joint name="joint4" value="-1.55404"/>
         <joint name="joint5" value="-0.01676"/>
     </group_state>
-    <!-- MEASURED 2026-11-18 (no object, supervised): increasing r_joint closes
-         the fingers. Mechanical range is r_joint = -0.8378 (open stop) to
-         0.0 (closed stop). "open" uses -0.80, about 20 servo counts inside the
-         open stop; "close" is the mechanical closed limit and will stall the
-         servo when the gripper is empty. See evidence/phase2/onsite_20261118
-         and docs/hardware/measured_joint_limits.md. -->
+    <!-- MEASURED 2026-11-18 19:59 (no object, supervised): increasing r_joint
+         closes the fingers. Range is r_joint = -2.22 (open, raw 170, register
+         188) to 0.0 (closed, raw 700, register 640); the linkage open stop is
+         register 167 at raw ~150. The earlier -0.8378 open value was a binding
+         stall and opened the fingers only partially, so "open" now sits 20
+         counts inside the real stop. "close" is the mechanical closed limit
+         and will stall the servo when the gripper is empty. See
+         evidence/phase2/onsite_20261118/gripper_stops_20261118/ and
+         docs/hardware/measured_joint_limits.md. -->
     <group_state name="open" group="gripper">
-        <joint name="r_joint" value="-0.80"/>
+        <joint name="r_joint" value="-2.22"/>
     </group_state>
     <group_state name="close" group="gripper">
         <joint name="r_joint" value="0.0"/>

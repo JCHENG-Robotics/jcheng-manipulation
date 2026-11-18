@@ -52,13 +52,18 @@
       link="r_link" />
     <axis
       xyz="0.99996 -0.004699 -0.0070434" />
-    <!-- MEASURED 2026-11-18: supervised no-object open/close test. Increasing
-         r_joint closes the fingers; the mechanical stops are -0.8378 rad
-         (open) and 0.0 rad (closed). The bus-servo register reads 502 at the
-         open stop and 642 at the closed stop (the register is the linkage
-         shaft, not r_joint). See docs/hardware/measured_joint_limits.md. -->
+    <!-- MEASURED 2026-11-18 19:59 (re-measured): supervised
+         no-object open/close test. Increasing r_joint closes the fingers; the
+         mechanical stops are 0.0 rad (closed, command raw 700, register 640)
+         and -2.22 rad (open, command raw 170, register 188; the linkage stop
+         itself is register 167 at command raw ~150). The bus-servo register is
+         the linkage shaft, not r_joint; the command-to-register ratio is
+         ~0.86 with ~34 pulses of backlash. The earlier -0.8378 open value was
+         the point where the servo stalled on a binding linkage, not the stop.
+         See docs/hardware/measured_joint_limits.md and
+         evidence/phase2/onsite_20261118/gripper_stops_20261118/. -->
     <limit
-      lower="-0.8378"
+      lower="-2.22"
       upper="0.0"
       effort="1000"
       velocity="10" />
@@ -114,8 +119,8 @@
     <axis
       xyz="0.99997 0.0055811 -0.0058397" />
     <limit
-      lower="-1.57"
-      upper="1.57"
+      lower="-2.22"
+      upper="2.22"
       effort="1000"
       velocity="10" />
     <mimic
@@ -174,8 +179,8 @@
     <axis
       xyz="0.99996 0.0046983 -0.0070439" />
     <limit
-      lower="-1.57"
-      upper="1.57"
+      lower="-2.22"
+      upper="2.22"
       effort="1000"
       velocity="10" />
     <mimic
@@ -234,8 +239,8 @@
     <axis
       xyz="0.99996 0.0046983 -0.0070439" />
     <limit
-      lower="-1.57"
-      upper="1.57"
+      lower="-2.22"
+      upper="2.22"
       effort="1000"
       velocity="10" />
     <mimic
@@ -294,8 +299,8 @@
     <axis
       xyz="-0.99996 0.0046987 0.0070436" />
     <limit
-      lower="-1.57"
-      upper="1.57"
+      lower="-2.22"
+      upper="2.22"
       effort="1000"
       velocity="10" />
     <mimic
@@ -354,8 +359,8 @@
     <axis
       xyz="-0.99996 0.0046987 0.0070436" />
     <limit
-      lower="-1.57"
-      upper="1.57"
+      lower="-2.22"
+      upper="2.22"
       effort="1000"
       velocity="10" />
     <mimic
