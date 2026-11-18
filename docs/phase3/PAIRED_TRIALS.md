@@ -3,6 +3,13 @@
 > Status: **Implemented and simulated-validated (2026-11-17, Session 4).**
 > No physical paired grasp trial exists. The recorder and analysis are ready
 > for the first on-site experiment.
+>
+> The Studio **G3 Experiment Lab** (2026-11-18) exposes the same pair/method
+> schema and statistical formulas through immutable experiment definitions,
+> append-only SQLite trials, failure-code/artifact traceability, CSV/JSON
+> export and an Experiment Lab page. See
+> [`armpi-debug-studio/docs/g3-experiment-lab.md`](../../armpi-debug-studio/docs/g3-experiment-lab.md).
+> It has no hardware trial data either.
 
 ## Design
 

@@ -1,0 +1,24 @@
+{
+  "/api/experiments": [
+    "get",
+    "post"
+  ],
+  "/api/experiments/demo": [
+    "post"
+  ],
+  "/api/experiments/{experiment_id}": [
+    "get"
+  ],
+  "/api/experiments/{experiment_id}/trials": [
+    "post"
+  ],
+  "/api/experiments/{experiment_id}/analysis": [
+    "get"
+  ],
+  "/api/experiments/{experiment_id}/export.csv": [
+    "get"
+  ],
+  "/api/experiments/{experiment_id}/export.json": [
+    "get"
+  ]
+}

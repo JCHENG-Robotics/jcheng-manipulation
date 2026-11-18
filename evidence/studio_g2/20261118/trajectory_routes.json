@@ -1,0 +1,21 @@
+{
+  "/api/trajectories": [
+    "get",
+    "post"
+  ],
+  "/api/trajectories/demo": [
+    "post"
+  ],
+  "/api/trajectories/{trajectory_id}": [
+    "get"
+  ],
+  "/api/trajectories/{trajectory_id}/recompute": [
+    "post"
+  ],
+  "/api/trajectories/{trajectory_id}/export.csv": [
+    "get"
+  ],
+  "/api/trajectories/{trajectory_id}/export.json": [
+    "get"
+  ]
+}

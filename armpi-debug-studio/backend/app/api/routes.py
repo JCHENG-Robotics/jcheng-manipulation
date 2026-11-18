@@ -9,8 +9,17 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, Header, Query, Request, Response, WebSocket, WebSocketDisconnect
-from fastapi.responses import PlainTextResponse
+from fastapi import (
+    APIRouter,
+    Body,
+    Header,
+    Query,
+    Request,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from ..domain.models import MotionTarget
@@ -61,6 +70,10 @@ class StopIn(BaseModel):
 class FaultIn(BaseModel):
     kind: str = Field(min_length=1, max_length=64)
     joint: str | None = Field(default=None, max_length=64)
+
+
+class CameraReferenceIn(BaseModel):
+    note: str = Field(default="", max_length=500)
 
 
 def _service(request: Request) -> RobotService:
@@ -214,6 +227,159 @@ def inject_fault(request: Request, body: FaultIn) -> dict[str, Any]:
 @router.post("/mock/reset")
 def reset_mock(request: Request) -> dict[str, Any]:
     return _service(request).reset_mock()
+
+
+# --------------------------------------------------------------- trajectories
+# G2 offline data paths. There is deliberately no endpoint that turns a stored
+# trajectory into a motion command: replay is client-side playback only.
+
+
+@router.get("/trajectories")
+def list_trajectories(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> dict[str, Any]:
+    return _service(request).list_trajectories(limit)
+
+
+@router.post("/trajectories")
+def import_trajectory(request: Request, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    return _service(request).import_trajectory(body, source="import")
+
+
+@router.post("/trajectories/demo")
+def import_demo_trajectory(request: Request) -> dict[str, Any]:
+    return _service(request).import_demo_trajectory()
+
+
+@router.get("/trajectories/{trajectory_id}")
+def get_trajectory(request: Request, trajectory_id: str) -> dict[str, Any]:
+    return _service(request).get_trajectory(trajectory_id)
+
+
+@router.post("/trajectories/{trajectory_id}/recompute")
+def recompute_trajectory(request: Request, trajectory_id: str) -> dict[str, Any]:
+    return _service(request).recompute_trajectory(trajectory_id)
+
+
+@router.get("/trajectories/{trajectory_id}/export.csv", response_class=PlainTextResponse)
+def export_trajectory_csv(
+    request: Request,
+    trajectory_id: str,
+    sample: str = Query(default="feedback", pattern="^(feedback|commanded)$"),
+) -> PlainTextResponse:
+    filename, text = _service(request).export_trajectory_csv(trajectory_id, sample)
+    return PlainTextResponse(
+        content=text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/trajectories/{trajectory_id}/export.json")
+def export_trajectory_json(request: Request, trajectory_id: str) -> JSONResponse:
+    record = _service(request).export_trajectory_json(trajectory_id)
+    return JSONResponse(
+        content=record,
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="armpi-trajectory-{trajectory_id}.json"'
+            )
+        },
+    )
+
+
+# ---------------------------------------------------------------- experiments
+# G3 records experiment definitions and append-only trials. There is no
+# experiment endpoint that executes motion or touches the robot adapter.
+
+
+@router.get("/experiments")
+def list_experiments(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> dict[str, Any]:
+    return _service(request).list_experiments(limit)
+
+
+@router.post("/experiments")
+def create_experiment(
+    request: Request, body: dict[str, Any] = Body(...)
+) -> dict[str, Any]:
+    return _service(request).create_experiment(body)
+
+
+@router.post("/experiments/demo")
+def import_demo_experiment(request: Request) -> dict[str, Any]:
+    return _service(request).import_demo_experiment()
+
+
+@router.get("/experiments/{experiment_id}")
+def get_experiment(request: Request, experiment_id: str) -> dict[str, Any]:
+    return _service(request).get_experiment(experiment_id)
+
+
+@router.post("/experiments/{experiment_id}/trials")
+def record_trial(
+    request: Request,
+    experiment_id: str,
+    body: dict[str, Any] = Body(...),
+) -> dict[str, Any]:
+    return _service(request).record_trial(experiment_id, body)
+
+
+@router.get("/experiments/{experiment_id}/analysis")
+def experiment_analysis(request: Request, experiment_id: str) -> dict[str, Any]:
+    return _service(request).experiment_analysis(experiment_id)
+
+
+@router.get("/experiments/{experiment_id}/export.csv", response_class=PlainTextResponse)
+def export_experiment_csv(request: Request, experiment_id: str) -> PlainTextResponse:
+    filename, text = _service(request).export_experiment_csv(experiment_id)
+    return PlainTextResponse(
+        content=text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/experiments/{experiment_id}/export.json")
+def export_experiment_json(request: Request, experiment_id: str) -> JSONResponse:
+    record = _service(request).export_experiment_json(experiment_id)
+    return JSONResponse(
+        content=record,
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="armpi-experiment-{experiment_id}.json"'
+            )
+        },
+    )
+
+
+# ------------------------------------------------------------------- visual
+# G4 is read-only: URDF FK, camera metadata and reference bookkeeping. No
+# endpoint here can move the arm or acquire a control lease.
+
+
+@router.get("/visual")
+def visual_snapshot(request: Request) -> dict[str, Any]:
+    return _service(request).visual_snapshot()
+
+
+@router.get("/visual/camera-references")
+def list_camera_references(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> dict[str, Any]:
+    return _service(request).list_camera_references(limit)
+
+
+@router.post("/visual/camera-references")
+def save_camera_reference(
+    request: Request,
+    body: CameraReferenceIn,
+) -> dict[str, Any]:
+    return _service(request).save_camera_reference(body.note)
 
 
 @router.websocket("/ws/state")

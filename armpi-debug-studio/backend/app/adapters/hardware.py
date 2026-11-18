@@ -60,7 +60,7 @@ class HardwareAdapter(RobotAdapter):
             hardware_motion=False,
             hardware_read=bool(gateway_url),
             mock_faults=False,
-            replay=False,
+            replay=True,
             min_duration_s=mapping.safety.min_duration_s,
             max_duration_s=mapping.safety.max_duration_s,
             max_step_rad=mapping.safety.max_step_rad,
@@ -69,6 +69,8 @@ class HardwareAdapter(RobotAdapter):
         self._health_at = -1e9
         self._state_cache: dict[str, Any] | None = None
         self._state_at = -1e9
+        self._tf_cache: dict[str, Any] | None = None
+        self._tf_at = -1e9
         self._not_implemented = Fault(
             fault_id="hardware-motion-disabled",
             level=FaultLevel.WARNING,
@@ -224,6 +226,20 @@ class HardwareAdapter(RobotAdapter):
             return self._gateway.get_bytes("/camera/snapshot")
         except GatewayError:
             return None
+
+    def tf_snapshot(self) -> dict[str, Any] | None:
+        if self._gateway is None:
+            return None
+        now = self._clock()
+        if self._tf_cache is not None and now - self._tf_at < 0.5:
+            return self._tf_cache
+        try:
+            data = self._gateway.get_json("/tf")
+        except GatewayError:
+            data = None
+        self._tf_cache = data
+        self._tf_at = now
+        return data
 
     # ------------------------------------------------------------------ state
     def tick(self) -> None:

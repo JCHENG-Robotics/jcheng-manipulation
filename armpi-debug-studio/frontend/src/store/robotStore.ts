@@ -10,6 +10,7 @@ interface RobotStore {
   loading: boolean;
   error: string | null;
   wsConnected: boolean;
+  replayActive: boolean;
   setState: (state: RobotState) => void;
   setEvents: (events: EventRecord[]) => void;
   addEvents: (events: EventRecord[]) => void;
@@ -18,6 +19,7 @@ interface RobotStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setWsConnected: (connected: boolean) => void;
+  setReplayActive: (active: boolean) => void;
 }
 
 export const useRobotStore = create<RobotStore>((set) => ({
@@ -28,6 +30,7 @@ export const useRobotStore = create<RobotStore>((set) => ({
   loading: true,
   error: null,
   wsConnected: false,
+  replayActive: false,
   setState: (state) => set({ state }),
   setEvents: (events) => set({ events }),
   addEvents: (incoming) =>
@@ -47,6 +50,7 @@ export const useRobotStore = create<RobotStore>((set) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setWsConnected: (wsConnected) => set({ wsConnected }),
+  setReplayActive: (replayActive) => set({ replayActive }),
 }));
 
 export type DisplayUnit = "rad" | "deg";

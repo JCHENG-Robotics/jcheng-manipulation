@@ -1,9 +1,9 @@
 # ArmPi Debug Gateway (read-only)
 
 This process runs **on the robot**, normally inside the vendor ROS 2 container
-(`ArmPiUltra`), which owns the vendor stack. It exposes battery, camera, and
-joint-command state to the Debug Studio backend over local HTTP. It has **no
-motion write path**.
+(`ArmPiUltra`), which owns the vendor stack. It exposes battery, camera,
+joint-command state and a TF edge snapshot to the Debug Studio backend over
+local HTTP. It has **no motion write path**.
 
 > Verified 2026-11-17 on the Pi 5 vendor container: `/health`, `/battery`,
 > `/camera/status`, `/camera/snapshot`, `/state`, token 401 and motion 501.
@@ -20,6 +20,7 @@ motion write path**.
 | Battery | `/ros_robot_controller/battery` (`std_msgs/UInt16`, mV) | 2S pack; `6.4 V` empty, `8.4 V` full estimate |
 | Camera | `/depth_cam/rgb/image_raw` (`sensor_msgs/Image`) | JPEG at the configured quality; Deptrum Aurora 930 |
 | Joint state | `/controller_manager/joint_states` (`sensor_msgs/JointState`) | **command echo**, truth=`commanded`, not encoder feedback |
+| TF | `/tf` + `/tf_static` (`tf2_msgs/TFMessage`) | latest edge per parent/child; dynamic edges may derive from commanded joints |
 
 The gateway subscribes only. It never publishes to `/servo_controller`, never
 calls `/ros_robot_controller/bus_servo/set_position`, and never opens the serial
@@ -29,6 +30,8 @@ port itself.
 
 - ROS 2 Humble (the robot's vendor environment)
 - `rclpy`, `sensor_msgs`, `std_msgs`
+- `tf2_msgs` for `/tf`; if it is missing the gateway still starts and `/tf`
+  reports `unavailable` instead of crashing.
 - OpenCV and numpy for camera JPEG encoding. `cv_bridge` is used when present;
   otherwise the gateway decodes `bgr8`/`rgb8`/`mono8` frames directly. The
   vendor `ArmPiUltra` container has OpenCV/numpy but **not** `cv_bridge`, so the
@@ -55,7 +58,8 @@ python3 -m armpi_debug_gateway.main \
   --host 127.0.0.1 \
   --port 8765 \
   --battery-topic /ros_robot_controller/battery \
-  --camera-topic /depth_cam/rgb/image_raw
+  --camera-topic /depth_cam/rgb/image_raw \
+  --tf-topic /tf --tf-static-topic /tf_static
 ```
 
 For a service, prefer a token file over the environment variable so the
@@ -112,6 +116,7 @@ curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/battery
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/camera/status
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/camera/snapshot -o /tmp/frame.jpg
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/state
+curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/tf
 ```
 
 Expected:
@@ -122,6 +127,10 @@ Expected:
   `status` (`ok`/`low`/`critical`), `truth: measured`.
 - `/camera/status` reports `640×400`, `fps` around 8, `truth: measured`.
 - `/camera/snapshot` is a JPEG.
+- `/tf` reports `available`, `status` (`ok`/`static_only`/`stale`/`unavailable`),
+  edge counts and `transforms[]` with parent/child/translation/quaternion/age.
+  This endpoint is covered by the no-ROS server tests; it has **not** yet been
+  verified against the live robot TF graph.
 - `/motion/dispatch` and `/motion/stop` return `501 NOT_IMPLEMENTED`.
 
 ## Connect the backend

@@ -2,7 +2,7 @@
 
 The gateway is intentionally a separate process on the machine that owns the
 vendor ROS 2 stack. This client is read-only: it only calls `/health`,
-`/state`, `/battery`, `/camera/status`, and `/camera/snapshot`.
+`/state`, `/battery`, `/camera/status`, `/camera/snapshot` and `/tf`.
 """
 
 from __future__ import annotations

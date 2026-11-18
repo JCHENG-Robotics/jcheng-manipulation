@@ -1,0 +1,165 @@
+{
+  "trajectory_id": "trj_3edfb450ce92",
+  "name": "G2 demo - simulated 5-joint move",
+  "source": "demo",
+  "dataset_sha256": "11d5df757b794a26dd3d4bad46f46bdd61fbdb81e611f272646f330e483c2899",
+  "duplicate": false,
+  "feedback_truth": "simulated",
+  "executor": {
+    "status": "Succeeded",
+    "detail": "simulated executor; no controller or hardware was involved",
+    "truth": "simulated"
+  },
+  "analysis_version": "g2-1",
+  "timebase": "shared_trajectory_start",
+  "tracking": {
+    "available": true,
+    "reason": null,
+    "samples_compared": 195,
+    "overlap_start_s": 0.0,
+    "overlap_end_s": 4.0,
+    "per_joint": {
+      "joint1": {
+        "max_abs_error_rad": 0.009078915,
+        "rmse_rad": 0.004624967,
+        "mean_abs_error_rad": 0.003772148,
+        "final_error_rad": -0.001602583
+      },
+      "joint2": {
+        "max_abs_error_rad": 0.009395437,
+        "rmse_rad": 0.004829248,
+        "mean_abs_error_rad": 0.003980352,
+        "final_error_rad": 0.00074272
+      },
+      "joint3": {
+        "max_abs_error_rad": 0.01000798,
+        "rmse_rad": 0.005348543,
+        "mean_abs_error_rad": 0.004365061,
+        "final_error_rad": 0.000177865
+      },
+      "joint4": {
+        "max_abs_error_rad": 0.007457019,
+        "rmse_rad": 0.003782908,
+        "mean_abs_error_rad": 0.003137722,
+        "final_error_rad": 0.001911369
+      },
+      "joint5": {
+        "max_abs_error_rad": 0.003492963,
+        "rmse_rad": 0.001657303,
+        "mean_abs_error_rad": 0.001358949,
+        "final_error_rad": -0.000565304
+      }
+    },
+    "aggregate": {
+      "max_abs_error_rad": 0.01000798,
+      "rmse_rad": 0.004251492,
+      "mean_abs_error_rad": 0.003322846,
+      "max_abs_final_error_rad": 0.001911369
+    },
+    "reference_stream": "planned",
+    "sample_stream": "feedback",
+    "sample_truth": "simulated",
+    "note": "planned vs feedback; interpolate the planned stream at each feedback timestamp (same method as the CSV export)"
+  },
+  "command_fidelity": {
+    "available": true,
+    "reason": null,
+    "samples_compared": 101,
+    "overlap_start_s": 0.0,
+    "overlap_end_s": 4.0,
+    "per_joint": {
+      "joint1": {
+        "max_abs_error_rad": 0.0,
+        "rmse_rad": 0.0,
+        "mean_abs_error_rad": 0.0,
+        "final_error_rad": 0.0
+      },
+      "joint2": {
+        "max_abs_error_rad": 0.0,
+        "rmse_rad": 0.0,
+        "mean_abs_error_rad": 0.0,
+        "final_error_rad": 0.0
+      },
+      "joint3": {
+        "max_abs_error_rad": 0.0,
+        "rmse_rad": 0.0,
+        "mean_abs_error_rad": 0.0,
+        "final_error_rad": 0.0
+      },
+      "joint4": {
+        "max_abs_error_rad": 0.0,
+        "rmse_rad": 0.0,
+        "mean_abs_error_rad": 0.0,
+        "final_error_rad": 0.0
+      },
+      "joint5": {
+        "max_abs_error_rad": 0.0,
+        "rmse_rad": 0.0,
+        "mean_abs_error_rad": 0.0,
+        "final_error_rad": 0.0
+      }
+    },
+    "aggregate": {
+      "max_abs_error_rad": 0.0,
+      "rmse_rad": 0.0,
+      "mean_abs_error_rad": 0.0,
+      "max_abs_final_error_rad": 0.0
+    },
+    "reference_stream": "planned",
+    "sample_stream": "commanded",
+    "sample_truth": "commanded",
+    "note": "planned vs the target sequence actually sent"
+  },
+  "sampling_quality": {
+    "planned": {
+      "truth": "planned",
+      "time_offset_s": 0.0,
+      "samples": 201,
+      "start_s": 0.0,
+      "end_s": 4.0,
+      "duration_s": 4.0,
+      "median_interval_s": 0.02,
+      "mean_interval_s": 0.02,
+      "effective_rate_hz": 50.0,
+      "max_gap_s": 0.02,
+      "gaps_over_1_5x_median": 0,
+      "dropout_ratio": 0.0,
+      "interval_jitter_ms": 0.0
+    },
+    "commanded": {
+      "truth": "commanded",
+      "time_offset_s": 0.0,
+      "samples": 101,
+      "start_s": 0.0,
+      "end_s": 4.0,
+      "duration_s": 4.0,
+      "median_interval_s": 0.04,
+      "mean_interval_s": 0.04,
+      "effective_rate_hz": 25.0,
+      "max_gap_s": 0.04,
+      "gaps_over_1_5x_median": 0,
+      "dropout_ratio": 0.0,
+      "interval_jitter_ms": 0.0
+    },
+    "feedback": {
+      "truth": "simulated",
+      "time_offset_s": 0.0,
+      "samples": 195,
+      "start_s": 0.0,
+      "end_s": 4.0,
+      "duration_s": 4.0,
+      "median_interval_s": 0.02,
+      "mean_interval_s": 0.020618557,
+      "effective_rate_hz": 48.5,
+      "max_gap_s": 0.12,
+      "gaps_over_1_5x_median": 2,
+      "dropout_ratio": 0.029851,
+      "interval_jitter_ms": 7.29559
+    }
+  },
+  "notes": [
+    "timebase is a declared shared trajectory start; cross-device latency is not computed because no synchronization evidence is recorded",
+    "metrics use linear interpolation of the planned stream at each sample timestamp; the CSV export reproduces them",
+    "feedback truth=simulated: the demo is synthetic and is not hardware validation"
+  ]
+}

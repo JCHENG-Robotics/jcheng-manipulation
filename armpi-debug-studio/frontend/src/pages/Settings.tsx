@@ -190,20 +190,12 @@ export function SettingsPage() {
       <Card title="Roadmap" subtitle="未实现功能只列出，不放置可点击的假按钮">
         <ul className="roadmap-list">
           <li>
-            <strong>G2 Trajectory Inspector</strong> — 计划/命令/反馈对齐、误差曲线、离线回放。
-          </li>
-          <li>
-            <strong>G3 Experiment Lab</strong> — trial/pair 关联、失败代码、CSV/JSON/rosbag2 引用。
-          </li>
-          <li>
-            <strong>G4 Visual Workbench</strong> — URDF/TF、相机与标定警示。
-          </li>
-          <li>
             <strong>E7 ROS 2 Gateway</strong> — 只读能力探测、状态读取、超时/熔断；运动写接口仍禁用。
           </li>
         </ul>
         <p className="footnote">
-          当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G1 范围冻结，不注册 G2–G4 路由。
+          当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G2 Trajectory Inspector、
+          G3 Experiment Lab 与 G4 Visual Workbench 已实现为离线/只读分析，硬件运动仍禁用。
         </p>
       </Card>
     </div>

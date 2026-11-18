@@ -1,0 +1,22 @@
+{
+  "robot_name": "armpi_ultra",
+  "urdf_sha256": "fe7cdfb7df71129606f27818407c82e0fb08f60d3722c99144114e72cc34bb94",
+  "urdf_verified": false,
+  "links": 17,
+  "movable_joints": 11,
+  "camera_forward": {
+    "camera_connet_link_position_m": [
+      0.15441153,
+      3.82e-07,
+      0.281453433
+    ],
+    "camera_optical_calibrated_position_m": [
+      0.165048532,
+      0.010027663,
+      0.275992019
+    ],
+    "camera_optical_calibrated_source": "measured_hand_eye",
+    "camera_optical_frame_nominal": true
+  },
+  "warnings": []
+}

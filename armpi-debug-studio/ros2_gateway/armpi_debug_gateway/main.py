@@ -31,6 +31,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--battery-topic", default="/ros_robot_controller/battery")
     parser.add_argument("--camera-topic", default="/depth_cam/rgb/image_raw")
     parser.add_argument("--joint-state-topic", default="/controller_manager/joint_states")
+    parser.add_argument("--tf-topic", default="/tf")
+    parser.add_argument("--tf-static-topic", default="/tf_static")
     parser.add_argument("--jpeg-quality", type=int, default=80)
     parser.add_argument("--host", default="127.0.0.1", help="bind address; keep localhost unless using a private tailnet")
     parser.add_argument("--port", type=int, default=8765)
@@ -79,6 +81,8 @@ def main(argv: list[str] | None = None) -> None:
         battery_topic=args.battery_topic,
         camera_topic=args.camera_topic,
         joint_state_topic=args.joint_state_topic,
+        tf_topic=args.tf_topic,
+        tf_static_topic=args.tf_static_topic,
         jpeg_quality=args.jpeg_quality,
     )
     executor = MultiThreadedExecutor(num_threads=2)
@@ -93,6 +97,7 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  battery: {args.battery_topic}")
         print(f"  camera:  {args.camera_topic}")
         print(f"  joints:  {args.joint_state_topic}")
+        print(f"  tf:      {args.tf_topic} + {args.tf_static_topic}")
         print("  motion:  DISABLED (read-only gateway)")
         server.serve_until(stop_event)
     finally:

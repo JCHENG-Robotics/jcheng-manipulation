@@ -36,10 +36,13 @@ test.describe("Dashboard (mock mode)", () => {
     ).toContainText("0 blockers");
   });
 
-  test("navigates the five G1 pages", async ({ page }) => {
+  test("navigates the eight console pages", async ({ page }) => {
     for (const [link, title] of [
       ["Joint Control", "Joint Control"],
       ["Diagnostics", "Diagnostics"],
+      ["Trajectory Inspector", "Trajectory Inspector"],
+      ["Experiment Lab", "Experiment Lab"],
+      ["Visual Workbench", "Visual Workbench"],
       ["Event Timeline", "Event Timeline"],
       ["Settings", "Settings"],
       ["Dashboard", "Dashboard"],

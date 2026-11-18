@@ -32,7 +32,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 误差预算框架 | 已实现，demo 验证；项目预算**仍不完整** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md)；已测量手眼 + fiducial 项，RSS 3.699 mm / 0.682°；重复性/回差/执行/夹爪/夹具位姿仍未测量 |
 | 配对试验框架 | 已实现，仿真验证 | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md)；24 对随机计划、种子化 bootstrap/sign/McNemar 分析；尚无实机试验 |
 | 主机/DDS 基准 | 已实现，只读实机快照 | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md)；笔记本 + Pi 主机指标、20 Hz 状态、跨主机约 12 Hz 相机、0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + 只读硬件 | 48 个后端 + 12 个网关测试通过；7 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；硬件运动仍禁用 |
+| ArmPi Debug Studio | G1-Mock + 只读硬件 + G2/G3/G4 离线 | 74 个后端 + 12 个网关测试通过；10 个 Playwright Mock E2E；E7 网关已实机验证并常驻（systemd）；G2 轨迹分析、G3 实验记录、G4 只读可视化工作台（可选 `/tf`）；硬件运动仍禁用 |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
 
 详细审计（来源、冲突、决策）见
@@ -188,7 +188,7 @@ ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
 三者均返回 `error_code=0`。详见
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md)。
 
-### ArmPi Debug Studio（Mock 与只读硬件）
+### ArmPi Debug Studio（Mock、只读硬件与 G2/G3/G4 离线分析）
 
 ```bash
 cd armpi-debug-studio/backend
@@ -200,7 +200,7 @@ uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 # 另一个终端
 cd armpi-debug-studio/frontend
 npm install && npm run dev
-npm run test:e2e          # 构建并运行 7 个 Playwright Mock 测试
+npm run test:e2e          # 构建并运行 10 个 Playwright Mock 测试
 ```
 
 Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在机器人上
@@ -212,6 +212,24 @@ Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在
 和 [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。关节限位仍为
 provisional；只读实测与关力矩测量工具见
 [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md)。
+
+G2 Trajectory Inspector 已于 2026-11-18 实现为离线 JSON 数据集分析：计划/命令/
+反馈三流分离、逐关节误差与采样质量、CSV 可复算，以及仅在浏览器内播放的 Replay；
+没有硬件轨迹数据，示例明确标记为 simulated。详见
+[`armpi-debug-studio/docs/g2-trajectory-inspector.md`](armpi-debug-studio/docs/g2-trajectory-inspector.md)。
+
+G3 Experiment Lab 同日实现为离线实验记录：不可变实验定义、带随机化计划的追加式
+配对 trial、失败代码、G2 数据集/rosbag2 路径引用、CSV/JSON 导出，以及与 Phase 3
+一致的 bootstrap/符号检验/McNemar 分析。示例 16 对全部标记 simulated，二元端点
+样本量不足并在界面中明确警告，不能据此宣称成功率显著改善。详见
+[`armpi-debug-studio/docs/g3-experiment-lab.md`](armpi-debug-studio/docs/g3-experiment-lab.md)。
+
+G4 Visual Workbench 实现为只读可视化：解析项目 URDF 做前向运动学，可选使用网关
+`/tf` + `/tf_static` 快照，显示 link/joint 轴、已验证手眼的
+`camera_optical_calibrated` 光学帧、相机画面与标定/TF/URDF provisional 警示；相机
+引用只保存元数据，不保存图像字节。`/tf` 目前只有无 ROS 测试，尚未在真实机器人 TF
+图上验证；没有实时 TF 时回退到 URDF FK。渲染层不进入安全/运动链。详见
+[`armpi-debug-studio/docs/g4-visual-workbench.md`](armpi-debug-studio/docs/g4-visual-workbench.md)。
 
 ### 误差预算、配对试验与主机基准（离线/只读）
 

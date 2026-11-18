@@ -71,6 +71,10 @@ class RobotAdapter(ABC):
     def camera_snapshot(self) -> tuple[bytes, str] | None:
         """Return (image bytes, media type), or None when no frame is available."""
 
+    def tf_snapshot(self) -> dict[str, Any] | None:
+        """Return a read-only TF snapshot when the adapter supports one."""
+        return None
+
     @abstractmethod
     def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
         """Send a validated target set. Hardware must reject in G1."""

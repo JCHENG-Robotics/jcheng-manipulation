@@ -1,0 +1,34 @@
+
+> armpi-debug-studio-frontend@0.1.0 pretest:e2e
+> npm run build
+
+
+> armpi-debug-studio-frontend@0.1.0 build
+> tsc -b && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 61 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:  0.28 kB
+dist/assets/index-BMWarpIf.css   18.66 kB │ gzip:  4.42 kB
+dist/assets/index-BnOwJNLf.js   294.18 kB │ gzip: 88.21 kB
+✓ built in 1.25s
+
+> armpi-debug-studio-frontend@0.1.0 test:e2e
+> playwright test
+
+
+Running 8 tests using 1 worker
+
+  ✓  1 [chromium] › e2e/api-contract.spec.ts:4:3 › Served API contract (mock mode) › health, state and peripherals keep the frontend contract (62ms)
+  ✓  2 [chromium] › e2e/api-contract.spec.ts:38:3 › Served API contract (mock mode) › safety gate is ready and mock preview issues a token (17ms)
+  ✓  3 [chromium] › e2e/dashboard.spec.ts:9:3 › Dashboard (mock mode) › renders the simulation source, camera, battery and five joints (466ms)
+  ✓  4 [chromium] › e2e/dashboard.spec.ts:39:3 › Dashboard (mock mode) › navigates the six console pages (584ms)
+  ✓  5 [chromium] › e2e/dashboard.spec.ts:53:3 › Dashboard (mock mode) › settings page reports mock mode and provisional mapping (459ms)
+  ✓  6 [chromium] › e2e/motion-flow.spec.ts:4:3 › Joint Control (mock mode) › preview rejects a step beyond max_step_rad (356ms)
+  ✓  7 [chromium] › e2e/motion-flow.spec.ts:21:3 › Joint Control (mock mode) › lease → preview → confirm → execute completes (2.0s)
+  ✓  8 [chromium] › e2e/trajectory.spec.ts:4:3 › Trajectory Inspector (offline, mock backend) › loads the simulated demo, shows metrics, and replays without backend writes (638ms)
+
+  8 passed (6.2s)

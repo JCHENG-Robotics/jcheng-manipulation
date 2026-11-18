@@ -73,7 +73,7 @@ class MockRobotAdapter(RobotAdapter):
             hardware_motion=False,
             hardware_read=False,
             mock_faults=True,
-            replay=False,
+            replay=True,
             min_duration_s=mapping.safety.min_duration_s,
             max_duration_s=mapping.safety.max_duration_s,
             max_step_rad=mapping.safety.max_step_rad,

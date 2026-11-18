@@ -11,6 +11,9 @@ const NAV_ITEMS = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/joints", label: "Joint Control" },
   { to: "/diagnostics", label: "Diagnostics" },
+  { to: "/trajectory", label: "Trajectory Inspector" },
+  { to: "/experiments", label: "Experiment Lab" },
+  { to: "/visual", label: "Visual Workbench" },
   { to: "/events", label: "Event Timeline" },
   { to: "/settings", label: "Settings" },
 ];
@@ -28,6 +31,7 @@ export function AppShell() {
   const events = useRobotStore((store) => store.events);
   const lease = useRobotStore((store) => store.lease);
   const wsConnected = useRobotStore((store) => store.wsConnected);
+  const replayActive = useRobotStore((store) => store.replayActive);
   const error = useRobotStore((store) => store.error);
   const setLease = useRobotStore((store) => store.setLease);
   const preferences = usePreferences();
@@ -70,7 +74,8 @@ export function AppShell() {
   const faultLevel = robot ? highestFaultLevel(robot.faults) : null;
   const lastEvent = events[0] ?? null;
   const mode = robot?.mode ?? diagnostics?.mode ?? "mock";
-  const sourceLabel = robot?.source_label ?? (mode === "mock" ? "SIMULATION" : "LIVE");
+  const liveSourceLabel = robot?.source_label ?? (mode === "mock" ? "SIMULATION" : "LIVE");
+  const sourceLabel = replayActive ? "REPLAY" : liveSourceLabel;
   const ready = diagnostics?.safety.ready ?? false;
 
   return (

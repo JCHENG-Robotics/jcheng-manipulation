@@ -1,0 +1,9 @@
+{
+  "/api/visual": [
+    "get"
+  ],
+  "/api/visual/camera-references": [
+    "get",
+    "post"
+  ]
+}

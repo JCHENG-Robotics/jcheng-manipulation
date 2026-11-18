@@ -1,0 +1,8 @@
+{
+  "n_trials_in_csv": 32,
+  "n_complete_pairs": 16,
+  "n_pairs_with_error": 12,
+  "recomputed_improvement_mm": 1.1607684408116101,
+  "reported_improvement_mm": 1.1607684408116101,
+  "matches_within_1e-9": true
+}

@@ -27,8 +27,11 @@ Artifacts:
 
 | Spec | Checks |
 |---|---|
-| `dashboard.spec.ts` | SIMULATION source, camera panel renders the mock frame (640×400), battery 2S panel, 5-joint table, safety gate 0 blockers, five-page navigation, Settings mode/mapping |
+| `dashboard.spec.ts` | SIMULATION source, camera panel renders the mock frame (640×400), battery 2S panel, 5-joint table, safety gate 0 blockers, eight-page navigation, Settings mode/mapping |
 | `motion-flow.spec.ts` | target beyond `max_step_rad` is rejected (`STEP_EXCEEDED`); lease → preview token → confirm dialog → execute → `Completed` → lease release |
+| `trajectory.spec.ts` | G2 demo import, simulated feedback label, tracking metrics + two charts, client-side replay switches the top bar to `REPLAY`, and play/pause appends no audit event |
+| `experiments.spec.ts` | G3 simulated 16-pair demo, 32 trial rows, paired analysis (improvement/CI/sign p), explicit underpowered-success warning, export links, and no motion audit stages |
+| `visual.spec.ts` | G4 URDF model SVG, provisional/no-live-TF warnings, camera frame names, 11-joint limit table, metadata reference save, and no motion audit stages |
 | `api-contract.spec.ts` | `/api/health`, `/api/state`, `/api/peripherals`, camera snapshot and preview token match the frontend's zod contract |
 
 ## Not covered

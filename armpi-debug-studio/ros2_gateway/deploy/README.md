@@ -16,7 +16,7 @@ cleanly).
 armpi-gateway.service (host systemd)
   └── armpi-gateway-run.sh
         └── docker exec -u ubuntu ArmPiUltra python3 -m armpi_debug_gateway.main
-              └── /health /battery /camera/... /state  (read-only)
+              └── /health /battery /camera/... /state /tf  (read-only)
 ```
 
 ## Files
@@ -94,6 +94,7 @@ armpi_debug_gateway listening on http://10.42.0.218:8765
   battery: /ros_robot_controller/battery
   camera:  /depth_cam/rgb/image_raw
   joints:  /controller_manager/joint_states
+  tf:      /tf + /tf_static
   motion:  DISABLED (read-only gateway)
 ```
 

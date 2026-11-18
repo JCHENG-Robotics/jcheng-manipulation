@@ -39,7 +39,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Error budget framework | Implemented, demo-validated; project budget **partial** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md); measured hand-eye + fiducial terms, RSS 3.699 mm / 0.682°, required repeatability/backlash/execution/gripper/fixture terms unmeasured |
 | Paired trial framework | Implemented, simulated-validated | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md); 24-pair randomized plan, seeded bootstrap/sign/McNemar analysis; no physical trial |
 | Host/DDS benchmark | Implemented, read-only hardware snapshot | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md); laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + read-only hardware | 48 backend + 12 gateway tests pass; 7 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); hardware motion disabled |
+| ArmPi Debug Studio | G1-Mock + read-only hardware + G2/G3/G4 offline | 74 backend + 12 gateway tests pass; 10 Playwright mock E2E; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 read-only visual workbench (optional `/tf`); hardware motion disabled |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
 The detailed audit (sources, conflicts, decisions) is in
@@ -294,7 +294,7 @@ uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 # another terminal
 cd armpi-debug-studio/frontend
 npm install && npm run dev
-npm run test:e2e          # builds + 7 Playwright mock tests
+npm run test:e2e          # builds + 10 Playwright mock tests
 ```
 
 The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the

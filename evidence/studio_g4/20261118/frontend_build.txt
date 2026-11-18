@@ -1,0 +1,13 @@
+
+> armpi-debug-studio-frontend@0.1.0 build
+> tsc -b && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 63 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:  0.28 kB
+dist/assets/index-BECF19Dk.css   22.69 kB │ gzip:  5.09 kB
+dist/assets/index-CMDKAGQx.js   333.71 kB │ gzip: 98.77 kB
+✓ built in 1.30s

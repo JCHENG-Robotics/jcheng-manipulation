@@ -6,7 +6,9 @@ tested directly with a fake clock.
 
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import platform
 import threading
@@ -26,6 +28,17 @@ from .domain.enums import (
     SourceLabel,
     StopState,
 )
+from .domain.experiments import (
+    ANALYSIS_VERSION as EXPERIMENT_ANALYSIS_VERSION,
+    DEMO_SIGNATURE,
+    FAILURE_CODES,
+    METHOD_LABELS,
+    ExperimentDataError,
+    analyze_experiment,
+    build_demo_experiment,
+    normalize_experiment,
+    normalize_trial,
+)
 from .domain.mapping import MappingConfig
 from .domain.models import (
     CommandRecord,
@@ -40,6 +53,21 @@ from .domain.models import (
     utc_now_iso,
 )
 from .domain.state_machine import transition
+from .domain.trajectory import (
+    TrajectoryDataError,
+    alignment_csv,
+    analyze,
+    build_demo_dataset,
+    prepare_dataset,
+    summary,
+)
+from .domain.visual import (
+    VisualModelError,
+    compose_tf_frames,
+    compute_frames,
+    load_urdf,
+    load_visual_config,
+)
 from .errors import ServiceError, StorageError
 from .persistence.store import EventStore
 from .safety.lease import LeaseConflict, LeaseManager
@@ -89,6 +117,25 @@ KNOWN_DEFECTS = [
 ]
 
 
+def _mimic_source_available(
+    model: Any,
+    name: str,
+    positions: dict[str, float],
+    seen: set[str] | None = None,
+) -> bool:
+    """True when a mimic joint's source chain ends in a real position."""
+    seen = seen or set()
+    if name in seen:
+        return False
+    seen.add(name)
+    joint = model.joints.get(name)
+    if joint is None:
+        return False
+    if not joint.mimic:
+        return name in positions
+    return _mimic_source_available(model, joint.mimic, positions, seen)
+
+
 class RobotService:
     def __init__(
         self,
@@ -110,6 +157,8 @@ class RobotService:
         self._lock = threading.RLock()
         self._storage_error: str | None = None
         self._idempotency: dict[str, dict[str, Any]] = {}
+        self._visual_bundle: tuple[Any, dict[str, Any]] | None = None
+        self._visual_error: list[str] | None = None
 
     # ------------------------------------------------------------------ helpers
     def _storage_fault(self) -> Fault:
@@ -339,6 +388,457 @@ class RobotService:
         return {
             "battery": self.battery(),
             "camera": self.camera_status(),
+        }
+
+    # ------------------------------------------------------------- visual (G4)
+    def _load_visual_bundle(self) -> tuple[Any, dict[str, Any]]:
+        if self._visual_bundle is not None:
+            return self._visual_bundle
+        if self._visual_error is not None:
+            raise VisualModelError(self._visual_error)
+        config = load_visual_config(self.settings.visual_model_path)
+        try:
+            model = load_urdf(
+                self.settings.urdf_path,
+                verified=config["urdf_verified"],
+                source_note=config["urdf_note"],
+            )
+        except VisualModelError as exc:
+            self._visual_error = exc.issues
+            raise
+        self._visual_bundle = (model, config)
+        return self._visual_bundle
+
+    @staticmethod
+    def _joint_truth(state: RobotState) -> str:
+        truths = {
+            joint.truth.value
+            for joint in state.joints
+            if joint.position_rad is not None
+        }
+        if not truths:
+            return "unknown"
+        if len(truths) == 1:
+            return next(iter(truths))
+        return "mixed"
+
+    @staticmethod
+    def _max_sample_age(state: RobotState) -> int | None:
+        ages = [
+            joint.sample_age_ms
+            for joint in state.joints
+            if joint.sample_age_ms is not None
+        ]
+        return max(ages) if ages else None
+
+    def _camera_block(
+        self, camera: dict[str, Any], config: dict[str, Any]
+    ) -> dict[str, Any]:
+        camera_config = config["camera"]
+        warnings: list[str] = []
+        if not camera.get("available"):
+            warnings.append("Camera is unavailable; no frame can be shown.")
+        if camera.get("truth") == "simulated":
+            warnings.append("SIMULATION: the camera snapshot is synthetic.")
+        if not camera_config.get("available"):
+            warnings.append(
+                "Measured optical extrinsic is unavailable; the optical frame is not shown."
+            )
+        warnings.append(
+            f"Image frame is {camera_config.get('body_frame')} (body). "
+            f"PnP must use {camera_config.get('frame')}, not the URDF nominal frame."
+        )
+        return {
+            **camera,
+            "snapshot_url": "/api/peripherals/camera/snapshot",
+            "frame": camera_config.get("body_frame"),
+            "optical_frame": camera_config.get("frame"),
+            "calibration": camera_config,
+            "warnings": warnings,
+        }
+
+    def visual_snapshot(self) -> dict[str, Any]:
+        """Read-only URDF/FK + camera view metadata; never queries live TF."""
+        state = self._state()
+        camera = jsonable(self.adapter.camera_status())
+        config = load_visual_config(self.settings.visual_model_path)
+        camera_block = self._camera_block(camera, config)
+        base = {
+            "schema_version": 1,
+            "generated_at": utc_now_iso(),
+            "mode": state.mode.value,
+            "source_label": state.source_label.value,
+            "robot_id": state.robot_id,
+        }
+        try:
+            model, config = self._load_visual_bundle()
+        except VisualModelError as exc:
+            return {
+                **base,
+                "urdf": {
+                    "available": False,
+                    "path": str(self.settings.urdf_path),
+                    "sha256": None,
+                    "robot_name": None,
+                    "verified": False,
+                    "links": 0,
+                    "joints": 0,
+                    "source_note": config.get("urdf_note", ""),
+                },
+                "tf": {
+                    "status": "invalid",
+                    "source": "none",
+                    "live": False,
+                    "truth": "unavailable",
+                    "joint_truth": self._joint_truth(state),
+                    "max_sample_age_ms": self._max_sample_age(state),
+                    "gateway_status": None,
+                    "dynamic_edges": 0,
+                    "static_edges": 0,
+                    "max_tf_age_ms": None,
+                    "frames": [],
+                    "camera_frame": None,
+                    "warnings": exc.issues,
+                },
+                "joints": [],
+                "camera": camera_block,
+                "warnings": exc.issues + config.get("warnings", []) + camera_block["warnings"],
+            }
+
+        positions = {
+            joint.name: float(joint.position_rad)
+            for joint in state.joints
+            if joint.position_rad is not None
+        }
+        result = compute_frames(model, positions, config)
+        joint_truth = self._joint_truth(state)
+        max_age = self._max_sample_age(state)
+        required_arm = set(self.mapping.joint_names())
+        missing_arm = sorted(set(result["missing"]) & required_arm)
+        warnings: list[str] = []
+        warnings.extend(config.get("warnings", []))
+        warnings.extend(model.warnings)
+        warnings.extend(result["issues"])
+        if not model.verified:
+            warnings.append(
+                "URDF model is provisional: joint limits and meshes are not "
+                "hardware-verified."
+            )
+        if missing_arm:
+            warnings.append(
+                "Missing arm joint state: " + ", ".join(missing_arm)
+            )
+        if max_age is not None and max_age > self.mapping.safety.feedback_max_age_ms:
+            warnings.append(
+                f"Joint state age {max_age} ms exceeds "
+                f"{self.mapping.safety.feedback_max_age_ms} ms."
+            )
+        if not config["camera"].get("available"):
+            warnings.append(
+                "Measured camera extrinsic missing; optical frame unavailable."
+            )
+
+        live_tf = None
+        live_result: dict[str, Any] | None = None
+        try:
+            live_tf = self.adapter.tf_snapshot()
+        except Exception:  # noqa: BLE001 - a gateway hiccup must not break the page
+            live_tf = None
+        if (
+            isinstance(live_tf, dict)
+            and live_tf.get("available")
+            and live_tf.get("transforms")
+        ):
+            live_result = compose_tf_frames(live_tf, model.root_link)
+            warnings.extend(live_result["issues"])
+            if live_result["unresolved"]:
+                warnings.append(
+                    f"{len(live_result['unresolved'])} TF edge(s) are outside "
+                    f"the {model.root_link} root and were ignored."
+                )
+            gateway_notes = live_tf.get("notes")
+            if isinstance(gateway_notes, list):
+                warnings.extend(str(note) for note in gateway_notes)
+            warnings.append(
+                "Live TF snapshot from gateway: dynamic transforms may derive "
+                "from commanded joint states, not encoder feedback."
+            )
+
+        live_by_name: dict[str, dict[str, Any]] = {}
+        if live_result is not None:
+            live_by_name = {
+                str(frame["name"]): frame for frame in live_result["frames"]
+            }
+        frames_out = []
+        model_names = set()
+        for frame in result["frames"]:
+            model_names.add(frame["name"])
+            live = live_by_name.get(frame["name"])
+            if live is None:
+                frames_out.append(frame)
+                continue
+            merged = {**frame, **live}
+            merged["is_camera"] = bool(frame.get("is_camera") or live.get("is_camera"))
+            merged["nominal"] = bool(frame.get("nominal"))
+            frames_out.append(merged)
+        if live_result is not None:
+            for name, frame in live_by_name.items():
+                if name in model_names:
+                    continue
+                added = dict(frame)
+                added["is_camera"] = "camera" in name
+                added["nominal"] = name in {
+                    "camera_link",
+                    "camera_optical_frame",
+                    "camera_connet_link",
+                }
+                if name == config["camera"].get("frame"):
+                    added["optical"] = True
+                    added["truth"] = config["camera"].get("truth", "measured")
+                    added["calibration_version"] = config["camera"].get(
+                        "calibration_version", ""
+                    )
+                frames_out.append(added)
+
+        camera_name = config["camera"].get("frame")
+        camera_frame = next(
+            (frame for frame in frames_out if frame.get("name") == camera_name),
+            result["camera_frame"],
+        )
+        camera_block["tf_frames"] = [
+            name
+            for name in (
+                config["camera"].get("body_frame"),
+                config["camera"].get("frame"),
+            )
+            if name and any(frame.get("name") == name for frame in frames_out)
+        ]
+        if live_result is not None:
+            missing_camera = [
+                name
+                for name in (
+                    config["camera"].get("body_frame"),
+                    config["camera"].get("frame"),
+                )
+                if name and not any(frame.get("name") == name for frame in frames_out)
+            ]
+            if missing_camera:
+                camera_block["warnings"].append(
+                    "Live TF does not include: " + ", ".join(missing_camera)
+                )
+
+        degraded = bool(missing_arm) or (
+            max_age is not None
+            and max_age > self.mapping.safety.feedback_max_age_ms
+        )
+        if live_result is None:
+            tf_status = "degraded" if degraded else "model_only"
+            tf_source = "urdf_fk"
+            tf_truth = "model"
+            warnings.append(
+                "No live tf2 subscription from the gateway; frames are URDF "
+                f"forward kinematics from truth={joint_truth} joint positions."
+            )
+        else:
+            gateway_status = str(live_tf.get("status", "unknown"))
+            if gateway_status == "ok" and not live_result["issues"]:
+                tf_status = "live"
+            elif gateway_status == "static_only":
+                tf_status = "live_static_only"
+            else:
+                tf_status = "degraded"
+            tf_source = "tf2_topics"
+            tf_truth = "measured_tf"
+            if gateway_status == "static_only":
+                warnings.append(
+                    "Only /tf_static is live; dynamic link frames fall back to "
+                    "the URDF where the static graph does not reach."
+                )
+            if gateway_status == "stale":
+                warnings.append(
+                    "Live TF is stale (newest dynamic edge "
+                    f"{live_tf.get('freshest_age_ms')} ms)."
+                )
+            missing_live = sorted(model_names - set(live_by_name))
+            if missing_live:
+                warnings.append(
+                    f"{len(missing_live)} model frame(s) are not in live TF and "
+                    "use URDF FK: " + ", ".join(missing_live[:6])
+                )
+        camera_block["tf_status"] = tf_status
+
+        joint_records = []
+        for name in model.movable_order:
+            joint = model.joints[name]
+            mapping_joint = self.mapping.get_joint(name)
+            position = positions.get(name)
+            position_source = "state"
+            if (
+                position is None
+                and name in result["derived_joints"]
+                and _mimic_source_available(model, name, positions)
+            ):
+                position = result["derived_joints"][name]
+                position_source = "mimic"
+            elif position is None:
+                position_source = "missing"
+            if mapping_joint is not None:
+                lower = mapping_joint.min_rad
+                upper = mapping_joint.max_rad
+                limit_source = mapping_joint.limit_source
+                verified = mapping_joint.verified
+            else:
+                lower = joint.lower
+                upper = joint.upper
+                limit_source = "urdf"
+                verified = False
+            within_limits = None
+            if position is not None and lower is not None and upper is not None:
+                within_limits = lower <= position <= upper
+            joint_records.append(
+                {
+                    "name": name,
+                    "type": joint.joint_type,
+                    "position_rad": position,
+                    "position_source": position_source,
+                    "truth": joint_truth,
+                    "lower_rad": lower,
+                    "upper_rad": upper,
+                    "urdf_lower_rad": joint.lower,
+                    "urdf_upper_rad": joint.upper,
+                    "velocity_limit": joint.velocity,
+                    "limit_source": limit_source,
+                    "verified": verified,
+                    "within_limits": within_limits,
+                    "mimic_of": joint.mimic,
+                    "mimic_multiplier": joint.mimic_multiplier if joint.mimic else None,
+                }
+            )
+
+        return {
+            **base,
+            "urdf": {
+                "available": True,
+                "path": model.source_path,
+                "sha256": model.sha256,
+                "robot_name": model.robot_name,
+                "verified": model.verified,
+                "links": len(model.links),
+                "joints": len(model.movable_order),
+                "source_note": model.source_note,
+                "warnings": model.warnings,
+            },
+            "tf": {
+                "status": tf_status,
+                "source": tf_source,
+                "live": live_result is not None,
+                "truth": tf_truth,
+                "joint_truth": joint_truth,
+                "max_sample_age_ms": max_age,
+                "gateway_status": live_tf.get("status") if live_result is not None else None,
+                "dynamic_edges": live_tf.get("dynamic_edges") if live_result is not None else 0,
+                "static_edges": live_tf.get("static_edges") if live_result is not None else 0,
+                "max_tf_age_ms": live_tf.get("max_age_ms") if live_result is not None else None,
+                "frames": frames_out,
+                "camera_frame": camera_frame,
+                "warnings": warnings,
+            },
+            "joints": joint_records,
+            "camera": camera_block,
+            "warnings": warnings + camera_block["warnings"],
+        }
+
+    def list_camera_references(self, limit: int = 50) -> dict[str, Any]:
+        try:
+            items = self.store.list_camera_references(limit)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "camera reference store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        return {"items": items, "schema_version": 1}
+
+    def save_camera_reference(self, note: str = "") -> dict[str, Any]:
+        if not isinstance(note, str) or len(note) > 500:
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                "note must be a string of at most 500 chars",
+                status_code=400,
+            )
+        visual = self.visual_snapshot()
+        camera = visual["camera"]
+        if not camera.get("available"):
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                "camera is unavailable; no reference saved",
+                status_code=400,
+            )
+        calibration = camera.get("calibration") or {}
+        record = {
+            "reference_id": f"ref_{uuid.uuid4().hex[:12]}",
+            "created_at": utc_now_iso(),
+            "mode": visual["mode"],
+            "source_label": visual["source_label"],
+            "truth": camera.get("truth", "unknown"),
+            "camera_topic": camera.get("topic", ""),
+            "width": camera.get("width"),
+            "height": camera.get("height"),
+            "encoding": camera.get("encoding"),
+            "fps": camera.get("fps"),
+            "frame_at": camera.get("last_frame_at"),
+            "sample_age_ms": camera.get("sample_age_ms"),
+            "calibration_version": calibration.get("calibration_version", ""),
+            "calibration_source": calibration.get("calibration_source", ""),
+            "tf_status": visual["tf"]["status"],
+            "tf_source": visual["tf"]["source"],
+            "note": note.strip(),
+            "snapshot_url": camera.get("snapshot_url", ""),
+            "schema_version": 1,
+        }
+        try:
+            inserted = self.store.insert_camera_reference(
+                reference_id=record["reference_id"],
+                created_at=record["created_at"],
+                record=record,
+            )
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "camera reference store write failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if not inserted:
+            raise ServiceError(
+                ErrorCode.INTERNAL_ERROR.value,
+                "camera reference insert was ignored",
+                status_code=500,
+            )
+        storage_error = None
+        try:
+            self._append(
+                self._event(
+                    "CameraReferenceSaved",
+                    None,
+                    "visual",
+                    "camera metadata reference saved",
+                    None,
+                    {
+                        "reference_id": record["reference_id"],
+                        "truth": record["truth"],
+                        "tf_status": record["tf_status"],
+                        "calibration_version": record["calibration_version"],
+                        "note": record["note"],
+                    },
+                )
+            )
+        except ServiceError as exc:
+            storage_error = exc.details
+        return {
+            **record,
+            "storage_error": storage_error,
         }
 
     def safety_report(
@@ -971,6 +1471,589 @@ class RobotService:
             "truth": "simulated",
             "note": "Mock probe only; no servo was read.",
             "results": results,
+        }
+
+    # -------------------------------------------------------- trajectories (G2)
+    def list_trajectories(self, limit: int = 50) -> dict[str, Any]:
+        try:
+            items = self.store.list_trajectories(limit)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trajectory store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        return {"items": items, "schema_version": 1}
+
+    def import_trajectory(
+        self, raw: Any, source: str = "import"
+    ) -> dict[str, Any]:
+        """Validate, analyze, and store an offline dataset.
+
+        Duplicate datasets (same canonical SHA-256) return the existing record.
+        This path never calls the adapter and never dispatches motion.
+        """
+        try:
+            dataset, analysis, digest = prepare_dataset(raw)
+        except TrajectoryDataError as exc:
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                "trajectory dataset is invalid",
+                status_code=400,
+                details={"issues": exc.issues},
+            ) from exc
+
+        try:
+            existing = self.store.find_trajectory_by_hash(digest)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trajectory store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if existing is not None:
+            return {**existing, "duplicate": True, "storage_error": None}
+
+        record: dict[str, Any] = {
+            "trajectory_id": f"trj_{uuid.uuid4().hex[:12]}",
+            "created_at": utc_now_iso(),
+            "name": dataset["name"],
+            "source": source,
+            "schema_version": dataset["schema_version"],
+            "dataset_sha256": digest,
+            "analysis_version": analysis["analysis_version"],
+            "dataset": dataset,
+            "analysis": analysis,
+        }
+        summary_fields = summary(record)
+        try:
+            inserted = self.store.insert_trajectory(
+                trajectory_id=record["trajectory_id"],
+                created_at=record["created_at"],
+                name=record["name"],
+                source=record["source"],
+                schema_version=record["schema_version"],
+                dataset_sha256=digest,
+                analysis_version=record["analysis_version"],
+                dataset=dataset,
+                analysis=analysis,
+                summary=summary_fields,
+            )
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trajectory store write failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if not inserted:
+            stored = self.store.find_trajectory_by_hash(digest)
+            if stored is not None:
+                return {**stored, "duplicate": True, "storage_error": None}
+            raise ServiceError(
+                ErrorCode.INTERNAL_ERROR.value,
+                "trajectory insert was ignored without a matching stored record",
+                status_code=500,
+            )
+
+        storage_error = None
+        try:
+            self._append(
+                self._event(
+                    "TrajectoryImported",
+                    None,
+                    "trajectory",
+                    f"offline dataset stored: {record['name']}",
+                    None,
+                    {
+                        "trajectory_id": record["trajectory_id"],
+                        "dataset_sha256": digest,
+                        "source": source,
+                        "feedback_truth": dataset["feedback"]["truth"],
+                        "tracking_available": summary_fields["tracking_available"],
+                    },
+                )
+            )
+        except ServiceError as exc:
+            storage_error = exc.details
+        return {
+            **record,
+            "duplicate": False,
+            "storage_error": storage_error,
+        }
+
+    def import_demo_trajectory(self) -> dict[str, Any]:
+        return self.import_trajectory(build_demo_dataset(), source="demo")
+
+    def _trajectory_or_404(self, trajectory_id: str) -> dict[str, Any]:
+        try:
+            record = self.store.get_trajectory(trajectory_id)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trajectory store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if record is None:
+            raise ServiceError(
+                ErrorCode.NOT_FOUND.value,
+                f"trajectory {trajectory_id!r} does not exist",
+                status_code=404,
+            )
+        return record
+
+    def get_trajectory(self, trajectory_id: str) -> dict[str, Any]:
+        return self._trajectory_or_404(trajectory_id)
+
+    def recompute_trajectory(self, trajectory_id: str) -> dict[str, Any]:
+        record = self._trajectory_or_404(trajectory_id)
+        fresh = analyze(record["dataset"])
+        return {
+            "trajectory_id": trajectory_id,
+            "analysis_version": fresh["analysis_version"],
+            "stored_analysis_version": record["analysis_version"],
+            "matches_stored": fresh == record["analysis"],
+            "analysis": fresh,
+        }
+
+    def export_trajectory_csv(
+        self, trajectory_id: str, sample: str = "feedback"
+    ) -> tuple[str, str]:
+        record = self._trajectory_or_404(trajectory_id)
+        try:
+            text = alignment_csv(record["dataset"], sample)
+        except ValueError as exc:
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value, str(exc), status_code=400
+            ) from exc
+        return f"armpi-trajectory-{trajectory_id}-{sample}.csv", text
+
+    def export_trajectory_json(self, trajectory_id: str) -> dict[str, Any]:
+        return self._trajectory_or_404(trajectory_id)
+
+    # ------------------------------------------------------ experiments (G3)
+    @staticmethod
+    def _experiment_summary(row: dict[str, Any]) -> dict[str, Any]:
+        protocol = row["protocol"]
+        n_trials = int(row["n_trials"])
+        n_complete = int(row["n_complete_pairs"])
+        planned = int(protocol.get("planned_pairs", 0))
+        if n_trials == 0:
+            status = "planned"
+        elif planned > 0 and n_complete >= planned:
+            status = "complete"
+        else:
+            status = "in_progress"
+        n_baseline = int(row["n_baseline"])
+        n_intervention = int(row["n_intervention"])
+        return {
+            "experiment_id": row["experiment_id"],
+            "created_at": row["created_at"],
+            "name": row["name"],
+            "data_origin": row["data_origin"],
+            "operator": row["operator"],
+            "truth": "simulated" if row["data_origin"] == "simulated" else "measured",
+            "schema_version": row.get("schema_version", 1),
+            "analysis_version": row["analysis_version"],
+            "planned_pairs": planned,
+            "seed": protocol.get("seed"),
+            "n_trials": n_trials,
+            "n_complete_pairs": n_complete,
+            "n_baseline": n_baseline,
+            "n_intervention": n_intervention,
+            "baseline_success_rate": (
+                int(row["n_baseline_successes"]) / n_baseline if n_baseline else None
+            ),
+            "intervention_success_rate": (
+                int(row["n_intervention_successes"]) / n_intervention
+                if n_intervention
+                else None
+            ),
+            "status": status,
+        }
+
+    def list_experiments(self, limit: int = 50) -> dict[str, Any]:
+        try:
+            rows = self.store.list_experiments(limit)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "experiment store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        return {
+            "items": [self._experiment_summary(row) for row in rows],
+            "failure_codes": FAILURE_CODES,
+            "methods": METHOD_LABELS,
+            "schema_version": 1,
+        }
+
+    def _experiment_or_404(self, experiment_id: str) -> dict[str, Any]:
+        try:
+            record = self.store.get_experiment(experiment_id)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "experiment store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if record is None:
+            raise ServiceError(
+                ErrorCode.NOT_FOUND.value,
+                f"experiment {experiment_id!r} does not exist",
+                status_code=404,
+            )
+        return record
+
+    def _experiment_detail(self, record: dict[str, Any]) -> dict[str, Any]:
+        try:
+            trials = self.store.list_trials(record["experiment_id"])
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trial store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        return {
+            "experiment": record,
+            "trials": trials,
+            "analysis": analyze_experiment(record, trials),
+        }
+
+    def create_experiment(self, raw: Any) -> dict[str, Any]:
+        try:
+            definition = normalize_experiment(raw)
+        except ExperimentDataError as exc:
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                "experiment definition is invalid",
+                status_code=400,
+                details={"issues": exc.issues},
+            ) from exc
+        record = {
+            "experiment_id": f"exp_{uuid.uuid4().hex[:12]}",
+            "created_at": utc_now_iso(),
+            "analysis_version": EXPERIMENT_ANALYSIS_VERSION,
+            **definition,
+        }
+        try:
+            inserted = self.store.insert_experiment(
+                experiment_id=record["experiment_id"],
+                created_at=record["created_at"],
+                signature=None,
+                definition=record,
+            )
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "experiment store write failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if not inserted:
+            raise ServiceError(
+                ErrorCode.INTERNAL_ERROR.value,
+                "experiment insert was ignored",
+                status_code=500,
+            )
+        storage_error = None
+        try:
+            self._append(
+                self._event(
+                    "ExperimentCreated",
+                    None,
+                    "experiment",
+                    f"experiment created: {record['name']}",
+                    None,
+                    {
+                        "experiment_id": record["experiment_id"],
+                        "data_origin": record["data_origin"],
+                        "planned_pairs": record["protocol"]["planned_pairs"],
+                    },
+                )
+            )
+        except ServiceError as exc:
+            storage_error = exc.details
+        return {
+            **self._experiment_detail(record),
+            "duplicate": False,
+            "storage_error": storage_error,
+        }
+
+    def import_demo_experiment(self) -> dict[str, Any]:
+        try:
+            existing = self.store.find_experiment_by_signature(DEMO_SIGNATURE)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "experiment store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if existing is not None:
+            return {
+                **self._experiment_detail(existing),
+                "duplicate": True,
+                "storage_error": None,
+            }
+
+        definition, raw_trials = build_demo_experiment()
+        record = {
+            "experiment_id": f"exp_{uuid.uuid4().hex[:12]}",
+            "created_at": utc_now_iso(),
+            "analysis_version": EXPERIMENT_ANALYSIS_VERSION,
+            **definition,
+        }
+        try:
+            inserted = self.store.insert_experiment(
+                experiment_id=record["experiment_id"],
+                created_at=record["created_at"],
+                signature=DEMO_SIGNATURE,
+                definition=record,
+            )
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "experiment store write failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if not inserted:
+            existing = self.store.find_experiment_by_signature(DEMO_SIGNATURE)
+            if existing is not None:
+                return {
+                    **self._experiment_detail(existing),
+                    "duplicate": True,
+                    "storage_error": None,
+                }
+            raise ServiceError(
+                ErrorCode.INTERNAL_ERROR.value,
+                "demo experiment insert was ignored",
+                status_code=500,
+            )
+
+        for raw in raw_trials:
+            self._record_trial(record, raw, audit=False)
+        storage_error = None
+        try:
+            self._append(
+                self._event(
+                    "ExperimentSeeded",
+                    None,
+                    "experiment",
+                    "simulated demo experiment seeded",
+                    None,
+                    {
+                        "experiment_id": record["experiment_id"],
+                        "n_trials": len(raw_trials),
+                        "data_origin": "simulated",
+                    },
+                )
+            )
+        except ServiceError as exc:
+            storage_error = exc.details
+        return {
+            **self._experiment_detail(record),
+            "duplicate": False,
+            "storage_error": storage_error,
+        }
+
+    def get_experiment(self, experiment_id: str) -> dict[str, Any]:
+        return self._experiment_detail(self._experiment_or_404(experiment_id))
+
+    def _record_trial(
+        self,
+        experiment: dict[str, Any],
+        raw: Any,
+        *,
+        audit: bool = True,
+    ) -> dict[str, Any]:
+        try:
+            existing = self.store.list_trials(experiment["experiment_id"])
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trial store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        try:
+            trial = normalize_trial(raw, experiment, existing)
+        except ExperimentDataError as exc:
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                "trial is invalid",
+                status_code=400,
+                details={"issues": exc.issues},
+            ) from exc
+        if trial["trajectory_id"]:
+            try:
+                trajectory = self.store.get_trajectory(trial["trajectory_id"])
+            except StorageError as exc:
+                raise ServiceError(
+                    ErrorCode.STORAGE_WRITE_FAILED.value,
+                    "trajectory store read failed",
+                    status_code=503,
+                    details={"storage_error": str(exc)},
+                ) from exc
+            if trajectory is None:
+                raise ServiceError(
+                    ErrorCode.BAD_REQUEST.value,
+                    "trial is invalid",
+                    status_code=400,
+                    details={
+                        "issues": [
+                            {
+                                "path": "trajectory_id",
+                                "message": "trajectory dataset does not exist",
+                            }
+                        ]
+                    },
+                )
+        record = {
+            **trial,
+            "trial_id": f"trl_{uuid.uuid4().hex[:12]}",
+            "experiment_id": experiment["experiment_id"],
+            "created_at": utc_now_iso(),
+        }
+        try:
+            inserted = self.store.insert_trial(
+                trial_id=record["trial_id"],
+                experiment_id=record["experiment_id"],
+                created_at=record["created_at"],
+                trial=record,
+            )
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trial store write failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        if not inserted:
+            raise ServiceError(
+                ErrorCode.CONFLICT.value,
+                "pair/method or pair/trial_order is already recorded",
+                status_code=409,
+            )
+        if audit:
+            self._append(
+                self._event(
+                    "TrialRecorded",
+                    None,
+                    "experiment",
+                    f"trial recorded: {record['pair_id']} / {record['method']}",
+                    record["failure_code"],
+                    {
+                        "experiment_id": record["experiment_id"],
+                        "trial_id": record["trial_id"],
+                        "pair_id": record["pair_id"],
+                        "method": record["method"],
+                        "grasp_success": record["grasp_success"],
+                        "failure_code": record["failure_code"],
+                        "trajectory_id": record["trajectory_id"],
+                        "truth": record["truth"],
+                    },
+                )
+            )
+        return record
+
+    def record_trial(self, experiment_id: str, raw: Any) -> dict[str, Any]:
+        experiment = self._experiment_or_404(experiment_id)
+        return self._record_trial(experiment, raw, audit=True)
+
+    def experiment_analysis(self, experiment_id: str) -> dict[str, Any]:
+        experiment = self._experiment_or_404(experiment_id)
+        try:
+            trials = self.store.list_trials(experiment_id)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trial store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        return analyze_experiment(experiment, trials)
+
+    def export_experiment_csv(self, experiment_id: str) -> tuple[str, str]:
+        record = self._experiment_or_404(experiment_id)
+        try:
+            trials = self.store.list_trials(experiment_id)
+        except StorageError as exc:
+            raise ServiceError(
+                ErrorCode.STORAGE_WRITE_FAILED.value,
+                "trial store read failed",
+                status_code=503,
+                details={"storage_error": str(exc)},
+            ) from exc
+        buffer = io.StringIO()
+        writer = csv.writer(buffer, lineterminator="\n")
+        writer.writerow(
+            [
+                "experiment_id",
+                "trial_id",
+                "pair_id",
+                "trial_order",
+                "method",
+                "fixture",
+                "grasp_success",
+                "continuous_error_mm",
+                "rotation_error_deg",
+                "failure_code",
+                "failure_detail",
+                "duration_s",
+                "measurement_source",
+                "trajectory_id",
+                "truth",
+                "artifacts_json",
+                "operator_notes",
+                "target_json",
+                "created_at",
+                "schema_version",
+            ]
+        )
+        for trial in trials:
+            writer.writerow(
+                [
+                    experiment_id,
+                    trial["trial_id"],
+                    trial["pair_id"],
+                    trial["trial_order"],
+                    trial["method"],
+                    trial["fixture"],
+                    1 if trial["grasp_success"] else 0,
+                    "" if trial["continuous_error_mm"] is None else trial["continuous_error_mm"],
+                    "" if trial["rotation_error_deg"] is None else trial["rotation_error_deg"],
+                    trial["failure_code"] or "",
+                    trial["failure_detail"],
+                    "" if trial["duration_s"] is None else trial["duration_s"],
+                    trial["measurement_source"],
+                    trial["trajectory_id"] or "",
+                    trial["truth"],
+                    json.dumps(trial["artifacts"], sort_keys=True),
+                    trial["operator_notes"],
+                    json.dumps(trial["target"], sort_keys=True),
+                    trial["created_at"],
+                    trial["schema_version"],
+                ]
+            )
+        return f"armpi-experiment-{experiment_id}.csv", buffer.getvalue()
+
+    def export_experiment_json(self, experiment_id: str) -> dict[str, Any]:
+        record = self._experiment_or_404(experiment_id)
+        detail = self._experiment_detail(record)
+        return {
+            "schema_version": 1,
+            "exported_at": utc_now_iso(),
+            "experiment": detail["experiment"],
+            "trials": detail["trials"],
+            "analysis": detail["analysis"],
         }
 
     def close(self) -> None:

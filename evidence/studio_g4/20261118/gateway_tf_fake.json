@@ -1,0 +1,56 @@
+{
+  "available": true,
+  "status": "ok",
+  "truth": "measured_tf",
+  "source": "tf2_topics",
+  "topics": {
+    "tf": "/tf",
+    "tf_static": "/tf_static"
+  },
+  "generated_at": "2026-11-18T02:30:00Z",
+  "dynamic_edges": 1,
+  "static_edges": 1,
+  "freshest_age_ms": 5,
+  "max_age_ms": 120,
+  "transforms": [
+    {
+      "parent": "base_link",
+      "child": "link1",
+      "translation_m": [
+        0.067,
+        -0.0001,
+        0.071
+      ],
+      "rotation_xyzw": [
+        0.0,
+        0.0,
+        0.0035,
+        0.999994
+      ],
+      "stamp_ns": 1,
+      "age_ms": 5,
+      "static": false
+    },
+    {
+      "parent": "camera_connet_link",
+      "child": "rgb_camera_link",
+      "translation_m": [
+        0.038,
+        0.0,
+        0.0
+      ],
+      "rotation_xyzw": [
+        0.0,
+        0.7071,
+        0.0,
+        0.7071
+      ],
+      "stamp_ns": 0,
+      "age_ms": 120,
+      "static": true
+    }
+  ],
+  "notes": [
+    "fake gateway node for contract evidence; not robot data"
+  ]
+}

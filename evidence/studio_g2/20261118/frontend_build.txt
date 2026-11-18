@@ -1,0 +1,13 @@
+
+> armpi-debug-studio-frontend@0.1.0 build
+> tsc -b && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 61 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:  0.28 kB
+dist/assets/index-BMWarpIf.css   18.66 kB │ gzip:  4.42 kB
+dist/assets/index-BnOwJNLf.js   294.18 kB │ gzip: 88.21 kB
+✓ built in 1.17s

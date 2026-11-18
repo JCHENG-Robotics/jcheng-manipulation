@@ -1,10 +1,14 @@
 import { z } from "zod";
 import type {
+  CameraReference,
+  CameraReferenceList,
   CommandRecord,
   ConnectionReport,
   Diagnostics,
   EventRecord,
   EventsPayload,
+  ExperimentDetail,
+  ExperimentList,
   Lease,
   Peripherals,
   PreviewResult,
@@ -13,6 +17,10 @@ import type {
   SafetyReport,
   StopResult,
   TargetPayload,
+  TrajectoryList,
+  TrajectoryRecord,
+  TrajectoryRecompute,
+  VisualSnapshot,
 } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
@@ -240,6 +248,70 @@ export const api = {
   },
   async resetMock(): Promise<Record<string, unknown>> {
     return request("/api/mock/reset", { method: "POST" });
+  },
+  async trajectories(): Promise<TrajectoryList> {
+    return request<TrajectoryList>("/api/trajectories");
+  },
+  async trajectory(id: string): Promise<TrajectoryRecord> {
+    return request<TrajectoryRecord>(`/api/trajectories/${encodeURIComponent(id)}`);
+  },
+  async importTrajectory(dataset: unknown): Promise<TrajectoryRecord> {
+    return request<TrajectoryRecord>("/api/trajectories", {
+      method: "POST",
+      body: JSON.stringify(dataset),
+    });
+  },
+  async demoTrajectory(): Promise<TrajectoryRecord> {
+    return request<TrajectoryRecord>("/api/trajectories/demo", { method: "POST" });
+  },
+  async recomputeTrajectory(id: string): Promise<TrajectoryRecompute> {
+    return request<TrajectoryRecompute>(
+      `/api/trajectories/${encodeURIComponent(id)}/recompute`,
+      { method: "POST" },
+    );
+  },
+  trajectoryExportUrl(id: string, format: "csv" | "json", sample = "feedback"): string {
+    const suffix = format === "csv" ? `export.csv?sample=${sample}` : "export.json";
+    return `${API_BASE}/api/trajectories/${encodeURIComponent(id)}/${suffix}`;
+  },
+  async experiments(): Promise<ExperimentList> {
+    return request<ExperimentList>("/api/experiments");
+  },
+  async experiment(id: string): Promise<ExperimentDetail> {
+    return request<ExperimentDetail>(`/api/experiments/${encodeURIComponent(id)}`);
+  },
+  async createExperiment(payload: Record<string, unknown>): Promise<ExperimentDetail> {
+    return request<ExperimentDetail>("/api/experiments", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  async demoExperiment(): Promise<ExperimentDetail> {
+    return request<ExperimentDetail>("/api/experiments/demo", { method: "POST" });
+  },
+  async recordTrial(
+    experimentId: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return request(`/api/experiments/${encodeURIComponent(experimentId)}/trials`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  experimentExportUrl(id: string, format: "csv" | "json"): string {
+    return `${API_BASE}/api/experiments/${encodeURIComponent(id)}/export.${format}`;
+  },
+  async visual(): Promise<VisualSnapshot> {
+    return request<VisualSnapshot>("/api/visual");
+  },
+  async cameraReferences(limit = 50): Promise<CameraReferenceList> {
+    return request<CameraReferenceList>(`/api/visual/camera-references?limit=${limit}`);
+  },
+  async saveCameraReference(note: string): Promise<CameraReference> {
+    return request<CameraReference>("/api/visual/camera-references", {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    });
   },
   wsUrl(path: string): string {
     const base = API_BASE || window.location.origin;

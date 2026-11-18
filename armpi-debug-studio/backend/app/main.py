@@ -41,11 +41,28 @@ class SPAStaticFiles(StaticFiles):
         if path == "api" or path.startswith("api/"):
             return await super().get_response(path, scope)
         try:
-            return await super().get_response(path, scope)
+            response = await super().get_response(path, scope)
         except StarletteHTTPException as exc:
             if exc.status_code != 404:
                 raise
-            return await super().get_response("index.html", scope)
+            response = await super().get_response("index.html", scope)
+        self._apply_cache_headers(path, response)
+        return response
+
+    @staticmethod
+    def _apply_cache_headers(path: str, response: Response) -> None:
+        """Keep the SPA shell revalidated; hashed assets can be cached forever.
+
+        Without this the browser heuristically caches index.html while the
+        rebuild deletes the asset hashes it referenced, so the UI keeps running
+        an old bundle (missing newer pages) until a cache-busted reload.
+        """
+        name = path.rsplit("/", 1)[-1]
+        is_html = response.headers.get("content-type", "").startswith("text/html")
+        if is_html or name.endswith(".html") or name in ("", ".", "index"):
+            response.headers["Cache-Control"] = "no-store, must-revalidate"
+        elif path.startswith("assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
 
 
 async def _ticker(service: RobotService) -> None:

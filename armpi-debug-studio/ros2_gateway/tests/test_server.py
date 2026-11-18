@@ -27,6 +27,28 @@ class FakeNode:
     def camera_snapshot(self) -> bytes | None:
         return b"\xff\xd8fake-jpeg"
 
+    def tf_payload(self) -> dict[str, object]:
+        return {
+            "available": True,
+            "status": "ok",
+            "truth": "measured_tf",
+            "source": "tf2_topics",
+            "dynamic_edges": 1,
+            "static_edges": 1,
+            "transforms": [
+                {
+                    "parent": "base_link",
+                    "child": "link1",
+                    "translation_m": [0.0, 0.0, 0.1],
+                    "rotation_xyzw": [0.0, 0.0, 0.0, 1.0],
+                    "stamp_ns": 1,
+                    "age_ms": 5,
+                    "static": False,
+                }
+            ],
+            "notes": [],
+        }
+
 
 def _start(token: str | None) -> tuple[GatewayHTTPServer, threading.Event, threading.Thread]:
     server = GatewayHTTPServer(("127.0.0.1", 0), FakeNode(), token=token)
@@ -85,11 +107,14 @@ def test_token_is_required(gateway: tuple[GatewayHTTPServer, threading.Event, th
 
 def test_read_only_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:
     server, _, _ = gateway
-    for path in ("/health", "/state", "/battery", "/camera/status"):
+    for path in ("/health", "/state", "/battery", "/camera/status", "/tf"):
         status, body, content_type = _request(server, path, token="secret-token")
         assert status == 200, path
         assert content_type.startswith("application/json")
         assert isinstance(json.loads(body), dict)
+
+    status, body, _ = _request(server, "/tf", token="secret-token")
+    assert json.loads(body)["transforms"][0]["child"] == "link1"
 
     status, body, content_type = _request(server, "/camera/snapshot", token="secret-token")
     assert status == 200

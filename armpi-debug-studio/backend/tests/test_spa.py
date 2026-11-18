@@ -33,7 +33,16 @@ def _settings(tmp_path: Path) -> Settings:
 def test_client_side_routes_fall_back_to_index(tmp_path: Path) -> None:
     app = create_app(settings=_settings(tmp_path))
     with TestClient(app) as client:
-        for route in ("/", "/joints", "/diagnostics", "/events", "/settings"):
+        for route in (
+            "/",
+            "/joints",
+            "/diagnostics",
+            "/trajectory",
+            "/experiments",
+            "/visual",
+            "/events",
+            "/settings",
+        ):
             response = client.get(route)
             assert response.status_code == 200, route
             assert "<title>studio</title>" in response.text, route
@@ -49,3 +58,14 @@ def test_unknown_api_paths_stay_404(tmp_path: Path) -> None:
         response = client.get("/api/does-not-exist")
         assert response.status_code == 404
         assert "studio" not in response.text
+
+
+def test_spa_shell_is_not_cached_but_assets_are(tmp_path: Path) -> None:
+    app = create_app(settings=_settings(tmp_path))
+    with TestClient(app) as client:
+        for route in ("/", "/experiments"):
+            shell = client.get(route)
+            assert shell.headers["cache-control"] == "no-store, must-revalidate", route
+
+        asset = client.get("/assets/app.js")
+        assert asset.headers["cache-control"] == "public, max-age=31536000, immutable"

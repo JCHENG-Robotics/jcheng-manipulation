@@ -1,0 +1,57 @@
+date: 2026-11-18T10:03:09+08:00
+host: Linux 7.0.0-43-generic x86_64
+python: Python 3.12.3
+pytest: pytest 9.2.0
+node: v24.22.3
+npm: 11.19.1
+playwright: Version 1.65.1
+git_head: 2e71ce8642ebe1c0e39b7a3d9c80b89e05e5b07b
+
+git_status:
+ M CHANGELOG.md
+ M README.md
+ M README.zh-CN.md
+ M armpi-debug-studio/README.md
+ M armpi-debug-studio/backend/app/adapters/hardware.py
+ M armpi-debug-studio/backend/app/adapters/mock.py
+ M armpi-debug-studio/backend/app/api/routes.py
+ M armpi-debug-studio/backend/app/domain/enums.py
+ M armpi-debug-studio/backend/app/persistence/store.py
+ M armpi-debug-studio/backend/app/service.py
+ M armpi-debug-studio/backend/tests/test_spa.py
+ M armpi-debug-studio/frontend/e2e/README.md
+ M armpi-debug-studio/frontend/e2e/dashboard.spec.ts
+ M armpi-debug-studio/frontend/src/App.tsx
+ M armpi-debug-studio/frontend/src/api/client.ts
+ M armpi-debug-studio/frontend/src/api/types.ts
+ M armpi-debug-studio/frontend/src/components/AppShell.tsx
+ M armpi-debug-studio/frontend/src/pages/Settings.tsx
+ M armpi-debug-studio/frontend/src/store/robotStore.ts
+ M armpi-debug-studio/frontend/src/styles.css
+ M docs/hardware/hardware_inventory.md
+ M docs/hardware/measured_joint_limits.md
+ M docs/phase2/JOINT_LIMITS.md
+ M docs/phase3/PAIRED_TRIALS.md
+ M ros2_ws/src/armpi_ultra_description/urdf/gripper.urdf.xacro
+ M ros2_ws/src/armpi_ultra_moveit_config/config/armpi_ultra.srdf
+ M ros2_ws/src/armpi_ultra_moveit_config/config/initial_positions.yaml
+ M ros2_ws/src/armpi_ultra_moveit_config/config/joint_limits.yaml
+ M ros2_ws/src/armpi_ultra_moveit_config/config/moveit_controllers.yaml
+ M tools/phase2/joint_limit_survey.py
+?? armpi-debug-studio/backend/app/domain/experiments.py
+?? armpi-debug-studio/backend/app/domain/trajectory.py
+?? armpi-debug-studio/backend/tests/test_experiments.py
+?? armpi-debug-studio/backend/tests/test_trajectory.py
+?? armpi-debug-studio/docs/g2-trajectory-inspector.md
+?? armpi-debug-studio/docs/g3-experiment-lab.md
+?? armpi-debug-studio/frontend/e2e/experiments.spec.ts
+?? armpi-debug-studio/frontend/e2e/trajectory.spec.ts
+?? armpi-debug-studio/frontend/src/pages/ExperimentLab.tsx
+?? armpi-debug-studio/frontend/src/pages/TrajectoryInspector.tsx
+?? evidence/phase2/onsite_20261118/
+?? evidence/studio_g2/
+?? evidence/studio_g3/
+?? tools/phase2/analyze_real_tag.py
+?? tools/phase2/capture_real_frames.py
+?? tools/phase2/real_moveit_execute.py
+?? tools/phase2/servo_hold.py

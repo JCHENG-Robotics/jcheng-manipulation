@@ -12,6 +12,15 @@ from .domain.mapping import MappingConfig, load_mapping
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = BACKEND_ROOT.parent
 DEFAULT_MAPPING = PROJECT_ROOT / "configs" / "joint_mapping.yaml"
+DEFAULT_URDF = (
+    PROJECT_ROOT.parent
+    / "ros2_ws"
+    / "src"
+    / "armpi_ultra_description"
+    / "urdf"
+    / "armpi_ultra.xacro"
+)
+DEFAULT_VISUAL_MODEL = PROJECT_ROOT / "configs" / "visual_model.yaml"
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -34,6 +43,8 @@ class Settings:
     hardware_motion_enabled: bool
     gateway_url: str | None = None
     gateway_token: str | None = None
+    urdf_path: Path = DEFAULT_URDF
+    visual_model_path: Path = DEFAULT_VISUAL_MODEL
     api_version: str = "0.1.0"
     schema_version: int = 1
 
@@ -62,6 +73,10 @@ class Settings:
             hardware_motion_enabled=hardware_motion_enabled,
             gateway_url=os.getenv("ARMPI_GATEWAY_URL") or None,
             gateway_token=os.getenv("ARMPI_GATEWAY_TOKEN") or None,
+            urdf_path=Path(os.getenv("ARMPI_URDF_PATH", str(DEFAULT_URDF))),
+            visual_model_path=Path(
+                os.getenv("ARMPI_VISUAL_MODEL", str(DEFAULT_VISUAL_MODEL))
+            ),
         )
 
     def load_mapping(self) -> MappingConfig:

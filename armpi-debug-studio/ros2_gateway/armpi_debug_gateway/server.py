@@ -6,6 +6,7 @@ Endpoints:
     GET /battery
     GET /camera/status
     GET /camera/snapshot
+    GET /tf
     *   /motion/dispatch, /motion/stop -> 501 NOT_IMPLEMENTED
 
 All endpoints require `X-Armpi-Token` when a token is configured.
@@ -115,6 +116,9 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
                 self._error(503, "CAMERA_UNAVAILABLE", "no camera frame received yet")
                 return
             self._bytes(200, frame, "image/jpeg")
+            return
+        if path == "/tf":
+            self._json(200, self.server.node.tf_payload())
             return
         if path in ("/motion/dispatch", "/motion/stop"):
             self._error(501, "NOT_IMPLEMENTED", "hardware motion is disabled in this phase")

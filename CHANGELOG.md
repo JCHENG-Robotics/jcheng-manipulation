@@ -3,6 +3,108 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-18 Studio G4 read-only Visual Workbench
+
+### Added
+
+- **G4 Visual Workbench.** New `Visual Workbench` page and `/api/visual` API.
+  The backend parses the project URDF/xacro (including the gripper include),
+  builds the kinematic tree, and computes link frames from the current joint
+  state. The response separates URDF/model, joint truth, camera metadata and
+  calibration, and reports missing/cyclic/degraded TF inputs instead of
+  inventing frames.
+- Measured camera extrinsic from the validated TSAI hand-eye
+  (`T_link4_camera`, 2026-11-17) is shown as `camera_optical_calibrated`;
+  nominal URDF camera frames are explicitly marked. The camera body frame is
+  `rgb_camera_link`, with a warning that PnP must use the calibrated optical
+  frame.
+- Metadata-only camera references: `POST/GET /api/visual/camera-references`
+  store timestamp, resolution, encoding, truth, calibration version and TF
+  status; image bytes are not stored.
+- Optional read-only gateway `/tf`: subscribes to `/tf`/`/tf_static`
+  (`tf2_msgs`), caches the latest edge per parent/child, and serves a
+  status/edge/age snapshot. `/api/visual` composes it onto `base_link`, marks
+  frames `live_tf`, and falls back to URDF FK for missing frames. This endpoint
+  is no-ROS tested but **not yet verified on the robot**.
+- `configs/visual_model.yaml` records URDF audit status and the camera
+  extrinsic source/version.
+- 8 new backend visual tests and 1 Playwright spec; backend is now **74 passed**
+  (the total includes one serving cache-header test already in the worktree),
+  Playwright **10 passed**; frontend build succeeds.
+
+### Changed
+
+- Studio README/status table, root README/README.zh-CN counts, Settings roadmap
+  and E2E coverage docs updated. The Workbench is read-only: the `/tf` path is
+  optional and not hardware-verified, there is no motion endpoint, and no
+  safety-chain dependency; URDF limits remain provisional and mock camera
+  frames remain simulated.
+
+## [Unreleased] — 2026-11-18 Studio G3 offline Experiment Lab
+
+### Added
+
+- **G3 Experiment Lab (offline).** New `Experiment Lab` page and
+  `/api/experiments` API. Immutable experiment definitions capture purpose,
+  data origin, hardware/calibration/mapping versions, stop rules, planned
+  pairs, seed and fixtures. Trials are append-only and tied to
+  `experiment_id`/`pair_id`/`trial_id`, method order, success, continuous
+  error, rotation error, failure code, measurement source, optional G2
+  `trajectory_id` and artifact references.
+- Failure vocabulary covers communication, timeout, joint limit, planning,
+  trajectory execution, vision, calibration, grasp failure, safety veto and
+  unknown. Duplicate pair/method and pair/order records are rejected.
+- Paired analysis (`analysis_version g3-1`) mirrors the Phase 3
+  `armpi_analysis.paired_trials` formulas: seeded bootstrap CI of the mean
+  difference, exact sign test, exact McNemar, effect size, order effect,
+  failure-code counts, incomplete-pair reporting, and warnings for simulated
+  data / small samples / underpowered binary endpoints. CSV and metadata JSON
+  exports are recomputable.
+- Deterministic simulated demo: 16 pairs / 32 trials, clearly marked
+  `simulated`; binary endpoint warning is shown (McNemar p=0.375).
+- Contract and metric definitions:
+  `armpi-debug-studio/docs/g3-experiment-lab.md`; evidence bundle
+  `evidence/studio_g3/20261118/`.
+- 9 new backend tests (`test_experiments.py`) and 1 Playwright spec; backend is
+  now **65 passed**, Playwright **9 passed**; frontend build succeeds.
+
+### Changed
+
+- Studio README/status table, root README/README.zh-CN counts, Settings roadmap
+  and E2E coverage docs updated. G3 stores references only: it does not read
+  rosbag2, execute a trial, or touch hardware. No real experiment was recorded.
+
+## [Unreleased] — 2026-11-18 Studio G2 offline Trajectory Inspector
+
+### Added
+
+- **G2 Trajectory Inspector (offline).** New `Trajectory Inspector` page and
+  `/api/trajectories` API. A JSON dataset stores `planned`, `commanded` and
+  `feedback` separately with explicit truth labels; the backend validates the
+  contract, computes per-joint max/RMSE/mean/final error plus sampling quality
+  (rate, max gap, gaps, dropout, jitter), and stores one append-only row keyed by
+  the canonical dataset SHA-256. Duplicate imports return the existing record.
+- Recomputable evidence: aligned CSV exports (`sample=feedback|commanded`),
+  dataset JSON export, and `POST /recompute` comparing fresh analysis with the
+  stored result.
+- Client-side Replay clock with a global `REPLAY` source badge and an explicit
+  "no hardware command" banner. There is no trajectory endpoint that dispatches
+  motion; the Playwright test asserts play/pause appends no audit event.
+- Contract and metric definitions:
+  `armpi-debug-studio/docs/g2-trajectory-inspector.md`; evidence bundle
+  `evidence/studio_g2/20261118/`.
+- 8 new backend tests (`test_trajectory.py`) and 1 Playwright spec; backend is
+  now **56 passed**, Playwright **8 passed**; frontend build succeeds.
+
+### Changed
+
+- `capabilities.replay` is now `true` in mock and hardware adapters. Hardware
+  motion remains disabled and `feedback.truth=commanded` still produces
+  "tracking unavailable" instead of a fake error.
+- Studio README/status table, root README/README.zh-CN counts, Settings roadmap
+  and E2E coverage docs updated. G2 data is offline-only; the bundled demo is
+  simulated and no hardware trajectory was captured.
+
 ## [Unreleased] — 2026-11-17 Session 4: error budget, paired trials, host/DDS benchmark
 
 ### Added
