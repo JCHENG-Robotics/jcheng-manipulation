@@ -24,7 +24,7 @@
 | Battery | 2S pack; 7704 mV after the 2026-11-18 reboot | `/ros_robot_controller/battery` | `[V]` |
 | Storage | root filesystem 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) | `df -h /` | `[V]`; boot/log risk |
 | Thermal | 48.8 °C after boot, `throttled=0x0` | `vcgencmd` | `[V]` |
-| Network | `eth0 10.42.0.218/24` (SSH + DDS, current); `wlan0 10.51.128.226/23` (fallback; office WiFi) | `ip -brief addr` | `[V]` |
+| Network | `eth0 10.42.0.218/24` (**SSH + DDS, current** since the 2026-11-18 evening WiFi data-plane outage; 0.2 ms); `wlan0 10.51.128.226/23` (office WiFi: up, gateway HTTP bind, 7 ms) | `ip -brief addr` | `[V]` |
 | Wi-Fi USB adapter | Realtek RTL8188GU `0bda:1a2b` in CDROM mode; `rtw88_8821cu` is the wrong module and crashed the kernel | `lsusb`, `dmesg` | `[V]` |
 
 ## Notes
