@@ -30,9 +30,20 @@
       </material>
     </visual>
     <collision>
+      <!-- MEASURED GEOMETRY 2026-11-18. The 2025-07 vendor model put a
+           1 m x 1 m x 25 mm floor plate here. It is centred on base_link, so
+           it occupies z = -12.5..+12.5 mm, which is 65-90 mm ABOVE the measured
+           floor (z = -0.0787 m): it blocks every grasp whose fingers or wrist
+           cross z = 0 inside the 1 m square, i.e. every low table/floor grasp.
+           The newer vendor model (ROS2/Armpi_ultra-main, 2026-04-02) uses the
+           real base mesh; only this collision differed between the two vendor
+           copies (docs/hardware/vendor_baseline.md). The real floor is
+           published separately as a collision object by
+           tools/phase2/table_collision.py. -->
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="1.0 1.0 0.025"/> </geometry>
+        <mesh filename="file://$(find armpi_ultra_description)/meshes/base_link.STL"/>
+      </geometry>
     </collision>
   </link>
   <link name="link1">
