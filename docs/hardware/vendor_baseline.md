@@ -54,12 +54,19 @@ install), not in the public repository:
 2. Robot `.zshrc`: added `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` and
    `CYCLONEDDS_URI=file:///home/ubuntu/cyclonedds.xml`.
 3. `/home/ubuntu/cyclonedds.xml`: bind CycloneDDS to the active link. Since
-   2026-11-17 evening this is **`eth0`** (the earlier `wlan0` config failed
-   with `wlan0: does not match an available interface`; backup
-   `cyclonedds.xml.bak_wlan0_20261117`). Switch back to `wlan0` only together
-   with the laptop config.
+   2026-11-18 this is **`wlan0`** (office WiFi); the wired config is backed up
+   as `cyclonedds.xml.bak_eth0_20261118`. A `wlan0: does not match an available
+   interface` failure means the interface is down — bring WiFi up before
+   restarting the core. Change both ends together.
 4. Restarted `start_node.service` and verified one `/controller_manager`, one
    `/servo_manager`, one action server and one MoveIt client.
+5. `driver/controller/controller/mecanum.py` (chassis node): **hardened fork**
+   with a `/cmd_vel` watchdog — `cmd_vel_timeout` (default 0.5 s) and
+   `watchdog_rate` (default 20 Hz) parameters, zero duty published when a
+   non-zero command goes stale, and zero duty on shutdown. Vendor original
+   sha256 `9c54a5d5…`; deployed file sha256 `c599517a…`. The change is also in
+   the private workspace copy; diff:
+   [patches/controller_mecanum_watchdog.patch](patches/controller_mecanum_watchdog.patch).
 
 ## Known vendor issues seen live
 

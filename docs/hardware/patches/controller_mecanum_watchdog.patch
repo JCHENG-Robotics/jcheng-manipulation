@@ -1,0 +1,169 @@
+--- a/src/driver/controller/controller/mecanum.py
++++ b/src/driver/controller/controller/mecanum.py
+@@ -1,19 +1,33 @@
+ #!/usr/bin/env python3
+ # coding=utf8
++import math
++
+ import rclpy
++
++try:
++    from rclpy.executors import ExternalShutdownException
++except ImportError:  # older rclpy fallback
++    class ExternalShutdownException(Exception):
++        pass
++
+ from rclpy.node import Node
+ from geometry_msgs.msg import Twist
+ from ros_robot_controller_msgs.msg import MotorSpeedControl, MotorsSpeedControl
+-import math
++
++
++def watchdog_expired(now_sec, last_cmd_sec, timeout_sec):
++    """Return True when a non-zero command has been silent for too long."""
++    return timeout_sec > 0.0 and (now_sec - last_cmd_sec) >= timeout_sec
++
+ 
+ class MecanumChassis:
+     def __init__(self, wheelbase=0.195, track_width=0.22, wheel_diameter=0.0965):
+         self.wheelbase = wheelbase
+         self.track_width = track_width
+         self.wheel_diameter = wheel_diameter
+-        
++
+         self.max_motor_speed_rps = 127.0
+-        self.min_motor_speed_rps = -126.0 
++        self.min_motor_speed_rps = -126.0
+ 
+     def speed_covert(self, speed):
+         return speed / (math.pi * self.wheel_diameter)
+@@ -26,13 +40,12 @@
+         motor4_linear = (linear_x + linear_y - angular_z * K)
+         # 对应 Motor ID 1, 2, 3, 4
+         motor1_rps = self.speed_covert(motor1_linear)
+-        motor2_rps = self.speed_covert(-motor2_linear) 
++        motor2_rps = self.speed_covert(-motor2_linear)
+         motor3_rps = self.speed_covert(-motor3_linear)
+         motor4_rps = self.speed_covert(motor4_linear)
+ 
+         target_rps_values = [motor1_rps, motor2_rps, motor3_rps, motor4_rps]
+ 
+-
+         max_abs_target_rps = 0.0
+         if target_rps_values:
+             max_abs_target_rps = max(abs(v) for v in target_rps_values)
+@@ -47,7 +60,7 @@
+         for i in range(len(scaled_rps_values)):
+             msg = MotorSpeedControl()
+             msg.id = i + 1  # 电机ID从1开始
+-            
++
+             msg.speed = float(max(min(scaled_rps_values[i], self.max_motor_speed_rps), self.min_motor_speed_rps))
+             data.append(msg)
+ 
+@@ -55,9 +68,21 @@
+         motors_speed_msg.data = data
+         return motors_speed_msg
+ 
++    def zero_speed(self):
++        return self.set_velocity(0.0, 0.0, 0.0)
++
++
+ class MecanumChassisNode(Node):
+     def __init__(self):
+         super().__init__('mecanum_chassis_node')
++        self.cmd_vel_timeout = float(self.declare_parameter('cmd_vel_timeout', 0.5).value)
++        self.watchdog_rate = float(self.declare_parameter('watchdog_rate', 20.0).value)
++
++        if self.watchdog_rate <= 0.0:
++            raise ValueError('watchdog_rate must be > 0')
++        if self.cmd_vel_timeout < 0.0:
++            raise ValueError('cmd_vel_timeout must be >= 0')
++
+         self.chassis = MecanumChassis()
+ 
+         self.sub_cmd_vel = self.create_subscription(
+@@ -68,33 +93,74 @@
+ 
+         self.pub_motors_speed = self.create_publisher(
+             MotorsSpeedControl,
+-            '/ros_robot_controller/set_motor_speeds', 
++            '/ros_robot_controller/set_motor_speeds',
+             10)
+ 
+-        # self.get_logger().info('Mecanum chassis node started, waiting for /cmd_vel messages...')
++        # No command has been received yet; the robot controller already sets
++        # motor duty to zero during its own initialisation.
++        self.motors_stopped = True
++        self.last_cmd_time = self.get_clock().now()
++
++        if self.cmd_vel_timeout == 0.0:
++            self.watchdog_timer = None
++            self.get_logger().warn('cmd_vel_timeout=0: /cmd_vel watchdog is DISABLED')
++        else:
++            self.watchdog_timer = self.create_timer(
++                1.0 / self.watchdog_rate, self.watchdog_callback)
++            self.get_logger().info(
++                'mecanum watchdog enabled: timeout=%.3fs rate=%.1fHz'
++                % (self.cmd_vel_timeout, self.watchdog_rate))
+ 
+     def cmd_vel_callback(self, msg):
+         linear_x = msg.linear.x
+         linear_y = msg.linear.y
+         angular_z = msg.angular.z
+ 
+-        # self.get_logger().info(
+-        #     f"Received /cmd_vel: linear_x={linear_x:.3f}, linear_y={linear_y:.3f}, angular_z={angular_z:.3f}")
++        self.last_cmd_time = self.get_clock().now()
++        self.motors_stopped = (
++            abs(linear_x) < 1e-9 and abs(linear_y) < 1e-9 and abs(angular_z) < 1e-9
++        )
+ 
+         motors_msg = self.chassis.set_velocity(linear_x, linear_y, angular_z)
+         self.pub_motors_speed.publish(motors_msg)
+-        # self.get_logger().info("Published MotorsSpeedControl message with scaled and clamped speeds.")
++
++    def watchdog_callback(self):
++        now = self.get_clock().now()
++        elapsed = (now - self.last_cmd_time).nanoseconds / 1e9
++        if not self.motors_stopped and watchdog_expired(
++                now.nanoseconds / 1e9, self.last_cmd_time.nanoseconds / 1e9,
++                self.cmd_vel_timeout):
++            self.pub_motors_speed.publish(self.chassis.zero_speed())
++            self.motors_stopped = True
++            self.get_logger().warn(
++                'no /cmd_vel for %.3fs; published zero motor speed' % elapsed)
++
++    def stop(self):
++        self.pub_motors_speed.publish(self.chassis.zero_speed())
++        self.motors_stopped = True
++
+ 
+ def main(args=None):
+     rclpy.init(args=args)
+-    node = MecanumChassisNode()
++    node = None
+     try:
++        node = MecanumChassisNode()
+         rclpy.spin(node)
+-    except KeyboardInterrupt:
++    except (KeyboardInterrupt, ExternalShutdownException):
+         pass
+     finally:
+-        node.destroy_node()
+-        rclpy.shutdown()
++        if node is not None:
++            try:
++                node.stop()
++            except Exception:
++                pass
++            try:
++                node.destroy_node()
++            except Exception:
++                pass
++        if rclpy.ok():
++            rclpy.shutdown()
++
+ 
+ if __name__ == '__main__':
+     main()
