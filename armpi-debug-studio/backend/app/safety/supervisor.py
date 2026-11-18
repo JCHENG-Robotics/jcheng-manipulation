@@ -14,9 +14,11 @@ from ..domain.enums import (
     Severity,
     SourceLabel,
     StopState,
+    Truth,
     Validity,
 )
 from ..domain.mapping import MappingConfig
+from ..domain.motion import EffectiveMotionLimits
 from ..domain.models import (
     ConnectionReport,
     RobotState,
@@ -41,6 +43,8 @@ class SafetySupervisor:
         session_id: str | None = None,
         require_lease: bool = True,
         executing: bool = False,
+        supervised_motion: bool = False,
+        motion_limits: EffectiveMotionLimits | None = None,
     ) -> SafetyReport:
         checks: list[SafetyCheck] = []
 
@@ -112,15 +116,46 @@ class SafetySupervisor:
             severity=Severity.INFO,
         )
 
-        mapping_verified = self.mapping.verified
+        mapping_verified = self.mapping.verified or supervised_motion
+        if self.mapping.verified:
+            mapping_detail = "limits verified"
+        elif supervised_motion:
+            step = motion_limits.max_step_rad if motion_limits else "?"
+            mapping_detail = (
+                "provisional limits accepted under supervised commissioning "
+                f"(single joint, max step {step} rad)"
+            )
+        else:
+            mapping_detail = (
+                "provisional limits accepted for Mock; blocked for hardware motion"
+            )
         add(
             "mapping_verified",
             "限位验证",
             mapping_verified,
-            "provisional limits accepted for Mock; blocked for hardware motion",
-            blocking=state.mode.value != "mock",
-            severity=Severity.WARNING,
+            mapping_detail,
+            blocking=state.mode.value != "mock" and not supervised_motion,
+            severity=(
+                Severity.WARNING
+                if supervised_motion or state.mode.value == "mock"
+                else Severity.FAULT
+            ),
         )
+
+        if supervised_motion:
+            step = motion_limits.max_step_rad if motion_limits else None
+            floor = motion_limits.min_duration_s if motion_limits else None
+            add(
+                "supervised_commissioning",
+                "受监督调试模式",
+                True,
+                (
+                    "operator acknowledgement present; "
+                    f"single joint, max step {step} rad, duration >= {floor} s"
+                ),
+                blocking=False,
+                severity=Severity.WARNING,
+            )
 
         if require_lease:
             lease = self.leases.check(lease_id, session_id)
@@ -157,12 +192,36 @@ class SafetySupervisor:
         )
 
         hardware_motion = state.capabilities.hardware_motion
+        if state.mode.value == "mock":
+            motion_detail = "mock only"
+        elif hardware_motion:
+            motion_detail = f"gateway motion enabled; mode={state.capabilities.motion_mode}"
+        else:
+            motion_detail = "hardware_motion=false (G1 read-only)"
         add(
             "hardware_motion_enabled",
             "硬件运动能力",
             state.mode.value == "mock" or hardware_motion,
-            "mock only" if state.mode.value == "mock" else "hardware_motion=false (G1 read-only)",
+            motion_detail,
         )
+
+        if state.mode.value != "mock" and hardware_motion:
+            measured = [
+                j.name
+                for j in state.joints
+                if j.truth is not Truth.MEASURED
+                or j.validity in (Validity.INVALID, Validity.UNAVAILABLE)
+            ]
+            add(
+                "measured_feedback",
+                "实测反馈来源",
+                not measured,
+                (
+                    "all joints report measured servo positions"
+                    if not measured
+                    else "not measured: " + ", ".join(measured)
+                ),
+            )
 
         unavailable = [
             j.name

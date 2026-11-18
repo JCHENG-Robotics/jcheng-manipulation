@@ -1,0 +1,1 @@
+{"status":"ok","mode":"hardware","version":"0.1.0","schema_version":1,"source_label":"LIVE","capabilities":{"hardware_motion":true,"hardware_read":true,"mock_faults":false,"replay":true,"min_duration_s":1.0,"max_duration_s":10.0,"max_step_rad":0.096342174710087,"supervised_motion":true,"single_joint_only":true,"motion_mode":"supervised"}}

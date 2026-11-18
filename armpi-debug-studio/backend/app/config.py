@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .domain.enums import Mode
 from .domain.mapping import MappingConfig, load_mapping
+from .domain.motion import SUPERVISED_MOTION_ACK
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = BACKEND_ROOT.parent
@@ -41,6 +42,7 @@ class Settings:
     frontend_dist: Path
     log_level: str
     hardware_motion_enabled: bool
+    supervised_motion: bool = False
     gateway_url: str | None = None
     gateway_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
@@ -55,11 +57,32 @@ class Settings:
             raise ValueError(f"ARMPI_MODE must be 'mock' or 'hardware', got {raw_mode!r}")
         resolved_mode = Mode(raw_mode)
 
-        env_mode = os.getenv("ARMPI_MODE", "mock").strip().lower()
         # Hardware motion is impossible in mock mode. In hardware mode it still
         # requires an explicit opt-in; G1 defaults to false.
         motion_flag = _env_bool("ARMPI_HARDWARE_MOTION", False)
         hardware_motion_enabled = resolved_mode is Mode.HARDWARE and motion_flag
+        mapping_path = Path(os.getenv("ARMPI_JOINT_MAPPING", str(DEFAULT_MAPPING)))
+        gateway_url = os.getenv("ARMPI_GATEWAY_URL") or None
+        gateway_token = os.getenv("ARMPI_GATEWAY_TOKEN") or None
+        ack = (os.getenv("ARMPI_SUPERVISED_MOTION_ACK") or "").strip()
+
+        supervised_motion = hardware_motion_enabled and ack == SUPERVISED_MOTION_ACK
+        if hardware_motion_enabled:
+            if gateway_url is None:
+                raise ValueError(
+                    "ARMPI_HARDWARE_MOTION=1 requires ARMPI_GATEWAY_URL; "
+                    "the backend has no direct serial path"
+                )
+            if not gateway_token:
+                raise ValueError(
+                    "ARMPI_HARDWARE_MOTION=1 requires ARMPI_GATEWAY_TOKEN; "
+                    "do not enable motion on an unauthenticated gateway"
+                )
+            if not supervised_motion and not load_mapping(mapping_path).verified:
+                raise ValueError(
+                    "ARMPI_HARDWARE_MOTION=1 with unverified joint limits requires "
+                    f"ARMPI_SUPERVISED_MOTION_ACK={SUPERVISED_MOTION_ACK}"
+                )
 
         return cls(
             mode=resolved_mode,
@@ -67,12 +90,13 @@ class Settings:
             bind_host=os.getenv("BIND_HOST", "127.0.0.1"),
             port=int(os.getenv("PORT", "8000")),
             db_path=Path(db_path or os.getenv("DB_PATH", str(PROJECT_ROOT / "data" / "studio.db"))),
-            mapping_path=Path(os.getenv("ARMPI_JOINT_MAPPING", str(DEFAULT_MAPPING))),
+            mapping_path=mapping_path,
             frontend_dist=Path(os.getenv("FRONTEND_DIST", str(PROJECT_ROOT / "frontend" / "dist"))),
             log_level=os.getenv("LOG_LEVEL", "info"),
             hardware_motion_enabled=hardware_motion_enabled,
-            gateway_url=os.getenv("ARMPI_GATEWAY_URL") or None,
-            gateway_token=os.getenv("ARMPI_GATEWAY_TOKEN") or None,
+            supervised_motion=supervised_motion,
+            gateway_url=gateway_url,
+            gateway_token=gateway_token,
             urdf_path=Path(os.getenv("ARMPI_URDF_PATH", str(DEFAULT_URDF))),
             visual_model_path=Path(
                 os.getenv("ARMPI_VISUAL_MODEL", str(DEFAULT_VISUAL_MODEL))

@@ -24,6 +24,7 @@
 | Error budget and tolerance envelope | **Framework implemented; project budget partial** | `armpi_analysis` RSS/worst-case/Monte-Carlo framework; measured hand-eye + fiducial terms (3.699 mm / 0.682° RSS) but repeatability, backlash, execution, gripper and fixture terms are unmeasured; tolerance is provisional |
 | Paired trial framework | **Implemented, simulated-validated** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no hardware trial |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
+| ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=false`, no e-stop |
 | Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
 
 Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack

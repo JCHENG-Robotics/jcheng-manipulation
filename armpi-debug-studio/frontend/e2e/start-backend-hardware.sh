@@ -33,6 +33,8 @@ export ARMPI_GATEWAY_URL
 ARMPI_GATEWAY_TOKEN=$(cat "${ARMPI_GATEWAY_TOKEN_FILE}")
 export ARMPI_GATEWAY_TOKEN
 export ARMPI_HARDWARE_MOTION=0
+# Never inherit a supervised acknowledgement from the operator shell.
+unset ARMPI_SUPERVISED_MOTION_ACK
 export DB_PATH
 export BIND_HOST=127.0.0.1
 export PORT

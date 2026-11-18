@@ -8,6 +8,7 @@ from collections.abc import Iterator
 
 import pytest
 
+from armpi_debug_gateway.motion import MotionRejected
 from armpi_debug_gateway.server import GatewayHTTPServer
 
 
@@ -50,8 +51,35 @@ class FakeNode:
         }
 
 
-def _start(token: str | None) -> tuple[GatewayHTTPServer, threading.Event, threading.Thread]:
-    server = GatewayHTTPServer(("127.0.0.1", 0), FakeNode(), token=token)
+class FakeMotionNode(FakeNode):
+    motion_enabled = True
+
+    def motion_status_payload(self) -> dict[str, object]:
+        return {
+            "motion_enabled": True,
+            "state": "idle",
+            "measured_ready": True,
+            "measured": {},
+        }
+
+    def dispatch_motion(self, body: dict) -> dict[str, object]:
+        if body.get("command_id") == "reject":
+            raise MotionRejected(
+                "MOTION_STEP_EXCEEDED", "step too large", http_status=409
+            )
+        return {"status": "dispatched", "command_id": body["command_id"]}
+
+    def stop_motion(self, body: dict) -> dict[str, object]:
+        return {"status": "stop_dispatched", "command_id": body.get("command_id")}
+
+
+def _start(
+    token: str | None,
+    node: object | None = None,
+) -> tuple[GatewayHTTPServer, threading.Event, threading.Thread]:
+    server = GatewayHTTPServer(
+        ("127.0.0.1", 0), node or FakeNode(), token=token
+    )
     stop_event = threading.Event()
     thread = threading.Thread(
         target=server.serve_until,
@@ -80,8 +108,18 @@ def _request(
     *,
     token: str | None = None,
     method: str = "GET",
+    body: dict | None = None,
 ) -> tuple[int, bytes, str]:
-    request = urllib.request.Request(f"http://127.0.0.1:{server.server_port}{path}", method=method)
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+    request = urllib.request.Request(
+        f"http://127.0.0.1:{server.server_port}{path}",
+        method=method,
+        data=data,
+    )
+    if body is not None:
+        request.add_header("Content-Type", "application/json")
     if token is not None:
         request.add_header("X-Armpi-Token", token)
     try:
@@ -124,10 +162,87 @@ def test_read_only_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, 
 
 def test_motion_paths_stay_disabled(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:
     server, _, _ = gateway
-    for method in ("GET", "POST"):
-        status, body, _ = _request(server, "/motion/dispatch", token="secret-token", method=method)
-        assert status == 501, method
-        assert json.loads(body)["error"]["code"] == "NOT_IMPLEMENTED"
+    status, body, _ = _request(
+        server, "/motion/status", token="secret-token"
+    )
+    assert status == 200
+    assert json.loads(body)["state"] == "disabled"
+
+    status, body, _ = _request(
+        server, "/motion/dispatch", token="secret-token", method="POST", body={}
+    )
+    assert status == 403
+    assert json.loads(body)["error"]["code"] == "MOTION_DISABLED"
+
+    status, body, _ = _request(
+        server, "/motion/stop", token="secret-token", method="POST", body={}
+    )
+    assert status == 403
+    assert json.loads(body)["error"]["code"] == "MOTION_DISABLED"
+
+    status, body, _ = _request(
+        server, "/motion/dispatch", token="secret-token", method="GET"
+    )
+    assert status == 405
+
+
+def test_motion_endpoints_when_enabled() -> None:
+    server, stop_event, thread = _start("secret-token", FakeMotionNode())
+    try:
+        status, body, _ = _request(
+            server, "/motion/status", token="secret-token"
+        )
+        assert status == 200
+        assert json.loads(body)["state"] == "idle"
+
+        status, body, _ = _request(
+            server,
+            "/motion/dispatch",
+            token="secret-token",
+            method="POST",
+            body={"command_id": "cmd_1"},
+        )
+        assert status == 200
+        assert json.loads(body)["status"] == "dispatched"
+
+        status, body, _ = _request(
+            server,
+            "/motion/dispatch",
+            token="secret-token",
+            method="POST",
+            body={"command_id": "reject"},
+        )
+        assert status == 409
+        error = json.loads(body)["error"]
+        assert error["code"] == "MOTION_STEP_EXCEEDED"
+        assert error["message"] == "step too large"
+
+        status, body, _ = _request(
+            server, "/motion/dispatch", token="secret-token", method="POST"
+        )
+        assert status == 400
+        assert json.loads(body)["error"]["code"] == "MOTION_BAD_REQUEST"
+
+        status, body, _ = _request(
+            server,
+            "/motion/stop",
+            token="secret-token",
+            method="POST",
+            body={"command_id": "cmd_1"},
+        )
+        assert status == 200
+        assert json.loads(body)["status"] == "stop_dispatched"
+
+        status, body, _ = _request(
+            server,
+            "/motion/dispatch",
+            method="POST",
+            body={"command_id": "cmd_1"},
+        )
+        assert status == 401
+    finally:
+        stop_event.set()
+        thread.join(timeout=5)
 
 
 def test_unknown_path_is_404(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:

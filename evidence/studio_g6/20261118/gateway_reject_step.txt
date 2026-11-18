@@ -1,0 +1,2 @@
+{"error": {"code": "MOTION_STEP_EXCEEDED", "message": "joint1: step 429 pulses exceeds supervised 23 pulses (0.1 rad)", "details": {}}}
+HTTP 409

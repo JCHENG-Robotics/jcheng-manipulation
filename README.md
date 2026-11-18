@@ -39,7 +39,7 @@ data file in `evidence/`; it does **not** mean hardware validation.
 | Error budget framework | Implemented, demo-validated; project budget **partial** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md); measured hand-eye + fiducial terms, RSS 3.699 mm / 0.682°, required repeatability/backlash/execution/gripper/fixture terms unmeasured |
 | Paired trial framework | Implemented, simulated-validated | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md); 24-pair randomized plan, seeded bootstrap/sign/McNemar analysis; no physical trial |
 | Host/DDS benchmark | Implemented, read-only hardware snapshot | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md); laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + read-only hardware + G2/G3/G4/G5 | 76 backend + 24 gateway tests pass; 10 mock + 3 hardware Playwright; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 visual workbench with live `/tf` verified, G5 read-only trajectory recorder with a supervised moving capture; hardware motion disabled |
+| ArmPi Debug Studio | G1-Mock + read-only hardware + G2–G6 | 92 backend + 38 gateway tests pass; 10 mock + 3 hardware Playwright; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 visual workbench with live `/tf`, G5 read-only recorder with a supervised moving capture, G6 supervised motion write path (off by default, verified without motion; measured delta 0.0 rad) |
 | M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
 
 The detailed audit (sources, conflicts, decisions) is in
@@ -48,7 +48,7 @@ The detailed audit (sources, conflicts, decisions) is in
 ## Repository layout
 
 ```text
-armpi-debug-studio/        # G1 console (FastAPI + React) + read-only gateway; no hardware motion
+armpi-debug-studio/        # G1 console (FastAPI + React) + gateway; motion off by default
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
@@ -282,7 +282,7 @@ Profiles: `default`, `gain_0p1`, `gain_0p2`. The 2026-11-15 regression sent
 returned `error_code=0`. See
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md).
 
-### ArmPi Debug Studio (Mock, read-only hardware, G5 recorder)
+### ArmPi Debug Studio (Mock, read-only hardware, G2–G6)
 
 ```bash
 cd armpi-debug-studio/backend
@@ -305,8 +305,11 @@ npm run test:e2e:hardware
 
 The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the
 read-only gateway running on the robot, the UI shows `LIVE` battery and camera
-data; joint positions are a command echo. Hardware motion remains disabled by
-design. The gateway was hardware-verified on 2026-11-17 and now runs as a host
+data; joint positions are the measured `servo_states` value (the command echo
+is still available separately). Hardware motion is **off by default**; the G6
+supervised path requires `ARMPI_HARDWARE_MOTION=1` plus the fixed
+`ARMPI_SUPERVISED_MOTION_ACK` phrase, one joint per command and a 0.096342 rad
+step cap. The gateway was hardware-verified on 2026-11-17 and now runs as a host
 systemd service; its `/tf` path was verified on 2026-11-18 (11 dynamic + 8
 static edges, `base_link→link5` within 0.4 mm of `tf2_echo`). See
 [`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md),
@@ -322,6 +325,18 @@ A 5 s no-motion capture and a supervised `camera_forward` moving capture
 the moving dataset reports tracking max 0.008321 rad / RMSE 0.003962 rad, which
 is dominated by servo pulse quantization and a one-period start offset. See
 [`armpi-debug-studio/docs/g5-trajectory-recorder.md`](armpi-debug-studio/docs/g5-trajectory-recorder.md).
+
+The **G6 supervised motion write path** adds Studio-side dispatch while the
+limits remain provisional: one joint, a pulse-aligned 0.096342 rad step, a
+1.0 s duration floor, measured-feedback freshness and completion, and an
+independent gateway revalidation against measured pulses. It is off by default
+and requires an explicit acknowledgement; a separate supervised gateway instance
+on `8766` was started, the read-only service stayed on `8765`, and a supervised
+backend reached `safety.ready=true`. Out-of-limit and over-step commands were
+rejected and the arm did **not** move (measured delta 0.0 rad); no valid
+dispatch was sent. See
+[`armpi-debug-studio/docs/g6-motion-write-path.md`](armpi-debug-studio/docs/g6-motion-write-path.md)
+and [`evidence/studio_g6/20261118/`](evidence/studio_g6/20261118/README.md).
 
 ## Model caveats (important)
 

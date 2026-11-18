@@ -190,12 +190,17 @@ export function SettingsPage() {
       <Card title="Roadmap" subtitle="未实现功能只列出，不放置可点击的假按钮">
         <ul className="roadmap-list">
           <li>
-            <strong>E7 ROS 2 Gateway</strong> — 只读能力探测、状态读取、超时/熔断；运动写接口仍禁用。
+            <strong>G1 supervised motion</strong> — 单关节、限位 provisional、网关按实测脉冲独立复核；
+            默认关闭，必须用固定的 ARMPI_HARDWARE_MOTION / ARMPI_SUPERVISED_MOTION_ACK 组合显式启用。
+          </li>
+          <li>
+            <strong>物理急停与独立编码器</strong> — 未实现；Stop 只是保持指令已发送，不是刹车。
           </li>
         </ul>
         <p className="footnote">
           当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G2 Trajectory Inspector、
-          G3 Experiment Lab 与 G4 Visual Workbench 已实现为离线/只读分析，硬件运动仍禁用。
+          G3 Experiment Lab、G4 Visual Workbench 与 G5 记录器已实现。硬件运动仅在受监督实例中可用，
+          mapping_verified 仍为 false。
         </p>
       </Card>
     </div>

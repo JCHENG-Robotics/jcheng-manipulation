@@ -32,7 +32,7 @@ JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个�
 | 误差预算框架 | 已实现，demo 验证；项目预算**仍不完整** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md)；已测量手眼 + fiducial 项，RSS 3.699 mm / 0.682°；重复性/回差/执行/夹爪/夹具位姿仍未测量 |
 | 配对试验框架 | 已实现，仿真验证 | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md)；24 对随机计划、种子化 bootstrap/sign/McNemar 分析；尚无实机试验 |
 | 主机/DDS 基准 | 已实现，只读实机快照 | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md)；笔记本 + Pi 主机指标、20 Hz 状态、跨主机约 12 Hz 相机、0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + 只读硬件 + G2/G3/G4/G5 | 76 个后端 + 24 个网关测试通过；10 个 Mock + 3 个硬件 Playwright；E7 网关已实机验证并常驻（systemd）；G2 轨迹分析、G3 实验记录、G4 可视化工作台（`/tf` 已实机验证）、G5 只读轨迹记录器（已含一次受监督运动采集）；硬件运动仍禁用 |
+| ArmPi Debug Studio | G1-Mock + 只读硬件 + G2–G6 | 92 个后端 + 38 个网关测试通过；10 个 Mock + 3 个硬件 Playwright；E7 网关已实机验证并常驻（systemd）；G2 轨迹分析、G3 实验记录、G4 可视化工作台（`/tf` 已实机验证）、G5 只读轨迹记录器（已含一次受监督运动采集）、G6 受监督运动写路径（默认关闭，已做无运动实机验证；实测位移 0.0 rad） |
 | M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
 
 详细审计（来源、冲突、决策）见
@@ -188,7 +188,7 @@ ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
 三者均返回 `error_code=0`。详见
 [`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md)。
 
-### ArmPi Debug Studio（Mock、只读硬件、G5 记录器与 G2/G3/G4 分析）
+### ArmPi Debug Studio（Mock、只读硬件、G2–G6）
 
 ```bash
 cd armpi-debug-studio/backend
@@ -210,8 +210,10 @@ npm run test:e2e:hardware
 ```
 
 Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在机器人上
-运行只读网关时，界面显示 `LIVE` 电池与相机数据；关节位置是命令回显。硬件运动
-仍按设计禁用。网关已于 2026-11-17 实机验证，并已作为宿主机 systemd 服务常驻；
+运行只读网关时，界面显示 `LIVE` 电池与相机数据；关节位置取实测
+`servo_states`（命令回显仍单独保留）。硬件运动**默认关闭**；G6 受监督路径需要
+`ARMPI_HARDWARE_MOTION=1` 加固定的 `ARMPI_SUPERVISED_MOTION_ACK` 短语，每次
+只允许一个关节，步长上限 0.096342 rad。网关已于 2026-11-17 实机验证，并已作为宿主机 systemd 服务常驻；
 其 `/tf` 路径已于 2026-11-18 实机验证（11 条动态 + 8 条静态边，
 `base_link→link5` 与 `tf2_echo` 差异 <0.4 mm）。详见
 [`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)、
@@ -247,6 +249,14 @@ G5 只读轨迹记录器订阅 `/controller_manager/joint_states`（命令回显
 0.003962 rad）；误差主要来自舵机脉冲量化和一个控制周期的起始偏移，不能作为
 完整跟踪精度结论。详见
 [`armpi-debug-studio/docs/g5-trajectory-recorder.md`](armpi-debug-studio/docs/g5-trajectory-recorder.md)。
+
+G6 受监督运动写路径在限位仍为 provisional 的前提下增加 Studio 下发：单关节、
+脉冲对齐的 0.096342 rad 步长、1.0 s 时长下限、实测反馈新鲜度与完成判定，并由网关
+按实测脉冲独立复核。默认关闭，必须显式确认；只读服务继续占用 `8765`，受监督实例
+单独开在 `8766`。实机验证中受监督后端达到 `safety.ready=true`，越限与超步长命令
+被拒绝，机械臂**未运动**（实测位移 0.0 rad），没有发送任何有效运动命令。详见
+[`armpi-debug-studio/docs/g6-motion-write-path.md`](armpi-debug-studio/docs/g6-motion-write-path.md)
+和 [`evidence/studio_g6/20261118/`](evidence/studio_g6/20261118/README.md)。
 
 ### 误差预算、配对试验与主机基准（离线/只读）
 

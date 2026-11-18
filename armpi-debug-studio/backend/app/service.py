@@ -27,6 +27,7 @@ from .domain.enums import (
     Mode,
     SourceLabel,
     StopState,
+    Truth,
 )
 from .domain.experiments import (
     ANALYSIS_VERSION as EXPERIMENT_ANALYSIS_VERSION,
@@ -40,6 +41,7 @@ from .domain.experiments import (
     normalize_trial,
 )
 from .domain.mapping import MappingConfig
+from .domain.motion import effective_motion_limits
 from .domain.models import (
     CommandRecord,
     Event,
@@ -154,6 +156,9 @@ class RobotService:
         self.leases = LeaseManager(self._clock)
         self.tokens = PreviewTokenManager(self._clock)
         self.supervisor = SafetySupervisor(mapping, self.leases)
+        self.motion_limits = effective_motion_limits(
+            mapping, supervised=settings.supervised_motion
+        )
         self._lock = threading.RLock()
         self._storage_error: str | None = None
         self._idempotency: dict[str, dict[str, Any]] = {}
@@ -214,10 +219,31 @@ class RobotService:
         return self.adapter.connection_report()
 
     def _current_targets(self, state: RobotState) -> dict[str, float]:
+        """Baseline for step validation.
+
+        For measured hardware feedback the actual position is the only honest
+        baseline: two consecutive commands can each be within one step of the
+        commanded target while the arm is still far behind. Mock/simulated and
+        commanded-only data keep the previous target baseline.
+        """
         return {
-            joint.name: (joint.target_rad if joint.target_rad is not None else 0.0)
+            joint.name: (
+                joint.position_rad
+                if joint.truth is Truth.MEASURED and joint.position_rad is not None
+                else (joint.target_rad if joint.target_rad is not None else 0.0)
+            )
             for joint in state.joints
         }
+
+    def _validate_targets(self, state: RobotState, targets: list[MotionTarget]):
+        return validate_targets(
+            self.mapping,
+            targets,
+            current_targets=self._current_targets(state),
+            max_step_rad=self.motion_limits.max_step_rad,
+            min_duration_s=self.motion_limits.min_duration_s,
+            single_joint_only=self.motion_limits.single_joint_only,
+        )
 
     def _event(
         self,
@@ -866,6 +892,8 @@ class RobotService:
             session_id=session_id,
             require_lease=require_lease,
             executing=state.connection_state is ConnectionState.EXECUTING,
+            supervised_motion=self.settings.supervised_motion,
+            motion_limits=self.motion_limits,
         )
         return jsonable(report)
 
@@ -877,6 +905,8 @@ class RobotService:
             connection=connection,
             require_lease=False,
             executing=state.connection_state is ConnectionState.EXECUTING,
+            supervised_motion=self.settings.supervised_motion,
+            motion_limits=self.motion_limits,
         )
         mock_faults = (
             self.adapter.active_faults()
@@ -901,6 +931,11 @@ class RobotService:
                 "limit_version": self.mapping.verification_status,
                 "bind_host": self.settings.bind_host,
                 "hardware_motion_enabled": self.settings.hardware_motion_enabled,
+                "supervised_motion": self.motion_limits.supervised,
+                "motion_mode": self.motion_limits.mode_label,
+                "motion_max_step_rad": self.motion_limits.max_step_rad,
+                "motion_min_duration_s": self.motion_limits.min_duration_s,
+                "motion_single_joint_only": self.motion_limits.single_joint_only,
             },
             "mock_faults": mock_faults,
             "storage_error": self._storage_error,
@@ -1038,11 +1073,7 @@ class RobotService:
         with self._lock:
             command_id = f"cmd_{uuid.uuid4().hex[:16]}"
             state = self._state()
-            outcome = validate_targets(
-                self.mapping,
-                targets,
-                current_targets=self._current_targets(state),
-            )
+            outcome = self._validate_targets(state, targets)
             self._append(
                 self._event(
                     CommandStage.REQUESTED,
@@ -1186,11 +1217,7 @@ class RobotService:
                 )
 
             state = self._state()
-            outcome = validate_targets(
-                self.mapping,
-                targets,
-                current_targets=self._current_targets(state),
-            )
+            outcome = self._validate_targets(state, targets)
             if not outcome.valid:
                 record = self._load_record(command_id)
                 if record is not None and record.status is CommandStage.VALIDATED:
@@ -1254,6 +1281,8 @@ class RobotService:
                 session_id=session_id,
                 require_lease=True,
                 executing=state.connection_state is ConnectionState.EXECUTING,
+                supervised_motion=self.settings.supervised_motion,
+                motion_limits=self.motion_limits,
             )
             if not safety.ready:
                 self._append(

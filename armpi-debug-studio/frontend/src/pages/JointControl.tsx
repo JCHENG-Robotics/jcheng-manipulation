@@ -76,8 +76,9 @@ export function JointControl() {
       !previewExpired,
   );
 
+  const supervised = robot.capabilities.supervised_motion;
   const disabledReason = (() => {
-    if (hardwareBlocked) return "Hardware motion not implemented — G1 只读发现";
+    if (hardwareBlocked) return "硬件运动未启用（后端或网关 motion disabled）";
     if (!preview) return "先完成预览";
     if (!preview.valid) return "预览未通过，检查 validation errors";
     if (!preview.preview_token) return "预览没有签发 token";
@@ -204,7 +205,18 @@ export function JointControl() {
       {hardwareBlocked && (
         <div className="banner banner-warning">
           <strong>Hardware motion disabled</strong>
-          <span>G1 只读发现阶段。Execute 会被后端拒绝，不会伪造运动结果。</span>
+          <span>后端或网关未启用运动。Execute 会被拒绝，不会伪造运动结果。</span>
+        </div>
+      )}
+      {supervised && !hardwareBlocked && (
+        <div className="banner banner-warning">
+          <strong>SUPERVISED PROVISIONAL LIMITS</strong>
+          <span>
+            限位仍标记为 provisional（mapping_verified=false）。每次只允许一个关节，
+            最大步长 {formatNumber(robot.capabilities.max_step_rad, 3)} rad，时长 ≥{" "}
+            {robot.capabilities.min_duration_s} s。停止只是“保持指令已发送”，
+            不是物理确认，也不是急停。
+          </span>
         </div>
       )}
       {!safetyReady && (

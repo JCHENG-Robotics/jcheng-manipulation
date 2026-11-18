@@ -71,6 +71,9 @@ class Capabilities:
     min_duration_s: float = 0.5
     max_duration_s: float = 10.0
     max_step_rad: float = 0.35
+    supervised_motion: bool = False
+    single_joint_only: bool = False
+    motion_mode: str = "read-only"
 
 
 @dataclass

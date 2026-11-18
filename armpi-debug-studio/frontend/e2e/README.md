@@ -33,8 +33,10 @@ This starts `e2e/start-backend-hardware.sh` on port `8767` with
 `ARMPI_MODE=hardware` and `ARMPI_HARDWARE_MOTION=0`. The token is read from the
 file and exported, never printed or placed on a command line. The hardware spec
 checks live battery/camera/state, G4's live `/tf` path, and that a complete
-preview/execute attempt is rejected with `GATE_REJECTED`. Do not run it in CI
-or against a robot whose workspace is not clear.
+preview/execute attempt is rejected with `GATE_REJECTED`. The launch script also
+unsets `ARMPI_SUPERVISED_MOTION_ACK` so a supervised shell cannot leak into the
+read-only run. Do not run it in CI or against a robot whose workspace is not
+clear.
 
 Artifacts:
 
@@ -51,7 +53,7 @@ Artifacts:
 | `experiments.spec.ts` | G3 simulated 16-pair demo, 32 trial rows, paired analysis (improvement/CI/sign p), explicit underpowered-success warning, export links, and no motion audit stages |
 | `visual.spec.ts` | G4 URDF model SVG, provisional/no-live-TF warnings, camera frame names, 11-joint limit table, metadata reference save, and no motion audit stages |
 | `api-contract.spec.ts` | `/api/health`, `/api/state`, `/api/peripherals`, camera snapshot and preview token match the frontend's zod contract |
-| `hardware.spec.ts` | hardware-only: LIVE source, `measured` battery/camera, commanded joint state, live gateway `/tf`, and a full execute attempt rejected without `Dispatched`/`Completed` |
+| `hardware.spec.ts` | hardware-only: LIVE source, `measured` battery/camera, measured joint state from `servo_states`, live gateway `/tf`, and a full execute attempt rejected without `Dispatched`/`Completed` |
 
 ## Not covered
 

@@ -1,4 +1,4 @@
-"""Minimal read-only HTTP server around GatewayNode.
+"""Minimal HTTP server around GatewayNode.
 
 Endpoints:
     GET /health
@@ -7,9 +7,14 @@ Endpoints:
     GET /camera/status
     GET /camera/snapshot
     GET /tf
-    *   /motion/dispatch, /motion/stop -> 501 NOT_IMPLEMENTED
+    GET /motion/status
+    POST /motion/dispatch   (supervised instance only)
+    POST /motion/stop       (supervised instance only)
 
-All endpoints require `X-Armpi-Token` when a token is configured.
+All endpoints require `X-Armpi-Token` when a token is configured. The motion
+endpoints answer ``MOTION_DISABLED`` unless the gateway was started with
+``--enable-motion`` and a validated limits file; they never fall through to the
+read-only handlers.
 """
 
 from __future__ import annotations
@@ -20,8 +25,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
+from .motion import MotionRejected
+
 if TYPE_CHECKING:
     from .node import GatewayNode
+
+MAX_MOTION_BODY_BYTES = 64 * 1024
 
 
 class GatewayHTTPServer(ThreadingHTTPServer):
@@ -120,18 +129,105 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
         if path == "/tf":
             self._json(200, self.server.node.tf_payload())
             return
+        if path == "/motion/status":
+            status_fn = getattr(self.server.node, "motion_status_payload", None)
+            if callable(status_fn):
+                self._json(200, status_fn())
+            else:
+                self._json(
+                    200,
+                    {
+                        "motion_enabled": False,
+                        "state": "disabled",
+                        "measured": {},
+                        "measured_ready": False,
+                    },
+                )
+            return
         if path in ("/motion/dispatch", "/motion/stop"):
-            self._error(501, "NOT_IMPLEMENTED", "hardware motion is disabled in this phase")
+            self._error(405, "METHOD_NOT_ALLOWED", "use POST for motion endpoints")
             return
 
         self._error(404, "NOT_FOUND", f"unknown path: {path}")
+
+    def _read_json_body(self) -> dict[str, Any] | None:
+        length_raw = self.headers.get("Content-Length")
+        try:
+            length = int(length_raw or "0")
+        except ValueError:
+            self._error(400, "MOTION_BAD_REQUEST", "invalid Content-Length")
+            return None
+        if length <= 0 or length > MAX_MOTION_BODY_BYTES:
+            self._error(400, "MOTION_BAD_REQUEST", "request body is missing or too large")
+            return None
+        payload = self.rfile.read(length)
+        try:
+            body = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._error(400, "MOTION_BAD_REQUEST", "request body must be JSON")
+            return None
+        if not isinstance(body, dict):
+            self._error(400, "MOTION_BAD_REQUEST", "request body must be an object")
+            return None
+        return body
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
         if not self._authorized():
             self._error(401, "UNAUTHORIZED", "missing or invalid X-Armpi-Token")
             return
-        if path in ("/motion/dispatch", "/motion/stop"):
-            self._error(501, "NOT_IMPLEMENTED", "hardware motion is disabled in this phase")
+        if path == "/motion/dispatch":
+            if not getattr(self.server.node, "motion_enabled", False):
+                self._error(
+                    403,
+                    "MOTION_DISABLED",
+                    "hardware motion is disabled on this gateway instance",
+                )
+                return
+            body = self._read_json_body()
+            if body is None:
+                return
+            try:
+                response = self.server.node.dispatch_motion(body)
+            except MotionRejected as exc:
+                self._json(
+                    exc.http_status,
+                    {
+                        "error": {
+                            "code": exc.code,
+                            "message": str(exc),
+                            "details": exc.details,
+                        }
+                    },
+                )
+                return
+            self._json(200, response)
+            return
+        if path == "/motion/stop":
+            if not getattr(self.server.node, "motion_enabled", False):
+                self._error(
+                    403,
+                    "MOTION_DISABLED",
+                    "hardware motion is disabled on this gateway instance",
+                )
+                return
+            body = self._read_json_body()
+            if body is None:
+                return
+            try:
+                response = self.server.node.stop_motion(body)
+            except MotionRejected as exc:
+                self._json(
+                    exc.http_status,
+                    {
+                        "error": {
+                            "code": exc.code,
+                            "message": str(exc),
+                            "details": exc.details,
+                        }
+                    },
+                )
+                return
+            self._json(200, response)
             return
         self._error(405, "METHOD_NOT_ALLOWED", "read-only gateway")

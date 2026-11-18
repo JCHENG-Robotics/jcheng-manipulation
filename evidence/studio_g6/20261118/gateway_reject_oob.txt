@@ -1,0 +1,2 @@
+{"error": {"code": "MOTION_OUT_OF_LIMIT", "message": "joint1: pulse 950 outside [70, 930]", "details": {}}}
+HTTP 400

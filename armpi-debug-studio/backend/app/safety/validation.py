@@ -40,14 +40,39 @@ def validate_targets(
     targets: Iterable[MotionTarget],
     *,
     current_targets: dict[str, float] | None = None,
+    max_step_rad: float | None = None,
+    min_duration_s: float | None = None,
+    single_joint_only: bool = False,
 ) -> ValidationOutcome:
+    """Validate targets against the mapping and effective motion limits.
+
+    ``max_step_rad``/``min_duration_s`` override the mapping's safety block so
+    supervised commissioning can run narrower limits without editing the
+    mapping file. ``single_joint_only`` rejects multi-joint commands before any
+    per-joint work, which is how the supervised path keeps one hand on one
+    joint at a time.
+    """
     outcome = ValidationOutcome()
     current = current_targets or {}
     seen: set[str] = set()
     items = list(targets)
+    step_limit = mapping.safety.max_step_rad if max_step_rad is None else max_step_rad
+    duration_floor = (
+        mapping.safety.min_duration_s if min_duration_s is None else min_duration_s
+    )
 
     if not items:
         outcome.errors.append(_issue(ErrorCode.NO_TARGETS, "at least one target is required"))
+        return outcome
+
+    if single_joint_only and len(items) != 1:
+        outcome.errors.append(
+            _issue(
+                ErrorCode.SUPERVISED_SINGLE_JOINT,
+                "supervised motion accepts exactly one joint per command",
+                details={"joint_count": len(items)},
+            )
+        )
         return outcome
 
     for target in items:
@@ -108,15 +133,15 @@ def validate_targets(
 
         from_rad = float(current.get(name, 0.0))
         delta_rad = target_rad - from_rad
-        if abs(delta_rad) > mapping.safety.max_step_rad + 1e-12:
+        if abs(delta_rad) > step_limit + 1e-12:
             outcome.errors.append(
                 _issue(
                     ErrorCode.STEP_EXCEEDED,
                     f"{name}: step {delta_rad:.6f} rad exceeds max_step_rad "
-                    f"{mapping.safety.max_step_rad:.6f}",
+                    f"{step_limit:.6f}",
                     name,
                     delta_rad=delta_rad,
-                    max_step_rad=mapping.safety.max_step_rad,
+                    max_step_rad=step_limit,
                 )
             )
             continue
@@ -126,14 +151,14 @@ def validate_targets(
             not isinstance(duration, (int, float))
             or isinstance(duration, bool)
             or not math.isfinite(float(duration))
-            or float(duration) < mapping.safety.min_duration_s
+            or float(duration) < duration_floor
             or float(duration) > mapping.safety.max_duration_s
         ):
             outcome.errors.append(
                 _issue(
                     ErrorCode.DURATION_RANGE,
                     f"{name}: duration must be within "
-                    f"[{mapping.safety.min_duration_s}, {mapping.safety.max_duration_s}] s",
+                    f"[{duration_floor}, {mapping.safety.max_duration_s}] s",
                     name,
                     duration_s=repr(duration),
                 )
@@ -154,7 +179,7 @@ def validate_targets(
             )
             continue
 
-        if abs(target_rad - from_rad) > mapping.safety.max_step_rad * 0.8:
+        if abs(target_rad - from_rad) > step_limit * 0.8:
             outcome.warnings.append(
                 _issue(
                     "LARGE_STEP",

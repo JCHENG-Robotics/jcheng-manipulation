@@ -1,8 +1,10 @@
 """HTTP client for the on-robot `armpi_debug_gateway`.
 
-The gateway is intentionally a separate process on the machine that owns the
-vendor ROS 2 stack. This client is read-only: it only calls `/health`,
-`/state`, `/battery`, `/camera/status`, `/camera/snapshot` and `/tf`.
+The gateway owns the vendor ROS 2 stack. Read methods cover `/health`,
+`/state`, `/battery`, `/camera/status`, `/camera/snapshot`, `/tf` and
+`/motion/status`. `post_json` exists only for the supervised motion endpoints;
+it is not used unless the backend was explicitly started with hardware motion
+enabled.
 """
 
 from __future__ import annotations
@@ -14,9 +16,16 @@ from urllib.request import Request, urlopen
 
 
 class GatewayError(RuntimeError):
-    def __init__(self, message: str, *, status: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        status: int | None = None,
+        code: str | None = None,
+    ) -> None:
         super().__init__(message)
         self.status = status
+        self.code = code
 
 
 class GatewayClient:
@@ -37,18 +46,48 @@ class GatewayClient:
             headers["X-Armpi-Token"] = self.token
         return headers
 
-    def _open(self, path: str, accept: str):
+    @staticmethod
+    def _error_payload(exc: HTTPError) -> tuple[str | None, str | None]:
+        """Return ``(code, message)`` from a gateway error body, if present."""
+        try:
+            data = json.loads(exc.read().decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError, OSError):
+            return None, None
+        error = data.get("error") if isinstance(data, dict) else None
+        if not isinstance(error, dict):
+            return None, None
+        code = error.get("code")
+        message = error.get("message")
+        return (
+            str(code) if code is not None else None,
+            str(message) if message is not None else None,
+        )
+
+    def _request(self, method: str, path: str, accept: str, body: Any = None):
         url = f"{self.base_url}{path}"
-        request = Request(url, headers=self._headers(accept), method="GET")
+        headers = self._headers(accept)
+        data = None
+        if body is not None:
+            data = json.dumps(body).encode("utf-8")
+            headers["Content-Type"] = "application/json"
+        request = Request(url, headers=headers, data=data, method=method)
         try:
             return urlopen(request, timeout=self.timeout_s)
         except HTTPError as exc:
-            raise GatewayError(f"gateway returned HTTP {exc.code} for {path}", status=exc.code) from exc
+            code, message = self._error_payload(exc)
+            raise GatewayError(
+                message or f"gateway returned HTTP {exc.code} for {path}",
+                status=exc.code,
+                code=code,
+            ) from exc
         except (URLError, TimeoutError, OSError) as exc:
             raise GatewayError(f"gateway request failed for {path}: {exc}") from exc
 
-    def get_json(self, path: str) -> dict[str, Any]:
-        with self._open(path, "application/json") as response:
+    def _open(self, path: str, accept: str):
+        return self._request("GET", path, accept)
+
+    def _decode_json(self, response, path: str) -> dict[str, Any]:
+        with response:
             payload = response.read()
         try:
             data = json.loads(payload.decode("utf-8"))
@@ -57,6 +96,16 @@ class GatewayClient:
         if not isinstance(data, dict):
             raise GatewayError(f"gateway returned a non-object JSON payload for {path}")
         return data
+
+    def get_json(self, path: str) -> dict[str, Any]:
+        return self._decode_json(self._open(path, "application/json"), path)
+
+    def post_json(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        """POST a JSON object; only the supervised motion endpoints use this."""
+        return self._decode_json(
+            self._request("POST", path, "application/json", body),
+            path,
+        )
 
     def get_bytes(self, path: str) -> tuple[bytes, str]:
         with self._open(path, "*/*") as response:

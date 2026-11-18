@@ -9,6 +9,9 @@ export interface Capabilities {
   min_duration_s: number;
   max_duration_s: number;
   max_step_rad: number;
+  supervised_motion: boolean;
+  single_joint_only: boolean;
+  motion_mode: string;
 }
 
 export interface JointState {

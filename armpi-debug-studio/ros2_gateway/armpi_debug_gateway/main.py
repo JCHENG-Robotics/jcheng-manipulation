@@ -1,11 +1,16 @@
-"""Entry point for the read-only ArmPi Debug Gateway.
+"""Entry point for the ArmPi Debug Gateway.
 
-Run on the robot host, inside the ROS 2 environment that owns the vendor stack:
+Read-only by default. Run on the robot host, inside the ROS 2 environment that
+owns the vendor stack:
 
     source /opt/ros/humble/setup.bash
     source <vendor_ws>/install/setup.bash
     export ARMPI_GATEWAY_TOKEN=change-me
     python3 -m armpi_debug_gateway.main --host 127.0.0.1 --port 8765
+
+Supervised motion requires **all** of: a token, ``--enable-motion`` and a
+validated ``--motion-config`` JSON file. Without them the motion endpoints
+answer ``MOTION_DISABLED`` and the node never creates a publisher.
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
 from .auth import TokenError, resolve_token as resolve_shared_token
+from .motion import MotionConfigError, load_motion_config
 from .node import GatewayNode
 from .server import GatewayHTTPServer
 
@@ -31,9 +37,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--battery-topic", default="/ros_robot_controller/battery")
     parser.add_argument("--camera-topic", default="/depth_cam/rgb/image_raw")
     parser.add_argument("--joint-state-topic", default="/controller_manager/joint_states")
+    parser.add_argument(
+        "--servo-state-topic",
+        default="/controller_manager/servo_states",
+        help="measured bus-servo positions; required for motion completion",
+    )
     parser.add_argument("--tf-topic", default="/tf")
     parser.add_argument("--tf-static-topic", default="/tf_static")
     parser.add_argument("--jpeg-quality", type=int, default=80)
+    parser.add_argument(
+        "--enable-motion",
+        action="store_true",
+        help="enable the supervised motion endpoints; requires --motion-config and a token",
+    )
+    parser.add_argument(
+        "--motion-config",
+        default=None,
+        help="JSON limits file generated from configs/joint_mapping.yaml",
+    )
     parser.add_argument("--host", default="127.0.0.1", help="bind address; keep localhost unless using a private tailnet")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--token", default=None, help="shared token (prefer --token-file or ARMPI_GATEWAY_TOKEN)")
@@ -73,18 +94,48 @@ def main(argv: list[str] | None = None) -> None:
         )
         raise SystemExit(2)
 
+    motion_config = None
+    if args.enable_motion:
+        if not token:
+            print(
+                "ERROR: --enable-motion requires a gateway token; refusing to "
+                "expose a motion endpoint without authentication.",
+                file=sys.stderr,
+            )
+            raise SystemExit(2)
+        if not args.motion_config:
+            print(
+                "ERROR: --enable-motion requires --motion-config with the "
+                "validated pulse limits.",
+                file=sys.stderr,
+            )
+            raise SystemExit(2)
+        try:
+            motion_config = load_motion_config(args.motion_config)
+        except MotionConfigError as exc:
+            print(f"ERROR: invalid motion config: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+
     stop_event = threading.Event()
     _install_signal_handlers(stop_event)
 
     rclpy.init()
-    node = GatewayNode(
-        battery_topic=args.battery_topic,
-        camera_topic=args.camera_topic,
-        joint_state_topic=args.joint_state_topic,
-        tf_topic=args.tf_topic,
-        tf_static_topic=args.tf_static_topic,
-        jpeg_quality=args.jpeg_quality,
-    )
+    try:
+        node = GatewayNode(
+            battery_topic=args.battery_topic,
+            camera_topic=args.camera_topic,
+            joint_state_topic=args.joint_state_topic,
+            servo_state_topic=args.servo_state_topic,
+            tf_topic=args.tf_topic,
+            tf_static_topic=args.tf_static_topic,
+            jpeg_quality=args.jpeg_quality,
+            motion_enabled=bool(args.enable_motion),
+            motion_config=motion_config,
+        )
+    except RuntimeError as exc:
+        rclpy.shutdown()
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
     executor = MultiThreadedExecutor(num_threads=2)
     executor.add_node(node)
     spin_thread = threading.Thread(target=executor.spin, name="gateway-spin", daemon=True)
@@ -97,8 +148,17 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  battery: {args.battery_topic}")
         print(f"  camera:  {args.camera_topic}")
         print(f"  joints:  {args.joint_state_topic}")
+        print(f"  measured:{args.servo_state_topic}")
         print(f"  tf:      {args.tf_topic} + {args.tf_static_topic}")
-        print("  motion:  DISABLED (read-only gateway)")
+        if node.motion_enabled:
+            assert motion_config is not None
+            print(
+                "  motion:  ENABLED (supervised) "
+                f"step<={motion_config.safety.max_step_rad} rad "
+                f"single_joint={motion_config.safety.single_joint_only}"
+            )
+        else:
+            print("  motion:  DISABLED (read-only gateway)")
         server.serve_until(stop_event)
     finally:
         if server is not None:

@@ -82,6 +82,8 @@ def _make_service(settings: Settings, clock: Callable[[], float] | None) -> Robo
             clock=clock,
             gateway_url=settings.gateway_url,
             gateway_token=settings.gateway_token,
+            motion_enabled=settings.hardware_motion_enabled,
+            supervised=settings.supervised_motion,
         )
     )
     return RobotService(settings, mapping, adapter, store, clock=clock)

@@ -63,6 +63,21 @@ copied into this directory.
 > [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md) and
 > [`evidence/studio_g5/20261118/`](../evidence/studio_g5/20261118/README.md).
 
+> Status note (2026-11-18, latest): the **G6 supervised motion write path** is
+> implemented. It is **off by default** and requires both
+> `ARMPI_HARDWARE_MOTION=1` and, while limits are unverified, the fixed
+> `ARMPI_SUPERVISED_MOTION_ACK` phrase. The backend enforces one joint per
+> command, a pulse-aligned 0.096342 rad step cap and a 1.0 s duration floor;
+> the gateway independently revalidates against measured servo pulses. A
+> second supervised gateway instance was started on `8766` and a supervised
+> backend reached `safety.ready=true`; out-of-limit and over-step commands were
+> rejected and **the arm did not move** (measured delta 0.0 rad). No valid
+> dispatch was sent. Backend `pytest` reports **92 passed**, gateway **38
+> passed**, mock Playwright **10 passed**, hardware Playwright **3 passed**.
+> See [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md),
+> [`ros2_gateway/deploy/supervised-motion.md`](ros2_gateway/deploy/supervised-motion.md)
+> and [`evidence/studio_g6/20261118/`](../evidence/studio_g6/20261118/README.md).
+
 ## Status
 
 | Area | Status | Evidence |
@@ -83,7 +98,8 @@ copied into this directory.
 | G3 Experiment Lab (offline) | **Implemented, offline-validated (2026-11-18)** | [`docs/g3-experiment-lab.md`](docs/g3-experiment-lab.md); immutable definitions, append-only paired trials, failure codes, CSV/JSON export, paired analysis |
 | G4 Visual Workbench (read-only) | **Implemented; live `/tf` verified (2026-11-18)** | [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md); URDF FK + optional gateway `/tf`, camera/calibration/TF warnings, metadata-only references |
 | G5 read-only trajectory recorder | **Implemented; no-motion + one supervised moving capture (2026-11-18)** | [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md); commanded + measured streams, MoveIt plan JSON, G2 dataset output; `camera_forward` 0.892 s moving capture imported |
-| Hardware motion | **Disabled by design** | `capabilities.hardware_motion=false` |
+| G6 supervised motion write path | **Implemented; verified on hardware without motion (2026-11-18)** | [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md); single joint, 0.096342 rad cap, gateway revalidation from measured pulses, latched `Unknown` |
+| Hardware motion | **Off by default; supervised opt-in only** | `ARMPI_HARDWARE_MOTION=1` + `ARMPI_SUPERVISED_MOTION_ACK`; otherwise `capabilities.hardware_motion=false` |
 | Gripper (`r_joint`) | **Excluded from G1** | `configs/joint_mapping.yaml` |
 | 3D / depth-cloud workbench | **Not implemented** | Settings → Roadmap |
 
@@ -91,7 +107,9 @@ No hardware was accessed while building or testing the Mock slice: no serial
 port, no ROS node, no robot motion. The read-only gateway was later verified on
 the robot host (2026-11-17), its `/tf` path on 2026-11-18, and the G5 recorder
 captured a 5 s no-motion segment plus one supervised `camera_forward` motion.
-Joint positions remain a command echo and motion remains off in the Studio.
+Hardware joint positions now come from measured `servo_states`; the command
+echo remains available separately. Studio motion is off by default and only a
+single-joint supervised instance can enable it.
 
 ## Architecture
 
@@ -102,12 +120,13 @@ Browser (React + TS)
 FastAPI backend
    ├── SafetySupervisor / LeaseManager / PreviewTokenManager
    ├── MockRobotAdapter (no ROS, no serial)
-   ├── HardwareAdapter (read-only gateway client; motion disabled)
+   ├── HardwareAdapter (read-only by default; supervised motion opt-in)
    ├── SQLite event store (append-only, WAL)
    └── HTTP client ──> armpi_debug_gateway (robot host, ROS 2)
                           ├── /battery  <- /ros_robot_controller/battery
                           ├── /camera   <- /depth_cam/rgb/image_raw
-                          └── /state    <- /controller_manager/joint_states (command echo)
+                          ├── /state    <- joint_states + servo_states
+                          └── /motion/* -> servo_controller (supervised only)
 ```
 
 The browser never talks to ROS or a serial port. The backend exposes named
@@ -166,8 +185,11 @@ Useful environment variables:
 | `ARMPI_MODE` | `mock` | `mock` or `hardware` |
 | `DB_PATH` | `../data/studio.db` | SQLite event store |
 | `ARMPI_JOINT_MAPPING` | `../configs/joint_mapping.yaml` | mapping file |
-| `BIND_HOST` | `127.0.0.1` | do not expose publicly in G1 |
-| `ARMPI_HARDWARE_MOTION` | `false` | must stay false in G1 |
+| `BIND_HOST` | `127.0.0.1` | do not expose publicly |
+| `ARMPI_HARDWARE_MOTION` | `false` | supervised write path opt-in; requires a gateway URL and token |
+| `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required while `mapping_verified=false` |
+| `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only) or `:8766` (supervised) |
+| `ARMPI_GATEWAY_TOKEN` | unset | shared token; never commit it |
 
 ### Frontend
 

@@ -1,7 +1,11 @@
-"""ROS 2 node that caches battery, camera, and joint-command state.
+"""ROS 2 node that caches battery, camera, joint and measured servo state.
 
-Read-only by construction: it only creates subscriptions. It never publishes a
-motion command, never opens the serial port, and never calls the vendor SDK.
+Read-only by default: it only creates subscriptions, never opens the serial
+port and never calls the vendor SDK. When motion is explicitly enabled
+(``--enable-motion`` plus a validated limits file), it creates exactly one
+publisher for the vendor ``servo_controller`` topic. Every command is checked
+by :class:`armpi_debug_gateway.motion.MotionGuard` first and completion is
+derived from measured ``servo_states`` pulses, not from the command echo.
 """
 
 from __future__ import annotations
@@ -25,6 +29,18 @@ from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import UInt16
 
 from .imaging import cv2, image_to_bgr, np
+from .motion import SERVO_IDS, MotionConfig, MotionGuard, MotionRejected
+from .trajectory_capture import pulse_to_rad
+
+try:  # motion messages are only present in the vendor image
+    from servo_controller_msgs.msg import ServoPosition, ServosPosition, ServoStateList
+except ImportError:  # pragma: no cover - depends on the robot image
+    ServoPosition = None
+    ServosPosition = None
+    ServoStateList = None
+
+SERVO_JOINTS = {servo_id: joint for joint, servo_id in SERVO_IDS.items()}
+MOTION_TOPIC = "servo_controller"
 
 try:  # tf2_msgs is optional; /tf reports unavailable if it is missing.
     from tf2_msgs.msg import TFMessage
@@ -48,18 +64,36 @@ class GatewayNode(Node):
         battery_topic: str = "/ros_robot_controller/battery",
         camera_topic: str = "/depth_cam/rgb/image_raw",
         joint_state_topic: str = "/controller_manager/joint_states",
+        servo_state_topic: str = "/controller_manager/servo_states",
         tf_topic: str = "/tf",
         tf_static_topic: str = "/tf_static",
         jpeg_quality: int = 80,
+        motion_enabled: bool = False,
+        motion_config: MotionConfig | None = None,
     ) -> None:
         super().__init__("armpi_debug_gateway")
         self._lock = threading.Lock()
         self._battery_topic = battery_topic
         self._camera_topic = camera_topic
         self._joint_state_topic = joint_state_topic
+        self._servo_state_topic = servo_state_topic
         self._tf_topic = tf_topic
         self._tf_static_topic = tf_static_topic
         self._jpeg_quality = max(30, min(95, int(jpeg_quality)))
+
+        self._motion_config = motion_config if motion_enabled else None
+        self._motion_pub = None
+        self._guard = MotionGuard(motion_config) if self._motion_config else None
+        if motion_enabled:
+            if ServosPosition is None or ServoPosition is None:
+                raise RuntimeError(
+                    "servo_controller_msgs is not available; cannot enable motion"
+                )
+            if self._motion_config is None:
+                raise RuntimeError("motion enabled without a validated limits config")
+            self._motion_pub = self.create_publisher(
+                ServosPosition, MOTION_TOPIC, 1
+            )
 
         self._battery_mv: int | None = None
         self._battery_at: float | None = None
@@ -78,6 +112,10 @@ class GatewayNode(Node):
         self._joints_at: float | None = None
         self._joints_wall: str | None = None
 
+        self._measured: dict[str, dict[str, Any]] = {}
+        self._measured_at: float | None = None
+        self._measured_wall: str | None = None
+
         self._tf_edges: dict[tuple[str, str], dict[str, Any]] = {}
         self._tf_last_at: float | None = None
 
@@ -95,6 +133,18 @@ class GatewayNode(Node):
         self.create_subscription(UInt16, battery_topic, self._on_battery, 10)
         self.create_subscription(Image, camera_topic, self._on_image, qos_profile_sensor_data)
         self.create_subscription(JointState, joint_state_topic, self._on_joint_state, 10)
+        if ServoStateList is None:
+            self.get_logger().warning(
+                "servo_controller_msgs is not installed; measured servo state "
+                "will be unavailable and motion cannot be enabled"
+            )
+        else:
+            self.create_subscription(
+                ServoStateList,
+                servo_state_topic,
+                self._on_servo_states,
+                50,
+            )
 
         if TFMessage is None:
             self.get_logger().warning(
@@ -127,11 +177,20 @@ class GatewayNode(Node):
                 callback_group=tf_group,
             )
 
-        self.get_logger().info(
-            f"read-only gateway topics: battery={battery_topic} "
-            f"camera={camera_topic} joint_state={joint_state_topic} "
-            f"tf={tf_topic} tf_static={tf_static_topic}"
-        )
+        if self._motion_pub is not None:
+            self.get_logger().warning(
+                f"SUPERVISED MOTION ENABLED: publisher={MOTION_TOPIC} "
+                f"measured={servo_state_topic} "
+                f"step<={self._motion_config.safety.max_step_rad} rad "
+                f"single_joint={self._motion_config.safety.single_joint_only}"
+            )
+        else:
+            self.get_logger().info(
+                f"read-only gateway topics: battery={battery_topic} "
+                f"camera={camera_topic} joint_state={joint_state_topic} "
+                f"measured={servo_state_topic} "
+                f"tf={tf_topic} tf_static={tf_static_topic}"
+            )
 
     # ------------------------------------------------------------- callbacks
     def _on_battery(self, message: UInt16) -> None:
@@ -162,6 +221,91 @@ class GatewayNode(Node):
             self._joints = joints
             self._joints_at = now
             self._joints_wall = utc_now_iso()
+
+    def _servo_pulse(self, state: Any) -> tuple[int | None, int | None]:
+        """Return ``(servo_id, pulse)`` from one message item.
+
+        The vendor message declares int32 scalars; hand-written fixtures and
+        some recordings use one-element lists, so both are accepted.
+        """
+        servo_id = getattr(state, "id", None)
+        raw = getattr(state, "position", None)
+        if isinstance(servo_id, (list, tuple)):
+            servo_id = servo_id[0] if servo_id else None
+        if isinstance(raw, (list, tuple)):
+            raw = raw[0] if raw else None
+        try:
+            return int(servo_id), int(raw)
+        except (TypeError, ValueError):
+            return None, None
+
+    def _pulse_to_radians(self, joint: str, pulse: int) -> float:
+        if self._motion_config is not None:
+            return self._motion_config.joints[joint].pulse_to_rad(pulse)
+        return pulse_to_rad(joint, pulse)
+
+    def _on_servo_states(self, message: Any) -> None:
+        now = time.monotonic()
+        measured: dict[str, dict[str, Any]] = {}
+        for state in getattr(message, "servo_state", []):
+            servo_id, pulse = self._servo_pulse(state)
+            if servo_id is None or pulse is None:
+                continue
+            joint = SERVO_JOINTS.get(servo_id)
+            if joint is None:
+                continue
+            if not 0 <= pulse <= 1000:
+                # An out-of-range sample preceded the 2026-11-18 vendor node
+                # crash; do not convert it. Motion stays blocked by staleness.
+                continue
+            measured[joint] = {
+                "position_rad": self._pulse_to_radians(joint, pulse),
+                "raw_position": pulse,
+                "truth": "measured",
+                "validity": "valid",
+                "sample_age_ms": 0,
+                "source": self._servo_state_topic,
+            }
+        if not measured:
+            return
+        with self._lock:
+            self._measured = measured
+            self._measured_at = now
+            self._measured_wall = utc_now_iso()
+            guard = self._guard
+        if guard is not None:
+            guard.observe(self._measured_with_age(now), now)
+
+    def _measured_with_age(self, now: float | None = None) -> dict[str, dict[str, Any]]:
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            at = self._measured_at
+            wall = self._measured_wall
+            measured = {name: dict(item) for name, item in self._measured.items()}
+        age_ms = (
+            max(0.0, (now - at) * 1000.0) if at is not None else None
+        )
+        for item in measured.values():
+            item["sample_age_ms"] = (
+                int(round(age_ms)) if age_ms is not None else None
+            )
+            item["received_at"] = wall
+        return measured
+
+    def _measured_ready(self) -> bool:
+        now = time.monotonic()
+        measured = self._measured_with_age(now)
+        if not measured or set(measured) != set(SERVO_IDS):
+            return False
+        age_ms = max(
+            (item.get("sample_age_ms") or 0) for item in measured.values()
+        )
+        limit = (
+            self._motion_config.safety.feedback_max_age_ms
+            if self._motion_config is not None
+            else 500
+        )
+        return age_ms <= limit
 
     @staticmethod
     def _stamp_ns(stamp: Any) -> int:
@@ -356,14 +500,26 @@ class GatewayNode(Node):
         for item in joints.values():
             item["sample_age_ms"] = age_ms
             item["validity"] = "valid" if age_ms is not None and age_ms < 500 else "stale"
+        measured = self._measured_with_age()
+        measured_ready = self._measured_ready()
+        for item in measured.values():
+            if not measured_ready:
+                item["validity"] = "stale"
+        with self._lock:
+            measured_wall = self._measured_wall
         return {
             "joints": joints,
+            "measured": measured,
+            "measured_ready": measured_ready,
+            "measured_wall_time": measured_wall,
             "ros_time_ns": int(self.get_clock().now().nanoseconds),
             "wall_time": wall or utc_now_iso(),
             "source": self._joint_state_topic,
+            "measured_source": self._servo_state_topic,
             "truth": "commanded",
             "notes": [
-                "joint_states is the last commanded pulse, not encoder feedback.",
+                "joints is the last commanded pulse (command echo).",
+                "measured is the bus-servo position from servo_states.",
             ],
         }
 
@@ -437,16 +593,172 @@ class GatewayNode(Node):
             "battery_ready": bool(battery["available"]),
             "camera_ready": bool(camera["available"]),
             "joints_ready": joints_ready,
+            "measured_ready": bool(state.get("measured_ready")),
             "tf_ready": bool(tf["available"]),
             "tf_status": tf["status"],
-            "motion_enabled": False,
+            "motion_enabled": self.motion_enabled,
+            "motion_state": self._motion_state(),
             "node": self.get_name(),
             "wall_time": utc_now_iso(),
             "topics": {
                 "battery": self._battery_topic,
                 "camera": self._camera_topic,
                 "joint_state": self._joint_state_topic,
+                "measured": self._servo_state_topic,
+                "motion": MOTION_TOPIC if self.motion_enabled else None,
                 "tf": self._tf_topic,
                 "tf_static": self._tf_static_topic,
             },
         }
+
+    # ------------------------------------------------------------------ motion
+    @property
+    def motion_enabled(self) -> bool:
+        return self._motion_pub is not None and self._guard is not None
+
+    def _motion_state(self) -> str:
+        if self._guard is None:
+            return "disabled"
+        return str(self._guard.status().get("state") or "unknown")
+
+    def _publish_positions(
+        self,
+        duration_s: float,
+        positions: list[tuple[str, int]],
+    ) -> None:
+        if self._motion_pub is None or ServosPosition is None or ServoPosition is None:
+            raise MotionRejected(
+                "MOTION_DISABLED",
+                "motion publisher is not configured",
+                http_status=403,
+            )
+        message = ServosPosition()
+        message.duration = float(duration_s)
+        message.position_unit = "pulse"
+        for joint, pulse in positions:
+            item = ServoPosition()
+            item.id = int(SERVO_IDS[joint])
+            item.position = float(int(pulse))
+            message.position.append(item)
+        self._motion_pub.publish(message)
+
+    def dispatch_motion(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if not self.motion_enabled:
+            raise MotionRejected(
+                "MOTION_DISABLED",
+                "hardware motion is disabled on this gateway instance",
+                http_status=403,
+            )
+        assert self._guard is not None
+        now = time.monotonic()
+        measured = self._measured_with_age(now)
+        plan = self._guard.validate(payload, measured, now)
+        self._publish_positions(
+            plan.duration_s,
+            [(target.joint, target.target_pulse) for target in plan.targets],
+        )
+        self._guard.start(plan, measured)
+        return {
+            "status": "dispatched",
+            "command_id": plan.command_id,
+            "duration_s": plan.duration_s,
+            "position_unit": "pulse",
+            "topic": MOTION_TOPIC,
+            "joints": [
+                {
+                    "joint": target.joint,
+                    "servo_id": target.servo_id,
+                    "target_pulse": target.target_pulse,
+                    "target_rad": target.target_rad,
+                }
+                for target in plan.targets
+            ],
+            "measured": measured,
+            "published_at": utc_now_iso(),
+        }
+
+    def stop_motion(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        if not self.motion_enabled:
+            raise MotionRejected(
+                "MOTION_DISABLED",
+                "hardware motion is disabled on this gateway instance",
+                http_status=403,
+            )
+        assert self._guard is not None
+        now = time.monotonic()
+        measured = self._measured_with_age(now)
+        fresh_limit = self._motion_config.safety.feedback_max_age_ms
+        positions = [
+            (joint, int(item["raw_position"]))
+            for joint, item in measured.items()
+            if item.get("raw_position") is not None
+            and item.get("sample_age_ms") is not None
+            and int(item["sample_age_ms"]) <= fresh_limit
+        ]
+        if not positions:
+            raise MotionRejected(
+                "MOTION_STALE_FEEDBACK",
+                "no fresh measured servo positions; cannot build a hold command",
+                http_status=409,
+            )
+        # 0.1 s is above the vendor's 0.02 s floor and short enough to act as
+        # a hold. This is not a brake and not an emergency stop.
+        self._publish_positions(0.1, positions)
+        status = self._guard.mark_stopped(measured, now)
+        return {
+            "status": "stop_dispatched",
+            "command_id": (payload or {}).get("command_id"),
+            "state": status.get("state"),
+            "held_at": status.get("measured"),
+            "evidence": (
+                "hold command published at measured pulses; physical stop is "
+                "not confirmed"
+            ),
+            "measured": measured,
+            "dispatched_at": utc_now_iso(),
+        }
+
+    def motion_status_payload(self) -> dict[str, Any]:
+        now = time.monotonic()
+        measured = self._measured_with_age(now)
+        payload: dict[str, Any] = {
+            "motion_enabled": self.motion_enabled,
+            "measured_ready": self._measured_ready(),
+            "measured": measured,
+            "measured_source": self._servo_state_topic,
+            "motion_topic": MOTION_TOPIC if self.motion_enabled else None,
+            "truth": "measured",
+            "wall_time": utc_now_iso(),
+        }
+        if self._guard is None or self._motion_config is None:
+            payload.update(
+                {
+                    "state": "disabled",
+                    "command_id": None,
+                    "targets": [],
+                    "duration_s": None,
+                    "last_stop": None,
+                }
+            )
+            return payload
+        payload.update(self._guard.status())
+        payload["safety"] = {
+            "max_step_rad": self._motion_config.safety.max_step_rad,
+            "min_duration_s": self._motion_config.safety.min_duration_s,
+            "max_duration_s": self._motion_config.safety.max_duration_s,
+            "feedback_max_age_ms": self._motion_config.safety.feedback_max_age_ms,
+            "tolerance_pulses": self._motion_config.safety.tolerance_pulses,
+            "settle_samples": self._motion_config.safety.settle_samples,
+            "single_joint_only": self._motion_config.safety.single_joint_only,
+        }
+        payload["limits"] = {
+            joint: {
+                "servo_id": limit.servo_id,
+                "min_pulse": limit.min_pulse,
+                "max_pulse": limit.max_pulse,
+                "min_rad": limit.min_rad,
+                "max_rad": limit.max_rad,
+            }
+            for joint, limit in self._motion_config.joints.items()
+        }
+        return payload

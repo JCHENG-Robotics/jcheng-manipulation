@@ -77,6 +77,9 @@ class MockRobotAdapter(RobotAdapter):
             min_duration_s=mapping.safety.min_duration_s,
             max_duration_s=mapping.safety.max_duration_s,
             max_step_rad=mapping.safety.max_step_rad,
+            supervised_motion=False,
+            single_joint_only=False,
+            motion_mode="simulation",
         )
         self._targets: dict[str, float] = {name: 0.0 for name in mapping.joints}
         self._positions: dict[str, float] = {name: 0.0 for name in mapping.joints}

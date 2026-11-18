@@ -7,6 +7,24 @@ All notable changes to this project are documented here. Format based on
 
 ### Added
 
+- **Studio G6 supervised motion write path** — gateway `/motion/dispatch` and
+  `/motion/stop`, a pure-Python `MotionGuard` that revalidates pulse limits,
+  step, duration, measured-feedback age and single-command occupancy, and a
+  backend `HardwareAdapter` dispatch path gated by `ARMPI_HARDWARE_MOTION=1`
+  plus the fixed `ARMPI_SUPERVISED_MOTION_ACK` phrase while limits are
+  unverified. Effective supervised limits: one joint, 23 pulses (0.096342 rad),
+  duration ≥ 1.0 s; completion from measured `servo_states`; an unconfirmable
+  outcome latches `MOTION_OUTCOME_UNKNOWN` until a backend restart. Verified on
+  the real robot with no motion (measured delta 0.0 rad); see
+  `armpi-debug-studio/docs/g6-motion-write-path.md` and
+  `evidence/studio_g6/20261118/`.
+- `tools/export_gateway_motion_config.py` — validates and exports the adopted
+  pulse limits as the gateway's motion JSON.
+- `armpi-debug-studio/tools/start-supervised-backend.sh` — explicit operator
+  launcher for the supervised backend.
+- `armpi-debug-studio/ros2_gateway/deploy/supervised-motion.md` — robot-side
+  supervised gateway procedure, including the PID-based shutdown (a `pkill -f`
+  pattern that starts with `--` silently fails).
 - `tools/phase2/depth_plane_fit.py` — read-only RANSAC + SVD table-plane fit
   from `/depth_cam/depth_registered/points`. Composes `base_link` from the
   **measured bus-servo joints** and the hand-eye; records the driver's cloud
@@ -23,9 +41,43 @@ All notable changes to this project are documented here. Format based on
   215 mm ruler check, RGB board comparison, tag absolute-z caveat, and the
   table-alignment plan-only result.
 - SRDF `table_down` named state (measured bus-servo pose).
+- `armpi_grasp_planner/joint_limits.py` — pure-Python joint-limit margin
+  policy (`DEFAULT_JOINT_LIMIT_MARGIN_RAD = 0.03`) plus `--joint-limit-margin`.
+- `evidence/phase2/onsite_20261118/joint_limit_margin_20261118.md` and its
+  two mock plan-only reports — closes the "sampler needs a joint-limit margin"
+  leftover from the table-alignment run.
+- `tools/phase2/table_collision.py` — publishes the measured table plane as an
+  oriented `table_surface` collision object on `/collision_object` (top face on
+  the plane, 1 Hz republish, `--remove`); pure geometry functions are tested.
+- `evidence/phase2/onsite_20261118/table_envelope_20261118.md` — table-envelope
+  analysis, service matrix and planning-scene check.
 
 ### Changed
 
+- **Hardware joint state now reports measured positions.** The gateway
+  subscribes to `/controller_manager/servo_states` and `/state` carries both
+  the command echo and a `measured` block; the backend uses the measured pulse
+  as `position_rad`/`truth=measured`, while `target_rad` still comes from the
+  echo. Step validation uses the measured position, so consecutive commands
+  cannot each be "one step from the last target" while the arm lags. The
+  read-only hardware Playwright expectation was updated from `commanded` to
+  `measured`.
+- **Grasp candidates can no longer sit on an adopted joint bound.** The
+  joint-space sampler drops grid values inside the margin and adds the margin
+  boundary; the evaluator rejects a boundary IK solution as
+  `JOINT_LIMIT_MARGIN` before FK/collision; IK seeds are clamped into the
+  shrunk range (the SRDF `init_pose` seed's `joint4 = −1.6591` is outside the
+  adopted `−1.5917` low bound). `--joint-limit-margin 0.0` reproduces the old
+  search. The 2026-11-18 table-alignment target now has no margin-safe plan,
+  which is the intended outcome for a target reachable only on the bound.
+- **Table grasps are no longer vetoed by the flat z bound.** The safety policy
+  has a calibrated `table_plane` check (measured normal/offset, 10 mm
+  clearance, code `TABLE_CLEARANCE`); the workspace lower z is now a coarse
+  hard floor at −0.10 m. A 120k-sample FK search found the lowest reachable TCP
+  at z ≈ −0.0445 m (33 mm above the table), so the old 0.00 bound blocked the
+  whole reachable table band. The live `armpi_safety` node must be restarted to
+  load the new config. The table collision object is still required for
+  link/gripper geometry and must be running during planning/execution.
 - **Corrected the absolute table height.** The depth plane gives
   **z = −0.0787 m** under the camera and the 215 mm gripper-fingertip ruler
   check **−0.0784 m** (1.3 mm apart). The RGB board top is 6.1 mm above the

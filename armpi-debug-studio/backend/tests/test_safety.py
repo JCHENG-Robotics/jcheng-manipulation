@@ -7,6 +7,10 @@ import pytest
 from app.domain.enums import ErrorCode
 from app.domain.mapping import MappingConfig
 from app.domain.models import MotionTarget
+from app.domain.motion import (
+    SUPERVISED_MAX_STEP_RAD,
+    effective_motion_limits,
+)
 from app.safety.validation import validate_targets
 
 
@@ -90,6 +94,59 @@ def test_joint3_negative_allowed(mapping: MappingConfig) -> None:
     )
     assert outcome.valid
     assert outcome.normalized[0]["target_raw"] == 524
+
+
+def test_supervised_limits_align_to_a_whole_pulse(mapping: MappingConfig) -> None:
+    """A target accepted by the backend must not need one extra gateway pulse."""
+    limits = effective_motion_limits(mapping, supervised=True)
+    pulses = limits.max_step_rad / mapping.radians_per_tick
+    assert pulses == pytest.approx(round(pulses), abs=1e-9)
+    assert limits.max_step_rad <= SUPERVISED_MAX_STEP_RAD
+    assert limits.min_duration_s >= 1.0
+    assert limits.single_joint_only is True
+
+
+def test_supervised_rejects_multi_joint(mapping: MappingConfig) -> None:
+    limits = effective_motion_limits(mapping, supervised=True)
+    outcome = validate_targets(
+        mapping,
+        [MotionTarget("joint1", 0.05, 1.0), MotionTarget("joint2", 0.05, 1.0)],
+        current_targets={"joint1": 0.0, "joint2": 0.0},
+        max_step_rad=limits.max_step_rad,
+        min_duration_s=limits.min_duration_s,
+        single_joint_only=limits.single_joint_only,
+    )
+    assert not outcome.valid
+    assert ErrorCode.SUPERVISED_SINGLE_JOINT.value in _codes(outcome)
+
+
+def test_supervised_rejects_short_duration(mapping: MappingConfig) -> None:
+    limits = effective_motion_limits(mapping, supervised=True)
+    outcome = validate_targets(
+        mapping,
+        [MotionTarget("joint1", 0.05, 0.5)],
+        current_targets={"joint1": 0.0},
+        max_step_rad=limits.max_step_rad,
+        min_duration_s=limits.min_duration_s,
+        single_joint_only=limits.single_joint_only,
+    )
+    assert not outcome.valid
+    assert ErrorCode.DURATION_RANGE.value in _codes(outcome)
+
+
+def test_supervised_pulse_aligned_step_is_accepted(mapping: MappingConfig) -> None:
+    limits = effective_motion_limits(mapping, supervised=True)
+    target = limits.max_step_rad
+    outcome = validate_targets(
+        mapping,
+        [MotionTarget("joint1", target, 1.0)],
+        current_targets={"joint1": 0.0},
+        max_step_rad=limits.max_step_rad,
+        min_duration_s=limits.min_duration_s,
+        single_joint_only=limits.single_joint_only,
+    )
+    assert outcome.valid, _codes(outcome)
+    assert outcome.normalized[0]["target_raw"] == 523
 
 
 def test_preview_token_payload_excludes_live_from_rad(service) -> None:
