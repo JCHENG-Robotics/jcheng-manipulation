@@ -37,6 +37,24 @@ All notable changes to this project are documented here. Format based on
 - `evidence/phase2/onsite_20261118/approach_20261118/` — supervised object-free
   approach at `camera_forward`: 3/3 safety-approved plans, best plan executed,
   final TCP **1 mm** from the plan.
+- `evidence/phase2/onsite_20261118/first_grasp/` — **the first real markerless
+  grasp** of the 39.4 mm floor cube: cloud segmentation (`39.2 × 39.8 mm`
+  cluster, `1.9/−4.1/−3.5 mm` vs the RGB), the reach limit (`TCP` at the cube
+  top only at `x = 0.233 m` with `joint2/joint3` on the adopted bounds and
+  `--joint-limit-margin 0.0`), the "look-then-grasp" view pose, the autonomous
+  placement miss, the DDS data-plane incident and the wired fallback, the
+  operator-placed retry that **held and lifted** the cube, and the release jam
+  that needed a gripper servo torque release.
+- `tools/phase2/object_segment_rgbd.py` — markerless RGB-D object segmentation:
+  RANSAC support plane, 5 mm voxel-grid connected components, size/height/region
+  gates, top-slab fit (centroid, SVD tilt, minimum-area rectangle). Pure numpy,
+  container-side, subscribes only. A partial top view biases the centroid; the
+  extent is reported so a full-view gate can reject it.
+- `tools/phase2/tests/test_object_segment.py` — 8 tests for the clustering,
+  minimum-area rectangle, slab fit and the gate rejections.
+- `tools/phase2/real_moveit_execute.py --joints` — plan/execute to an explicit
+  five-joint target, used for the metrology view pose (the SRDF has no named
+  state for it).
 - `evidence/phase2/onsite_20261118/depth_plane_20261118.md` — depth plane,
   215 mm ruler check, RGB board comparison, tag absolute-z caveat, and the
   table-alignment plan-only result.
@@ -76,6 +94,22 @@ All notable changes to this project are documented here. Format based on
 
 ### Changed
 
+- **`base_link` collision geometry now uses the real base mesh.** The 2025-07
+  vendor model had a 1 m × 1 m × 25 mm floor plate centred on `base_link`
+  (z = −12.5…+12.5 mm), i.e. **65–90 mm above the measured floor**; it blocked
+  every grasp whose fingers or wrist crossed z = 0. Replaced with the newer
+  vendor model's `base_link.STL` (0.289 × 0.177 × 0.076 m). The measured floor
+  is still published separately by `tools/phase2/table_collision.py`.
+- **DDS moved from the office WiFi to the wired link.** The WiFi path
+  (`wlp4s0 10.51.128.246 ↔ wlan0 10.51.128.226`) reached 100 % packet loss
+  while both nodes stayed up and DDS discovery survived, so no robot data
+  reached the laptop. Both `cyclonedds.xml` files now bind
+  `enx00e04ca373c7` (10.42.0.1) and `eth0` (10.42.0.218); the WiFi versions are
+  kept as `*.wifi.bak`.
+- **Vendor stack restart re-initialises the servos.** Restarting
+  `start_node.service` moved the arm from the folded grasp pose to the vendor
+  init pose `700/500/500/500/500` on its own. The restart must be planned at a
+  safe pose; this is now recorded in the first-grasp evidence.
 - **Chassis motion is calibrated end to end.** After the operator adjusted the
   wheel actuators, the full sign table was re-verified on the floor (forward
   `[+,−,−,+]`, left `[+,+,+,+]`, CCW yaw `[+,−,+,−]`, reverse = negation) and

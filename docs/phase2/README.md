@@ -49,8 +49,9 @@
 | Depth table plane and absolute z | **Validated (2026-11-18)** | 147,626-inlier RANSAC+SVD plane, 0.7 mm RMS, normal 3.66°; table z −0.0787 m (depth) vs −0.0784 m (215 mm ruler), 1.3 mm apart |
 | Supervised object-free approach | **Executed (2026-11-18)** | `camera_forward` → planner plan-only (3/3 safety approved) → exact trajectory → final TCP 1 mm from plan; camera_forward view volume is not a grasp volume |
 | Calibration pose selection | **Implemented, offline-validated (2026-11-17)** | 24 poses from 14,176 evaluated poses / 3,093 feasible; diversity, rotation-excitation and coplanarity checks pass; not executed |
-| Real visual grasping | **Not started** | no real grasp; calibration and mock bridge validated, hardware integration pending |
-| Grasp execution and verification | **Not started** | mock runs are plan-only by design |
+| Markerless RGB-D segmentation | **Implemented, real-cloud validated (2026-11-18)** | `tools/phase2/object_segment_rgbd.py`: floor RANSAC + 5 mm voxel clustering + top-slab fit; 39.2 × 39.8 mm cluster, 1.9/−4.1/−3.5 mm vs the RGB; `--min-top-extent` rejects a clipped top view (the first-grasp miss) |
+| Real visual grasping | **First grasp achieved (2026-11-18)** | Markerless floor cube at the reach limit. The autonomous placement missed by a few mm; the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/) |
+| Grasp execution and verification | **Real execution validated (2026-11-18)** | measured bus-servo completion on every executed trajectory; the lift was confirmed by the operator. Release verification is open (see the evidence follow-ups) |
 
 Evidence:
 
@@ -63,6 +64,7 @@ Evidence:
 - [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/)
 - [`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/)
 - [`evidence/phase2/onsite_20261118/approach_20261118/`](../../evidence/phase2/onsite_20261118/approach_20261118/)
+- [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/)
 - [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)
 - [`evidence/phase2/vendor_calibration_20261117/`](../../evidence/phase2/vendor_calibration_20261117/)
 - [`evidence/phase2/session3_20261117/`](../../evidence/phase2/session3_20261117/)
