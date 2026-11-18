@@ -6,8 +6,13 @@
 > 3.1 mm / 0.45° leave-one-out std. The camera_forward eye-to-hand transform
 > remains the primary validated transform. The original claim that the RGB PnP
 > is ~46 mm below the table was based on a chassis estimate; the follow-up
-> depth plane and a 215 mm ruler check put the table at **z ≈ −0.078 m**, with
-> the RGB board top 6.1 mm above it (board thickness). See
+> depth plane and a 215 mm ruler check put the table at **z ≈ −0.078 m**. The
+> RGB board top is 6.1 mm above the depth plane, but the board is **11 mm**
+> thick and invisible to the depth (holes filled), and a same-frame matte-tag
+> test measured a **−4.6 mm same-surface RGB-vs-depth gap**. The 6.1 mm is
+> therefore not the board thickness; see
+> [`rgbd_same_surface_20261118.md`](../../../phase2/onsite_20261118/rgbd_same_surface_20261118.md).
+> See also
 > [the follow-up](#follow-up-2026-11-18-depth-plane-and-ruler-check).
 
 ## Setup
@@ -98,16 +103,22 @@ plane and a direct ruler measurement. Details:
 | TCP FK z (measured bus-servo joints) | 0.1366 m → table z **−0.0784 m** |
 | Depth plane vs ruler | **1.3 mm** |
 | RGB board plane (16 samples) | −0.07054 ± 0.00165 m |
-| Board top − depth plane | **+6.1 mm** (board thickness) |
+| Board top − depth plane | **+6.1 mm** — **not** the board thickness (board = 11 mm; same-surface RGB-D gap −4.6 mm) |
 
 Findings:
 
 - The 340 mm "depth median" above was a raw scene median (it includes closer
   objects), not a table-plane distance. The table plane's inlier median is
   0.3676 m and the plane under the camera is ~0.354 m.
-- The RGB PnP and the depth camera agree on the absolute table height within
-  the 6.1 mm board thickness. There is no 40–50 mm RGB depth bias at this
-  view.
+- The RGB PnP and the depth camera do **not** agree to 6.1 mm. The board is
+  11 mm thick and the chessboard is invisible to the depth (the depth "board"
+  plane is the filled table plane). The same-frame matte-AprilTag test measured
+  a **−4.25 / −4.65 mm** same-surface RGB-vs-depth gap; the RGB absolute z is
+  biased −3 to −5 mm at this view. The 6.1 mm is the RGB board top minus the
+  depth table with that bias, not the board thickness. There is no 40–50 mm
+  RGB depth bias at this table view, but the agreement is ~4.6 mm, not 6.1 mm.
+  See
+  [`rgbd_same_surface_20261118.md`](../../../phase2/onsite_20261118/rgbd_same_surface_20261118.md).
 - The table is at **z ≈ −0.078 m**, not −0.024 m. The chassis estimate is
   ~54 mm off; do not use it as ground truth.
 - The AprilTag absolute z is separately biased low (6–13 mm at A/B/C,

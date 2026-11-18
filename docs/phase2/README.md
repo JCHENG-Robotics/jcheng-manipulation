@@ -10,8 +10,11 @@
 > 100.0 mm lateral (0.67 %)**, and a table-down chessboard fit is
 > relative-consistent (2.7 mm / 0.42°). A follow-up depth point-cloud plane
 > (**147,626 inliers, 0.7 mm RMS**) plus a **215 mm ruler check** place the
-> table at **z ≈ −0.078 m** in `base_link`; the RGB board top is 6.1 mm above
-> the depth plane (board thickness). A supervised object-free approach at
+> table at **z ≈ −0.078 m** in `base_link`. The board is **11 mm** thick and
+> is **not visible to the depth camera** (high-contrast/glossy board → depth
+> holes filled with the table); a same-frame matte-AprilTag test measured a
+> **−4.6 mm same-surface RGB-vs-depth gap**, so the old 6.1 mm number is not
+> the board thickness. A supervised object-free approach at
 > `camera_forward` was planned and executed through the grasp planner
 > (**1 mm** final TCP match); its main finding is that the camera_forward
 > view volume is not a grasp volume (the arm reaches only ~0.10 m in front of
@@ -41,7 +44,8 @@
 | Measurement protocols | **Implemented, dry-run/simulate validated (2026-11-17)** | 30-trial repeatability/backlash, visual-displacement and gripper-envelope schedules; no hardware data |
 | Hand-eye calibration | **Validated (2026-11-17)** | 14 poses with measured bus-servo joints; 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43°; leave-one-out 3.41 mm / 0.44° std |
 | Independent tag displacement validation | **Lateral scale validated (2026-11-18)** | flat 36h11 ID 3, 24.9 mm: A→B **100.67 mm vs 100.0 mm (0.67 %)**; B→C 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; the tag absolute z is biased 6–13 mm low, so it is not an absolute reference |
-| Table-down chessboard calibration | **Relative PASS (2026-11-18)** | 15 table poses; 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO; board top −0.0705 m, 6.1 mm above the depth table plane |
+| Table-down chessboard calibration | **Relative PASS (2026-11-18)** | 15 table poses; 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO; board top −0.0705 m. The board is 11 mm thick; the depth does not see it (holes filled) and the same-surface RGB-D gap is −4.6 mm, so the 6.1 mm board-vs-table difference is not the board thickness |
+| Same-frame RGB-D same-surface check | **Done (2026-11-18)** | matte AprilTag on a flat sheet: RGB tag vs depth paper **−4.25 / −4.65 mm** (0.37° / 0.76°); depth paper vs table +1.66 mm vs ~0.1 mm paper; RGB absolute z biased −3 to −5 mm; use the depth table plane for z |
 | Depth table plane and absolute z | **Validated (2026-11-18)** | 147,626-inlier RANSAC+SVD plane, 0.7 mm RMS, normal 3.66°; table z −0.0787 m (depth) vs −0.0784 m (215 mm ruler), 1.3 mm apart |
 | Supervised object-free approach | **Executed (2026-11-18)** | `camera_forward` → planner plan-only (3/3 safety approved) → exact trajectory → final TCP 1 mm from plan; camera_forward view volume is not a grasp volume |
 | Calibration pose selection | **Implemented, offline-validated (2026-11-17)** | 24 poses from 14,176 evaluated poses / 3,093 feasible; diversity, rotation-excitation and coplanarity checks pass; not executed |

@@ -104,10 +104,14 @@ Detection:
   square measurement are the ground truth (~0.5 mm each).
 - One arm pose, one tag orientation, one lighting setup.
 - The table pose is outside the camera_forward calibration pose range. Its
-  absolute RGB depth is biased by ~40–50 mm at the ~48° view; a separate
-  table-down chessboard calibration is relative-consistent (2.7 mm / 0.42°) but
-  does not remove the depth bias. This is a view-geometry/PnP limit, not a
-  rejection of the calibrated `T_link4_camera` for relative/lateral use.
+  absolute RGB depth was previously described as ~40–50 mm biased at the ~48°
+  view, but that number came from a wrong chassis estimate; the depth-plane /
+  215 mm ruler correction puts the table at z ≈ −0.078 m and the tag's absolute
+  z is 6–13 mm low at the table view. A same-frame matte-tag test measured a
+  ~4.6 mm same-surface RGB-vs-depth gap (see
+  [`../rgbd_same_surface_20261118.md`](../rgbd_same_surface_20261118.md)).
+  This is a view-geometry/PnP and RGB-D registration limit, not a rejection of
+  the calibrated `T_link4_camera` for relative/lateral use.
 - Raw RGB frames stay private (they show the operator); only the numerical
   JSON is committed.
 

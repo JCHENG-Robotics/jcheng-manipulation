@@ -7,9 +7,12 @@
 > `(0.34, 0)`). A ruler check of the gripper-fingertip height (**215 mm**,
 > TCP FK z = 0.1366 m) gives table z = **−0.0784 m**, **1.3 mm** from the
 > depth plane. The RGB chessboard plane is **6.1 mm above** the depth plane,
-> consistent with the board thickness. The earlier "physical table
-> z ≈ −0.024 m" chassis estimate is wrong by ~54 mm: the table is at
-> **z ≈ −0.078 m**.
+> but that is **not** the board thickness: the board is **11 mm** (calipered)
+> and is invisible to the depth (holes filled with the table). A same-frame
+> matte-AprilTag test measured a **−4.6 mm same-surface RGB-vs-depth gap**;
+> see [rgbd_same_surface_20261118.md](rgbd_same_surface_20261118.md). The
+> earlier "physical table z ≈ −0.024 m" chassis estimate is wrong by ~54 mm:
+> the table is at **z ≈ −0.078 m**.
 
 ## Why the earlier interpretation was wrong
 
@@ -41,7 +44,7 @@ higher above this table than that number implied.
 | Cloud | `/depth_cam/depth_registered/points`, 202,617 points, `point_step=16`, `height=1` (unorganized) |
 | Frame label | `depth_camera_link` |
 | Hand-eye | table-view TSAI `T_link4_camera` (`evidence/calibration/20261118/table_down/`) |
-| Tool | [`tools/phase2/depth_plane_fit.py`](../../../../tools/phase2/depth_plane_fit.py) |
+| Tool | [`tools/phase2/depth_plane_fit.py`](../../../tools/phase2/depth_plane_fit.py) |
 
 ## Frame-convention finding (important)
 
@@ -96,9 +99,17 @@ top plane in `base_link`:
 | Depth plane at the board centre | −0.07664 m |
 | Board top − depth plane | **+6.1 mm** |
 
-The +6.1 mm is the board thickness (the board is flat on the table). Within the
-board-thickness uncertainty, the RGB PnP and the depth camera agree on the
-absolute table height; there is no 40–50 mm RGB depth bias at this view.
+**Corrected 2026-11-18:** the +6.1 mm is **not** the board thickness. The
+board is **11 mm** thick (calipered), and the chessboard is **invisible to the
+depth camera** — the raw depth inside the board is a filled table plane with
+no step, even though the IR pattern is visible. A same-frame matte-AprilTag
+test (tag sheet on the board and flat on the table) measured a **−4.25 /
+−4.65 mm same-surface RGB-vs-depth gap**; the RGB absolute z is biased −3 to
+−5 mm at this view. The 6.1 mm is the RGB board top minus the depth table with
+that bias, not the board thickness. There is no 40–50 mm RGB depth bias at
+this table view, but the RGB/depth agreement is ~4.6 mm, not 6.1 mm. See
+[rgbd_same_surface_20261118.md](rgbd_same_surface_20261118.md). The depth table
+plane remains the absolute-z reference.
 
 ## AprilTag absolute-z caveat
 
@@ -158,13 +169,19 @@ the adopted low bound −0.662 rad**. The plan is valid but sits on a limit, so 
 was **not executed**. A future sampler should reject poses within a joint-limit
 margin; until then, do not execute this candidate.
 
+**Resolved 2026-11-18:** the sampler and evaluator now enforce a 0.03 rad
+joint-limit margin, and `js_0016` is no longer generated. See
+[joint_limit_margin_20261118.md](joint_limit_margin_20261118.md). The target
+still has no margin-safe plan in the mock, so it must move inward/upward before
+a table grasp; do not execute `js_0016`.
+
 ## Files
 
 | File | Content |
 |---|---|
 | `depth_plane_optical_20261118.json` | Full fit report: cloud/joints/transforms, plane, references, 2000-point sample |
 | `table_alignment_20261118.json` | Table plane, ruler check, board and tag comparisons |
-| `../../../../tools/phase2/depth_plane_fit.py` | Reusable read-only fitter (optical convention) |
+| `../../../tools/phase2/depth_plane_fit.py` | Reusable read-only fitter (optical convention) |
 
 ## Reproduction
 

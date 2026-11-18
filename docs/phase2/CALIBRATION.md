@@ -183,13 +183,18 @@ chassis estimate (`−0.024 m`) and concluded that the RGB PnP was biased by
 ~40–50 mm. A later depth point-cloud plane and a direct ruler measurement
 overturned that: the table is at **z ≈ −0.078 m**. The depth plane gives
 **−0.0787 m** under the camera, a 215 mm ruler check on the gripper fingertip
-gives **−0.0784 m** (1.3 mm apart), and the RGB chessboard board top
-(**−0.0705 m**) is **6.1 mm above** the depth plane — the board thickness. The
-tag's own absolute z is biased 6–13 mm low at this view (its fitted plane is
-tilted 8.4° while the table is 3.7°); the lateral 0.67 % scale result stands.
-Do **not** use the tag absolute z or the chassis estimate for table height; use
-the depth plane. Evidence:
-[`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)
+gives **−0.0784 m** (1.3 mm apart). The RGB chessboard board top
+(**−0.0705 m**) is 6.1 mm above the depth plane, but the board is **11 mm**
+thick (calipered 2026-11-18) and the chessboard is **not visible to the depth
+camera** (high-contrast/glossy board → depth holes filled with the table
+plane). The 6.1 mm is therefore **not** the board thickness: a same-frame
+matte-AprilTag test measured a **−4.6 mm RGB-vs-depth same-surface gap** at
+this view. The tag's own absolute z is biased 6–13 mm low at this view (its
+fitted plane is tilted 8.4° while the table is 3.7°); the lateral 0.67 % scale
+result stands. Do **not** use the tag absolute z or the chassis estimate for
+table height; use the depth plane. Evidence:
+[`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md),
+[`evidence/phase2/onsite_20261118/rgbd_same_surface_20261118.md`](../../evidence/phase2/onsite_20261118/rgbd_same_surface_20261118.md)
 and
 [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/).
 
@@ -202,10 +207,12 @@ RPY `[-1.478, 0.331, -90.187]°`; board scatter **2.7 mm / 0.42°**, held-out
 final base 2.2 mm / 0.29°, leave-one-out 3.1 mm / 0.45° std, intrinsic RMS
 0.052 px. It passes the 5 mm / 2° gate and differs from the camera_forward TSAI
 by `[2.9, 1.0, 0.6] mm` and ~2.5°; both are internally consistent. The
-table-view fit is the correct hand-eye for this view and its absolute z is
-consistent with the depth plane (the board top is 6.1 mm above the depth
-plane, i.e. the board thickness). It does **not** replace the camera_forward
-transform for near-normal perception. Evidence:
+table-view fit is the correct hand-eye for this view, but its RGB absolute z
+carries the **−3 to −5 mm** view bias measured by the same-frame RGB-D test;
+the board top is **11 mm** above the table, not the 6.1 mm implied by the
+filled depth plane. Use the depth table plane for table z. The transform does
+**not** replace the camera_forward transform for near-normal perception.
+Evidence:
 [`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/).
 
 ## Why the first run failed
@@ -237,10 +244,17 @@ hardware read.
   surveyed 3D point in `base_link`.
 - Absolute table z is **−0.078 m**, not the chassis estimate −0.024 m. The
   depth plane gives −0.0787 m and the 215 mm ruler check −0.0784 m (1.3 mm
-  apart); the RGB board top (−0.0705 m) is 6.1 mm above the plane, i.e. the
-  board thickness. The AprilTag absolute z is still biased 6–13 mm low at the
-  table view (tag-plane tilt 8.4° vs table 3.7°); use the tag only for relative
-  displacement, not absolute z.
+  apart). The RGB absolute z at the table view is biased **−3 to −5 mm**, and
+  the same-surface RGB-vs-depth gap is **≈ −4.6 mm** (matte-AprilTag test);
+  the board is **11 mm** thick, and the 6.1 mm RGB-board-vs-depth-table number
+  is **not** the board thickness (the chessboard is invisible to the depth and
+  the hole is filled with the table). Use RGB XY + the depth table plane for z,
+  with a ≥5 mm vertical margin. The AprilTag absolute z is also biased 6–13 mm
+  low at the table view (tag-plane tilt 8.4° vs table 3.7°); use the tag only
+  for relative displacement.
+- The vendor RGB-D registration is not calibrated here: the same-surface gap
+  is view-dependent and was measured at one table pose. Do not assume it at
+  other views.
 - Link geometry comes from the vendor URDF. Small link/zero errors are absorbed
   into the hand-eye transform and may grow outside the calibration volume
   (roughly 0.25–0.40 m in front of the camera).
@@ -252,13 +266,15 @@ hardware read.
 
 ## Next
 
-1. Add a joint-limit margin to the grasp sampler. The table-alignment plan-only
-   found a valid candidate whose joint2 sits exactly on the adopted low bound;
-   the plan was not executed. Reject poses within a margin (e.g. 0.05 rad) of a
-   limit and re-plan.
-2. Do a same-instant RGB-D capture with the chessboard (or a measured-thickness
-   target) on the table to remove the board-thickness ambiguity in the
-   6.1 mm RGB/depth comparison, and record the board thickness.
+1. ~~Add a joint-limit margin to the grasp sampler.~~ **Done (2026-11-18):**
+   the sampler and evaluator enforce `--joint-limit-margin 0.03 rad` and the
+   evaluator rejects boundary IK solutions as `JOINT_LIMIT_MARGIN`; see
+   [GRASP_CANDIDATE_SEARCH.md](GRASP_CANDIDATE_SEARCH.md) §5.1.
+2. ~~Do a same-instant RGB-D capture with the chessboard / measured-thickness
+   target.~~ **Done (2026-11-18):** the matte-AprilTag test measured a −4.6 mm
+   same-surface RGB-vs-depth gap; the board is 11 mm and the old 6.1 mm was
+   not the board thickness. See
+   [`evidence/phase2/onsite_20261118/rgbd_same_surface_20261118.md`](../../evidence/phase2/onsite_20261118/rgbd_same_surface_20261118.md).
 3. If better than ~3 mm absolute metrology is required, add an external
    measurement (e.g. a dial indicator or a second fixed camera) rather than
    more chessboard poses; the remaining error is the open-loop arm and the
