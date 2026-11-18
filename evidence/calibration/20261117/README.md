@@ -34,17 +34,17 @@ RPY         = [0.951, -0.058, -89.789] deg
 | Chessboard intrinsic refinement | fx 418.31 / fy 418.34 vs driver 418.05 / 419.10; RMS **0.060 px** |
 | Corner RMS | 0.09–0.19 px |
 | Servo shift during a capture | 0–1 pulse (≤ 0.24°) |
-| Static TF vs hand-eye (informational) | 33.7 mm / 89.34° |
+| Static TF vs hand-eye (informational) | 29.7 mm / 89.798° |
 
-`inv(static_tf_link4_rgb) @ T_link4_camera` is an **89.34° rotation about the
--z axis** with translation `[15.4, 10.0, -28.3] mm`; this is the expected
+`inv(static_tf_link4_rgb) @ T_link4_camera` is an **89.798° rotation about the
+-z axis** with translation `[5.4, 10.1, -27.4] mm`; this is the expected
 body-frame → optical-frame 90° roll plus an optical-centre offset. The static
 TF is **not** an optical extrinsic and is not a pass gate.
 
-> **Update (2026-11-17, Session 1):** the three-decimal snapshot used above had
-> x = -0.050 m. The full-precision live TF is
-> `[-0.039995, -0.019122, 0.086003] m`; the measured adapter is **89.798°**
-> with translation **`[5.4, 10.1, -27.4] mm`** and is published as
+> **Correction (2026-11-17):** an earlier three-decimal `tf2_echo` snapshot had
+> x = -0.050 m and gave 89.34° / `[15.4, 10.0, -28.3] mm`. The full-precision
+> live TF is `[-0.039995, -0.019122, 0.086003] m`; the measured adapter is
+> **89.798°** with translation **`[5.4, 10.1, -27.4] mm`** and is published as
 > `camera_optical_calibrated`. The hand-eye fit is unchanged. See
 > [`evidence/phase2/frames_20261117/`](../../phase2/frames_20261117/).
 
@@ -110,10 +110,10 @@ spread.
 - **Intrinsics**: the chessboard refinement (fx 418.31 vs driver 418.05) now
   agrees with the driver, unlike the first run (446.3). This is an independent
   check that the camera and dataset are clean.
-- **Frame convention**: the 89.34° roll about -z (three-decimal snapshot) and
-  the full-precision 89.798° adapter both match the expected 90° body/optical
-  difference. The full-precision value is the published
-  `camera_optical_calibrated` transform.
+- **Frame convention**: the full-precision **89.798°** adapter about -z
+  matches the expected 90° body/optical difference and is published as
+  `camera_optical_calibrated`. The earlier 89.34° value came from the
+  three-decimal snapshot and is superseded.
 
 ## First run (baseline, cached commands)
 

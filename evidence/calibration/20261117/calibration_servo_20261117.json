@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-17T11:22:42.611756+00:00",
+  "generated_at": "2026-11-18T03:29:27.423387+00:00",
   "mode": "real_chessboard_hand_eye",
   "board": {
     "cols": 11,
@@ -117,8 +117,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.03371085056039421,
-        "difference_from_static_rotation_deg": 89.34076776561997
+        "difference_from_static_translation_m": 0.029666221007345814,
+        "difference_from_static_rotation_deg": 89.79817033220682
       },
       "PARK": {
         "T_link4_camera": [
@@ -187,8 +187,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.03368995275572107,
-        "difference_from_static_rotation_deg": 89.4770501308909
+        "difference_from_static_translation_m": 0.02947636484709086,
+        "difference_from_static_rotation_deg": 89.93374067364273
       },
       "HORAUD": {
         "T_link4_camera": [
@@ -257,8 +257,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.0336899666106196,
-        "difference_from_static_rotation_deg": 89.47725487662207
+        "difference_from_static_translation_m": 0.029476402557732893,
+        "difference_from_static_rotation_deg": 89.93394530627735
       },
       "ANDREFF": {
         "T_link4_camera": [
@@ -327,8 +327,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.11825695805947481,
-        "difference_from_static_rotation_deg": 89.42214331285724
+        "difference_from_static_translation_m": 0.11102696256805242,
+        "difference_from_static_rotation_deg": 89.8789434990052
       },
       "DANIILIDIS": {
         "T_link4_camera": [
@@ -397,8 +397,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.032263612777492796,
-        "difference_from_static_rotation_deg": 89.49700029251412
+        "difference_from_static_translation_m": 0.02846606090085593,
+        "difference_from_static_rotation_deg": 89.95452045184288
       }
     },
     "T_link4_camera": [
@@ -431,22 +431,22 @@
   "static_tf_link4_rgb": {
     "T": [
       [
-        1.0,
-        0.008,
-        0.01,
-        -0.05
+        0.999955820325,
+        0.0,
+        0.00939986157,
+        -0.039994944836
       ],
       [
-        -0.008,
+        0.0,
         1.0,
-        -0.003,
-        -0.019
+        0.0,
+        -0.019122
       ],
       [
-        -0.01,
-        0.003,
-        1.0,
-        0.087
+        -0.00939986157,
+        0.0,
+        0.999955820325,
+        0.086003322484
       ],
       [
         0.0,
@@ -456,8 +456,8 @@
       ]
     ],
     "role": "informational: the vendor static TF is a body frame, while the PnP pose is in the camera optical frame; a ~90 deg rotation difference is expected",
-    "difference_translation_m": 0.03371085056039421,
-    "difference_rotation_deg": 89.34076776561997
+    "difference_translation_m": 0.029666221007345814,
+    "difference_rotation_deg": 89.79817033220682
   },
   "intrinsics": {
     "driver_k": [

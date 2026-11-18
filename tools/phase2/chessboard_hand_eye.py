@@ -38,12 +38,15 @@ SQUARE_M = 0.020
 IMAGE_SIZE = (640, 400)
 MAX_BOARD_RMS_PX = 1.0
 
-# Live tf2_echo link4 -> rgb_camera_link on 2026-11-17 (3-decimal printout).
+# Full-precision live tf2 link4 -> rgb_camera_link, from
+# evidence/phase2/frames_20261117/frame_contract.json (2026-11-17). An earlier
+# 3-decimal snapshot in static_tf_link4_rgb.txt recorded x=-0.050, which was a
+# stale/incorrect capture; the live TF is x=-0.039995 (pitch 0.539 deg).
 STATIC_TF_LINK4_RGB = np.array([
-    [1.000, 0.008, 0.010, -0.050],
-    [-0.008, 1.000, -0.003, -0.019],
-    [-0.010, 0.003, 1.000, 0.087],
-    [0.000, 0.000, 0.000, 1.000],
+    [0.999955820325, 0.0, 0.009399861570, -0.039994944836],
+    [0.0, 1.0, 0.0, -0.019122000000],
+    [-0.009399861570, 0.0, 0.999955820325, 0.086003322484],
+    [0.0, 0.0, 0.0, 1.0],
 ])
 
 HAND_EYE_METHODS = {

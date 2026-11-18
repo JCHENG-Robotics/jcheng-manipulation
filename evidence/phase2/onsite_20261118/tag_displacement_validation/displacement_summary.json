@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-18",
+  "mode": "relative_displacement_validation",
+  "tag": {
+    "dictionary": "DICT_APRILTAG_36h11",
+    "id": 3,
+    "black_square_m": 0.0249,
+    "carrier": "flat printed sticker"
+  },
+  "calibration": "evidence/calibration/20261117/calibration_servo_20261117.json",
+  "arm_pose_joints": [
+    0.0,
+    0.2974,
+    -1.14773,
+    -1.55404,
+    -0.01676
+  ],
+  "positions": {
+    "A": [
+      0.3464377283919846,
+      0.004928013696610738,
+      -0.09362787880771717
+    ],
+    "B": [
+      0.3352125990249,
+      -0.09511109965548885,
+      -0.09255588085666969
+    ],
+    "C": [
+      0.4396172793161778,
+      -0.10262034256282933,
+      -0.09890942977910118
+    ]
+  },
+  "position_spread_std_mm": {
+    "A": [
+      0.23919170878277277,
+      0.007163214387306531,
+      0.38528093384491313
+    ],
+    "B": [
+      0.5032521777529458,
+      0.06506347095600608,
+      0.23353160840722673
+    ],
+    "C": [
+      0.7150111214561146,
+      0.07845198159952006,
+      0.6978051462969436
+    ]
+  },
+  "displacements": {
+    "A_to_B": {
+      "predicted_m": [
+        -0.011225129367084585,
+        -0.10003911335209958,
+        0.001071997951047482
+      ],
+      "predicted_norm_m": 0.10067262244120327,
+      "measured_m": 0.1,
+      "error_m": 0.0006726224412032661,
+      "relative_error": 0.006726224412032661
+    },
+    "B_to_C": {
+      "predicted_m": [
+        0.10440468029127775,
+        -0.00750924290734048,
+        -0.006353548922431493
+      ],
+      "predicted_norm_m": 0.10486702808640613,
+      "measured_m": 0.1,
+      "error_m": 0.004867028086406128,
+      "relative_error": 0.04867028086406128
+    }
+  },
+  "angle_between_displacements_deg": 92.321009957694,
+  "absolute_z_note": "Predicted base_link z is about -0.09 m at the table pose; the tag is on the table (z ~ -0.006 m). This is a constant FK/hand-eye extrapolation offset at joint4=-1.55, far from the calibration poses; it cancels in the relative displacements but blocks absolute table-pose use.",
+  "detection": {
+    "frames_per_position": 5,
+    "detections_per_position": 5,
+    "reprojection_px": {
+      "A": 0.2231784048393885,
+      "B": 0.15956069334772266,
+      "C": 0.4264209400160193
+    }
+  }
+}

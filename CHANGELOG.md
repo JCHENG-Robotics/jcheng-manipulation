@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-18 independent AprilTag displacement validation
+
+### Added
+
+- `tools/phase2/validate_hand_eye_tag.py` — detects an AprilTag in frames
+  captured with `chessboard_capture.py --check-only`, composes the PnP pose with
+  measured bus-servo FK and the validated `T_link4_camera`, and reports
+  per-frame spread and residuals against an optional surveyed ground truth.
+- `evidence/phase2/onsite_20261118/tag_displacement_validation/` — a flat 36h11
+  sticker (ID 3, 24.9 mm black square) moved 100.0 mm laterally and 100.0 mm
+  table-forward on the table with the arm held at joint4 = −1.55.
+
+### Verified (real hardware, 2026-11-18)
+
+- Lateral A→B: **100.67 mm** predicted vs **100.0 mm** ruler (0.67 %); table
+  forward B→C: 104.87 mm vs 100.0 mm (4.87 %); angle between them **92.3°**.
+  Detection 5/5 at each position, max reprojection 0.43 px.
+- The absolute table-pose prediction is ~90 mm below the table plane. This is a
+  constant FK/hand-eye extrapolation offset at joint4 = −1.55 (calibration used
+  joint4 ≈ −0.71); it cancels in the relative displacements but absolute 3D use
+  at table-down poses requires extending the calibration.
+
 ## [Unreleased] — 2026-11-18 Studio G5 read-only trajectory recorder and live TF verification
 
 ### Added

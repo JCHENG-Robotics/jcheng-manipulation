@@ -1,7 +1,9 @@
 # Onsite hardware session — 2026-11-18
 
 Supervised session at the robot, following the 7-step onsite runbook. Steps 1–6
-are recorded here; step 7 (first real visual grasp) is not part of this bundle.
+are recorded here; an extra independent AprilTag relative-displacement
+validation was added after step 6. Step 7 (first real visual grasp) is not part
+of this bundle.
 
 | Step | Scope | Result | Record |
 |---|---|---|---|
@@ -11,6 +13,7 @@ are recorded here; step 7 (first real visual grasp) is not part of this bundle.
 | 4 | Real MoveIt Plan → Execute (`camera_forward`) | **Motion PASS; action reporting timed out and was fixed** | [step4_moveit_execute.md](step4_moveit_execute.md) |
 | 5 | Real AprilTag detection | **PASS — 5/5, 0.322 m, ≤1.1 mm translation spread** | [step5_tag/README.md](step5_tag/README.md) |
 | 6 | Arm joint-limit survey with support | **PARTIAL — joint4 measured; joint2 measured; joint3 observed by hand; joint5 not measurable (falls freely when released); three vendor-node crashes from negative reads, root cause identified** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md), [step6_survey_run2_20261118.md](step6_survey_run2_20261118.md) |
+| V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table-pose z is ~90 mm low (FK extrapolation)** | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
 
 ## Environment
 

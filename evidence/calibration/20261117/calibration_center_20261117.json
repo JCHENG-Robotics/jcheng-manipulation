@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-17T10:26:00.106580+00:00",
+  "generated_at": "2026-11-18T03:29:28.099024+00:00",
   "mode": "real_chessboard_hand_eye",
   "board": {
     "cols": 11,
@@ -117,8 +117,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.044536576114805035,
-        "difference_from_static_rotation_deg": 88.98258896901864
+        "difference_from_static_translation_m": 0.03756863048485916,
+        "difference_from_static_rotation_deg": 89.43391255826765
       },
       "PARK": {
         "T_link4_camera": [
@@ -187,8 +187,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.04443318799303035,
-        "difference_from_static_rotation_deg": 90.74245066758924
+        "difference_from_static_translation_m": 0.03729433104030626,
+        "difference_from_static_rotation_deg": 91.19371126437308
       },
       "HORAUD": {
         "T_link4_camera": [
@@ -257,8 +257,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.04443320758817001,
-        "difference_from_static_rotation_deg": 90.74149742202505
+        "difference_from_static_translation_m": 0.03729433618379601,
+        "difference_from_static_rotation_deg": 91.19275831161156
       },
       "ANDREFF": {
         "T_link4_camera": [
@@ -327,8 +327,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.12953643543792204,
-        "difference_from_static_rotation_deg": 90.1561865754112
+        "difference_from_static_translation_m": 0.12214456680495518,
+        "difference_from_static_rotation_deg": 90.60925157085147
       },
       "DANIILIDIS": {
         "T_link4_camera": [
@@ -397,8 +397,8 @@
             1.0
           ]
         ],
-        "difference_from_static_translation_m": 0.03574381892477694,
-        "difference_from_static_rotation_deg": 90.75755121095101
+        "difference_from_static_translation_m": 0.028842732503523524,
+        "difference_from_static_rotation_deg": 91.20993310583168
       }
     },
     "T_link4_camera": [
@@ -431,22 +431,22 @@
   "static_tf_link4_rgb": {
     "T": [
       [
-        1.0,
-        0.008,
-        0.01,
-        -0.05
+        0.999955820325,
+        0.0,
+        0.00939986157,
+        -0.039994944836
       ],
       [
-        -0.008,
+        0.0,
         1.0,
-        -0.003,
-        -0.019
+        0.0,
+        -0.019122
       ],
       [
-        -0.01,
-        0.003,
-        1.0,
-        0.087
+        -0.00939986157,
+        0.0,
+        0.999955820325,
+        0.086003322484
       ],
       [
         0.0,
@@ -456,8 +456,8 @@
       ]
     ],
     "role": "informational: the vendor static TF is a body frame, while the PnP pose is in the camera optical frame; a ~90 deg rotation difference is expected",
-    "difference_translation_m": 0.04443318799303035,
-    "difference_rotation_deg": 90.74245066758924
+    "difference_translation_m": 0.03729433104030626,
+    "difference_rotation_deg": 91.19371126437308
   },
   "intrinsics": {
     "driver_k": [
@@ -526,13 +526,94 @@
       "translation_error_m": 0.019070425682427672,
       "rotation_error_deg": 2.5269813615192804
     },
+    "leave_one_out": {
+      "method": "PARK",
+      "samples": [
+        {
+          "index": 0,
+          "translation_error_m": 0.009994423713415341,
+          "rotation_error_deg": 1.2462494774224802
+        },
+        {
+          "index": 1,
+          "translation_error_m": 0.013273891225027474,
+          "rotation_error_deg": 1.6793289861699068
+        },
+        {
+          "index": 2,
+          "translation_error_m": 0.009664713155864915,
+          "rotation_error_deg": 1.4268813916961252
+        },
+        {
+          "index": 3,
+          "translation_error_m": 0.013954371206227978,
+          "rotation_error_deg": 1.8571873154004943
+        },
+        {
+          "index": 4,
+          "translation_error_m": 0.004572482061374213,
+          "rotation_error_deg": 0.4483619095733282
+        },
+        {
+          "index": 5,
+          "translation_error_m": 0.004753994001600394,
+          "rotation_error_deg": 0.8137391723130781
+        },
+        {
+          "index": 6,
+          "translation_error_m": 0.0018907420028362186,
+          "rotation_error_deg": 0.25852997605180955
+        },
+        {
+          "index": 7,
+          "translation_error_m": 0.0042948733954347165,
+          "rotation_error_deg": 0.7178925925133296
+        },
+        {
+          "index": 8,
+          "translation_error_m": 0.007878373071914177,
+          "rotation_error_deg": 1.3529403032600014
+        },
+        {
+          "index": 9,
+          "translation_error_m": 0.017539311763414445,
+          "rotation_error_deg": 2.4958402821714722
+        },
+        {
+          "index": 10,
+          "translation_error_m": 0.007521536330299067,
+          "rotation_error_deg": 1.168233474432162
+        },
+        {
+          "index": 11,
+          "translation_error_m": 0.0150368834217763,
+          "rotation_error_deg": 2.0125427175319066
+        },
+        {
+          "index": 12,
+          "translation_error_m": 0.02078383530396467,
+          "rotation_error_deg": 2.7596279590859556
+        },
+        {
+          "index": 13,
+          "translation_error_m": 0.0038897819657638805,
+          "rotation_error_deg": 0.7153433658006684
+        }
+      ],
+      "translation_std_m": 0.011113764145105823,
+      "rotation_std_deg": 1.5331073166744167,
+      "max_translation_error_m": 0.02078383530396467,
+      "max_rotation_error_deg": 2.7596279590859556
+    },
     "success": false,
     "criteria": {
       "board_translation_std_m": 0.005,
       "board_rotation_std_deg": 2.0,
       "intrinsics_rms_px": 1.0,
       "heldout_final_base_translation_m": 0.005,
-      "heldout_final_base_rotation_deg": 2.0
+      "heldout_final_base_rotation_deg": 2.0,
+      "leave_one_out_translation_std_m": 0.005,
+      "leave_one_out_rotation_std_deg": 2.0
     }
   }
 }

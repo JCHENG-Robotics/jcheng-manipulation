@@ -148,12 +148,42 @@ Method agreement (`board_translation_std_m` / `board_rotation_std_deg`):
 | even | 2.54 mm / 0.31° | 2.51 mm / 0.30° | 2.51 mm / 0.30° |
 | odd | 3.16 mm / 0.42° | 3.19 mm / 0.43° | 3.19 mm / 0.43° |
 
-The static-TF comparison is **informational**, not a pass gate: 33.7 mm /
-89.34° against the three-decimal snapshot, dominated by the body-vs-optical
-frame convention. With the full-precision live TF the measured body→optical
-adapter is **89.798° / `[5.4, 10.1, -27.4] mm`** (see
-[`docs/hardware/camera_frames.md`](../hardware/camera_frames.md)). The board
-scatter, held-out base and cross-validation are the meaningful checks.
+The static-TF comparison is **informational**, not a pass gate. With the
+full-precision live TF the solver reports **29.7 mm / 89.798°**, and the
+measured body→optical adapter is **89.798° / `[5.4, 10.1, -27.4] mm`** (see
+[`docs/hardware/camera_frames.md`](../hardware/camera_frames.md)). The earlier
+33.7 mm / 89.34° numbers used a three-decimal `tf2_echo` snapshot with
+x = −0.050 m and are superseded. The board scatter, held-out base and
+cross-validation are the meaningful checks.
+
+## Independent AprilTag displacement validation (2026-11-18)
+
+The hand-eye was checked independently of the chessboard with a flat 36h11
+sticker (ID 3, **24.9 mm** black square) on the table. The arm was held at
+`[0.0, 0.2974, -1.14773, -1.55404, -0.01676]` (table-down, **outside** the
+calibration pose range), with measured bus-servo joints. The tag edge was kept
+against a steel L-square; five frames were captured at each position.
+
+| Move | Predicted | Ruler | Error |
+|---|---:|---:|---:|
+| A→B, lateral (camera right) | **100.67 mm** | 100.0 mm | **+0.67 mm (0.67 %)** |
+| B→C, table-forward | **104.87 mm** | 100.0 mm | +4.87 mm (4.87 %) |
+| Angle between A→B and B→C | **92.32°** | 90° | +2.32° |
+
+Detection was 5/5 at each position (max reprojection 0.43 px; per-position
+std ≤0.7 mm). The lateral/image-plane scale is validated to <1 %. The
+table-forward move is ~5 % high: it moves the tag farther from the camera
+(0.36 → 0.42 m) and toward the image edge, where the PnP depth axis is weak at
+the ~48° incidence. Orthogonality is good.
+
+**Absolute table-pose warning:** the predicted `base_link` z is about −0.09 m
+while the tag is on the table (z ≈ −0.006 m). This is a constant FK/hand-eye
+extrapolation offset at joint4 = −1.55 (calibration used joint4 ≈ −0.71); it
+cancels in the relative displacements but means the current transform must
+**not** be used for absolute 3D positioning at table-down poses. Use it within
+the calibration pose range, or extend the hand-eye capture set to table-down
+poses before absolute table grasping. Evidence:
+[`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/).
 
 ## Why the first run failed
 
