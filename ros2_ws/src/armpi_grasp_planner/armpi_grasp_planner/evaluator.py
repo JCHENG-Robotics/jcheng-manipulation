@@ -34,6 +34,11 @@ from shape_msgs.msg import SolidPrimitive
 
 from .candidates import assess_sanity
 from .geometry import matrix_from_quaternion, rotation_angle_deg
+from .joint_limits import (
+    check_joint_margin,
+    clamp_joints,
+    DEFAULT_JOINT_LIMIT_MARGIN_RAD,
+)
 
 ARM_JOINTS = ('joint1', 'joint2', 'joint3', 'joint4', 'joint5')
 GRIPPER_JOINT = 'r_joint'
@@ -486,22 +491,34 @@ class MoveItGraspEvaluator(Node):
         ik_timeout=0.2,
         include_trajectory=False,
         max_start_state_distance_rad=0.0,
+        joint_limits=None,
+        joint_limit_margin_rad=DEFAULT_JOINT_LIMIT_MARGIN_RAD,
     ):
         """
         Screen every candidate and return ``(results, counts)``.
 
         Each result contains only plan-only data. The robot is never moved.
+
+        When ``joint_limits`` (a ``{joint: (lower, upper)}`` mapping in
+        ``ARM_JOINTS`` order) is given, IK seeds are clamped into the limits
+        shrunk by ``joint_limit_margin_rad`` and a solution closer than the
+        margin to any bound is rejected as ``JOINT_LIMIT_MARGIN`` instead of
+        being planned. Pass ``None`` only for a caller that supplies its own
+        margin policy; the CLI always passes the URDF limits.
         """
         results = []
         counts = {
             'generated': len(candidates),
             'sanity_ok': 0,
             'ik_ok': 0,
+            'margin_ok': 0,
+            'margin_rejected': 0,
             'fk_ok': 0,
             'collision_ok': 0,
             'plan_attempted': 0,
             'plan_ok': 0,
             'duplicates_skipped': 0,
+            'seeds_clamped': 0,
             'evaluator_errors': 0,
             'safety_checked': 0,
             'safety_ok': 0,
@@ -509,6 +526,19 @@ class MoveItGraspEvaluator(Node):
         solved_states = set()
         if not seeds:
             raise ValueError('at least one IK seed is required')
+        if joint_limits is not None:
+            clamped_seeds = []
+            for seed in seeds:
+                values, changes = clamp_joints(
+                    seed,
+                    joint_limits,
+                    joint_limit_margin_rad,
+                    joint_names=ARM_JOINTS,
+                )
+                clamped_seeds.append(values)
+                if changes:
+                    counts['seeds_clamped'] += 1
+            seeds = clamped_seeds
 
         for candidate in candidates:
             entry = candidate.as_dict()
@@ -560,6 +590,25 @@ class MoveItGraspEvaluator(Node):
                     results.append(entry)
                     continue
                 counts['ik_ok'] += 1
+
+                if joint_limits is not None:
+                    entry['joint_margin'] = check_joint_margin(
+                        ik_result['joints'],
+                        joint_limits,
+                        joint_limit_margin_rad,
+                        joint_names=ARM_JOINTS,
+                    )
+                    if not entry['joint_margin']['ok']:
+                        entry['status'] = 'JOINT_LIMIT_MARGIN'
+                        counts['margin_rejected'] += 1
+                        results.append(entry)
+                        continue
+                    counts['margin_ok'] += 1
+                else:
+                    entry['joint_margin'] = {
+                        'checked': False,
+                        'reason': 'joint limits not provided',
+                    }
 
                 fk_check = self.check_fk(
                     candidate,

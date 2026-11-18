@@ -27,6 +27,10 @@ from .geometry import (
     decompose_tool_orientation,
     quaternion_from_matrix,
 )
+from .joint_limits import (
+    DEFAULT_JOINT_LIMIT_MARGIN_RAD,
+    shrink_limits,
+)
 
 
 def default_urdf_path():
@@ -39,9 +43,25 @@ def default_urdf_path():
     )
 
 
-def _axis_values(lower, upper, step):
+def _axis_values(lower, upper, step, margin_rad=0.0):
     count = max(1, int(math.floor((upper - lower) / step)))
-    return [lower + index * step for index in range(count + 1)]
+    values = [lower + index * step for index in range(count + 1)]
+    low = lower + margin_rad
+    high = upper - margin_rad
+    # Keep the historical grid and drop only the samples inside the margin.
+    # Anchoring the whole grid at ``low`` instead would shift every sample by
+    # a fraction of a step; filtering alone would lose up to a full step at
+    # each bound, which can make a target unreachable even though the margin
+    # boundary itself is valid.
+    values = [
+        value for value in values
+        if value >= low - 1e-9 and value <= high + 1e-9
+    ]
+    if margin_rad > 0.0 and low <= high:
+        for bound in (low, high):
+            if all(abs(bound - value) > 1e-9 for value in values):
+                values.append(bound)
+    return sorted(values)
 
 
 def _distance(a, b):
@@ -149,6 +169,7 @@ class ArmKinematics:
         max_pitch_deg=75.0,
         max_candidates=80,
         include_refined=True,
+        joint_limit_margin_rad=DEFAULT_JOINT_LIMIT_MARGIN_RAD,
     ):
         """
         Sample FK-reachable grasps whose tool point is near *target*.
@@ -158,15 +179,34 @@ class ArmKinematics:
         For each sampled orientation, a ``joint_sample_refined`` candidate is
         also generated at exactly ``target``; its IK may fail, and the sampled
         pose is kept as the fallback.
+
+        The grid is built over the URDF limits; values within
+        ``joint_limit_margin_rad`` of either bound are dropped and the margin
+        boundary itself is added, so no sampled pose sits exactly on an
+        adopted joint bound and a target that is only reachable near a bound
+        still has a sample there. Use 0.0 to reproduce the pre-margin grid.
         """
         names = self.joint_names
+        # Validate the margin (it must leave a non-empty range) but keep the
+        # grid anchored at the real limits; ``_axis_values`` filters instead.
+        shrink_limits(self.limits, joint_limit_margin_rad)
         lower = [self.limits[name][0] for name in names]
         upper = [self.limits[name][1] for name in names]
         first_axes = [
-            _axis_values(lower[index], upper[index], position_step_rad)
+            _axis_values(
+                lower[index],
+                upper[index],
+                position_step_rad,
+                joint_limit_margin_rad,
+            )
             for index in range(4)
         ]
-        roll_values = _axis_values(lower[4], upper[4], roll_step_rad)
+        roll_values = _axis_values(
+            lower[4],
+            upper[4],
+            roll_step_rad,
+            joint_limit_margin_rad,
+        )
         refined = []
         sampled = []
         seen = set()

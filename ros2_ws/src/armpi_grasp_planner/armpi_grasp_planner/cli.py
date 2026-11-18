@@ -40,9 +40,13 @@ from .geometry import (
     matrix_from_quaternion,
     wrap_degrees,
 )
+from .joint_limits import DEFAULT_JOINT_LIMIT_MARGIN_RAD
 
 DEFAULT_SEEDS = (
-    (0.0, 0.7309, -1.6127, -1.6591, 0.0),  # SRDF init_pose
+    # SRDF init_pose. joint4 = -1.6591 predates the adopted EEPROM-bounded
+    # limits (low bound -1.5917), so the evaluator clamps this seed into the
+    # margin-shrunk range before use.
+    (0.0, 0.7309, -1.6127, -1.6591, 0.0),
     (0.0, 0.0, 0.0, 0.0, 0.0),
     (0.0, 0.6, -1.2, -0.6, 0.5),  # Phase 0 planning check pose
 )
@@ -214,6 +218,15 @@ def _parse_args(argv):
         help='URDF/xacro path for joint sampling; defaults to the description',
     )
     parser.add_argument(
+        '--joint-limit-margin',
+        type=float,
+        default=DEFAULT_JOINT_LIMIT_MARGIN_RAD,
+        help=(
+            'sampler grid and IK acceptance margin from every adopted joint '
+            'limit, radians; 0.0 disables the margin'
+        ),
+    )
+    parser.add_argument(
         '--safety-service',
         default='',
         help=(
@@ -313,6 +326,11 @@ def main(argv=None):
         if sampler == 'auto':
             sampler = 'cartesian' if args.target_joints else 'joint'
 
+        from .reachability import ArmKinematics
+
+        kinematics = ArmKinematics(urdf_path=args.urdf)
+        joint_limits = dict(kinematics.limits)
+
         decomposition = None
         tcp_pose = None
         pitches = []
@@ -389,9 +407,6 @@ def main(argv=None):
                     decomposition['roll_deg'],
                 )
         else:
-            from .reachability import ArmKinematics
-
-            kinematics = ArmKinematics(urdf_path=args.urdf)
             candidates = kinematics.sample_candidates(
                 target_point,
                 tcp_offset_m=args.tcp_offset,
@@ -401,6 +416,7 @@ def main(argv=None):
                 max_pitch_deg=args.max_pitch,
                 max_candidates=args.max_sampled,
                 include_refined=not args.no_refined,
+                joint_limit_margin_rad=args.joint_limit_margin,
             )
         candidates = sort_candidates(candidates)
 
@@ -424,6 +440,8 @@ def main(argv=None):
             max_start_state_distance_rad=(
                 args.max_start_state_distance
             ),
+            joint_limits=joint_limits,
+            joint_limit_margin_rad=args.joint_limit_margin,
         )
 
         target_summary = _target_summary(args, decomposition, tcp_pose)
@@ -447,6 +465,11 @@ def main(argv=None):
                     'max_sampled': args.max_sampled,
                     'include_refined': not args.no_refined,
                     'urdf': args.urdf,
+                    'joint_limit_margin_rad': args.joint_limit_margin,
+                    'joint_limits': {
+                        name: [float(bounds[0]), float(bounds[1])]
+                        for name, bounds in joint_limits.items()
+                    },
                     'object_width_m': args.object_width,
                     'gripper_max_opening_m': args.gripper_max_opening,
                     'max_plan': args.max_plan,
@@ -514,6 +537,20 @@ def main(argv=None):
                         plan.get('trajectory_points', 0),
                     )
                 )
+                margin = entry.get('joint_margin') or {}
+                if margin.get('checked') and not margin['ok']:
+                    print(
+                        'JOINT_MARGIN {} min_margin={:.4f} rad {}'.format(
+                            entry['candidate_id'],
+                            margin['min_margin_rad'],
+                            ' '.join(
+                                '{}={:+.4f}'.format(
+                                    violation['joint'], violation['value']
+                                )
+                                for violation in margin['violations']
+                            ),
+                        )
+                    )
                 safety = entry.get('safety')
                 if safety:
                     print(
@@ -528,6 +565,15 @@ def main(argv=None):
                 'ik_ok={ik_ok} fk_ok={fk_ok} collision_ok={collision_ok} '
                 'plan_ok={plan_ok}'.format(**counts)
             )
+            if counts['margin_rejected'] or counts['seeds_clamped']:
+                print(
+                    'JOINT_MARGIN_SUMMARY rejected={} seeds_clamped={} '
+                    'margin={:.4f} rad'.format(
+                        counts['margin_rejected'],
+                        counts['seeds_clamped'],
+                        args.joint_limit_margin,
+                    )
+                )
             exact = next(
                 (entry for entry in results if entry['is_exact_fk']), None
             )

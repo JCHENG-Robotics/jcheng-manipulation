@@ -222,6 +222,21 @@ Hardware motion therefore remains disabled. A supervised single-joint
 motion still needs Board approval, and the remaining low-side stops (or a
 decision to accept the EEPROM bound) must be recorded first.
 
+## Planner margin
+
+The grasp planner keeps a further `--joint-limit-margin` inside every adopted
+bound, default **0.03 rad** (1.7°, about 7 servo pulses, ~3.6× the measured
+tracking error). The joint-space sampler drops samples inside the margin and
+adds the margin boundary, the evaluator rejects an IK solution closer than the
+margin as `JOINT_LIMIT_MARGIN`, and IK seeds are clamped into the shrunk range.
+This is a planning margin, not a new limit: it does not change the URDF or the
+safety service, and `--joint-limit-margin 0.0` reproduces the earlier search.
+
+The trigger was the 2026-11-18 table-alignment plan-only run, whose only plan
+sat exactly on `joint2 = −0.6618`. Details and the mock verification are in
+[GRASP_CANDIDATE_SEARCH.md](GRASP_CANDIDATE_SEARCH.md) §5.1 and
+[`evidence/phase2/onsite_20261118/joint_limit_margin_20261118.md`](../../evidence/phase2/onsite_20261118/joint_limit_margin_20261118.md).
+
 ## Limitations
 
 - The bus-servo position is the servo's own register, not an independent

@@ -58,13 +58,16 @@ ros2_ws/src/armpi_grasp_planner/
 │   ├── geometry.py        # tool-frame math, quaternion conversion, decomposition
 │   ├── candidates.py      # Cartesian candidate family, policy sanity checks
 │   ├── reachability.py    # PyKDL FK chain + joint-space sampler
+│   ├── joint_limits.py    # joint-limit margin, seed clamping (pure Python)
 │   ├── evaluator.py       # MoveIt 2 IK/FK/collision/plan pipeline
 │   └── cli.py             # grasp_candidate_check entry point
-└── test/                  # 15 tests: geometry, grid, sanity, FK, sampler
+└── test/                  # geometry, grid, sanity, FK, sampler, margin,
+                           # evaluator-wiring tests
 ```
 
-`geometry.py` and `candidates.py` are pure Python. `reachability.py` needs
-`PyKDL`, `urdf_parser_py` and `xacro`; `evaluator.py` needs MoveIt 2.
+`geometry.py`, `candidates.py` and `joint_limits.py` are pure Python.
+`reachability.py` needs `PyKDL`, `urdf_parser_py` and `xacro`;
+`evaluator.py` needs MoveIt 2.
 
 The local KDL chain was checked against MoveIt's `/compute_fk` link by link at
 `(0.3, 0.9, -1.8, -1.7, 0.4)`: **0.0 mm** difference for all arm links,
@@ -93,8 +96,11 @@ positive control for the whole pipeline.
 
 Samples `joint1…joint4` over their URDF limits, computes FK, and keeps poses
 whose TCP is within `--sampling-radius` of the target and whose pitch is within
-`--max-pitch`. For each kept pose, `joint5` is sampled for roll. Two candidates
-are produced per pose:
+`--max-pitch`. Values within `--joint-limit-margin` of either limit are dropped
+and the margin boundary is added as an extra sample; the historical grid is
+otherwise unchanged, so shrinking the range does not shift every sample by a
+fraction of a step. For each kept pose, `joint5` is sampled for roll. Two
+candidates are produced per pose:
 
 | Source | TCP | Purpose |
 |---|---|---|
@@ -117,17 +123,56 @@ Each candidate goes through the stages in master-plan order:
 |---|---|---|
 | 1 | Policy sanity: pitch ≤ `--max-pitch`; optional object width ≤ gripper opening | `SANITY_FAIL` |
 | 2 | Full-pose IK (`/compute_ik`, `avoid_collisions=false`) | `IK_FAIL` |
-| 3 | FK verification of the IK solution (position ≤ 1 mm, angle ≤ 1°) | `FK_MISMATCH` |
-| 4 | State validity (`/check_state_validity`) | `COLLISION` |
-| 5 | Plan-only Pilz `PTP` (`/move_action`, `plan_only=true`) | `PLAN_FAIL` / `PLAN_OK` |
+| 3 | Joint-limit margin: every joint ≥ `--joint-limit-margin` inside its limit | `JOINT_LIMIT_MARGIN` |
+| 4 | FK verification of the IK solution (position ≤ 1 mm, angle ≤ 1°) | `FK_MISMATCH` |
+| 5 | State validity (`/check_state_validity`) | `COLLISION` |
+| 6 | Plan-only Pilz `PTP` (`/move_action`, `plan_only=true`) | `PLAN_FAIL` / `PLAN_OK` |
 
-Only candidates that pass stages 1–4 are planned, up to `--max-plan`.
+Only candidates that pass stages 1–5 are planned, up to `--max-plan`.
 Duplicate joint solutions are planned once (`SKIPPED_DUPLICATE_SOLUTION`).
 Candidates that pass collision but are not planned are `COLLISION_FREE`.
 
 No trajectory is executed. There is no controller call and no hardware path.
 
+### 5.1 Joint-limit margin
+
+The adopted limits are already conservative command limits (servo EEPROM
+limits minus 20 pulses; see [JOINT_LIMITS.md](JOINT_LIMITS.md)), but a pose
+**on** a limit is still a bad plan: IK has zero headroom, servo tracking error
+can push the joint into the stop, and the pose cannot be re-used if a later
+correction moves it slightly. The planner therefore keeps an additional
+margin, default **0.03 rad** (1.7°, about 7 servo pulses; 3.6× the 0.008 rad
+worst-case tracking error measured by the G5 recorder):
+
+- the joint sampler drops grid values inside the margin and adds the margin
+  boundary as a sample;
+- the evaluator rejects an IK solution closer than the margin as
+  `JOINT_LIMIT_MARGIN` **before** FK and collision checking;
+- IK seeds are clamped into the margin-shrunk range, because the SRDF
+  `init_pose` seed predates the adopted limits (`joint4 = −1.6591`, low bound
+  `−1.5917`). `counts.seeds_clamped` records how many seeds moved.
+
+The trigger was the 2026-11-18 table-alignment run: its only plan had
+`joint2 = −0.6618`, exactly the adopted low bound, and was not executed
+([depth_plane_20261118.md](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)).
+On the isolated Jazzy mock, the control run with `--joint-limit-margin 0.0`
+reproduced the two collision-free candidates at `joint2 = −0.6618`; with the
+default margin those candidates are no longer generated and the preferred
+plans are gone (the 9 cm table target has no margin-safe, collision-free
+candidate at this grid resolution). The target therefore needs to move inward
+or the margin/grid needs revisiting before a table grasp; the boundary plan is
+not silently accepted.
+
 ## 6. Running the check
+
+For a **table** grasp, publish the table into the planning scene first and keep
+the publisher alive; `/check_state_validity` and the plan-only call then include
+it. The safety service's TCP-only table-plane check is separate.
+
+```bash
+python3 tools/phase2/table_collision.py \
+  --plane-json evidence/phase2/onsite_20261118/depth_plane_optical_20261118.json
+```
 
 Terminal 1 — headless MoveIt mock:
 
@@ -146,14 +191,14 @@ source /opt/ros/jazzy/setup.bash
 source ros2_ws/install/setup.bash
 cd /path/to/jcheng-manipulation
 
-# 1. Cartesian positive control: exact FK pose
+# 1. Cartesian positive control: exact FK pose inside the adopted limits
 ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-joints 0.3 0.9 -1.8 -1.7 0.4 \
+  --target-joints 0.3 0.9 -1.6 -1.3 0.4 \
   --max-plan 3 --json-out /tmp/cartesian.json
 
-# 2. Joint-space sampler at a model-reachable target point
+# 2. Joint-space sampler at the same model-reachable target point
 ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-point 0.1382 0.0225 0.0896 --sampler joint \
+  --target-point 0.1775 0.0348 0.1630 --sampler joint \
   --max-plan 3 --json-out /tmp/joint.json
 
 # 3. Negative control: an unreachable point
@@ -164,9 +209,18 @@ ros2 run armpi_grasp_planner grasp_candidate_check \
 
 Expected: checks 1 and 2 end with `RESULT PASS`; check 3 generates 0 candidates
 and exits 1. The JSON report contains per-candidate IK attempts, FK errors,
-collisions, planning results, source and sampled joints.
+joint-limit margins, collisions, planning results, source and sampled joints.
+`--joint-limit-margin 0.0` disables the margin for a historical comparison;
+the Phase 0 pose `0.3 0.9 -1.8 -1.7 0.4` is no longer a valid positive
+control because its `joint4 = −1.7` is outside the adopted low bound
+`−1.5917`.
 
 ## 7. Mock results (2026-11-16)
+
+These results were recorded **before** the EEPROM-bounded limits and the
+joint-limit margin existed, with the old vendor URDF limits and the Phase 0
+control pose. They are kept as the historical mock baseline, not as a current
+expected outcome.
 
 Environment: ROS 2 Jazzy, x86_64, `mock_components`, KDL IK, Pilz `PTP`,
 plan-only. Evidence:
@@ -213,16 +267,19 @@ Details:
    the mock scene, while the 15° family was collision-free. Collision checking
    must stay in the loop; a pure IK-success count is misleading.
 6. **Some plans sit on joint limits.** The best plan (`js_0243`) uses
-   `joint5 = -2.09 rad`; the other two use 1.81 and 1.51 rad. Limit behaviour,
-   backlash and the real fingertip point must be measured on hardware before
-   these candidates are trusted.
+   `joint5 = -2.09 rad`; the other two use 1.81 and 1.51 rad. That outcome is
+   now impossible: the adopted limits and the joint-limit margin reject such a
+   candidate as `JOINT_LIMIT_MARGIN` (§5.1). Limit behaviour, backlash and the
+   real fingertip point must still be measured on hardware before these
+   candidates are trusted.
 
 ## 9. Limitations
 
 - No hardware, no serial link, no camera, no gripper feedback, no execution.
-- Collision checking is **self-collision only**: the mock planning scene has no
-  table, object or camera. A grasp that is collision-free here can still collide
-  with a real table or object.
+- Collision checking is **self-collision only unless the table collision object
+  is published** (`tools/phase2/table_collision.py`). Without it the mock scene
+  has no table, object or camera, and a grasp that is collision-free here can
+  still collide with a real table or object.
 - The TCP offset and all joint limits are provisional.
 - IK is KDL. The vendor analytic IK is not available in this x86 workspace.
 - Planning uses Pilz `PTP` from the current mock state. `LIN` is known to fail
