@@ -18,7 +18,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BACKEND_DIR="$REPO_ROOT/armpi-debug-studio/backend"
 PORT="${PORT:-8000}"
 HOST="${HOST:-127.0.0.1}"
-ROBOT_HOST="${ROBOT_HOST:-10.42.0.218}"
+ROBOT_HOST="${ROBOT_HOST:-10.51.128.226}"   # office WiFi; wired fallback 10.42.0.218
 GATEWAY_PORT="${GATEWAY_PORT:-8765}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_armpi}"
 SSH_USER="${SSH_USER:-pi}"
@@ -39,7 +39,7 @@ Options:
   -h, --help        show this help
 
 Environment:
-  PORT (8000), HOST (127.0.0.1), ROBOT_HOST (10.42.0.218)
+  PORT (8000), HOST (127.0.0.1), ROBOT_HOST (10.51.128.226; wired 10.42.0.218)
   GATEWAY_PORT (8765), SSH_KEY, SSH_USER (pi), CONTAINER (ArmPiUltra)
   ARMPI_GATEWAY_TOKEN  use this token instead of fetching it from the robot
   DB_PATH, LOG

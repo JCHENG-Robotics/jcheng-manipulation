@@ -54,7 +54,7 @@ only when each panel says `truth=measured`.
 |---|---|
 | `PORT` | `8000` |
 | `HOST` | `127.0.0.1` |
-| `ROBOT_HOST` | `10.42.0.218` |
+| `ROBOT_HOST` | `10.42.0.218` (wired fallback); on the current WiFi link use `ROBOT_HOST=10.51.128.226` |
 | `GATEWAY_PORT` | `8765` |
 | `SSH_KEY` | `~/.ssh/id_ed25519_armpi` |
 | `SSH_USER` | `pi` |
@@ -64,5 +64,5 @@ only when each panel says `truth=measured`.
 | `LOG` | `/tmp/studio_studio_8000.log` |
 
 Binding stays on `127.0.0.1`. The backend has no authentication; reach it from
-another device with an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 pi@10.42.0.218`),
+another device with an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 pi@10.51.128.226`),
 never by binding `0.0.0.0`.

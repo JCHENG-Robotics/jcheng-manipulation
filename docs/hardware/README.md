@@ -1,8 +1,9 @@
 # Hardware Baseline — ArmPi Ultra
 
-> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. SSH and DDS over direct
-> Ethernet (`10.42.0.218` ↔ `10.42.0.1`); the earlier office-WiFi path is a
-> fallback. Read-only queries, one supervised `reset_servo` motion and one
+> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. SSH and DDS now run over
+> office WiFi (`10.51.128.226` ↔ `10.51.128.246`, since 2026-11-18); direct
+> Ethernet (`10.42.0.218` ↔ `10.42.0.1`) stays attached as the fallback.
+> Read-only queries, one supervised `reset_servo` motion and one
 > plan-only `camera_forward` check. Camera RGB/depth streams and intrinsics are
 > verified. The camera optical extrinsic is **validated** (14-pose chessboard
 > hand-eye, 2.94 mm / 0.39° board scatter). Joint limits and the IMU remain

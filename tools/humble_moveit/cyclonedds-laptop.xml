@@ -1,12 +1,12 @@
 <CycloneDDS>
-  <!-- Current link (2026-11-17 evening): direct Ethernet to the robot.
-       The robot's CycloneDDS is bound to eth0; this laptop NIC is
-       enx00e04ca373c7 (10.42.0.1/24). For the office-WiFi fallback, replace
-       the interface name with wlp4s0 and set the robot config back to wlan0. -->
+  <!-- Current link (2026-11-18): office WiFi. The robot's CycloneDDS is
+       bound to wlan0 (10.51.128.226); this laptop NIC is wlp4s0
+       (10.51.128.246). For the wired fallback, replace the interface name
+       with enx00e04ca373c7 (10.42.0.1) and set the robot config back to eth0. -->
   <Domain Id="0">
     <General>
       <Interfaces>
-        <NetworkInterface name="enx00e04ca373c7" priority="1" multicast="true"/>
+        <NetworkInterface name="wlp4s0" priority="1" multicast="true"/>
       </Interfaces>
     </General>
   </Domain>

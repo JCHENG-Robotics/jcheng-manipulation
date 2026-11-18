@@ -17,9 +17,9 @@
 | Laptop ROS distro | Humble inside Docker; Jazzy on the host only | `ROS_DISTRO` | `[V]` |
 | RMW | `rmw_cyclonedds_cpp` on both sides | env | `[V]` |
 | Domain ID | 0 | `ROS_DOMAIN_ID` | `[V]` |
-| CycloneDDS (robot) | `file:///home/ubuntu/cyclonedds.xml`, **`eth0` only** (since 2026-11-17 evening; backup `.bak_wlan0_20261117`) | container config | `[V]` |
-| CycloneDDS (laptop) | `cyclonedds-laptop.xml`, **`enx00e04ca373c7` only** (direct Ethernet); `wlp4s0` is the WiFi fallback | config | `[V]` |
-| Robot network | `eth0 10.42.0.218/24` (SSH + DDS, current); `wlan0 10.51.128.226/23` (office WiFi fallback) | `ip addr` | `[V]` |
+| CycloneDDS (robot) | `file:///home/ubuntu/cyclonedds.xml`, **`wlan0` only** (since 2026-11-18; wired backup `.bak_eth0_20261118`) | container config | `[V]` |
+| CycloneDDS (laptop) | `~/jcheng/humble_ws/cyclonedds-wired.xml` and `cyclonedds-laptop.xml`, **`wlp4s0` only** (office WiFi, since 2026-11-18); `enx00e04ca373c7` is the wired fallback | config | `[V]` |
+| Robot network | `wlan0 10.51.128.226/23` (SSH + DDS, current); `eth0 10.42.0.218/24` (wired fallback, cable still attached) | `ip addr` | `[V]` |
 | CLI daemon | `ROS2CLI_NO_DAEMON=1` in the Humble containers | env | `[V]` |
 | Core service | `start_node.service` active; `ArmPiUltra` container up | `systemctl`, `docker ps` | `[V]` |
 | Laptop MoveIt launch | `ros2 launch armpi_ultra_moveit_config real_moveit.launch.py` | `tools/humble_moveit/` | `[V]` |
@@ -91,7 +91,7 @@ closed; its `aurora930_node` became a zombie. Stop it with
 | Wi-Fi module crash | A stale command loaded `rtw88_8821cu` for a Realtek RTL8188GU (`0bda:1a2b`) adapter in CDROM mode; the kernel oops wedged USB, `lsusb` hung, and a soft reboot stuck in shutdown. A restart recovered it. Do not reload that module on this robot. | `[V]` |
 | Battery 7.651 V | Charge before long motion trials | `[V]` |
 | Camera launch can die | The first persistent launch later exited with SIGKILL; the static TF publishers logged DDS multicast errors. Restart with the persistent `docker exec -d ... exec` form and check `/aurora/aurora`. | `[V]` |
-| DDS interface change | The robot's `cyclonedds.xml` was reverted from `wlan0` to `eth0` after the WiFi fallback (`wlan0: does not match an available interface`); backup `/home/ubuntu/cyclonedds.xml.bak_wlan0_20261117`. The laptop config now binds `enx00e04ca373c7`. | `[V]` |
+| DDS interface change | **Wireless is current since 2026-11-18.** The robot's `cyclonedds.xml` binds `wlan0` (wired backup `/home/ubuntu/cyclonedds.xml.bak_eth0_20261118`); the laptop binds `wlp4s0`. The robot's NM profile `tjyx_office-robot` (open SSID) was recreated and `HW-5401EF08` AP autoconnect disabled. The earlier `wlan0: does not match an available interface` failure happens when the XML names an interface that is down — bring WiFi up **before** restarting the core. | `[V]` |
 | DDS graph anomaly | `get_node_names()` in the robot container fails with `Failed to get node names: empty node name returned by the RMW layer`; topic discovery/subscription still works. Camera/static-TF logs repeat `serdata.cpp` errors (`string data is not null-terminated` / `invalid data size`). Root cause unresolved (2026-11-17 Session 4). | `[V]` observed, root cause `[U]` |
 | Camera-rate undercount | An in-container subscriber measures ~8.3 Hz for RGB, while a cross-host subscriber on the laptop measures ~11.8–12.0 Hz. Local DDS delivery of large images drops/queues; do not use in-container FPS as the sensor rate. | `[V]` |
 | Camera stop leaves a defunct node | `pkill -f vision.launch.py` exits the launch but can leave `aurora930_node` as a defunct process entry; kill it by exact process name or restart the container. The publisher count returns to 0. | `[V]` |
@@ -99,11 +99,11 @@ closed; its `aurora930_node` became a zombie. Stop it with
 ## Reproduce the link
 
 ```bash
-# direct Ethernet (SSH + DDS); this is the current path
-ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218
-
-# office-WiFi fallback (switch the robot cyclonedds.xml back to wlan0 first)
+# office WiFi (SSH + DDS); this is the current path
 ssh -i ~/.ssh/id_ed25519_armpi pi@10.51.128.226
+
+# wired fallback (switch the robot cyclonedds.xml back to eth0 first)
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218
 
 sudo docker exec -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
   'source ~/.zshrc >/dev/null 2>&1; ROS2CLI_NO_DAEMON=1 ros2 node list'
