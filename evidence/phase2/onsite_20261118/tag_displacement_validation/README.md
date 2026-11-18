@@ -76,13 +76,17 @@ Detection:
 - **Orthogonality is good.** 92.3° for two ruler directions that are 90° apart;
   the 2.3° residual is consistent with ruler/tag alignment and the B→C depth
   error.
-- **The absolute table-pose prediction is not usable.** The tag is on the
-  table (`base_link z ≈ −0.006 m` including the base/table offset), but the
-  predicted z is ≈ −0.09 m. This is a constant FK/hand-eye extrapolation offset
-  at joint4 = −1.55, far outside the calibration poses. It cancels in relative
-  displacements (the arm never moved), but it blocks absolute 3D use at this
-  pose. If table-down absolute positioning is needed, extend the hand-eye
-  capture set to table-down poses or correct the FK/joint-zero model first.
+- **The absolute table-pose RGB depth is biased.** The tag is on the table
+  (physical table ≈ −0.024 m: mecanum chassis 17.54 mm + base mesh bottom
+  6.46 mm), but the predicted z is ≈ −0.09 m. A table-down chessboard
+  calibration gives 2.7 mm / 0.42° relative scatter but places the board at
+  z ≈ −0.070 m; a depth-camera check gives **340 mm** versus a **~380 mm** RGB
+  PnP distance. The offset is a **view-dependent RGB PnP depth/tilt bias at the
+  ~48° table view** (the 20.0 mm board size and refined K/D were checked), not
+  an FK extrapolation. It cancels in relative displacements (the arm never
+  moved), but absolute table-top z from RGB only is not usable. Use the depth
+  camera for the table plane/z, use a near-normal view, or add a table-view
+  depth correction.
 
 ## Pass criteria
 
@@ -91,7 +95,7 @@ Detection:
 | Lateral 100 mm displacement within 1 % | **PASS — 0.67 %** |
 | Two ruler directions orthogonal within 5° | **PASS — 92.3° (2.3° error)** |
 | Table-forward 100 mm displacement within 2 % | **FAIL — 4.87 %** (view-angle/PnP limit) |
-| Absolute table-pose position near the table plane | **FAIL — ~90 mm low** (FK extrapolation) |
+| Absolute table-pose RGB depth near the table plane | **FAIL — ~70 mm low** (48° PnP depth bias; depth camera 340 vs RGB ~380 mm) |
 | Detection stability | **PASS — 5/5 each, reprojection ≤0.43 px** |
 
 ## Limitations
@@ -99,10 +103,11 @@ Detection:
 - No external tracking system; the ruler/tag alignment and the 24.9 mm black
   square measurement are the ground truth (~0.5 mm each).
 - One arm pose, one tag orientation, one lighting setup.
-- The table pose is outside the calibration pose range; the absolute z offset
-  is expected but its 90 mm magnitude is larger than the calibration residual.
-  This is an FK/joint-zero extrapolation limit, not a rejection of the
-  calibrated `T_link4_camera`.
+- The table pose is outside the camera_forward calibration pose range. Its
+  absolute RGB depth is biased by ~40–50 mm at the ~48° view; a separate
+  table-down chessboard calibration is relative-consistent (2.7 mm / 0.42°) but
+  does not remove the depth bias. This is a view-geometry/PnP limit, not a
+  rejection of the calibrated `T_link4_camera` for relative/lateral use.
 - Raw RGB frames stay private (they show the operator); only the numerical
   JSON is committed.
 

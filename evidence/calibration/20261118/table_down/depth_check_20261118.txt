@@ -1,0 +1,13 @@
+Depth camera check at the table-down pose
+Command (inside the ArmPiUltra container):
+  python3 /tmp/camera_stream_check.py --seconds 3
+Output:
+  rgb: 21 msgs in 3.0s (7.0 Hz), 640x400 encoding=bgr8 step=1920 frame=rgb_camera_link
+  depth: 24 msgs in 3.0s (8.0 Hz), 640x400 encoding=mono16 step=1280 frame=depth_camera_link
+    depth values: min=0 max=2057 median=340.0 zeros=20.64%
+Interpretation:
+  The depth median is 340 mm at the table pose. The RGB chessboard PnP
+  distance is ~380 mm for the same scene, so the RGB PnP overestimates the
+  table-view depth by roughly 40 mm. The depth camera is mounted on the same
+  link4, so this supports a view-dependent RGB PnP depth bias (48 deg
+  incidence), not an FK extrapolation.

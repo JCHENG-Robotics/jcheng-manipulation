@@ -160,8 +160,9 @@ cross-validation are the meaningful checks.
 
 The hand-eye was checked independently of the chessboard with a flat 36h11
 sticker (ID 3, **24.9 mm** black square) on the table. The arm was held at
-`[0.0, 0.2974, -1.14773, -1.55404, -0.01676]` (table-down, **outside** the
-calibration pose range), with measured bus-servo joints. The tag edge was kept
+`[0.0, 0.2974, -1.14773, -1.55404, -0.01676]` (table-down, outside the
+camera_forward calibration pose range; the same view was later calibrated
+separately, below), with measured bus-servo joints. The tag edge was kept
 against a steel L-square; five frames were captured at each position.
 
 | Move | Predicted | Ruler | Error |
@@ -176,14 +177,33 @@ table-forward move is ~5 % high: it moves the tag farther from the camera
 (0.36 → 0.42 m) and toward the image edge, where the PnP depth axis is weak at
 the ~48° incidence. Orthogonality is good.
 
-**Absolute table-pose warning:** the predicted `base_link` z is about −0.09 m
-while the tag is on the table (z ≈ −0.006 m). This is a constant FK/hand-eye
-extrapolation offset at joint4 = −1.55 (calibration used joint4 ≈ −0.71); it
-cancels in the relative displacements but means the current transform must
-**not** be used for absolute 3D positioning at table-down poses. Use it within
-the calibration pose range, or extend the hand-eye capture set to table-down
-poses before absolute table grasping. Evidence:
+**Absolute table-pose depth:** the predicted `base_link` z is about −0.09 m,
+while the physical table is at z ≈ −0.024 m (mecanum chassis 17.54 mm + base
+mesh bottom 6.46 mm). A table-down chessboard calibration (below) reproduces the
+board with 2.7 mm / 0.42° relative scatter but places the board at
+z ≈ −0.070 m; a depth-camera check gives a **340 mm** median versus a **~380 mm**
+RGB PnP distance. The offset is a **view-dependent RGB PnP depth/tilt bias at
+the ~48° table view**, not an FK extrapolation: the chessboard squares are
+20.0 mm, the refined K/D changes z by only ~1 mm, and the bias is nearly
+constant across the table pose offsets. Relative displacements cancel it (the
+lateral 0.67 % result stands); absolute table-top z from RGB only is not
+trustworthy. Use the depth camera for the table plane/z, use a near-normal
+camera view, or calibrate a table-view depth correction. Evidence:
 [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/).
+
+## Table-down calibration (2026-11-18)
+
+A second 15-pose chessboard capture was run at the table-down pose with the
+board flat on the table (20.0 mm squares, measured with a caliper). The
+table-view TSAI fit gives `T_link4_camera` = `[-0.03194, -0.00808, 0.05918] m`,
+RPY `[-1.478, 0.331, -90.187]°`; board scatter **2.7 mm / 0.42°**, held-out
+final base 2.2 mm / 0.29°, leave-one-out 3.1 mm / 0.45° std, intrinsic RMS
+0.052 px. It passes the 5 mm / 2° gate and differs from the camera_forward TSAI
+by `[2.9, 1.0, 0.6] mm` and ~2.5°; both are internally consistent. The
+table-view fit is useful for relative/lateral table tasks but does **not**
+replace the camera_forward transform for near-normal perception, and it does
+not remove the absolute-depth bias above. Evidence:
+[`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/).
 
 ## Why the first run failed
 
@@ -207,9 +227,14 @@ hardware read.
 
 - The arm is open-loop; the bus-servo position is the servo's own register, not
   an independent external metrology. There are no joint encoders.
-- One fixed board pose was used. The result is validated by held-out poses and
-  a held-out final base, but not by an external target at a surveyed
-  base-frame position.
+- Two board placements were used: a vertical stand at `camera_forward` and a
+  flat table at the table-down pose. The relative scale was checked with a
+  ruler (0.67 % lateral), but there is still no absolute external metrology at
+  a surveyed base-frame position.
+- Absolute RGB depth at the ~48° table view is biased by ~40–50 mm (depth
+  camera 340 mm vs RGB PnP ~380 mm; board z −0.070 m vs table ≈ −0.024 m).
+  Relative/lateral results are unaffected; absolute table-top z needs the
+  depth camera or a near-normal view.
 - Link geometry comes from the vendor URDF. Small link/zero errors are absorbed
   into the hand-eye transform and may grow outside the calibration volume
   (roughly 0.25–0.40 m in front of the camera).
@@ -221,11 +246,13 @@ hardware read.
 
 ## Next
 
-1. Add an independent validation: place a fiducial at a measured base-frame
-   position and compare the calibrated prediction.
-2. `T_link4_camera` is now wired into the localizer through the
-   `camera_optical_calibrated` frame; next run a supervised, no-object
-   approach through the grasp planner.
+1. Use the depth camera for the table-view z/plane (registered point cloud or
+   a small plane fit) and compare it with the RGB PnP; this is the cleanest way
+   to remove the ~40–50 mm absolute-depth bias before table-top grasping.
+2. `T_link4_camera` is wired into the localizer through the
+   `camera_optical_calibrated` frame; run a supervised, no-object approach
+   through the grasp planner in the camera_forward volume, where the absolute
+   error is small.
 3. If better than ~3 mm is required, add an external measurement (e.g. a dial
    indicator or a second fixed camera) rather than more chessboard poses; the
-   remaining error is the open-loop arm, not the detector.
+   remaining error is the open-loop arm and the oblique-view PnP depth axis.

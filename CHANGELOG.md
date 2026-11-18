@@ -3,6 +3,27 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-18 table-down calibration and absolute-depth correction
+
+### Added
+
+- `evidence/calibration/20261118/table_down/` — a 15-pose table-down chessboard
+  capture with the board flat on the table (20.0 mm squares): TSAI
+  `T_link4_camera` = `[-0.03194, -0.00808, 0.05918] m`, RPY
+  `[-1.478, 0.331, -90.187]°`; board scatter **2.7 mm / 0.42°**, held-out
+  2.2 mm / 0.29°, leave-one-out 3.1 mm / 0.45° std, intrinsic RMS 0.052 px.
+- Depth-camera check at the table pose: **340 mm** median versus a **~380 mm**
+  RGB chessboard PnP distance.
+
+### Changed
+
+- Corrected the absolute-depth interpretation: the table-pose ~70 mm z offset is
+  a **view-dependent RGB PnP depth/tilt bias at ~48° incidence** (plus the
+  17.54 mm mecanum chassis), not an FK extrapolation. The chessboard squares are
+  20.0 mm and the refined K/D changes z by only ~1 mm. Relative tag
+  displacements (0.67 % lateral) stand; absolute table-top z needs the depth
+  camera, a near-normal view, or a table-view depth correction.
+
 ## [Unreleased] — 2026-11-18 independent AprilTag displacement validation
 
 ### Added

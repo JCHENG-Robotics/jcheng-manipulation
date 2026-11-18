@@ -13,7 +13,8 @@ of this bundle.
 | 4 | Real MoveIt Plan → Execute (`camera_forward`) | **Motion PASS; action reporting timed out and was fixed** | [step4_moveit_execute.md](step4_moveit_execute.md) |
 | 5 | Real AprilTag detection | **PASS — 5/5, 0.322 m, ≤1.1 mm translation spread** | [step5_tag/README.md](step5_tag/README.md) |
 | 6 | Arm joint-limit survey with support | **PARTIAL — joint4 measured; joint2 measured; joint3 observed by hand; joint5 not measurable (falls freely when released); three vendor-node crashes from negative reads, root cause identified** | [step6_torque_mapping.md](step6_torque_mapping.md), [step6_survey_partial.md](step6_survey_partial.md), [step6_survey_run2_20261118.md](step6_survey_run2_20261118.md) |
-| V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table-pose z is ~90 mm low (FK extrapolation)** | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
+| V | Independent AprilTag relative-displacement validation (extra, after step 6) | **Partial PASS — lateral 100.67 mm vs 100.0 mm (0.67 %); table-forward 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table RGB z biased by ~40–50 mm at the 48° view (depth 340 mm vs RGB ~380 mm)** | [tag_displacement_validation/README.md](tag_displacement_validation/README.md) |
+| T | Table-down chessboard calibration + depth check (extra) | **Relative PASS — 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO; absolute RGB depth biased ~40–50 mm (depth 340 vs RGB ~380 mm)** | [../../calibration/20261118/table_down/README.md](../../calibration/20261118/table_down/README.md) |
 
 ## Environment
 

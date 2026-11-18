@@ -7,8 +7,10 @@
 > set is selected offline for the next capture. The fiducial → grasp bridge and
 > a mock visual-grasp E2E are now validated; a real visual grasp is still
 > pending. A flat AprilTag independently checked the scale: **100.67 mm vs
-> 100.0 mm lateral (0.67 %)**; the table-forward move was 4.87 % high, and
-> absolute table-down poses remain outside the valid FK range.
+> 100.0 mm lateral (0.67 %)**; the table-forward move was 4.87 % high. A
+> table-down chessboard fit is relative-consistent (2.7 mm / 0.42°), but
+> absolute RGB depth at the 48° view is biased ~40–50 mm (depth camera 340 mm
+> vs RGB ~380 mm).
 
 | Document | Purpose |
 |---|---|
@@ -33,7 +35,8 @@
 | Safety supervisor | **Implemented, mock-validated (2026-11-17)** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; veto service; provisional limits |
 | Measurement protocols | **Implemented, dry-run/simulate validated (2026-11-17)** | 30-trial repeatability/backlash, visual-displacement and gripper-envelope schedules; no hardware data |
 | Hand-eye calibration | **Validated (2026-11-17)** | 14 poses with measured bus-servo joints; 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43°; leave-one-out 3.41 mm / 0.44° std |
-| Independent tag displacement validation | **Validated laterally, partial table-forward (2026-11-18)** | flat 36h11 ID 3, 24.9 mm: A→B **100.67 mm vs 100.0 mm (0.67 %)**; B→C 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table-pose z ~90 mm low (FK extrapolation) |
+| Independent tag displacement validation | **Validated laterally, partial table-forward (2026-11-18)** | flat 36h11 ID 3, 24.9 mm: A→B **100.67 mm vs 100.0 mm (0.67 %)**; B→C 104.87 mm vs 100.0 mm (4.87 %); angle 92.3°; absolute table RGB depth biased ~40–50 mm at 48° (depth 340 vs RGB 380 mm) |
+| Table-down chessboard calibration | **Relative PASS; absolute depth biased (2026-11-18)** | 15 table poses; 2.7 mm / 0.42° board scatter, 2.2 mm / 0.29° held-out, 3.1 mm / 0.45° LOO; board z −0.070 m vs table ≈ −0.024 m; depth 340 vs RGB ~380 mm |
 | Calibration pose selection | **Implemented, offline-validated (2026-11-17)** | 24 poses from 14,176 evaluated poses / 3,093 feasible; diversity, rotation-excitation and coplanarity checks pass; not executed |
 | Real visual grasping | **Not started** | no real grasp; calibration and mock bridge validated, hardware integration pending |
 | Grasp execution and verification | **Not started** | mock runs are plan-only by design |
@@ -47,6 +50,7 @@ Evidence:
 - [`evidence/phase2/real_background_20261117/`](../../evidence/phase2/real_background_20261117/)
 - [`evidence/phase2/frames_20261117/`](../../evidence/phase2/frames_20261117/)
 - [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](../../evidence/phase2/onsite_20261118/tag_displacement_validation/)
+- [`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/)
 - [`evidence/phase2/vendor_calibration_20261117/`](../../evidence/phase2/vendor_calibration_20261117/)
 - [`evidence/phase2/session3_20261117/`](../../evidence/phase2/session3_20261117/)
 
