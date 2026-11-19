@@ -53,6 +53,25 @@ All notable changes to this project are documented here. Format based on
   depth cutoff), so the grip check must instead put the **floor spot** in view.
   Evidence:
   [`evidence/phase2/onsite_20261119/grasp_150mm_attempt3/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt3/).
+- Fourth pass (only "in view", adjust the arm) also failed and measured the
+  cause directly: with `joint5 = 0` the TCP is a **fixed image pixel
+  (364.8, 344.2)** (verified at four arm poses), and at the low configuration
+  the cube sits **7–10 mm (50–90 px)** away from it while the same model is
+  0.2 px accurate at the table-down view. A joint1 probe matched the model
+  Jacobian (340 px/rad measured vs 337), so the error is the absolute
+  FK/hand-eye at the low configuration, not the servo response; the gripper
+  has only ±4.3 mm of margin. Evidence:
+  [`evidence/phase2/onsite_20261119/grasp_150mm_attempt4/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt4/).
+- Fifth pass **PASSED** with a one-point low-configuration correction measured
+  by a 60 mm AprilTag (36h11 ID 0) on the floor: the tag reads
+  (0.2373, 0.0202, −0.0788) at the validated view (on the floor) and
+  (0.2293, 0.0049, −0.0846) at the grasp configuration, so
+  **e = (−8.0, −15.3, −5.8) mm**. Grasping at `C_view + e` held the cube (the
+  view-pose check found no floor cluster), a one-step lift reached
+  TCP +0.0993 (object ≈148 mm), and the cube was released and the arm returned
+  to adopted. The tag size matters: an early 73 mm estimate put the tag 59 mm
+  below the floor. Evidence:
+  [`evidence/phase2/onsite_20261119/grasp_150mm_attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/).
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 
