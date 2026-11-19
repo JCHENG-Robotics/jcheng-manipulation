@@ -128,10 +128,10 @@ class RobotLink:
         """Grasp, close and rise to the view pose."""
         output = '/tmp/grasp_{}.json'.format(tag)
         self.exec(['python3', '/tmp/low_config_grasp_validate.py',
-                   '--grasp', ','.join('{:.6f}'.format(v)
-                                       for v in grasp_joints[:4]),
-                   '--verify-pose', ','.join('{:.6f}'.format(v)
-                                             for v in view_pose),
+                   '--grasp=' + ','.join('{:.6f}'.format(v)
+                                         for v in grasp_joints[:4]),
+                   '--verify-pose=' + ','.join('{:.6f}'.format(v)
+                                               for v in view_pose),
                    '--output', output, '--i-have-clear-workspace'],
                   timeout=180)
         report = self.read_json(output)
@@ -144,10 +144,10 @@ class RobotLink:
         """Lower a held cube back to the grasp pose and open."""
         output = '/tmp/release_{}.json'.format(tag)
         self.exec(['python3', '/tmp/low_config_grasp_validate.py',
-                   '--grasp', ','.join('{:.6f}'.format(v)
-                                       for v in grasp_joints[:4]),
-                   '--verify-pose', ','.join('{:.6f}'.format(v)
-                                             for v in view_pose),
+                   '--grasp=' + ','.join('{:.6f}'.format(v)
+                                         for v in grasp_joints[:4]),
+                   '--verify-pose=' + ','.join('{:.6f}'.format(v)
+                                               for v in view_pose),
                    '--release-only', '--output', output,
                    '--i-have-clear-workspace'], timeout=180)
         report = self.read_json(output)
@@ -237,6 +237,31 @@ def validate_target(target, fit, max_xy_error_mm, reach=(0.10, 0.30)):
             'move'.format(fit['xy_error_mm'], max_xy_error_mm))
     if fit['reach_limited']:
         raise ValueError('joint4 is at its low limit; target out of reach')
+
+
+def placement_quality(report, min_height=0.030, max_height=0.050,
+                      max_extent=0.050):
+    """Return (ok, reason) for a pre-trial cube placement.
+
+    The cube is 39.4 mm tall and was measured at 39.3-39.6 mm above the floor
+    when flat. A taller cluster means it is on top of something (the 2026-11-19
+    p019 baseline sat at 59.3 mm on a ~20 mm object), and a wider cluster means
+    the cube merged with a neighbour (p023: 53.7 x 72.4 mm). Both are protocol
+    violations and must be re-placed, not grasped.
+    """
+    selected = report.get('selected') or {}
+    height = selected.get('height_above_floor_m')
+    size = (selected.get('bounds') or {}).get('size')
+    if height is None or size is None:
+        return False, 'no height/size'
+    if not min_height <= float(height) <= max_height:
+        return False, 'height {:.1f} mm outside {:.0f}-{:.0f}'.format(
+            float(height) * 1000.0, min_height * 1000.0, max_height * 1000.0)
+    for axis, value in zip('xy', size[:2]):
+        if not 0.030 <= float(value) <= max_extent:
+            return False, '{} extent {:.1f} mm outside 30-{:.0f}'.format(
+                axis, float(value) * 1000.0, max_extent * 1000.0)
+    return True, 'ok'
 
 
 def cube_box_present(report, point, radius=0.04, min_height=0.01):
@@ -332,8 +357,11 @@ class Session:
         for attempt in range(retries):
             report = self.humble.segment(pulses, tag)
             point, valid = cube_point(report)
-            if valid:
+            ok, reason = placement_quality(report)
+            if valid and ok:
                 return point, report
+            if valid and not ok:
+                print('placement rejected: {}'.format(reason))
             clusters = report.get('segmentation', {}).get('clusters', 0)
             print('measurement not usable '
                   '(success={}, clusters={}, {})'.format(
@@ -417,6 +445,9 @@ class Session:
         error_mm = float(np.linalg.norm((landing - point)[:2]) * 1000.0)
         notes['landing'] = [float(v) for v in landing]
         notes['landing_measured'] = bool(valid)
+        notes['landing_height_mm'] = float(
+            (land_report.get('selected') or {}).get(
+                'height_above_floor_m', 0.0)) * 1000.0
         self._record(entry, success=True, error_mm=error_mm,
                      failure_code=None, notes=notes)
         print('  held and released; landing error {:.2f} mm'.format(error_mm))

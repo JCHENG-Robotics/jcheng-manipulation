@@ -37,6 +37,37 @@ def test_cube_point_without_a_cluster_is_none():
     assert valid is False
 
 
+def _selected(height, size):
+    return {'selected': {'height_above_floor_m': height,
+                         'bounds': {'size': size}}}
+
+
+def test_placement_quality_accepts_a_flat_cube():
+    ok, reason = session.placement_quality(
+        _selected(0.0394, [0.0384, 0.0403, 0.0041]))
+    assert ok, reason
+
+
+def test_placement_quality_rejects_an_elevated_cube():
+    """p019 baseline: the cube sat 20 mm above the floor."""
+    ok, reason = session.placement_quality(
+        _selected(0.0593, [0.038, 0.0386, 0.0043]))
+    assert not ok
+    assert 'height' in reason
+
+
+def test_placement_quality_rejects_a_merged_cluster():
+    """p023: the cube merged with a neighbour into 53.7 x 72.4 mm."""
+    ok, reason = session.placement_quality(
+        _selected(0.0198, [0.0537, 0.0724, 0.0056]))
+    assert not ok
+
+
+def test_placement_quality_rejects_a_missing_measurement():
+    ok, _ = session.placement_quality({})
+    assert not ok
+
+
 def test_cube_box_ignores_a_background_cluster():
     """A far cluster is not the cube; an in-box cluster is."""
     point = [0.232, 0.022, -0.049]

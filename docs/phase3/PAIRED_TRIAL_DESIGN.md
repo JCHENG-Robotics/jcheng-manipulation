@@ -127,6 +127,25 @@ joint fit are method-dependent.
 
 ## 9. Deviations
 
+**D3 — 2026-11-19, trials p019/baseline and p023/baseline: placement
+contamination and a negative-argument crash.** A tape roll (and possibly a
+spacer) was left inside the grasp region. The p019 baseline pre-measurement put
+the cube's top face **59.3 mm** above the floor (the flat cube is 39.3–39.6 mm),
+i.e. the cube sat on a ~20 mm object; that trial gripped and dragged the cube
+19.9 mm. The p019 intervention trial was flat (39.4 mm) and is retained. The
+p023 baseline pre-measurement merged the cube with a neighbour into a
+**53.7 × 72.4 mm** cluster, and the runner then aborted before motion because a
+negative joint list was passed as `--grasp -0.1762,...` and argparse read it as
+an option.
+
+Fixes: the runner now rejects a pre-trial measurement whose height is outside
+**30–50 mm** or whose horizontal extents are outside **30–50 mm**, and passes
+`--grasp=`/`--verify-pose=` so negative values parse. The invalid p019 baseline
+record is kept in
+[`discarded_protocol_violation_attempt.jsonl`](../../evidence/phase3/onsite_20261119/discarded_protocol_violation_attempt.jsonl);
+the p019 pair is incomplete and its baseline is re-run. The operator was asked
+to clear the grasp region to flat tape only.
+
 **D2 — 2026-11-19, trial p006/intervention: the grip classifier misread a
 success as a miss.** The segmenter counts every cluster above the floor, and
 its report included a background cluster at `(0.499, −0.249, −0.083) m`
