@@ -134,7 +134,14 @@ class EnvelopeSession:
                 if abs(relative) <= MAX_RELATIVE_YAW_DEG:
                     return point, report, relative
                 reason = 'cube face {:.1f} deg off the arm'.format(relative)
+            elif not valid:
+                reason = 'no valid top face: {}'.format(
+                    (report.get('rejection') or {}).get(
+                        'reason', 'no usable cluster'))
             print('placement rejected: {}'.format(reason))
+            if point is not None:
+                print('  measured point ({:+.3f}, {:+.3f}) m'.format(
+                    point[0], point[1]))
             if attempt + 1 < retries and not self.args.dry_run:
                 input('  place the cube flat, one face toward the arm; '
                       'press Enter to re-measure ... ')
