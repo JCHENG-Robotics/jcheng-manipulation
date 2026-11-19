@@ -2,7 +2,11 @@
 
 > Status: **gripper measured and arm survey run 2026-11-18; arm limits
 > ADOPTED from the servo EEPROM table with a 20-pulse margin; the mapping
-> stays `verified: false`.** The vendor `SetBusServoState` path works — its
+> stays `verified: false`.** A 2026-11-19 forward-facing powered probe
+> confirmed joint2 **322** is commandable and measured joint3's mechanical
+> stop at **939** (EEPROM 950 is unreachable); the lowest physical gripper
+> point is **10 mm above the floor**. The adopted limits were not changed.
+> See [`evidence/phase2/onsite_20261119/lowest_reach/`](../../evidence/phase2/onsite_20261119/lowest_reach/). The vendor `SetBusServoState` path works — its
 > torque boolean is simply inverted on this servo firmware (`[1, 1]` / 0x0B
 > releases, `[1, 0]` / 0x0C engages). joint2 was measured (322…873 pulse)
 > and joint4's high stop reached 901; joint3 was observed by hand over
@@ -28,8 +32,8 @@ and [`step6_survey_run2_20261118.md`](../../evidence/phase2/onsite_20261118/step
 | Joint | Result | State |
 |---|---|---|
 | joint1 | first run 501…503 (no movement); second run positive side **1164**, guard aborted; hold clamped to **952…954** | high bound beyond the EEPROM limit; low side unmeasured |
-| joint2 | **322…873** (−0.746…1.562 rad, span 2.308), spread 1 pulse | measured; the low stop is inside the EEPROM range |
-| joint3 | hand travel **23…940** pulse (+1.998…−1.843 rad), no hard stop; negative reads killed the node twice | observed; EEPROM bounds bind |
+| joint2 | **322…873** (−0.746…1.562 rad, span 2.308), spread 1 pulse; powered hold at **322** confirmed 2026-11-19 | measured; the low stop is inside the EEPROM range |
+| joint3 | hand travel **23…940** pulse; a powered 2026-11-19 probe stops at **939** (EEPROM 950 unreachable) | low stop measured; positive side not commandable |
 | joint4 | **high stop 901** (+1.680 rad), spread 1 pulse; low taken from the EEPROM limit | high measured; low unmeasured |
 | joint5 | hand travel reached **875**; released at 258 it **fell to 62 in 0.75 s** (196 pulses), then a negative read killed the node | not measurable by hand; EEPROM bounds used |
 

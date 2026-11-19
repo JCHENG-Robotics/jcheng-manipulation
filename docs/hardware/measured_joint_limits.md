@@ -1,7 +1,8 @@
 # Measured Joint Limits — [P] arm, [V] gripper
 
 > Status: **gripper measured 2026-11-18; arm joints PARTIALLY measured
-> 2026-11-18.** The torque path is understood: the vendor SDK boolean is
+> 2026-11-18; forward-facing lowest reach measured 2026-11-19.** The torque
+> path is understood: the vendor SDK boolean is
 > inverted on this servo firmware (`enable_torque=[1, 1]` / 0x0B **releases**,
 > `[1, 0]` / 0x0C **engages**). joint2 was measured (322…873 pulse),
 > joint4's high stop reached 901, joint3 was observed over 23…940, and
@@ -142,6 +143,57 @@ EEPROM bound:
 These are adopted for planning, **not verified**: joint1's and joint4's
 low stops are unmeasured, and joint3/joint5 have no formal stop values.
 `mapping_verified` stays false and hardware motion stays disabled.
+
+### Forward-facing lowest reach (2026-11-19)
+
+The robot was placed on the floor and the arm was driven forward
+(`joint1 = 0`) to the adopted limit with MoveIt, then in 5-pulse steps to
+the mechanical stops with torque on (`tools/phase2/pulse_move.py`).
+Evidence:
+[`evidence/phase2/onsite_20261119/lowest_reach/`](../../evidence/phase2/onsite_20261119/lowest_reach/).
+
+| Quantity | Adopted limits | Mechanical maximum |
+|---|---:|---:|
+| joint2 / joint3 pulse | 342 / 929 | **322 / 939** |
+| joint4 pulse | 339 | 366 |
+| TCP (FK) | (0.196, 0.000, −0.0444) | (0.191, −0.002, −0.0565) |
+| Model clearance to fitted plane | 35.0 mm | 23.0 mm |
+| Ruler: lowest point / TCP | — (estimated 22 / 27 mm) | **10 / 15 mm** |
+
+- joint2 reached **322** (its hand-measured stop) and held without a stall.
+- joint3 stops at **939**; the EEPROM limit **950 is not mechanically
+  reachable**. The adopted 930 is 9 pulses inside the stop.
+- The fitted plane is ~**8 mm below the physical floor** at the measurement
+  point, and the fingertip is ~**5 mm below the nominal TCP**. The safety
+  `clearance_m: 0.01` is a TCP-vs-fitted-plane guard, not a 10 mm physical
+  fingertip guarantee.
+- The adopted limits were **not changed**; `mapping_verified` stays false
+  (joint1/joint4/joint5 low stops remain unmeasured).
+
+### Four-direction grasp working radius (2026-11-19)
+
+With the robot on the floor and the arm at an 18 cm-high far-reach pose,
+joint1 was yawed to 0°, +88.6° and −89.3°. Evidence:
+[`evidence/phase2/onsite_20261119/reach/`](../../evidence/phase2/onsite_20261119/reach/).
+
+| Direction | Shoulder → pad | Base centre → pad | Pad height |
+|---|---:|---:|---:|
+| 0° | 210 mm | 215 mm | 180 mm |
+| +88.6° | 205 mm | 210 mm | 185 mm |
+| −89.3° | 210 mm | 215 mm | 185 mm |
+
+- The shoulder-relative grasp radius is **direction-independent** (model pad
+  0.198 m; measured 205–210 mm).
+- The physical grasp point is the **finger-pad centre**, about **27 mm
+  inside** the URDF `end_effector_link` along the tool. The nominal TCP
+  radius (0.210–0.222 m shoulder, 0.220–0.289 m `base_link`) overstates it.
+- The `base_link` radius varies with direction because the joint1 axis is
+  **67 mm ahead** of the `base_link` origin.
+- joint1 covers **±1.8012 rad (±103.2°, 206.4°)**; a full 360° needs the
+  mecanum chassis yaw.
+- The 13 cm far-reach pose cannot be yawed in place (chassis top at
+  `z=0.0695 m`); the 18 cm pose is the safe yaw height. There is no
+  top-grasp solution at 20 cm within the adopted limits.
 
 ### EEPROM position limits and offsets (read-only, `[V]` firmware bounds)
 

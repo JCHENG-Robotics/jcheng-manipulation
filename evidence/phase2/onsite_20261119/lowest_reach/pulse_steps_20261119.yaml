@@ -1,0 +1,118 @@
+# Raw pulse-step records — 2026-11-19 forward lowest-reach probe
+#
+# Tool: tools/phase2/pulse_move.py
+# SHA-256: d19a1f76c80361f3684edfad1dce5614a7de88e8d49a17974257cd1fc677b3bc
+# Run inside the vendor container ArmPiUltra with RMW_IMPLEMENTATION=
+# rmw_cyclonedds_cpp and CYCLONEDDS_URI from ~/.zshrc.
+#
+# Values are the bus-servo get_state position registers, in pulse counts.
+# Order below is the tool's print order: gripper, joint5, joint4, joint3,
+# joint2, joint1. joint3 is inverted (larger pulse = lower joint angle).
+# All targets are positive; a negative register read kills the vendor node.
+
+tool_sha256: d19a1f76c80361f3684edfad1dce5614a7de88e8d49a17974257cd1fc677b3bc
+battery_mv: 8268
+
+steps:
+  - step: 1
+    duration_s: 3.0
+    max_error_pulses: 5
+    requested: {gripper: 500, joint5: 500, joint4: 349, joint3: 934,
+                joint2: 337, joint1: 499}
+    measured_before: {gripper: 215, joint5: 500, joint4: 334, joint3: 925,
+                      joint2: 341, joint1: 496}
+    measured_after: {gripper: 483, joint5: 500, joint4: 345, joint3: 931,
+                     joint2: 337, joint1: 496}
+    result: "STALL reported for the gripper only (483 vs 500); all arm joints
+             within 4 pulses. The gripper was not part of the descent."
+  - step: 2
+    duration_s: 3.0
+    max_error_pulses: 5
+    requested: {gripper: 483, joint5: 500, joint4: 359, joint3: 939,
+                joint2: 332, joint1: 499}
+    measured_before: {gripper: 483, joint5: 500, joint4: 346, joint3: 931,
+                      joint2: 337, joint1: 496}
+    measured_after: {gripper: 483, joint5: 500, joint4: 354, joint3: 937,
+                     joint2: 329, joint1: 496}
+    result: TRACK_OK
+  - step: 3
+    duration_s: 3.0
+    max_error_pulses: 5
+    requested: {gripper: 483, joint5: 500, joint4: 369, joint3: 944,
+                joint2: 327, joint1: 499}
+    measured_before: {gripper: 483, joint5: 501, joint4: 354, joint3: 938,
+                      joint2: 328, joint1: 496}
+    measured_after: {gripper: 483, joint5: 501, joint4: 365, joint3: 939,
+                     joint2: 328, joint1: 496}
+    result: "TRACK_OK, but first mechanical resistance: joint3 stayed at 939
+             (target 944) and joint2 moved only 1 pulse."
+  - step: 4
+    duration_s: 2.0
+    max_error_pulses: 2
+    requested: {gripper: 483, joint5: 501, joint4: 368, joint3: 941,
+                joint2: 325, joint1: 499}
+    measured_before: {gripper: 483, joint5: 501, joint4: 366, joint3: 940,
+                      joint2: 328, joint1: 496}
+    measured_after: {gripper: 483, joint5: 501, joint4: 366, joint3: 939,
+                     joint2: 325, joint1: 496}
+    result: "STALL reported for joint1 only (static −3 pulse offset); joint2
+             reached 325, joint3 remained at 939."
+  - step: 5
+    duration_s: 2.0
+    max_error_pulses: 2
+    requested: {gripper: 483, joint5: 501, joint4: 366, joint3: 939,
+                joint2: 322, joint1: 496}
+    measured_before: {gripper: 483, joint5: 501, joint4: 366, joint3: 939,
+                      joint2: 324, joint1: 496}
+    measured_after: {gripper: 483, joint5: 501, joint4: 366, joint3: 939,
+                     joint2: 322, joint1: 496}
+    result: "TRACK_OK: joint2 reached its measured mechanical stop 322;
+             joint3 held at 939 (mechanical stop)."
+  - step: back_off_attempt
+    duration_s: 3.0
+    max_error_pulses: 6
+    requested: {gripper: 483, joint5: 501, joint4: 339, joint3: 929,
+                joint2: 342, joint1: 496}
+    measured_before: {gripper: 483, joint5: 501, joint4: 366, joint3: 938,
+                      joint2: 322, joint1: 496}
+    measured_after: null
+    result: >-
+      The command was published but the readback failed for servo ID 4, then
+      the get_state service timed out for all six servos while the process
+      stayed alive. After kill -9 and restarting only ros_robot_controller,
+      the arm was at the known post-restart pose
+      gripper=237, joint5=500, joint4=113, joint3=833, joint2=595,
+      joint1=496 (TCP z=+0.111 m, 190 mm above the fitted floor plane).
+      The back-off target 342/929/339 was not reached.
+
+  - step: recovery_move
+    duration_s: 4.0
+    max_error_pulses: 6
+    requested: {gripper: 241, joint5: 500, joint4: 339, joint3: 929,
+                joint2: 342, joint1: 496}
+    measured_before: {gripper: 239, joint5: 500, joint4: 113, joint3: 833,
+                      joint2: 596, joint1: 496}
+    measured_after: {gripper: 239, joint5: 500, joint4: 334, joint3: 925,
+                     joint2: 339, joint1: 496}
+    result: >-
+      TRACK_OK. The actual servos were moved back to the adopted-low pose
+      reported by the stale /joint_states (342/929/339), making the reported
+      and actual poses consistent within the known 3–5 pulse
+      command-vs-register offset. The linear pulse path was checked offline;
+      its minimum model clearance is the endpoint (35.1 mm).
+
+final_measured_max_pose:
+  registers: {joint1: 496, joint2: 322, joint3: 939, joint4: 366,
+              joint5: 501, gripper: 483}
+  joint_radians:
+    joint1: -0.01676
+    joint2: -0.74560
+    joint3: -1.83888
+    joint4: -0.56130
+    joint5: 0.00419
+  fk_tcp_m: [0.1907, -0.0018, -0.0565]
+  tool_z_dot: -0.99996
+  model_clearance_mm: 23.0
+  operator_ruler:
+    lowest_point_mm: 10
+    nominal_tcp_mm: 15
