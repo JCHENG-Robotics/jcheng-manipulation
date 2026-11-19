@@ -27,6 +27,26 @@
 | Network | `eth0 10.42.0.218/24` (**SSH + DDS + gateway HTTP, the only inbound path** since the 2026-11-18 lockdown; 0.2 ms); `wlan0 10.51.128.226/23` (office WiFi: up for internet only, **outbound-only**) | `ip -brief addr` | `[V]` |
 | Wi-Fi USB adapter | Realtek RTL8188GU `0bda:1a2b` in CDROM mode; `rtw88_8821cu` is the wrong module and crashed the kernel | `lsusb`, `dmesg` | `[V]` |
 
+## Controller board capabilities (probed 2026-11-19)
+
+The single STM32 board behind `/dev/rrc` (CH340, 1 Mbaud) exposes only the
+following on this robot. Evidence:
+[`evidence/phase2/onsite_20261119/board_capabilities/`](../../evidence/phase2/onsite_20261119/board_capabilities/README.md).
+
+| Capability | State |
+|---|---|
+| Battery voltage ADC (2S, 11:1 divider, 10 Hz) | `[V]` 7812 mV, 10.05 Hz |
+| 6 bus servos (arm + gripper) | `[V]` normal use |
+| 4 chassis motor duty channels, open-loop | `[V]` 2026-11-18; no readback |
+| Buzzer, LED1/LED2 | `[V]` operator saw the LEDs and heard the beep |
+| KEY1/KEY2 (click/long-press/multi-click) | `[S]`; switches removed on this unit |
+| OLED text / PWM servo / stepper / conveyor | `[S]` protocol only; no device in this build |
+| IMU, gamepad (`/joy`), SBUS | `[V]` **absent** — 0 messages in 10 s |
+| Encoders, odometry, current sensing, e-stop | **none** |
+
+Consequence: no inertial or wheel feedback is available; base motion is
+open-loop and invalidates the table calibration.
+
 ## Notes
 
 - **Camera open failure and recovery.** Before the restart,
