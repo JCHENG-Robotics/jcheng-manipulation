@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "run": "search_and_return_20261119",
+  "start_pose": {
+    "comment": "measured bus servos at session start (tilted table-down view pose)",
+    "pulses_joint1_joint5": [497, 565, 782, 122, 500]
+  },
+  "search": {
+    "view_pose_joints": [0.0, 0.2574, -1.18773, -1.70, -0.01676],
+    "yaw_steps_rad": [0.0, 0.14, 0.28],
+    "found_at_rad": 0.28,
+    "found_frame": "03_search_yaw16_found.png",
+    "segmentation": {
+      "centroid_base_m": [0.36556, 0.29418, -0.05521],
+      "top_extent_m": [0.03982, 0.03748],
+      "height_above_floor_m": 0.03827,
+      "cluster_points": 3474
+    },
+    "distance_base_m": 0.4692,
+    "bearing_deg": 38.8,
+    "reach_boundary_m": 0.2447,
+    "verdict": "out of reach by ~0.22 m; base move required"
+  },
+  "base_move_out": {
+    "pulses": [
+      {"vx": 0.414, "vy": 0.910, "duty": 10.0, "duration_s": 2.8},
+      {"vx": 0.381, "vy": 0.925, "duty": 10.0, "duration_s": 3.0},
+      {"vx": 0.291, "vy": 0.957, "duty": 10.0, "duration_s": 0.75}
+    ],
+    "cube_track_base_m": [
+      [0.36556, 0.29418],
+      [0.30449, 0.17260],
+      [0.24286, 0.03141],
+      [0.23272, -0.00005]
+    ],
+    "net_displacement_m": [0.1372, 0.2952],
+    "net_distance_m": 0.3255,
+    "final_measure_after_home_view": {
+      "pulses_joint1_joint5": [502, 561, 782, 103, 496],
+      "centroid_base_m": [0.22838, -0.00102, -0.04899],
+      "top_extent_m": [0.04182, 0.03620]
+    }
+  },
+  "fit": {
+    "correction_m": [0.0137, 0.0039, 0.0089],
+    "target_base_m": [0.24208, 0.00288, -0.04009],
+    "joints": [0.014, -0.6618, -1.8012, -0.322, 0.0],
+    "tcp_base_m": [0.2420, 0.0027, -0.0364],
+    "residual_mm": [-0.1, -0.2, 3.7]
+  },
+  "grasp": {
+    "registers_servo6_5_4_3": [502, 339, 929, 427],
+    "registers_at_verify_servo6_5_4_3": [502, 556, 792, 102],
+    "grip_check_clusters": 0,
+    "grip_check_points_above_floor": 0,
+    "lift_pose_joints": [0.014, 0.300, -1.540, -1.270, 0.0]
+  },
+  "base_return": {
+    "pulse": {"vx": -0.421, "vy": -0.906, "duty": 10.0, "duration_s": 6.3},
+    "landmark_f0_m": [0.3541, -0.1108, -0.0940],
+    "landmark_after_first_return_m": [0.3699, -0.1388, -0.0932],
+    "first_residual_planar_mm": 32.1,
+    "correction_pulse": {"vx": 0.491, "vy": -0.871, "duty": 10.0, "duration_s": 0.75},
+    "landmark_after_correction_m": [0.3518, -0.1017, -0.0919],
+    "final_residual_vec_mm": [-2.3, 9.1, 2.1],
+    "final_residual_planar_mm": 9.4,
+    "note": "landmark = fixed cyan/black floor marker; the base frame is aligned with the camera chain at each snapshot, the shift is the base displacement"
+  },
+  "release": {
+    "registers_servo6_5_4_3_at_release": [502, 342, 928, 418],
+    "cube_landing_in_release_frame_m": [0.22730, -0.00024, -0.04878],
+    "robot_frame_placement_residual_mm": [-1.1, 0.8],
+    "cube_landing_in_home_frame_m": [0.2115, 0.0278],
+    "top_extent_m": [0.03966, 0.03731],
+    "note": "the robot-frame residual compares the landing with the pre-grasp measurement in the same base frame; the home-frame position adds the measured base return (9.4 mm) and the post-release correction pulse"
+  },
+  "battery_v_start": 7.03,
+  "battery_v_end": 7.03
+}

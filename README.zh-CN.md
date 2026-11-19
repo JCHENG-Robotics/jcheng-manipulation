@@ -74,6 +74,7 @@
 | 最佳自主抬升 | TCP **+0.0993 m**，物体离地 **约 148 mm**；木块 **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | 低构型模型误差 | **e = (−8.0, −15.3, −5.8) mm**；修正后抓取一次成功 | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | 抓取工作半径 | 指垫半径 **205–210 mm**；`joint1` 偏航范围 **±103.2°（206°）** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
+| 视野外搜索 + 底盘往返 | **+16° `joint1` 偏航**找到 **0.469 m** 处木块；闭环底盘移动 **0.325 m**；抓取并抬升 150 mm；回位残差 **9.4 mm**（地标校验）；放置相对机器人 **1.1 mm** | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | 最低可达位置 | 物理最低点离地 **10 mm**；名义 TCP 离地 **15 mm**；机械极限为 joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
 | 采纳关节限位 | 舵机 EEPROM **减 20 脉冲**；joint2 下限实测 **322**；`mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | 夹爪行程 | **2.22 rad**（张开 −2.22，闭合 0.0）；回差 **约 34 counts**；39.4 mm 木块在 −0.63 夹住 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |

@@ -15,8 +15,13 @@
 > **grasp-validated** (release 1.3 mm off), **replayed without a new
 > measurement** (grip check 0 floor clusters, identical registers), and used on
 > a cube **0.20 m beyond reach** after driving the base in closed-loop
-> (0.431 → 0.234 m, release 6.8 mm off). See the state table and the evidence
-> record. A flat
+> (0.431 → 0.234 m, release 6.8 mm off). A later run started with the cube
+> **outside the field of view**: a **+16° `joint1` yaw** found it at
+> **0.469 m** (0.22 m beyond reach), the base was moved **once** (0.325 m in
+> three closed-loop pulses), the cube was gripped and lifted 150 mm, the base
+> was reversed home (final **9.4 mm** from a measured floor landmark) and the
+> cube was released **1.1 mm** from its pre-grasp position. See the state table
+> and the evidence record. A flat
 > AprilTag independently checked the scale: **100.67 mm vs
 > 100.0 mm lateral (0.67 %)**, and a table-down chessboard fit is
 > relative-consistent (2.7 mm / 0.42°). A follow-up depth point-cloud plane
@@ -64,6 +69,7 @@
 | Real visual grasping | **First grasp (2026-11-18); five real attempts (2026-11-19), 3/5 passed** | 2026-11-18: markerless floor cube at the reach limit; the autonomous placement missed by a few mm, the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. 2026-11-19 pass 1: one attempt, no operator — vision-measured 39.3 mm cube, grasp, **≈149 mm lift**, place back and release (7.5 mm residual). Pass 2 (operator feedback): start at the **adopted-low forward pose** with `joint5 = 0` (no wrist roll, no lens occlusion), **one-step** 150 mm lift (+149.9 mm TCP in a single 8.3 s trajectory), place back within **6.6 mm / 8°** verified in the same view frame. Pass 3: adopted home start/end, the object-centring gate was **measured to be incompatible** with the 0.176 m depth cutoff and the link4 camera mount (centred ⇒ ≤0.10 m ⇒ blind, and the FK/hand-eye is 15–50 mm off there); the reach planner's flat solution closed above the cube and the **deep family was executed but FAILED** (operator-confirmed: the cube was never held; the in-run "grip" evidence was a projection artefact). Pass 4 also failed and measured the cause: with `joint5 = 0` the TCP is a fixed image pixel (364.8, 344.2) and the cube sits 7–10 mm from it at the low configuration. Pass 5 **PASSED** after a one-point correction with a **60 mm AprilTag placed flat on the floor**: the tag's base position is (0.2373, 0.0202, **−0.0788**) at the validated view (on the floor) but (0.2293, 0.0049, −0.0846) at the grasp configuration, i.e. an error **e = (−8.0, −15.3, −5.8) mm**; grasping at `C_view + e` aligned the pads, the floor cube disappeared at the view-pose check, one-step lift reached TCP +0.0993 (object ≈148 mm), release, and return to adopted. `joint5 = 0` at the view is required: 1.383 clips the top face to 35 mm and biases the centroid. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/), [`evidence/phase2/onsite_20261119/grasp_150mm/`](../../evidence/phase2/onsite_20261119/grasp_150mm/) and [`.../grasp_150mm_attempt2/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`.../grasp_150mm_attempt5/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | Grasp execution and verification | **Real execution validated (2026-11-18/19)** | measured bus-servo completion on every executed trajectory; lifts and releases verified in passes 1, 2 and 5; the view-pose floor check is the reliable grip test |
 | Out-of-reach object (far cube) | **Validated (2026-11-19)** | the base was driven closed-loop with a direct `MotorsSpeedControl` publisher (no chassis node running): 0.431 m → 0.234 m in five pulses (net 0.197 m forward, 7.5 mm y drift; a 0.15 s pulse stays inside the dead band), re-segmenting from the park view between pulses; the validated measurement + correction pipeline then gripped, lifted ≈150 mm and released 6.8 mm off. The deep family reaches x ≈ 0.2447 at that z, and a cube at x 0.221 already clips the top face to 34.5 mm, so the base should land the cube at 0.226–0.234 m |
+| Out-of-view search + base return | **Validated (2026-11-19)** | the cube was outside the frame at the tilted view; a **+16° `joint1` yaw at the raised view pose** found it at **0.469 m** (bearing +38.8°), 0.22 m beyond the 0.2447 m reach boundary; three closed-loop diagonal base pulses (0.325 m net, re-segmenting between pulses) landed it at (0.2284, −0.0010) m, inside the 0.226–0.234 m band; the validated deep family gripped it, the 150 mm lift held it (0 clusters), and the base was reversed in one 6.3 s pulse. A fixed floor landmark measured the return error (32.1 mm) and one 0.75 s correction pulse brought it to **9.4 mm**; the cube was released 1.1 mm from its pre-grasp position (robot frame) and at ≈(0.2115, 0.0278) m in the original base frame. The search executed only the positive yaw side; the return correction was applied after the release |
 
 Evidence:
 
@@ -86,6 +92,7 @@ Evidence:
 - [`evidence/phase2/onsite_20261119/low_config_grasp_validation/`](../../evidence/phase2/onsite_20261119/low_config_grasp_validation/)
 - [`evidence/phase2/onsite_20261119/quick_replay_grasp/`](../../evidence/phase2/onsite_20261119/quick_replay_grasp/)
 - [`evidence/phase2/onsite_20261119/far_grasp/`](../../evidence/phase2/onsite_20261119/far_grasp/)
+- [`evidence/phase2/onsite_20261119/search_and_return/`](../../evidence/phase2/onsite_20261119/search_and_return/)
 - [`evidence/phase2/onsite_20261119/lowest_reach/`](../../evidence/phase2/onsite_20261119/lowest_reach/)
 - [`evidence/phase2/onsite_20261119/reach/`](../../evidence/phase2/onsite_20261119/reach/)
 - [`evidence/phase2/onsite_20261119/board_capabilities/`](../../evidence/phase2/onsite_20261119/board_capabilities/)

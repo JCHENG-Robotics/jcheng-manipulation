@@ -7,6 +7,17 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Out-of-view search, one base approach, grasp and return.** The cube was
+  outside the frame at the tilted view; a **+16° `joint1` yaw at the raised
+  pose** found it at **0.469 m** (bearing +38.8°), 0.22 m beyond the 0.2447 m
+  reach boundary. Three closed-loop diagonal base pulses moved the cube to
+  (0.2284, −0.0010) m; the validated deep family gripped it and a 150 mm lift
+  held it (0 clusters above the floor). The base was reversed in one 6.3 s
+  pulse; a fixed floor landmark measured the return error (32.1 mm) and one
+  0.75 s correction pulse brought it to **9.4 mm**. The cube was released
+  1.1 mm from its pre-grasp position in the robot frame, at ≈(0.2115,
+  0.0278) m in the original base frame. Evidence:
+  [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/).
 - One attempt, no operator: vision-measured a 39.4 mm wooden cube (top face
   41.0 × 37.7 mm, bounds 38.7 × 40.0 mm, centre (0.2265, 0.0009) m), grasped
   it with `joint5 = 0`, lifted the TCP from −0.0375 to +0.1097 m
