@@ -37,6 +37,17 @@ All notable changes to this project are documented here. Format based on
   The depth camera is **blind at the low pose** (72 mm), so the target still
   comes from the table-down view. Evidence:
   [`evidence/phase2/onsite_20261119/grasp_150mm_attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/).
+- Third pass: adopted is the start/finish pose, and the object-centring gate was
+  **measured to be incompatible** with the hardware — the depth camera's near
+  cutoff is 0.176 m and the link4 mount only centres the cube at ≤0.10 m
+  (blind), while the FK/hand-eye reads the same cube 20–50 mm apart at those
+  poses. The reach planner's flat `joint3 ≈ −1.6` solution closed the pads above
+  the cube (miss, cube pushed away), so the retry used the **proven deep family**
+  (`joint3 = −1.8012`, `joint4 = −0.410`): TCP aligned to 0.5 mm / 0.0 mm in
+  x/y, 3.3 mm below the top, a 15 mm diagnostic lift confirmed the grip
+  (7.6 px vs ~60 px), one-step lift `+148.1 mm` (object ≈151 mm above the
+  floor), release and return to adopted. Evidence:
+  [`evidence/phase2/onsite_20261119/grasp_150mm_attempt3/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt3/).
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 
