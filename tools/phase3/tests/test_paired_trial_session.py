@@ -68,6 +68,14 @@ def test_placement_quality_rejects_a_missing_measurement():
     assert not ok
 
 
+def test_placement_quality_rejects_a_22_mm_landing():
+    """p003 landing: the segmenter picked a 21.7 mm object, not the cube."""
+    ok, reason = session.placement_quality(
+        _selected(0.0217, [0.037, 0.039, 0.004]))
+    assert not ok
+    assert 'height' in reason
+
+
 def test_cube_box_ignores_a_background_cluster():
     """A far cluster is not the cube; an in-box cluster is."""
     point = [0.232, 0.022, -0.049]

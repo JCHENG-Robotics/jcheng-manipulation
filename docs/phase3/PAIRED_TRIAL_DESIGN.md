@@ -127,6 +127,18 @@ joint fit are method-dependent.
 
 ## 9. Deviations
 
+**D4 — 2026-11-19, trial p003/intervention: the landing measurement picked
+up a different object.** The post-release report selected a cluster **21.7 mm**
+above the floor (the cube is 39.4 mm) at `(0.216, 0.055, −0.066) m`, i.e. a
+neighbouring low object, giving a meaningless 38.4 mm "error". The grasp itself
+was held (the floor was empty at the grip check). The runner now applies the
+same 30–50 mm height / 30–50 mm extent gate to the landing and refuses to
+record a trial whose landing does not look like the cube. The p003/intervention
+record was withdrawn (preserved in
+[`trials_with_p003_artifact.jsonl`](../../evidence/phase3/onsite_20261119/trials_with_p003_artifact.jsonl))
+and the trial was re-run after the session. All other 11 successful landings
+measured 39.4–39.6 mm above the floor.
+
 **D3 — 2026-11-19, trials p019/baseline and p023/baseline: placement
 contamination and a negative-argument crash.** A tape roll (and possibly a
 spacer) was left inside the grasp region. The p019 baseline pre-measurement put

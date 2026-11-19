@@ -437,11 +437,15 @@ class Session:
         ]
         land_report = self.humble.segment(land_pulses, tag + '_land')
         landing, valid = cube_point(land_report)
-        if landing is None:
-            notes['landing_measured'] = False
+        land_ok, land_reason = placement_quality(land_report)
+        if landing is None or not valid or not land_ok:
+            # p003 on 2026-11-19 landed near a 22 mm object and the segmenter
+            # selected it; a landing must pass the same cube gates as a
+            # pre-trial placement or the continuous error is meaningless.
             raise RuntimeError(
-                'the cube could not be measured after the release; record the '
-                'trial manually in the JSONL')
+                'landing measurement rejected ({}); the trial is not '
+                'recorded, re-place the cube and re-run it'.format(
+                    land_reason if landing is not None else 'no point'))
         error_mm = float(np.linalg.norm((landing - point)[:2]) * 1000.0)
         notes['landing'] = [float(v) for v in landing]
         notes['landing_measured'] = bool(valid)
