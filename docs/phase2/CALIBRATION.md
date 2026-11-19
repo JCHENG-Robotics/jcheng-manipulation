@@ -219,6 +219,43 @@ filled depth plane. Use the depth table plane for table z. The transform does
 Evidence:
 [`evidence/calibration/20261118/table_down/`](../../evidence/calibration/20261118/table_down/).
 
+## Low-configuration error survey (2026-11-19)
+
+The chessboard cannot be used at the grasp configuration: the camera sits
+0.11–0.14 m above the floor there, so the 220 × 160 mm board does not fit in
+the view (a 0.20 m camera height is needed, which forces `j2 ≈ 0` — 0.6 rad
+away from the grasp pose). The error was therefore measured **relative to a
+fixed AprilTag** (36h11 ID 0, 60 mm) that is observed from two reference poses
+inside the validated table-down volume and from eight poses of the low family.
+
+The result is that the low-configuration error is a **constant vector**, not a
+configuration-dependent one: the per-pose spread is 0.40–0.99 mm and the
+residual after a single constant correction is at most 2.4 mm over `j1 ±0.06`,
+`j2 +0.10`, `j3 +0.05` and `j4 −0.29 … −0.545`.
+
+| Model used for the correction | Correction (x, y, z) | Mean \|e\| | Residual after correction |
+|---|---|---:|---:|
+| Table-down fit (used by the 2026-11-19 grasps) | **(+11.6, +4.0, +8.5) mm** | 15.0 mm | 2.4 mm |
+| Camera-forward fit (published as `camera_optical_calibrated`) | **(+5.2, +1.8, +5.8) mm** | 8.0 mm | 2.0 mm |
+
+The two columns differ because the two fits disagree by ~2.5°; **the
+correction must be applied against the same model that measures the target**.
+
+Two further results:
+
+- The bus-servo register is a faithful joint measure. The same commanded
+  `joint1 = 0` settles at register 495 or 506 depending on the approach
+  direction (11 pulses = 4.6°), and the image moves by the same 4.6°, so the
+  measured-joint FK absorbs the servo dead band (predicted tag centre moves
+  1.1 mm). The approach direction must still be reproduced at grasp time.
+- A whole-node restart moves the arm and leaves `/joint_states` stale; the
+  return pose of any capture sequence must come from the bus servos.
+
+Evidence, including the conflict analysis against the single-tag pass-5
+correction (`e = (−8.0, −15.3, −5.8) mm`), which was made with both tags within
+8 px of the frame edge:
+[`evidence/calibration/20261119/low_config_error/`](../../evidence/calibration/20261119/low_config_error/).
+
 ## Why the first run failed
 
 The first dataset used the controller's cached `joint_states` as if they were

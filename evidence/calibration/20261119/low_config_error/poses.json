@@ -1,0 +1,20 @@
+{
+  "comment": "Tag fixed on the table. R_* poses sit inside the validated table-down volume and define the reference truth; G_* poses are the low (grasp) configuration family. G_j4_m10 was dropped: a single tag cannot be framed by both the reference pair and that pose (4 mm placement tolerance), so j4 is covered by G_grasp, G_j4_p10 and G_mid instead.",
+  "tag": {"family": "36h11", "id": 0, "black_square_m": 0.060},
+  "target_placement": {
+    "centre_base_link_xy_m": [0.285, 0.020],
+    "feasible_box_m": {"x": [0.272, 0.300], "y": [-0.030, 0.048]}
+  },
+  "poses": [
+    {"name": "R_ref1",    "joints": [0.0,   0.2574, -1.18773, -1.5917, -0.01676]},
+    {"name": "R_ref2",    "joints": [0.08,  0.2574, -1.18773, -1.5917, -0.01676]},
+    {"name": "G_grasp",   "joints": [0.0,  -0.6618, -1.8012, -0.3917,  0.0]},
+    {"name": "G_mid",     "joints": [0.0,  -0.5600, -1.7500, -0.5450,  0.0]},
+    {"name": "G_j2_up05", "joints": [0.0,  -0.6118, -1.8012, -0.3917,  0.0]},
+    {"name": "G_j2_up10", "joints": [0.0,  -0.5618, -1.8012, -0.3917,  0.0]},
+    {"name": "G_j3_up05", "joints": [0.0,  -0.6618, -1.7512, -0.3917,  0.0]},
+    {"name": "G_j4_p10",  "joints": [0.0,  -0.6618, -1.8012, -0.2917,  0.0]},
+    {"name": "G_j1_p06",  "joints": [0.06, -0.6618, -1.8012, -0.3917,  0.0]},
+    {"name": "G_j1_m06",  "joints": [-0.06,-0.6618, -1.8012, -0.3917,  0.0]}
+  ]
+}

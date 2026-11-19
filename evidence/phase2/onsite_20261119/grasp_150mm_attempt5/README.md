@@ -80,6 +80,17 @@ removed the calibration sheet:
   and would have corrupted the correction.
 - The cube was released where the corrected grasp put it; it ended ~10 mm from
   its pre-attempt position.
+- **Superseded as a calibration (2026-11-19).** A 10-pose tag survey over the
+  low configuration found the model error there to be a *constant*
+  `(+11.6, +4.0, +8.5) mm` against the same table-down transform, with a
+  2.4 mm residual, and the opposite sign in x/y to this attempt's
+  `(−8.0, −15.3, −5.8) mm`. Re-checking this attempt's own images shows both
+  tag observations sat within **7–8 px of the frame edge** (grasp-config
+  reprojection 1.0 px, 209 px tag side), where a planar tag's out-of-plane pose
+  is weakly constrained; the survey's tags were framed at 35–108 px margin with
+  0.12–0.49 px reprojection. The single correction still produced the grasp
+  recorded here, but it should not be reused as a calibration:
+  [`evidence/calibration/20261119/low_config_error/`](../../../calibration/20261119/low_config_error/README.md).
 
 ## 6. Files
 
