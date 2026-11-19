@@ -35,11 +35,11 @@
 | **核心问题** | 当每一个变换、限位和失效模式都被实测而非假设时，低成本五自由度机械臂加腕部相机能在桌面上实现多精确的操作？ |
 | **代表性结果** | 对无标记 39.4 mm 木块完成自主抓取—抬升—放置；固定 Tag 普查把低构型误差测成**常数**，随后**预注册的 24 对实机试验**把抓取成功率从 **12/24 提升到 24/24**（McNemar p = 0.00049），双成功对子的放置误差配对改善 **2.19 mm**（p = 0.0063） |
 | **证据** | 20+ 个证据包：会话日志、标定数据集、舵机总线记录、Studio 测试报告与机器可读 JSON |
-| **状态** | 2026-11-19。实机运动均为受监督执行；关节映射仍为 `verified: false`；机器人没有急停或抱闸 |
+| **状态** | 2026-11-19。实机运动均为受监督执行；正式普查后关节映射在作业包络内为 `verified: true`；机器人没有急停或抱闸 |
 
 ## 摘要
 
-本项目研究：当每一个变换、限位和失效模式都被实测而非假设时，低成本五自由度机械臂加腕部 RGB-D 相机能否完成可重复的桌面视觉抓取。ArmPi Ultra 被建模为受约束的五自由度机械臂；相机通过自主实现的棋盘格手眼流程标定到 `link4`（14 个位姿，板位姿一致性 2.94 mm / 0.39°，留出基位姿 3.29 mm / 0.43°）。无标记 RGB-D 分割、关节空间抓取搜索、MoveIt/Pilz `PTP` 执行与独立轨迹否决构成抓取链路。对无标记 39.4 mm 木块进行了 5 轮实机抓取—抬升—放置试验，3 轮成功。第 3、4 轮失败并暴露出低抓取构型下系统性的 −8.0/−15.3/−5.8 mm FK/手眼误差；在该构型下用一次 AprilTag 观测得到修正量后，第 5 轮成功夹住木块、抬升约 148 mm 并释放。关节限位在通电测量后按舵机 EEPROM 减 20 脉冲采纳；夹爪重测将行程从 0.84 rad 修正为 2.22 rad。本项目的贡献是实测失败模式分类、把已测低构型误差转化为 24/24 抓取结果的预注册配对实机试验，以及明确的证据链；完整误差预算仍不完整，偏航包络之外的抓取尚未验证。
+本项目研究：当每一个变换、限位和失效模式都被实测而非假设时，低成本五自由度机械臂加腕部 RGB-D 相机能否完成可重复的桌面视觉抓取。ArmPi Ultra 被建模为受约束的五自由度机械臂；相机通过自主实现的棋盘格手眼流程标定到 `link4`（14 个位姿，板位姿一致性 2.94 mm / 0.39°，留出基位姿 3.29 mm / 0.43°）。无标记 RGB-D 分割、关节空间抓取搜索、MoveIt/Pilz `PTP` 执行与独立轨迹否决构成抓取链路。对无标记 39.4 mm 木块进行了 5 轮实机抓取—抬升—放置试验，3 轮成功。第 3、4 轮失败并暴露出低抓取构型下系统性的 −8.0/−15.3/−5.8 mm FK/手眼误差；在该构型下用一次 AprilTag 观测得到修正量后，第 5 轮成功夹住木块、抬升约 148 mm 并释放。随后固定 Tag 普查证明该误差是**常向量**，关节偏置与 `link4` 偏置模型被拟合后**否决**，常数在 27.9° 偏航下仍成立。**预注册的 24 对实机试验**把成功率从 12/24 提升到 24/24（McNemar p = 0.00049），配对放置改善 2.19 mm。五个关节已正式手推普查（止挡为姿态相关的自碰撞限位），重复性与回差实测为 0.449 mm RMS 与 1.117 mm，46 次偏移网格测得夹持容差 ±9 mm；夹爪重测将行程从 0.84 rad 修正为 2.22 rad。本项目的贡献是实测失败模式分类、一项预注册的实机可靠性实验与明确的证据链；误差预算仍有三项未测，2° 旋转门限仍是暂定值。
 
 ## 目标与贡献
 
@@ -70,7 +70,7 @@
 | 标定位姿选择 | 从 14,176 个评估位姿 / 3,093 个可行位姿中选出 **24 个**；视角跨度 33.5°；已规划、未执行 | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
 | 独立 Tag 尺度 | 横向 **100.67 mm vs 100.0 mm（0.67%）**；桌面纵向 **104.87 mm vs 100.0 mm（4.87%）**；夹角 **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
 | 深度桌面平面 | **147,626 个内点，RMS 0.7 mm**；桌面 z **−0.0787 m**（深度）vs **−0.0784 m**（215 mm 直尺） | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
-| 实机抓取试验 | 39.4 mm 木块的抓取—抬升—放置 **3 / 5** 成功 | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/)、[`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/)、[`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| 实机抓取试验（第一组） | 39.4 mm 木块的抓取—抬升—放置 **3 / 5** 成功（可行性、非配对） | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/)、[`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/)、[`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | 最佳自主抬升 | TCP **+0.0993 m**，物体离地 **约 148 mm**；木块 **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | 低构型模型误差 | 固定 Tag：**常数 (+11.6, +4.0, +8.5) mm**，位形散布 **0.40–0.99 mm**；抓取验证修正量 **(+13.7, +3.9, +8.9) mm**，放置残差 **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
 | 低构型模型选择 | 关节偏置 / `link4` 3-DoF / `link4` 6-DoF 都能拟合 Tag 数据（1.4–2.3 mm RMS），但相对已验证修正量偏差 **10.6–15.0 mm**；**支持常数偏置模型** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
@@ -87,7 +87,7 @@
 | 夹爪行程 | **2.22 rad**（张开 −2.22，闭合 0.0）；回差 **约 34 counts**；39.4 mm 木块在 −0.63 夹住 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | 相机 / DDS | 跨主机 RGB **约 12 Hz**（容器内订阅低估到约 8 Hz）；深度 **8.2 Hz**；ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 跟踪 | **712 命令 / 711 实测**样本；最大 **0.008321 rad**，RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
-| 部分误差预算 | 已测项 RSS **3.699 mm / 0.682°**；重复性、回差、执行、夹爪与夹具位姿未测 | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) |
+| 误差预算（2026-11-19） | 平移 **RSS 3.995 mm**（通过）/ 最坏 **7.114 mm**（未通过）vs 实测容差 **6 mm**；旋转 **RSS 1.103° / 最坏 1.827°** vs 暂定 2° | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## 系统架构
 
@@ -174,12 +174,12 @@ tools/
 | 手眼标定 | **已验证** | 14 位姿棋盘：2.94 mm / 0.39°；留出 3.29 mm / 0.43°；桌面下俯 15 位姿重拟合 2.7 mm / 0.42° |
 | Fiducial 定位 | **已验证（合成 + 真实背景 + 实体 Tag）** | 合成 5/5（最大 1.82 mm / 1.49°）；半合成 15/15（最大 1.69 mm / 0.53°）；8 帧真实图像 0 误检；实体 Tag 横向尺度 0.67% |
 | 约束抓取搜索 | **已实现；Mock + 实机使用** | Mock：80 候选 → 40 IK → 26 无碰撞 → 3 条规划；每轮实机抓取均使用该搜索 |
-| 实机视觉抓取 | **已验证：3/5 轮成功** | 第 1、2、5 轮成功；第 3–4 轮失败并测出低构型误差；第 5 轮使用 Tag 修正 |
+| 实机视觉抓取 | **已验证：第一组 3/5；加修正后 24/24** | 第 1、2、5 轮建立链路；第 3–4 轮暴露低构型误差；随后 24 对试验测得 12/24（原始目标）vs 24/24（修正后） |
 | 关节限位 | **2026-11-19 正式普查；`mapping_verified=true`** | 五个关节全部手推实测（释放扭矩）；止挡为姿态相关的自碰撞限位；joint2 上限 810→775 |
 | 无头抓取工具链 | **已验证** | `grasp_150mm` 工具、`moveit_execute`、`pulse_move`；每条机械臂规划均经安全否决 |
 | 安全层 | **已实现；Mock 验证 + 实机否决** | 看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；桌面平面间隙；无急停或抱闸 |
-| 测量协议 | **已实现；dry-run/simulate 验证** | 重复性、回差、视觉位移、夹爪包络；尚无完整实机数据集 |
-| 误差预算 | **框架已实现；项目预算部分完成** | 已测手眼 + fiducial 项，RSS 3.699 mm / 0.682°；五个必需项未测 |
+| 测量协议 | **已实现；重复性、回差与夹爪包络已实测** | 30 次重复性 0.449 mm RMS / 1.017 mm max；回差 1.117 mm；46 次容差网格（开口轴 ±9 mm）；视觉位移仍仅仿真 |
+| 误差预算 | **框架已实现；部分完成（三项待测）** | 重复性、回差与容差已测；平移 RSS 3.995 mm / 最坏 7.114 mm，旋转 1.103° / 1.827°；抓取执行、夹爪误差源与夹具位姿未测 |
 | 配对试验 | **已实现；首次实机试验完成（2026-11-19）** | 24 对 / 48 次：baseline 12/24 vs intervention 24/24，McNemar p = 0.00049；12 个双成功对子中干预放置误差低 2.19 mm（95% CI −3.96…−0.83，p = 0.0063）；记录 4 项偏差 |
 | 主机/DDS 基准 | **已实现；只读实机快照** | 笔记本 + Pi 指标；状态 20 Hz；相机约 12 Hz；ping 0.24 ms |
 | Debug Studio | **G1–G6 已实现；测试通过** | 后端 92 + 网关 38；Mock 10 + 硬件 3 个 Playwright；G5 运动采集；G6 受监督路径无运动验证 |
@@ -304,7 +304,7 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 
 ### 关节限位与安全
 
-限位按舵机 EEPROM 减 20 脉冲（0.0838 rad）采纳，因为多个手工测得的机械止挡位于可指令 EEPROM 范围之外。通电探测到达 joint2 = 322、joint3 = 939；夹爪在发现原始张开值只是卡滞而非止挡后重新测量。厂商节点在读到负舵机寄存器时会因 `uint16` 断言崩溃，因此所有测量运动单调推进，并带自由下落中止保护。
+限位按舵机 EEPROM 减 20 脉冲（0.0838 rad）采纳。2026-11-19 的正式普查在竖直位姿逐个关节释放扭矩手推实测（joint2 另在低位作业位姿测了一次）：止挡是**自碰撞限位、随姿态变化**（joint2 低位 795 / 竖直 873；joint3 939 / 923），因此静态限位按作业包络认定，其余姿态由 MoveIt 的自碰撞检查兜底；joint2 上限收紧到低位手推止挡（775 脉冲）。夹爪在发现原始张开值只是卡滞而非止挡后重新测量。厂商节点在读到负舵机寄存器时会因 `uint16` 断言崩溃，因此所有测量运动单调推进，并带自由下落中止保护。
 
 ### 模型与规划注意事项
 
@@ -317,7 +317,7 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 
 ### 可靠性分析
 
-误差预算框架区分已测与未测来源，报告 RSS、最坏情况、主导项与 Monte Carlo 区间。配对试验记录器采用追加式 JSONL、带种子的对内随机化与精确配对检验。主机/DDS 基准为只读，测量两端主机的 topic 速率、抖动与消息年龄。以上工具均不向机器人发送运动命令。
+误差预算框架区分已测与未测来源，报告 RSS、最坏情况、主导项与 Monte Carlo 区间。配对试验记录器采用追加式 JSONL、带种子的对内随机化与精确配对检验；预注册的 24 对试验是它首次实机使用。运动项用**固定 AprilTag** 测量（重复性、回差、偏航延伸）；**容差**来自 46 次偏移网格，且每次放置都经过木块高度/尺寸与朝向门控，确保测的是夹持容差而不是几何。主机/DDS 基准为只读，测量两端主机的 topic 速率、抖动与消息年龄。除显式受监督的运行器外，没有测量工具会命令抓取。
 
 ## 失败模式分类（实测）
 
@@ -369,7 +369,8 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 | 抓取搜索 | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
 | 现场安全 / 限位 | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
 | 实机抓取 / 可达 | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/) |
-| 可靠性分析 | [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| 可靠性分析 | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md)（配对试验、重复性、回差、容差网格、偏航包络、误差预算）；框架基线 [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| 关节限位 | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/)、[`studio_g2/`](evidence/studio_g2/)、[`studio_g3/`](evidence/studio_g3/)、[`studio_g4/`](evidence/studio_g4/)、[`studio_g5/`](evidence/studio_g5/)、[`studio_g6/`](evidence/studio_g6/) |
 | 安全加固 | [`evidence/security/20261118/`](evidence/security/20261118/) |
 
@@ -390,7 +391,8 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 - [测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移、夹爪包络。
 - [关节限位](docs/phase2/JOINT_LIMITS.md) — 测量、EEPROM 边界与恢复规则。
 - [误差预算](docs/phase3/ERROR_BUDGET.md) — schema、RSS 与缺失项。
-- [配对试验](docs/phase3/PAIRED_TRIALS.md) — 记录器、随机化与分析。
+- [配对试验](docs/phase3/PAIRED_TRIALS.md) — 记录器、随机化与分析；设计预注册在
+  [PAIRED_TRIAL_DESIGN.md](docs/phase3/PAIRED_TRIAL_DESIGN.md)。
 - [主机/DDS 基准](docs/phase3/HOST_BENCHMARK.md) — 只读指标与相机速率修正。
 - [相机坐标系契约](docs/hardware/camera_frames.md) — body 与 optical。
 - [网络访问](docs/hardware/network_access.md) — 有线链路与安全锁定。

@@ -45,7 +45,7 @@
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
 | **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; a fixed-tag survey measured the low-configuration error as a **constant**, and a pre-registered **24-pair** hardware trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049) with a **2.19 mm** paired placement improvement (p = 0.0063) |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
-| **Status** | 2026-11-19. Hardware motion is supervised; joint mapping remains `verified: false`; the robot has no e-stop or brake |
+| **Status** | 2026-11-19. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
 ## Abstract
 
@@ -61,13 +61,18 @@ pick–lift–place attempts were run on an unmarked 39.4 mm cube; three
 succeeded. Passes 3–4 failed and exposed a systematic −8.0/−15.3/−5.8 mm
 FK/hand–eye error at the low grasp configuration; a single AprilTag
 observation at that configuration supplied a correction, after which pass 5
-held the cube, lifted it ≈148 mm and released it. Joint limits were adopted
-from the servo EEPROM with a 20-pulse margin after a powered survey, and a
-gripper re-measurement corrected the stroke from 0.84 rad to 2.22 rad. The
-project contributes a measured failure taxonomy, a pre-registered paired
-hardware trial that turned the measured low-configuration error into a
-24/24 grasp result, and an explicit evidence trail; the full error budget
-remains partial and a yawed-envelope grasp is still open.
+held the cube, lifted it ≈148 mm and released it. A fixed-tag survey then
+showed the low-configuration error is a **constant** vector, joint-offset and
+`link4`-frame models were fitted and **rejected**, and the constant held to a
+27.9° yaw. A **pre-registered 24-pair hardware trial** raised grasp success
+from 12/24 to 24/24 (McNemar p = 0.00049) with a 2.19 mm paired placement
+improvement. All five arm joints were formally surveyed by hand (the stops are
+pose-dependent self-collision limits), repeatability and backlash were
+measured (0.449 mm RMS, 1.117 mm), and a 46-grasp grid measured the grip
+tolerance at ±9 mm. The project contributes a measured failure taxonomy, a
+physical reliability experiment and an explicit evidence trail; the error
+budget remains partial in three sources and the 2° rotation tolerance is still
+provisional.
 
 ## Objectives and contributions
 
@@ -128,7 +133,7 @@ remains partial and a yawed-envelope grasp is still open.
 | Calibration pose selection | **24 poses** from 14,176 evaluated / 3,093 feasible; 33.5° view-angle spread; planned, not executed | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
 | Independent tag scale | lateral **100.67 mm vs 100.0 mm (0.67 %)**; table-forward **104.87 mm vs 100.0 mm (4.87 %)**; angle **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
 | Depth table plane | **147,626 inliers, 0.7 mm RMS**; table z **−0.0787 m** (depth) vs **−0.0784 m** (215 mm ruler) | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
-| Real grasp trials | **3 / 5** successful pick–lift–place attempts on the 39.4 mm cube | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/), [`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Real grasp trials, first series | **3 / 5** pick–lift–place attempts on the 39.4 mm cube (feasibility, unpaired) | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/), [`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | Best autonomous lift | TCP **+0.0993 m**, object **≈148 mm** above the floor; cube **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | Low-configuration model error | fixed tag: **constant (+11.6, +4.0, +8.5) mm**, per-pose spread **0.40–0.99 mm**; grasp-validated correction **(+13.7, +3.9, +8.9) mm**, release **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
 | Low-config model selection | joint offsets / `link4` 3-DoF / `link4` 6-DoF fit the tag survey (1.4–2.3 mm RMS) but miss the validated correction by **10.6–15.0 mm**; **constant offset supported** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
@@ -145,7 +150,7 @@ remains partial and a yawed-envelope grasp is still open.
 | Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 tracking | **712 commanded / 711 measured** samples; max **0.008321 rad**, RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
-| Partial error budget | RSS **3.699 mm / 0.682°** from measured terms; repeatability, backlash, execution, gripper and fixture unmeasured | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) |
+| Error budget (2026-11-19) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## System architecture
 
@@ -235,12 +240,12 @@ separately.
 | Hand–eye calibration | **Validated** | 14-pose chessboard: 2.94 mm / 0.39°; held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42° |
 | Fiducial localization | **Validated (synthetic + real background + physical tag)** | 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic (max 1.69 mm / 0.53°); 0 false detections on 8 real frames; physical tag scale 0.67 % lateral |
 | Constrained grasp search | **Implemented; mock + real use** | 80 candidates → 40 IK → 26 collision-free → 3 plans (mock); real search used in every grasp pass |
-| Real visual grasping | **Validated: 3/5 attempts** | Passes 1, 2 and 5 succeeded; passes 3–4 failed and measured the low-configuration error; pass 5 used a tag correction |
+| Real visual grasping | **Validated: 3/5 first series; 24/24 with the correction** | Passes 1, 2 and 5 established the pipeline; passes 3–4 exposed the low-configuration error; the 24-pair trial then measured 12/24 (raw target) vs 24/24 (corrected) |
 | Joint limits | **Formally surveyed 2026-11-19; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 |
 | Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
-| Measurement protocols | **Implemented; dry-run/simulate validated** | Repeatability, backlash, visual displacement, gripper envelope; no full hardware dataset |
-| Error budget | **Framework implemented; project budget partial** | Measured hand–eye + fiducial terms, RSS 3.699 mm / 0.682°; five required terms unmeasured |
+| Measurement protocols | **Implemented; repeatability, backlash and gripper envelope measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); visual displacement still simulated only |
+| Error budget | **Framework implemented; partial (three terms open)** | Repeatability, backlash and the tolerance measured; translation RSS 3.995 mm / worst 7.114 mm, rotation 1.103° / 1.827°; grasp execution, gripper source and fixture pose unmeasured |
 | Paired trials | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
@@ -394,13 +399,17 @@ arm is too close to the held object to be a reliable grip sensor.
 
 ### Joint limits and safety
 
-Limits are adopted from the servo EEPROM with a 20-pulse (0.0838 rad) margin,
-because several hand-measured mechanical stops lie outside the commandable
-EEPROM range. A powered probe reached joint2 = 322 and joint3 = 939; the
-gripper stops were re-measured after the original open value proved to be a
-binding stall. The vendor node crashes on a negative servo register
-(`uint16` assertion), so all survey motion is monotonic and guarded by a
-free-fall abort.
+Limits are adopted from the servo EEPROM with a 20-pulse (0.0838 rad) margin.
+A formal survey on 2026-11-19 measured every arm joint by hand with torque
+released, one joint at a time, in the vertical pose (plus joint2 at the low
+operating pose): the stops are **self-collision-limited and pose-dependent**
+(joint2 795 low vs 873 upright; joint3 939 vs 923), so the static limits are
+verified for the operating envelope and MoveIt's self-collision check covers
+the rest. joint2's high bound was tightened to the low-pose hand stop
+(775 pulse). The gripper stops were re-measured after the original open value
+proved to be a binding stall. The vendor node crashes on a negative servo
+register (`uint16` assertion), so all survey motion is monotonic and guarded
+by a free-fall abort.
 
 ### Model and planning caveats
 
@@ -417,8 +426,14 @@ free-fall abort.
 The error-budget framework separates measured from unmeasured sources and
 reports RSS, worst case, dominance and a Monte Carlo interval. The paired-trial
 recorder stores append-only JSONL with seeded within-pair randomization and
-exact paired tests. The host/DDS benchmark is read-only and measures topic
-rate, jitter and age on both hosts. None of these tools commands the robot.
+exact paired tests; the pre-registered 24-pair trial is its first hardware use.
+Motion terms are measured with a **fixed AprilTag** observed from repeated
+poses (repeatability, backlash) and from a yawed grasp pose (the correction's
+yaw extension); the **tolerance** comes from a 46-grasp offset grid, and each
+placement is gated on cube height/extent and face orientation so the grid
+measures grip tolerance rather than geometry. The host/DDS benchmark is
+read-only and measures topic rate, jitter and age on both hosts. No measurement
+tool commands a grasp except the explicitly supervised runners.
 
 ## Failure taxonomy (measured)
 
@@ -495,7 +510,8 @@ Every quantitative statement in this README traces to one of these bundles:
 | Grasp search | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
 | On-site safety / limits | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
 | Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/) |
-| Reliability analysis | [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Joint limits | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
 | Security | [`evidence/security/20261118/`](evidence/security/20261118/) |
 
@@ -528,7 +544,8 @@ up separately. `evidence/README.md` explains what is tracked.
   recovery rules.
 - [Error budget](docs/phase3/ERROR_BUDGET.md) — schema, RSS and missing terms.
 - [Paired trials](docs/phase3/PAIRED_TRIALS.md) — recorder, randomization and
-  analysis.
+  analysis; the design is pre-registered in
+  [PAIRED_TRIAL_DESIGN.md](docs/phase3/PAIRED_TRIAL_DESIGN.md).
 - [Host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only metrics and
   camera-rate correction.
 - [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical.
