@@ -1,13 +1,18 @@
 # Error Budget
 
 > Status: **Framework implemented and demo-validated; project budget partial
-> (2026-11-17, Session 4; updated 2026-11-19).** The measured terms are
-> calibration and perception only. A physical paired trial (24 pairs) now
-> measured the **end-to-end placement error**: 3.31 mm mean (SD 1.48) for the
-> corrected method and 4.97 mm (SD 2.87) for the uncorrected one, with a
-> 2.19 mm paired improvement (p = 0.006). That is a task-level outcome, not a
-> decomposition: repeatability, backlash, grasp execution, gripper placement
-> and fixture pose remain required and unmeasured as separate sources.
+> (2026-11-17, Session 4; updated 2026-11-19).** Calibration, perception,
+> **repeatability and backlash** are now measured. The 2026-11-19 on-site
+> session added the two motion terms with a fixed AprilTag at the grasp pose:
+> repeatability **1.017 mm max** (0.449 mm radial RMS, 30 visits) and backlash
+> **1.117 mm** (15 + 15 visits, joint4 ±0.1 rad). With them the translation
+> budget is **RSS 3.995 mm** (pass) and **worst case 7.114 mm** (fail) against
+> the provisional 5 mm gate; rotation is **RSS 1.103°**, worst case **1.827°**
+> (both pass). A physical paired trial (24 pairs) additionally measured the
+> **end-to-end placement error**: 3.31 mm mean (SD 1.48) for the corrected
+> method and 4.97 mm (SD 2.87) for the uncorrected one. That is a task-level
+> outcome, not a decomposition: **grasp execution, gripper placement and
+> fixture pose remain required and unmeasured as separate sources.**
 
 ## Purpose
 
@@ -104,32 +109,53 @@ Evidence:
 and
 [`error_budget_baseline_report.svg`](../../evidence/phase3/session4_20261117/error_budget_baseline_report.svg).
 
+### 2026-11-17 baseline (calibration + perception only)
+
 | Metric | RSS | Worst case | Tolerance | Status |
 |---|---:|---:|---:|---|
 | Translation | **3.699 mm** | **4.980 mm** | 5.000 mm (provisional) | partial, both gates pass |
 | Rotation | **0.682°** | **0.960°** | 2.000° (provisional) | partial, both gates pass |
 
+### 2026-11-19 on-site update (adds repeatability and backlash)
+
 Measured sources:
 
 | Source | Value | Basis | Contribution |
 |---|---:|---|---:|
-| `hand_eye_translation` | 3.29 mm | held-out final base max | 79.1% |
-| `fiducial_translation` | 1.69 mm | semi-synthetic max on real frames | 20.9% |
-| `hand_eye_rotation` | 0.43° | held-out final base max | 39.7% |
-| `fiducial_rotation` | 0.53° | semi-synthetic max on real frames | 60.3% |
+| `hand_eye_translation` | 3.29 mm | held-out final base max | 67.8% |
+| `fiducial_translation` | 1.69 mm | semi-synthetic max on real frames | 17.9% |
+| `arm_repeatability` | 1.017 mm | hardware max, 30 visits | 6.5% |
+| `arm_backlash` | 1.117 mm | hardware hysteresis, 15 + 15 | 7.8% |
+| `hand_eye_rotation` | 0.43° | held-out final base max | 15.2% |
+| `fiducial_rotation` | 0.53° | semi-synthetic max on real frames | 23.1% |
+| `arm_repeatability_rotation` | 0.867° | hardware max, 30 visits | 61.7% |
+
+The updated report is
+[`evidence/phase3/onsite_20261119/error_budget.md`](../../evidence/phase3/onsite_20261119/error_budget.md),
+generated from
+[`config/error_budget_onsite_20261119.json`](../../ros2_ws/src/armpi_analysis/config/error_budget_onsite_20261119.json).
+
+| Metric | RSS | Worst case | Tolerance | Status |
+|---|---:|---:|---:|---|
+| Translation | **3.995 mm** | **7.114 mm** | 5.000 mm (provisional) | RSS passes, worst case fails |
+| Rotation | **1.103°** | **1.827°** | 2.000° (provisional) | both pass |
 
 Required and still unmeasured:
 
-- arm repeatability (translation and rotation);
-- backlash (translation);
 - grasp execution (translation and rotation);
 - gripper placement (translation);
 - object-fixture pose (translation).
 
-The budget has no 95% interval because the measured values are maxima, not
-per-source distributions. The 4.980 mm worst case is only 0.020 mm below the
-provisional 5 mm gate, so any unmeasured term will move the budget. This is the
-main reason the report is marked **partial**, not passing.
+The repeatability and backlash maxima come from one session at the grasp pose
+and are treated as bounds, like the calibration terms. The dominant translation
+term is still the hand–eye calibration (3.29 mm, 68 % of the RSS); the dominant
+rotation term is now the arm's own repeatability (0.867°, 62 %).
+
+The budget has no 95 % interval because the measured values are maxima, not
+per-source distributions. With four bound-like terms the 7.114 mm worst case
+now exceeds the provisional 5 mm gate while the RSS (3.995 mm) still passes;
+the two statistics bracket the same terms and neither is a confidence bound.
+The report stays **partial** because three required sources are unmeasured.
 
 The 5 mm / 2° tolerance is the existing protocol gate, not a measured physical
 grasp tolerance. It must be replaced by the gripper-envelope experiment before
@@ -178,6 +204,9 @@ for an RSS of several independent terms.
 - The measured values mix held-out maxima and semi-synthetic maxima. They are
   bounds, not a common statistical basis.
 - A partial budget must not be presented as a measured task error.
+- The measurement session's PnP is tag-relative; a tag rotation bias would
+  enter the reconstructed positions as a common shift and cancel in the spread,
+  so the repeatability/backlash values are relative, not absolute.
 - The tolerance is provisional and must come from the gripper-envelope
   experiment.
 - The Monte Carlo interval is a sensitivity tool, not a physical confidence

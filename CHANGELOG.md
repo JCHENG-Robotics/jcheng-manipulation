@@ -7,6 +7,23 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Error-budget motion terms measured: repeatability and backlash.** A 60 mm
+  36h11 tag fixed on the floor was observed from the grasp pose
+  `[0, −0.6618, −1.8012, −0.3917, 0]`; the tag centre was reconstructed from
+  the measured bus-servo joints and the measured hand–eye. **30 visits**:
+  radial **0.449 mm RMS**, **1.017 mm max**; per-axis std 0.278 / 0.211 /
+  0.295 mm; the joints repeat to **0–1 pulse**; tag rotation max **0.867°**
+  (mean 0.446°). **Backlash**, 15 forward + 15 reverse visits from
+  `joint4 ± 0.1 rad`: hysteresis **1.117 mm** (vector −0.971, −0.064,
+  −0.549 mm); `joint4` settles 10 pulses apart. All 45 captures detected the
+  tag (PnP RMS 0.40 px mean, frame margin 45–55 px). The budget now reads
+  translation **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail vs the
+  provisional 5 mm gate) and rotation **RSS 1.103° / worst 1.827°** (both
+  pass); the hand–eye term is still 68 % of the translation RSS, grasp
+  execution, gripper placement and fixture pose remain unmeasured. New tool
+  `tools/phase3/measurement_run.py`; config
+  `config/error_budget_onsite_20261119.json`. Evidence:
+  [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md).
 - **First physical paired trial: 24 pairs, 48 trials.** Pre-registered design
   and a committed 24-pair randomization plan (seed 7) compared the raw
   FK/hand–eye target (`baseline`) with the constant low-configuration

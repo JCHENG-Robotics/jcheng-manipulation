@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "name": "fiducial_grasp_onsite_20261119",
+  "task": "fiducial_grasp",
+  "generated_at": "2026-11-19T09:57:59.553923+00:00",
+  "status": "partial",
+  "complete": false,
+  "samples": 10000,
+  "seed": 7,
+  "tolerance_basis": "Provisional protocol gates (5 mm / 2 deg); not a measured physical grasp tolerance.",
+  "tolerance": {
+    "translation_mm": 5.0,
+    "rotation_deg": 2.0
+  },
+  "metrics": {
+    "translation_mm": {
+      "metric": "translation_mm",
+      "n_sources": 7,
+      "n_measured": 4,
+      "n_missing_required": 3,
+      "complete": false,
+      "rss": 3.995269452740328,
+      "worst_case": 7.114,
+      "dominant": "hand_eye_translation",
+      "contributions": [
+        {
+          "id": "hand_eye_translation",
+          "value": 3.29,
+          "percent": 67.81092154216049,
+          "rss_without": 2.2667328911894313,
+          "reduction": 1.7285365615508965
+        },
+        {
+          "id": "fiducial_translation",
+          "value": 1.69,
+          "percent": 17.892921630118398,
+          "rss_without": 3.6202317605368854,
+          "reduction": 0.3750376922034424
+        },
+        {
+          "id": "arm_repeatability",
+          "value": 1.017,
+          "percent": 6.479623269456085,
+          "rss_without": 3.8636626405523553,
+          "reduction": 0.13160681218797254
+        },
+        {
+          "id": "arm_backlash",
+          "value": 1.117,
+          "percent": 7.816533558265045,
+          "rss_without": 3.8359469495810288,
+          "reduction": 0.15932250315929908
+        }
+      ],
+      "ci95": null,
+      "sources": [
+        {
+          "id": "hand_eye_translation",
+          "category": "calibration",
+          "metric": "translation_mm",
+          "value": 3.29,
+          "kind": "bounded",
+          "basis": "held_out_max",
+          "status": "measured",
+          "distribution": null,
+          "required": true,
+          "evidence": "evidence/calibration/20261117/",
+          "notes": "Held-out final base error from the 14-pose bus-servo hand-eye dataset (3.29 mm); the same dataset reports 3.41 mm leave-one-out std. Treated as a bound, not a Gaussian sigma.",
+          "sigma": null
+        },
+        {
+          "id": "fiducial_translation",
+          "category": "perception",
+          "metric": "translation_mm",
+          "value": 1.69,
+          "kind": "bounded",
+          "basis": "semi_synthetic_max",
+          "status": "measured",
+          "distribution": null,
+          "required": true,
+          "evidence": "evidence/phase2/real_background_20261117/",
+          "notes": "Worst of 15/15 semi-synthetic poses on real camera frames; the marker was composited, not physically present. This is a relative-pose detection error.",
+          "sigma": null
+        },
+        {
+          "id": "arm_repeatability",
+          "category": "repeatability",
+          "metric": "translation_mm",
+          "value": 1.017,
+          "kind": "bounded",
+          "basis": "hardware_max_30_visits",
+          "status": "measured",
+          "required": true,
+          "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+          "notes": "30 visits to the grasp pose [0, -0.6618, -1.8012, -0.3917, 0], AprilTag-observed. Radial RMS 0.449 mm, radial max 1.017 mm; the measured joints repeat to 0-1 pulse.",
+          "distribution": null,
+          "sigma": null
+        },
+        {
+          "id": "arm_backlash",
+          "category": "backlash",
+          "metric": "translation_mm",
+          "value": 1.117,
+          "kind": "bounded",
+          "basis": "hardware_hysteresis",
+          "status": "measured",
+          "required": true,
+          "evidence": "evidence/phase3/onsite_20261119/backlash/",
+          "notes": "15 forward + 15 reverse visits to the same pose from joint4 +/-0.1 rad. Hysteresis vector (-0.971, -0.064, -0.549) mm, magnitude 1.117 mm; joint4 settles 10 pulses apart.",
+          "distribution": null,
+          "sigma": null
+        },
+        {
+          "id": "grasp_execution",
+          "category": "execution",
+          "metric": "translation_mm",
+          "value": null,
+          "kind": "bounded",
+          "basis": null,
+          "status": "unmeasured",
+          "required": true,
+          "evidence": null,
+          "notes": "Still not isolated. The 24-pair trial measured the end-to-end placement error: 3.31 mm mean (SD 1.48) for the corrected method, 4.97 mm (SD 2.87) for the uncorrected one; that value also carries the residual constant-correction error and release dynamics.",
+          "distribution": null,
+          "sigma": null
+        },
+        {
+          "id": "gripper_placement",
+          "category": "gripper",
+          "metric": "translation_mm",
+          "value": null,
+          "kind": "bounded",
+          "basis": null,
+          "status": "unmeasured",
+          "required": true,
+          "evidence": null,
+          "notes": "The tolerance-envelope protocol is implemented; the 24-pair trial only sampled two offsets (0 and 13.7 mm) and is not a tolerance grid.",
+          "distribution": null,
+          "sigma": null
+        },
+        {
+          "id": "object_fixture_pose",
+          "category": "other",
+          "metric": "translation_mm",
+          "value": null,
+          "kind": "bounded",
+          "basis": null,
+          "status": "unmeasured",
+          "required": true,
+          "evidence": null,
+          "notes": "The physical fixture ground truth has not been measured with a caliper or guide.",
+          "distribution": null,
+          "sigma": null
+        }
+      ],
+      "missing_required": [
+        "grasp_execution",
+        "gripper_placement",
+        "object_fixture_pose"
+      ],
+      "optional_missing": [],
+      "tolerance": 5.0,
+      "pass_rss": true,
+      "pass_worst_case": false,
+      "margin": 1.0047305472596721,
+      "budget_ratio": 0.7990538905480655
+    },
+    "rotation_deg": {
+      "metric": "rotation_deg",
+      "n_sources": 4,
+      "n_measured": 3,
+      "n_missing_required": 1,
+      "complete": false,
+      "rss": 1.103398839948638,
+      "worst_case": 1.827,
+      "dominant": "arm_repeatability_rotation",
+      "contributions": [
+        {
+          "id": "hand_eye_rotation",
+          "value": 0.43,
+          "percent": 15.186995529323053,
+          "rss_without": 1.0161638647383602,
+          "reduction": 0.0872349752102779
+        },
+        {
+          "id": "fiducial_rotation",
+          "value": 0.53,
+          "percent": 23.07207703724633,
+          "rss_without": 0.9677752838340108,
+          "reduction": 0.13562355611462729
+        },
+        {
+          "id": "arm_repeatability_rotation",
+          "value": 0.867,
+          "percent": 61.74092743343059,
+          "rss_without": 0.6824954212300625,
+          "reduction": 0.4209034187185756
+        }
+      ],
+      "ci95": null,
+      "sources": [
+        {
+          "id": "hand_eye_rotation",
+          "category": "calibration",
+          "metric": "rotation_deg",
+          "value": 0.43,
+          "kind": "bounded",
+          "basis": "held_out_max",
+          "status": "measured",
+          "distribution": null,
+          "required": true,
+          "evidence": "evidence/calibration/20261117/",
+          "notes": "Held-out final base rotation error (0.43 deg); treated as a bound.",
+          "sigma": null
+        },
+        {
+          "id": "fiducial_rotation",
+          "category": "perception",
+          "metric": "rotation_deg",
+          "value": 0.53,
+          "kind": "bounded",
+          "basis": "semi_synthetic_max",
+          "status": "measured",
+          "distribution": null,
+          "required": true,
+          "evidence": "evidence/phase2/real_background_20261117/",
+          "notes": "Worst semi-synthetic rotation error (0.53 deg); treated as a bound.",
+          "sigma": null
+        },
+        {
+          "id": "arm_repeatability_rotation",
+          "category": "repeatability",
+          "metric": "rotation_deg",
+          "value": 0.867,
+          "kind": "bounded",
+          "basis": "hardware_max_30_visits",
+          "status": "measured",
+          "required": true,
+          "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+          "notes": "Max geodesic deviation of the tag frame from the mean over the same 30 visits; mean 0.446 deg.",
+          "distribution": null,
+          "sigma": null
+        },
+        {
+          "id": "grasp_execution_rotation",
+          "category": "execution",
+          "metric": "rotation_deg",
+          "value": null,
+          "kind": "bounded",
+          "basis": null,
+          "status": "unmeasured",
+          "required": true,
+          "evidence": null,
+          "notes": "No real grasp has been executed; angular execution error is unknown.",
+          "distribution": null,
+          "sigma": null
+        }
+      ],
+      "missing_required": [
+        "grasp_execution_rotation"
+      ],
+      "optional_missing": [],
+      "tolerance": 2.0,
+      "pass_rss": true,
+      "pass_worst_case": true,
+      "margin": 0.8966011600513619,
+      "budget_ratio": 0.551699419974319
+    }
+  },
+  "limitations": [
+    "Still partial: grasp execution, gripper placement and object-fixture pose are unmeasured as separate sources.",
+    "Repeatability and backlash are hardware maxima over one session, treated as bounds like the calibration terms.",
+    "The 5 mm / 2 deg tolerance is a provisional protocol gate, not a measured physical grasp tolerance.",
+    "The fiducial term comes from a composited marker on real frames, not a physically present marker.",
+    "RSS assumes independent sources; correlated sources would be over-counted.",
+    "Worst case is the linear sum of measured magnitudes and is conservative.",
+    "Unmeasured sources are excluded from the totals; a partial budget is not a validated task error.",
+    "A Monte Carlo interval is only reported when every random/bounded source has a distribution.",
+    "The tolerance is a provisional gate unless a physical tolerance experiment has been recorded."
+  ]
+}

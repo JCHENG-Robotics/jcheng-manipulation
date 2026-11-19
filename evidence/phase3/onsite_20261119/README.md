@@ -108,7 +108,32 @@ Discarded evidence is kept as `discarded_unit_error_attempt.jsonl`,
 - **The order effect is observational.** The plan randomizes order, but this
   is not a randomized crossover of time.
 
-## 6. Files
+## 6. Error-budget measurements (same session)
+
+Two of the five missing error-budget terms were measured with a 60 mm 36h11 tag
+fixed on the floor, at the same grasp pose the trial used
+(`[0, -0.6618, -1.8012, -0.3917, 0]`). The tag centre is reconstructed from the
+measured bus-servo joints, the measured hand–eye and the tag PnP; the tag is
+fixed, so its spread is the endpoint repeatability.
+
+| Measurement | Result |
+|---|---|
+| Repeatability, 30 visits | radial RMS **0.449 mm**, radial max **1.017 mm**; per-axis std 0.278 / 0.211 / 0.295 mm; joints repeat to **0–1 pulse**; rotation max **0.867°** (mean 0.446°) |
+| Backlash, 15 forward + 15 reverse visits (joint4 ±0.1 rad) | hysteresis vector **(−0.971, −0.064, −0.549) mm**, magnitude **1.117 mm**; joint4 settles **10 pulses** apart; forward/reverse radial RMS 0.543 / 0.577 mm |
+| Detection quality | 30/30 and 15/15 detections, PnP RMS **0.40 px** mean (max 0.73), frame margin 45–55 px |
+
+Both are far below the provisional 5 mm / 2 mm gates and far below the 3.31 mm
+end-to-end placement error, so arm repeatability and backlash are **not** the
+dominant term. The updated budget is
+[`error_budget.md`](error_budget.md): translation RSS **3.995 mm** (pass) and
+worst case **7.114 mm** (fail) against the provisional 5 mm gate, rotation RSS
+**1.103°** and worst case **1.827°** (both pass). Grasp execution, gripper
+placement and fixture pose remain unmeasured. Raw captures stay in the robot
+container (`/tmp/repeatability`, `/tmp/backlash_forward`,
+`/tmp/backlash_reverse`); the datasets and analyses are in
+[`repeatability/`](repeatability/) and [`backlash/`](backlash/).
+
+## 7. Files
 
 | File | Content |
 |---|---|
@@ -117,9 +142,12 @@ Discarded evidence is kept as `discarded_unit_error_attempt.jsonl`,
 | `analysis.json` / `analysis.md` | the framework's full report |
 | `trials_table.md` | every trial in one table |
 | `container_reports/` | per-trial segmentation and action JSONs from the two containers |
+| `repeatability/` | 30-visit AprilTag dataset, reconstructed measurement, analysis |
+| `backlash/` | 15+15 forward/reverse datasets, measurement, analysis |
+| `error_budget.md` / `error_budget.json` | updated budget with the measured repeatability and backlash terms |
 | `discarded_*.jsonl`, `trials_with_p003_artifact.jsonl` | the four deviations' raw records |
 
-## 7. Reproduction
+## 8. Reproduction
 
 ```bash
 # session (interactive; resumable; skips completed entries)

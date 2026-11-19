@@ -1,9 +1,20 @@
 # Phase 3 Measurement Protocols
 
-> Status: **Implemented and mock-validated (2026-11-17, Session 3).** The four
-> protocols have dry-run schedules and synthetic analysis reports. No hardware
-> measurement has been collected, so no repeatability, backlash, visual or
-> gripper number here is a robot result.
+> Status: **Implemented; repeatability and backlash measured on hardware
+> (2026-11-19).** A fixed 60 mm 36h11 tag was observed from the grasp pose by a
+> container-side survey; positions were reconstructed from the measured
+> bus-servo joints and the measured hand–eye.
+>
+> | Protocol | Hardware result |
+> |---|---|
+> | `repeatability` (30 visits) | radial RMS **0.449 mm**, max **1.017 mm**; joints repeat to 0–1 pulse; tag rotation max **0.867°** |
+> | `backlash` (15 + 15 visits, joint4 ±0.1 rad) | hysteresis **1.117 mm** (vector −0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart |
+>
+> Both pass the placeholder gates (5 mm / 2 mm). The `visual_displacement` and
+> `gripper_envelope` protocols still have no hardware data; the earlier
+> AprilTag displacement check is a partial substitute for the former, and the
+> 24-pair trial sampled only two offsets, not a tolerance grid.
+> Evidence: [`evidence/phase3/onsite_20261119/`](../../evidence/phase3/onsite_20261119/README.md).
 >
 > Downstream (Session 4): [`docs/phase3/ERROR_BUDGET.md`](../phase3/ERROR_BUDGET.md)
 > consumes these measurements as named error sources, and
@@ -29,9 +40,14 @@ three explicit modes:
 | `simulate` | generates samples with known noise/bias, runs the same analyzers as hardware data | no |
 | `analyze` | reads a hardware measurement JSON and runs the analyzers | no |
 
-The hardware runner is deliberately **not** part of this tool. A supervised
-runner will execute the schedule only after the joint-limit survey, the safety
-review and a physical support/stop check.
+The hardware runner is deliberately **not** part of this tool. The
+tag-based runner is
+[`tools/phase3/measurement_run.py`](../../tools/phase3/measurement_run.py):
+it generates the schedule, runs `low_config_tag_survey.py` in the robot
+container, reconstructs the tag centre in `base_link`, and calls this tool's
+`--mode analyze`. Only the tag-based protocols (`repeatability`, `backlash`)
+are automated; `visual_displacement` and `gripper_envelope` still need a
+supervised session.
 
 ## Protocols
 

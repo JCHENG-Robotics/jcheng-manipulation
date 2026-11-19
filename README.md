@@ -105,13 +105,17 @@ remains partial and a yawed-envelope grasp is still open.
    **12/24 vs 24/24** success (McNemar p = 0.00049) and a **2.19 mm** paired
    placement improvement among dual-success pairs (95 % CI −3.96…−0.83 mm,
    p = 0.0063), with four protocol deviations recorded and quantified.
-6. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
+6. **A measured error budget.** Repeatability **0.449 mm RMS / 1.017 mm max**
+   over 30 visits, backlash **1.117 mm**, with the budget updated to
+   **RSS 3.995 mm** (translation) and **1.103°** (rotation); the hand–eye term
+   dominates at 68 % and three integration terms remain unmeasured.
+7. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
-7. **Reliability tooling.** Error-budget framework, paired-trial recorder and
-   runner, read-only host/DDS benchmark, and a G1–G6 debug studio with 92
-   backend + 38 gateway tests.
-8. **Evidence-first documentation.** Every quantitative statement links to a
+8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
+   runner, measurement runner, read-only host/DDS benchmark, and a G1–G6 debug
+   studio with 92 backend + 38 gateway tests.
+9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
 
@@ -129,6 +133,9 @@ remains partial and a yawed-envelope grasp is still open.
 | Low-configuration model error | fixed tag: **constant (+11.6, +4.0, +8.5) mm**, per-pose spread **0.40–0.99 mm**; grasp-validated correction **(+13.7, +3.9, +8.9) mm**, release **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
 | Low-config model selection | joint offsets / `link4` 3-DoF / `link4` 6-DoF fit the tag survey (1.4–2.3 mm RMS) but miss the validated correction by **10.6–15.0 mm**; **constant offset supported** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
 | Paired hardware trial, 24 pairs | **baseline 12/24 vs intervention 24/24** (McNemar **p = 0.00049**); placement error **3.31 mm** vs **4.97 mm**; paired improvement **2.19 mm** (95 % CI −3.96…−0.83, **p = 0.0063**) | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) |
+| Arm repeatability, 30 visits | radial **0.449 mm RMS / 1.017 mm max**; joints repeat to 0–1 pulse; tag rotation max **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
+| Arm backlash, joint4 ±0.1 rad | hysteresis **1.117 mm** (−0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |
+| Error budget (updated) | translation **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail); rotation **RSS 1.103° / worst 1.827°** (both pass) | [`error_budget.md`](evidence/phase3/onsite_20261119/error_budget.md) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
@@ -253,7 +260,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Quantitative results with per-run evidence
 - [x] Failure taxonomy and critical analysis
 - [x] Reproducible commands and test suite
-- [ ] Full error budget (repeatability, backlash, execution, gripper, fixture)
+- [ ] Full error budget — repeatability and backlash now measured; integration
+      error 3.31 mm; execution, gripper placement and fixture pose still open
 - [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
