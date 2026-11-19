@@ -27,6 +27,16 @@ All notable changes to this project are documented here. Format based on
   re-segmentation after placing the cube back moved the fitted floor plane
   10 mm. Cube-relative numbers (height above the floor, size, yaw) are stable.
 - Evidence: [`evidence/phase2/onsite_20261119/grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/).
+- Second pass after operator feedback (same day): start at the **adopted-low
+  forward pose** (`joint1 0, joint2 −0.6618, joint3 −1.8012, joint4 −0.6704,
+  joint5 0`, measured 499/343/929/339/499) and keep `joint5 = 0` for the whole
+  attempt (no wrist roll, so the fingers never cross the lens). The one-step
+  150 mm lift (`+149.9 mm` TCP, 8.3 s, one plan/execute) replaced the three
+  motions of the first pass; the cube was placed back within **6.6 mm and
+  ≈8°**, verified in the same view frame (floor plane identical to 0.1 mm).
+  The depth camera is **blind at the low pose** (72 mm), so the target still
+  comes from the table-down view. Evidence:
+  [`evidence/phase2/onsite_20261119/grasp_150mm_attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/).
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 

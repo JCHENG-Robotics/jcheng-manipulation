@@ -1,0 +1,5106 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-19T02:19:36.309295+00:00",
+  "success": false,
+  "target": {
+    "mode": "point",
+    "joints": null,
+    "point": [
+      0.2305,
+      0.0085,
+      -0.0405
+    ],
+    "decomposition": null,
+    "tcp_pose": null
+  },
+  "frame": "base_link",
+  "tool_link": "gripper_link",
+  "tcp_link": "end_effector_link",
+  "parameters": {
+    "sampler": "joint",
+    "pitches_deg": [],
+    "approach_yaws_deg": [],
+    "rolls_deg": [],
+    "standoffs_m": [],
+    "tcp_offset_m": 0.0745612,
+    "max_pitch_deg": 30.0,
+    "sampling_radius_m": 0.02,
+    "position_step_rad": 0.2,
+    "roll_step_rad": 0.3,
+    "max_sampled": 80,
+    "include_refined": true,
+    "urdf": null,
+    "joint_limit_margin_rad": 0.0,
+    "joint_limits": {
+      "joint1": [
+        -1.8012,
+        1.8012
+      ],
+      "joint2": [
+        -0.6618,
+        1.2985
+      ],
+      "joint3": [
+        -1.8012,
+        0.0
+      ],
+      "joint4": [
+        -1.5917,
+        1.5917
+      ],
+      "joint5": [
+        -1.5917,
+        1.5499
+      ]
+    },
+    "object_width_m": null,
+    "gripper_max_opening_m": null,
+    "max_plan": 5,
+    "ik_timeout_s": 0.2,
+    "safety_service": null,
+    "include_trajectory": true,
+    "seeds": [
+      [
+        0.0,
+        0.7309,
+        -1.6127,
+        -1.6591,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.6,
+        -1.2,
+        -0.6,
+        0.5
+      ]
+    ],
+    "pipeline": "pilz_industrial_motion_planner",
+    "planner": "PTP"
+  },
+  "exact_fk_candidate_found": false,
+  "counts": {
+    "generated": 44,
+    "sanity_ok": 44,
+    "ik_ok": 22,
+    "margin_ok": 22,
+    "margin_rejected": 0,
+    "fk_ok": 22,
+    "collision_ok": 22,
+    "plan_attempted": 5,
+    "plan_ok": 0,
+    "duplicates_skipped": 0,
+    "seeds_clamped": 1,
+    "evaluator_errors": 0,
+    "safety_checked": 0,
+    "safety_ok": 0
+  },
+  "best": {
+    "candidate_id": "js_0005",
+    "status": "COLLISION_FREE",
+    "is_exact_fk": false,
+    "ik_joints": [
+      -0.0011999999999998678,
+      -0.6618,
+      -1.8012,
+      -0.3916999999999997,
+      -0.09169999999999989
+    ],
+    "plan": null,
+    "safety": null
+  },
+  "candidates": [
+    {
+      "candidate_id": "jsr_0021",
+      "pitch_deg": 4.110591019265794,
+      "approach_yaw_deg": 11.436485902669233,
+      "roll_deg": -69.2210015011824,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        1.4083
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.0702585834314927,
+        0.014213181022879558,
+        -0.9974275497194827
+      ],
+      "gripper_position": [
+        0.2252614357090478,
+        0.007440248167116873,
+        0.03386939502014428
+      ],
+      "gripper_orientation": [
+        -0.646755969066227,
+        0.7618533266560874,
+        -0.017328187434217733,
+        0.031399985039858594
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10091625701170415,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.4083
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1024162260000594,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10133690800284967,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1022515440126881,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0011",
+      "pitch_deg": 4.296673686046476,
+      "approach_yaw_deg": -7.867228406815116,
+      "roll_deg": 83.41293084697111,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -1.5917
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.07421567377003367,
+        -0.010255012530938079,
+        -0.9971894847444243
+      ],
+      "gripper_position": [
+        0.2249663903048978,
+        0.00926462604032178,
+        0.033851644609925964
+      ],
+      "gripper_orientation": [
+        0.7144594048386038,
+        0.6986719553623719,
+        0.02296186556382085,
+        0.02963123955586257
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10089845099719241,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.5917
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10144334804499522,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10300791898043826,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10173940198728815,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0020",
+      "pitch_deg": 4.3165897496657415,
+      "approach_yaw_deg": 10.711747476054398,
+      "roll_deg": -52.75635537271683,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        1.1082999999999998
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.07395589704953587,
+        0.01398981713669993,
+        -0.9971633819530682
+      ],
+      "gripper_position": [
+        0.22498575956891015,
+        0.00745690244650709,
+        0.0338496983544791
+      ],
+      "gripper_orientation": [
+        -0.5256040718854904,
+        0.8498953174326391,
+        -0.013509981605297653,
+        0.03515379667248656
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10329684999305755,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.1082999999999998
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10327422199770808,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10232403897680342,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10112326801754534,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0012",
+      "pitch_deg": 4.482728966361173,
+      "approach_yaw_deg": -6.518418889706226,
+      "roll_deg": 67.57035893980957,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -1.2916999999999998
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.07765332201081786,
+        -0.008872766697239385,
+        -0.9969409388684071
+      ],
+      "gripper_position": [
+        0.224710075126887,
+        0.009161564132266205,
+        0.03383311273115507
+      ],
+      "gripper_orientation": [
+        0.6019726749512953,
+        0.7975583790834285,
+        0.019864697935007232,
+        0.033688638169974715
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10309263598173857,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.2916999999999998
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10344603296834975,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10348430497106165,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10394720896147192,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0019",
+      "pitch_deg": 4.499708165965242,
+      "approach_yaw_deg": 9.301884156713243,
+      "roll_deg": -36.974623428283955,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.8083
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.07742237913236677,
+        0.012681015105344286,
+        -0.9969177333488367
+      ],
+      "gripper_position": [
+        0.22472729450503579,
+        0.007554488296527404,
+        0.03383138249976928
+      ],
+      "gripper_orientation": [
+        -0.39264824038535173,
+        0.9188504916452434,
+        -0.009388370715314802,
+        0.03811812981893938
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10172194399638101,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.8083
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10176629404304549,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10174198896856979,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10218910995172337,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0013",
+      "pitch_deg": 4.634233760811478,
+      "approach_yaw_deg": -4.638477709442469,
+      "roll_deg": 52.25692919851054,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.9916999999999999
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.08052985875645884,
+        -0.006533712485348926,
+        -0.9967307823328342
+      ],
+      "gripper_position": [
+        0.22449559709528794,
+        0.008987161443362599,
+        0.033817443207674915
+      ],
+      "gripper_orientation": [
+        0.47596693656066613,
+        0.8785333610441165,
+        0.016321412016321094,
+        0.03698946259918384
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10134522401494905,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.9916999999999999
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10336229403037578,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10280873696319759,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10250646801432595,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0018",
+      "pitch_deg": 4.647147503434454,
+      "approach_yaw_deg": 7.377736490805745,
+      "roll_deg": -21.7052204115105,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.5083000000000002
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.0803483791595806,
+        0.010403686316332384,
+        -0.9967125469650012
+      ],
+      "gripper_position": [
+        0.2245091284318067,
+        0.007724288663830679,
+        0.033816083556766845
+      ],
+      "gripper_orientation": [
+        -0.25087437590553874,
+        0.9671702647396202,
+        -0.005055917259192326,
+        0.04022641194747082
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10255717299878597,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.5083000000000002
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10265795199666172,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10277961601968855,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10196625103708357,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0014",
+      "pitch_deg": 4.741492084921285,
+      "approach_yaw_deg": -2.389829331458344,
+      "roll_deg": 37.31063126149286,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.6917
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.08258833154651753,
+        -0.003446790641723833,
+        -0.9965777877951297
+      ],
+      "gripper_position": [
+        0.2243421148938938,
+        0.0087569968463957,
+        0.03380603575135022
+      ],
+      "gripper_orientation": [
+        0.33927200689871634,
+        0.9397783777213021,
+        0.012411582370624936,
+        0.03945958344296512
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1020454490208067,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.6917
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10107606102246791,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10362294199876487,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10249194101197645,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0017",
+      "pitch_deg": 4.749550934880617,
+      "approach_yaw_deg": 5.100538215825537,
+      "roll_deg": -6.787342771791986,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.20829999999999993
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.08247252626310944,
+        0.007361257767929432,
+        -0.996566151490133
+      ],
+      "gripper_position": [
+        0.22435074947479106,
+        0.007951135787313861,
+        0.03380516813448609
+      ],
+      "gripper_orientation": [
+        -0.10346641379595087,
+        0.9937694787833201,
+        -0.000609918801339263,
+        0.04143129558666066
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10444510803790763,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.20829999999999993
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10130346403457224,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10144153999863192,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1015490249847062,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0015",
+      "pitch_deg": 4.798108057023037,
+      "approach_yaw_deg": 0.07689218638412854,
+      "roll_deg": 22.581386156547005,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.39169999999999994
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.08364486313730711,
+        0.000112253298973586,
+        -0.9964956218016907
+      ],
+      "gripper_position": [
+        0.22426333863064662,
+        0.00849163025932457,
+        0.03379990935628021
+      ],
+      "gripper_orientation": [
+        0.19495775938886992,
+        0.9799179980768375,
+        0.008223015342668498,
+        0.041043527112431824
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10102738399291411,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.39169999999999994
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1016285729710944,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10407886502798647,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10350686899619177,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0016",
+      "pitch_deg": 4.800845726774762,
+      "approach_yaw_deg": 2.619844008664529,
+      "roll_deg": 7.927997480927981,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.09169999999999989
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.08360507670843881,
+        0.003825500541247759,
+        -0.9964916239959999
+      ],
+      "gripper_position": [
+        0.22426630515452675,
+        0.008214766089043918,
+        0.033799611275090534
+      ],
+      "gripper_orientation": [
+        0.04626518090714067,
+        0.9980507727734244,
+        0.0038497771178849535,
+        0.04170572164754767
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10350847500376403,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.09169999999999989
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10239060496678576,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10450035496614873,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10087953397305682,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0010",
+      "pitch_deg": 15.508613553137367,
+      "approach_yaw_deg": 2.977993979762118,
+      "roll_deg": -77.73722542210155,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        1.4083
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2670221558643577,
+        0.013891201387728447,
+        -0.9635902670749413
+      ],
+      "gripper_position": [
+        0.21059050763216647,
+        0.007464255355089302,
+        0.03134644662142811
+      ],
+      "gripper_orientation": [
+        -0.6416348880061906,
+        0.7550495374680749,
+        -0.0819122953436293,
+        0.10721586792106624
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10206829302478582,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.4083
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10318609303794801,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1035629539983347,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10179933701874688,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0009",
+      "pitch_deg": 15.720095739532137,
+      "approach_yaw_deg": 2.891291107038427,
+      "roll_deg": -60.63330181974835,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        1.1082999999999998
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.27059318626708107,
+        0.013666424387918886,
+        -0.9625967776749923
+      ],
+      "gripper_position": [
+        0.21032424732010294,
+        0.007481014997927503,
+        0.03127237085958063
+      ],
+      "gripper_orientation": [
+        -0.5214509472006464,
+        0.8422513273964279,
+        -0.06603012431164969,
+        0.11975656076345909
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10242594702867791,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.1082999999999998
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10156718496000394,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10115149396006018,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10210600699065253,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0000",
+      "pitch_deg": 15.726666999439614,
+      "approach_yaw_deg": -2.2367150768806994,
+      "roll_deg": 89.12704811000413,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -1.5917
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.27084197084618133,
+        -0.0105785146956122,
+        -0.9625656974227739
+      ],
+      "gripper_position": [
+        0.21030569764334373,
+        0.00928874674992248,
+        0.031270053478678915
+      ],
+      "gripper_orientation": [
+        0.7087444153537162,
+        0.6920723968027521,
+        0.09407921299301368,
+        0.09932901374335829
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10188475396716967,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.5917
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10112118598772213,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1020329570164904,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10245081299217418,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0008",
+      "pitch_deg": 15.915518841860319,
+      "approach_yaw_deg": 2.5826133543209266,
+      "roll_deg": -43.742864594091785,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.8083
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2739411731124217,
+        0.012356297007161954,
+        -0.9616670710792075
+      ],
+      "gripper_position": [
+        0.2100746174033301,
+        0.007578699667589597,
+        0.031203050820150992
+      ],
+      "gripper_orientation": [
+        -0.3895563423025163,
+        0.910537968297582,
+        -0.04866505904013215,
+        0.12960777943093094
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1010704810032621,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.8083
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1012886639800854,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10246170801110566,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10118439100915566,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0001",
+      "pitch_deg": 15.921290972458793,
+      "approach_yaw_deg": -1.921434796485812,
+      "roll_deg": 72.24295414662313,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -1.2916999999999998
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2741623439190343,
+        -0.00919758206672935,
+        -0.9616394405706057
+      ],
+      "gripper_position": [
+        0.2100581266425841,
+        0.009185782755993821,
+        0.03120099065627304
+      ],
+      "gripper_orientation": [
+        0.5971496292168403,
+        0.7900835655875225,
+        0.07975425062665832,
+        0.11322340403678681
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10423349699703977,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.2916999999999998
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10089525196235627,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10306164203211665,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10232244798680767,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0007",
+      "pitch_deg": 16.078283285097214,
+      "approach_yaw_deg": 2.0853754793693042,
+      "roll_deg": -27.03342157631396,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.5083000000000002
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2767670507066313,
+        0.01007784902249221,
+        -0.9608841952088883
+      ],
+      "gripper_position": [
+        0.20986391657885273,
+        0.007748583483464155,
+        0.031144678655808965
+      ],
+      "gripper_orientation": [
+        -0.2489131417899156,
+        0.9583758894341602,
+        -0.03020708145821557,
+        0.13654828679017775
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10447787202429026,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.5083000000000002
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10198979696724564,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10147227696143091,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10259943699929863,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0002",
+      "pitch_deg": 16.082774600783694,
+      "approach_yaw_deg": -1.418885233793958,
+      "roll_deg": 55.53860472867729,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.9916999999999999
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2769408512113037,
+        -0.006859626216955078,
+        -0.960862482594946
+      ],
+      "gripper_position": [
+        0.20985095780466376,
+        0.009011461962287632,
+        0.031143059737258276
+      ],
+      "gripper_orientation": [
+        0.4721441497859702,
+        0.8703511608083006,
+        0.06363817973119071,
+        0.12457504077072523
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10155664500780404,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.9916999999999999
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10288305900758132,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10247113998048007,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10089274100027978,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0006",
+      "pitch_deg": 16.194989020484726,
+      "approach_yaw_deg": 1.4452698865748914,
+      "roll_deg": -10.460882006371365,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.20829999999999993
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2788183918203924,
+        0.0070346074065897254,
+        -0.9603180820339298
+      ],
+      "gripper_position": [
+        0.20971096612380136,
+        0.007975491230235783,
+        0.03110246857814824
+      ],
+      "gripper_orientation": [
+        -0.1026798887376069,
+        0.9846907542298737,
+        -0.011070717949351076,
+        0.14042221400875676
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1027824220363982,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.20829999999999993
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10290205897763371,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10219422401860356,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10089455801062286,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0003",
+      "pitch_deg": 16.197835044585855,
+      "approach_yaw_deg": -0.77507759950376,
+      "roll_deg": 38.969609889149005,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.6917
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2789292969416638,
+        -0.003773489779329877,
+        -0.9603042268377844
+      ],
+      "gripper_position": [
+        0.20970269690487323,
+        0.008781355926134571,
+        0.031101435518097402
+      ],
+      "gripper_orientation": [
+        0.3365353306332996,
+        0.9310725453230956,
+        0.046092932514735785,
+        0.13312899065680597
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10144336597295478,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.6917
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10405289503978565,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10192736197495833,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10203044698573649,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0005",
+      "pitch_deg": 16.25625477011339,
+      "approach_yaw_deg": 0.7160609751251741,
+      "roll_deg": 6.026380352352501,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.09169999999999989
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.279911956261422,
+        0.003498415869465045,
+        -0.9600193007582236
+      ],
+      "gripper_position": [
+        0.20962942864680087,
+        0.008239153914673643,
+        0.03108019108769406
+      ],
+      "gripper_orientation": [
+        0.045859333251042404,
+        0.9888915875528933,
+        0.008314270017604016,
+        0.14114256103303038
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10154756903648376,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.09169999999999989
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10235821199603379,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.103406451002229,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.1038901680149138,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "jsr_0004",
+      "pitch_deg": 16.257229027859445,
+      "approach_yaw_deg": -0.04397173101361318,
+      "roll_deg": 22.484162118677467,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample_refined",
+      "refined": true,
+      "target_offset_m": 0.0,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.39169999999999994
+      ],
+      "tcp_position": [
+        0.2305,
+        0.0085,
+        -0.0405
+      ],
+      "tool_z": [
+        0.2799500591751124,
+        -0.00021484813053722113,
+        -0.9600145406232826
+      ],
+      "gripper_position": [
+        0.20962658764783262,
+        0.008516019334430613,
+        0.0310798361663207
+      ],
+      "gripper_orientation": [
+        0.1933686534817298,
+        0.9708840477432431,
+        0.027512537404466367,
+        0.13869315042180946
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10240109398728237,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.39169999999999994
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10116183996433392,
+          "seed_index": 1,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.7309,
+            -1.6127,
+            -1.5917,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10255718900589272,
+          "seed_index": 2,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "ok": false,
+          "code": -31,
+          "name": "NO_IK_SOLUTION",
+          "joints": null,
+          "elapsed_s": 0.10251109395176172,
+          "seed_index": 3,
+          "seed_kind": "default",
+          "seed": [
+            0.0,
+            0.6,
+            -1.2,
+            -0.6,
+            0.5
+          ]
+        }
+      ],
+      "ik": {
+        "ok": false,
+        "joints": null,
+        "code": -31,
+        "name": "NO_IK_SOLUTION"
+      },
+      "status": "IK_FAIL"
+    },
+    {
+      "candidate_id": "js_0010",
+      "pitch_deg": 15.508613553137367,
+      "approach_yaw_deg": 2.977993979762118,
+      "roll_deg": -77.73722542210155,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.00786471876355023,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        1.4083
+      ],
+      "tcp_position": [
+        0.23196541796900735,
+        0.0008216555991286923,
+        -0.03963433339705307
+      ],
+      "tool_z": [
+        0.2670221558643577,
+        0.013891201387728447,
+        -0.9635902670749413
+      ],
+      "gripper_position": [
+        0.2120559256011738,
+        -0.000214089045782006,
+        0.03221211322437504
+      ],
+      "gripper_orientation": [
+        -0.6416348880061906,
+        0.7550495374680749,
+        -0.0819122953436293,
+        0.10721586792106624
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.4083
+          ],
+          "elapsed_s": 0.0006581789930351079,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.4083
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          1.4083
+        ],
+        "elapsed_s": 0.0006581789930351079,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          1.4083
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.7612773266641e-17,
+        "orientation_error_deg": 3.480438682347425e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": false,
+        "error_code": -17,
+        "error_name": "INVALID_ROBOT_STATE",
+        "trajectory_points": 0,
+        "planning_time_s": 4.8609e-05
+      },
+      "status": "PLAN_FAIL"
+    },
+    {
+      "candidate_id": "js_0009",
+      "pitch_deg": 15.720095739532137,
+      "approach_yaw_deg": 2.891291107038427,
+      "roll_deg": -60.63330181974835,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.007949408509102819,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        1.1082999999999998
+      ],
+      "tcp_position": [
+        0.23225110040122524,
+        0.0008036734391439274,
+        -0.03955485424505715
+      ],
+      "tool_z": [
+        0.27059318626708107,
+        0.013666424387918886,
+        -0.9625967776749923
+      ],
+      "gripper_position": [
+        0.21207534772132816,
+        -0.00021531156292857023,
+        0.03221751661452348
+      ],
+      "gripper_orientation": [
+        -0.5214509472006464,
+        0.8422513273964279,
+        -0.06603012431164969,
+        0.11975656076345909
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.1082999999999998
+          ],
+          "elapsed_s": 0.0005511829513125122,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            1.1082999999999998
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          1.1082999999999998
+        ],
+        "elapsed_s": 0.0005511829513125122,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          1.1082999999999998
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 7.503564204255247e-17,
+        "orientation_error_deg": 3.561520103311758e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": false,
+        "error_code": -17,
+        "error_name": "INVALID_ROBOT_STATE",
+        "trajectory_points": 0,
+        "planning_time_s": 2.9612e-05
+      },
+      "status": "PLAN_FAIL"
+    },
+    {
+      "candidate_id": "js_0008",
+      "pitch_deg": 15.915518841860319,
+      "approach_yaw_deg": 2.5826133543209266,
+      "roll_deg": -43.742864594091785,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.008122393513725939,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.8083
+      ],
+      "tcp_position": [
+        0.23251893934885248,
+        0.0006988632486833728,
+        -0.03948047771739436
+      ],
+      "tool_z": [
+        0.2739411731124217,
+        0.012356297007161954,
+        -0.9616670710792075
+      ],
+      "gripper_position": [
+        0.21209355675218258,
+        -0.00022243708372703098,
+        0.032222573102756634
+      ],
+      "gripper_orientation": [
+        -0.3895563423025163,
+        0.910537968297582,
+        -0.04866505904013215,
+        0.12960777943093094
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.8083
+          ],
+          "elapsed_s": 0.0005369349964894354,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.8083
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.8083
+        ],
+        "elapsed_s": 0.0005369349964894354,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.8083
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.759984118366749e-17,
+        "orientation_error_deg": 9.965041878814696e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": false,
+        "error_code": -17,
+        "error_name": "INVALID_ROBOT_STATE",
+        "trajectory_points": 0,
+        "planning_time_s": 7.019e-05
+      },
+      "status": "PLAN_FAIL"
+    },
+    {
+      "candidate_id": "js_0007",
+      "pitch_deg": 16.078283285097214,
+      "approach_yaw_deg": 2.0853754793693042,
+      "roll_deg": -27.03342157631396,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.008363372418189284,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.5083000000000002
+      ],
+      "tcp_position": [
+        0.23274500955638924,
+        0.0005165874099097933,
+        -0.039417847647768824
+      ],
+      "tool_z": [
+        0.2767670507066313,
+        0.01007784902249221,
+        -0.9608841952088883
+      ],
+      "gripper_position": [
+        0.21210892613524196,
+        -0.0002348291066260528,
+        0.03222683100804014
+      ],
+      "gripper_orientation": [
+        -0.2489131417899156,
+        0.9583758894341602,
+        -0.03020708145821557,
+        0.13654828679017775
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.5083000000000002
+          ],
+          "elapsed_s": 0.0005240149912424386,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.5083000000000002
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.5083000000000002
+        ],
+        "elapsed_s": 0.0005240149912424386,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.5083000000000002
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.651530583411275e-17,
+        "orientation_error_deg": 5.7372712686304775e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": false,
+        "error_code": -17,
+        "error_name": "INVALID_ROBOT_STATE",
+        "trajectory_points": 0,
+        "planning_time_s": 3.5829e-05
+      },
+      "status": "PLAN_FAIL"
+    },
+    {
+      "candidate_id": "js_0006",
+      "pitch_deg": 16.194989020484726,
+      "approach_yaw_deg": 1.4452698865748914,
+      "roll_deg": -10.460882006371365,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.00864617774957785,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        0.20829999999999993
+      ],
+      "tcp_position": [
+        0.23290911684549015,
+        0.00027312808063759456,
+        -0.03937255859377214
+      ],
+      "tool_z": [
+        0.2788183918203924,
+        0.0070346074065897254,
+        -0.9603180820339298
+      ],
+      "gripper_position": [
+        0.2121200829692915,
+        -0.0002513806891266232,
+        0.0322299099843761
+      ],
+      "gripper_orientation": [
+        -0.1026798887376069,
+        0.9846907542298737,
+        -0.011070717949351076,
+        0.14042221400875676
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.20829999999999993
+          ],
+          "elapsed_s": 0.0005402879905886948,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            0.20829999999999993
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.20829999999999993
+        ],
+        "elapsed_s": 0.0005402879905886948,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          0.20829999999999993
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.1897055904430005e-17,
+        "orientation_error_deg": 5.264041700889403e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "plan": {
+        "ok": false,
+        "error_code": -17,
+        "error_name": "INVALID_ROBOT_STATE",
+        "trajectory_points": 0,
+        "planning_time_s": 2.8146e-05
+      },
+      "status": "PLAN_FAIL"
+    },
+    {
+      "candidate_id": "js_0005",
+      "pitch_deg": 16.25625477011339,
+      "approach_yaw_deg": 0.7160609751251741,
+      "roll_deg": 6.026380352352501,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.00894286044082529,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.09169999999999989
+      ],
+      "tcp_position": [
+        0.2329966020007725,
+        -9.767242332379901e-06,
+        -0.03934865609171565
+      ],
+      "tool_z": [
+        0.279911956261422,
+        0.003498415869465045,
+        -0.9600193007582236
+      ],
+      "gripper_position": [
+        0.21212603064757335,
+        -0.000270613327658737,
+        0.03223153499597841
+      ],
+      "gripper_orientation": [
+        0.045859333251042404,
+        0.9888915875528933,
+        0.008314270017604016,
+        0.14114256103303038
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.09169999999999989
+          ],
+          "elapsed_s": 0.0005481800180859864,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.09169999999999989
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.09169999999999989
+        ],
+        "elapsed_s": 0.0005481800180859864,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.09169999999999989
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.386830576115358e-17,
+        "orientation_error_deg": 9.635034601087972e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0004",
+      "pitch_deg": 16.257229027859445,
+      "approach_yaw_deg": -0.04397173101361318,
+      "roll_deg": 22.484162118677467,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.009226860079344396,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.39169999999999994
+      ],
+      "tcp_position": [
+        0.23299965023386773,
+        -0.00030682836233256124,
+        -0.039348275280920365
+      ],
+      "tool_z": [
+        0.2799500591751124,
+        -0.00021484813053722113,
+        -0.9600145406232826
+      ],
+      "gripper_position": [
+        0.21212623788170035,
+        -0.00029080902790194936,
+        0.032231560885400336
+      ],
+      "gripper_orientation": [
+        0.1933686534817298,
+        0.9708840477432431,
+        0.027512537404466367,
+        0.13869315042180946
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.39169999999999994
+          ],
+          "elapsed_s": 0.0005066239973530173,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.39169999999999994
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.39169999999999994
+        ],
+        "elapsed_s": 0.0005066239973530173,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.39169999999999994
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.654751537338637e-17,
+        "orientation_error_deg": 6.14707635924694e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0003",
+      "pitch_deg": 16.197835044585855,
+      "approach_yaw_deg": -0.77507759950376,
+      "roll_deg": 38.969609889149005,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.009475021218417314,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.6917
+      ],
+      "tcp_position": [
+        0.23291798925519186,
+        -0.0005915196942359737,
+        -0.039371450178080504
+      ],
+      "tool_z": [
+        0.2789292969416638,
+        -0.003773489779329877,
+        -0.9603042268377844
+      ],
+      "gripper_position": [
+        0.21212068616006508,
+        -0.00031016376810140287,
+        0.0322299853400169
+      ],
+      "gripper_orientation": [
+        0.3365353306332996,
+        0.9310725453230956,
+        0.046092932514735785,
+        0.13312899065680597
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.6917
+          ],
+          "elapsed_s": 0.0004752660170197487,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.6917
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.6917
+        ],
+        "elapsed_s": 0.0004752660170197487,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.6917
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.1925927263190304e-17,
+        "orientation_error_deg": 9.178600849588665e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0002",
+      "pitch_deg": 16.082774600783694,
+      "approach_yaw_deg": -1.418885233793958,
+      "roll_deg": 55.53860472867729,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.009668682407244496,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -0.9916999999999999
+      ],
+      "tcp_position": [
+        0.23275891359676304,
+        -0.0008384106092459897,
+        -0.03941611063865343
+      ],
+      "tool_z": [
+        0.2769408512113037,
+        -0.006859626216955078,
+        -0.960862482594946
+      ],
+      "gripper_position": [
+        0.21210987140142679,
+        -0.0003269486469583588,
+        0.032226949098604844
+      ],
+      "gripper_orientation": [
+        0.4721441497859702,
+        0.8703511608083006,
+        0.06363817973119071,
+        0.12457504077072523
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.9916999999999999
+          ],
+          "elapsed_s": 0.00044754002010449767,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -0.9916999999999999
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.9916999999999999
+        ],
+        "elapsed_s": 0.00044754002010449767,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -0.9916999999999999
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.194044179295224e-17,
+        "orientation_error_deg": 1.352320274023206e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0000",
+      "pitch_deg": 15.726666999439614,
+      "approach_yaw_deg": -2.2367150768806994,
+      "roll_deg": 89.12704811000413,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.009843040471682664,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -1.5917
+      ],
+      "tcp_position": [
+        0.23227100316755325,
+        -0.0011359216875385597,
+        -0.03955236782487966
+      ],
+      "tool_z": [
+        0.27084197084618133,
+        -0.0105785146956122,
+        -0.9625656974227739
+      ],
+      "gripper_position": [
+        0.21207670081089697,
+        -0.0003471749376160794,
+        0.032217685653799254
+      ],
+      "gripper_orientation": [
+        0.7087444153537162,
+        0.6920723968027521,
+        0.09407921299301368,
+        0.09932901374335829
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.5917
+          ],
+          "elapsed_s": 0.00047784997150301933,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.5917
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -1.5917
+        ],
+        "elapsed_s": 0.00047784997150301933,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -1.5917
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.1999024552238665e-17,
+        "orientation_error_deg": 1.2082838884543933e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0001",
+      "pitch_deg": 15.921290972458793,
+      "approach_yaw_deg": -1.921434796485812,
+      "roll_deg": 72.24295414662313,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.009794179588414477,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.8012,
+        -0.3916999999999997,
+        -1.2916999999999998
+      ],
+      "tcp_position": [
+        0.23253663301338148,
+        -0.0010254470772279316,
+        -0.03947826727670622
+      ],
+      "tool_z": [
+        0.2741623439190343,
+        -0.00919758206672935,
+        -0.9616394405706057
+      ],
+      "gripper_position": [
+        0.21209475965596558,
+        -0.0003396643212341112,
+        0.032222723379566824
+      ],
+      "gripper_orientation": [
+        0.5971496292168403,
+        0.7900835655875225,
+        0.07975425062665832,
+        0.11322340403678681
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.2916999999999998
+          ],
+          "elapsed_s": 0.0005323259974829853,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.8012,
+            -0.3916999999999997,
+            -1.2916999999999998
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -1.2916999999999998
+        ],
+        "elapsed_s": 0.0005323259974829853,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.8012,
+          -0.3916999999999997,
+          -1.2916999999999998
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.76649822210117e-17,
+        "orientation_error_deg": 2.2489917831974713e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0018",
+      "pitch_deg": 4.647147503434454,
+      "approach_yaw_deg": 7.377736490805745,
+      "roll_deg": -21.7052204115105,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016297232752307135,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.5083000000000002
+      ],
+      "tcp_position": [
+        0.21974188532013275,
+        0.0005203205889258571,
+        -0.031216278741034047
+      ],
+      "tool_z": [
+        0.0803483791595806,
+        0.010403686316332384,
+        -0.9967125469650012
+      ],
+      "gripper_position": [
+        0.21375101375193944,
+        -0.000255390747243465,
+        0.0430998048157328
+      ],
+      "gripper_orientation": [
+        -0.25087437590553874,
+        0.9671702647396202,
+        -0.005055917259192326,
+        0.04022641194747082
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.5083000000000002
+          ],
+          "elapsed_s": 0.00045955204404890537,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.5083000000000002
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.5083000000000002
+        ],
+        "elapsed_s": 0.00045955204404890537,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.5083000000000002
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.649928749724426e-17,
+        "orientation_error_deg": 1.2858180937202381e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0017",
+      "pitch_deg": 4.749550934880617,
+      "approach_yaw_deg": 5.100538215825537,
+      "roll_deg": -6.787342771791986,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.01631360264023553,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.20829999999999993
+      ],
+      "tcp_position": [
+        0.21991181708841506,
+        0.00027692630505362086,
+        -0.031204567103044582
+      ],
+      "tool_z": [
+        0.08247252626310944,
+        0.007361257767929432,
+        -0.996566151490133
+      ],
+      "gripper_position": [
+        0.2137625665632061,
+        -0.00027193790763251904,
+        0.04310060103144151
+      ],
+      "gripper_orientation": [
+        -0.10346641379595087,
+        0.9937694787833201,
+        -0.000609918801339263,
+        0.04143129558666066
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.20829999999999993
+          ],
+          "elapsed_s": 0.00044593302300199866,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.20829999999999993
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.20829999999999993
+        ],
+        "elapsed_s": 0.00044593302300199866,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.20829999999999993
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 3.732695673486052e-17,
+        "orientation_error_deg": 4.104685329391206e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0019",
+      "pitch_deg": 4.499708165965242,
+      "approach_yaw_deg": 9.301884156713243,
+      "roll_deg": -36.974623428283955,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016355800489399035,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        0.8083
+      ],
+      "tcp_position": [
+        0.21950780531795563,
+        0.0007025068920468091,
+        -0.031232693651740896
+      ],
+      "tool_z": [
+        0.07742237913236677,
+        0.012681015105344286,
+        -0.9969177333488367
+      ],
+      "gripper_position": [
+        0.2137350998229914,
+        -0.00024300481142578714,
+        0.04309868884802839
+      ],
+      "gripper_orientation": [
+        -0.39264824038535173,
+        0.9188504916452434,
+        -0.009388370715314802,
+        0.03811812981893938
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.8083
+          ],
+          "elapsed_s": 0.0004282629815861583,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            0.8083
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.8083
+        ],
+        "elapsed_s": 0.0004282629815861583,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          0.8083
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.0486232437353556e-17,
+        "orientation_error_deg": 1.1260870695815358e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0016",
+      "pitch_deg": 4.800845726774762,
+      "approach_yaw_deg": 2.619844008664529,
+      "roll_deg": 7.927997480927981,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016403232329509937,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.09169999999999989
+      ],
+      "tcp_position": [
+        0.2200024211240414,
+        -5.9342730809129455e-06,
+        -0.031198604903513942
+      ],
+      "tool_z": [
+        0.08360507670843881,
+        0.003825500541247759,
+        -0.9964916239959999
+      ],
+      "gripper_position": [
+        0.21376872627856813,
+        -0.00029116818403699535,
+        0.04310100637157659
+      ],
+      "gripper_orientation": [
+        0.04626518090714067,
+        0.9980507727734244,
+        0.0038497771178849535,
+        0.04170572164754767
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.09169999999999989
+          ],
+          "elapsed_s": 0.0004618559614755213,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.09169999999999989
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.09169999999999989
+        ],
+        "elapsed_s": 0.0004618559614755213,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.09169999999999989
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.762575344440024e-17,
+        "orientation_error_deg": 2.5330443424026193e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0020",
+      "pitch_deg": 4.3165897496657415,
+      "approach_yaw_deg": 10.711747476054398,
+      "roll_deg": -52.75635537271683,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.01648332623080711,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        1.1082999999999998
+      ],
+      "tcp_position": [
+        0.21923048675132917,
+        0.0008072110545552609,
+        -0.031252345540079406
+      ],
+      "tool_z": [
+        0.07395589704953587,
+        0.01398981713669993,
+        -0.9971633819530682
+      ],
+      "gripper_position": [
+        0.2137162463202393,
+        -0.00023588649893764991,
+        0.0430973528143997
+      ],
+      "gripper_orientation": [
+        -0.5256040718854904,
+        0.8498953174326391,
+        -0.013509981605297653,
+        0.03515379667248656
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.1082999999999998
+          ],
+          "elapsed_s": 0.0005403579561971128,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.1082999999999998
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          1.1082999999999998
+        ],
+        "elapsed_s": 0.0005403579561971128,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          1.1082999999999998
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.3800459460362967e-17,
+        "orientation_error_deg": 1.9295464778897734e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0015",
+      "pitch_deg": 4.798108057023037,
+      "approach_yaw_deg": 0.07689218638412854,
+      "roll_deg": 22.581386156547005,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016557024252671634,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.39169999999999994
+      ],
+      "tcp_position": [
+        0.22000560403835087,
+        -0.0003029940524628468,
+        -0.03119892472796921
+      ],
+      "tool_z": [
+        0.08364486313730711,
+        0.000112253298973586,
+        -0.9964956218016907
+      ],
+      "gripper_position": [
+        0.21376894266899749,
+        -0.00031136379313827613,
+        0.043100984628311
+      ],
+      "gripper_orientation": [
+        0.19495775938886992,
+        0.9799179980768375,
+        0.008223015342668498,
+        0.041043527112431824
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.39169999999999994
+          ],
+          "elapsed_s": 0.0004238639958202839,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.39169999999999994
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.39169999999999994
+        ],
+        "elapsed_s": 0.0004238639958202839,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.39169999999999994
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.050104436820997e-17,
+        "orientation_error_deg": 1.5526075953212676e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0021",
+      "pitch_deg": 4.110591019265794,
+      "approach_yaw_deg": 11.436485902669233,
+      "roll_deg": -69.2210015011824,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016667009647571143,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        1.4083
+      ],
+      "tcp_position": [
+        0.21893470166188572,
+        0.000825080165449631,
+        -0.03127347896139256
+      ],
+      "tool_z": [
+        0.0702585834314927,
+        0.014213181022879558,
+        -0.9974275497194827
+      ],
+      "gripper_position": [
+        0.21369613737093351,
+        -0.00023467166743349616,
+        0.04309591605875172
+      ],
+      "gripper_orientation": [
+        -0.646755969066227,
+        0.7618533266560874,
+        -0.017328187434217733,
+        0.031399985039858594
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.4083
+          ],
+          "elapsed_s": 0.0005497859674505889,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            1.4083
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          1.4083
+        ],
+        "elapsed_s": 0.0005497859674505889,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          1.4083
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.757412143159152e-17,
+        "orientation_error_deg": 1.8405354023825345e-14,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0014",
+      "pitch_deg": 4.741492084921285,
+      "approach_yaw_deg": -2.389829331458344,
+      "roll_deg": 37.31063126149286,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.016759710447239066,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.6917
+      ],
+      "tcp_position": [
+        0.2199210815110877,
+        -0.0005877175677186403,
+        -0.031205498007444328
+      ],
+      "tool_z": [
+        0.08258833154651753,
+        -0.003446790641723833,
+        -0.9965777877951297
+      ],
+      "gripper_position": [
+        0.21376319640498148,
+        -0.00033072072132294127,
+        0.043100537743905896
+      ],
+      "gripper_orientation": [
+        0.33927200689871634,
+        0.9397783777213021,
+        0.012411582370624936,
+        0.03945958344296512
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.6917
+          ],
+          "elapsed_s": 0.0004898629849776626,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.6917
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.6917
+        ],
+        "elapsed_s": 0.0004898629849776626,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.6917
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 4.654751537338637e-17,
+        "orientation_error_deg": 3.0861929836049867e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0013",
+      "pitch_deg": 4.634233760811478,
+      "approach_yaw_deg": -4.638477709442469,
+      "roll_deg": 52.25692919851054,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.01699180232028227,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -0.9916999999999999
+      ],
+      "tcp_position": [
+        0.21975640368788302,
+        -0.0008346713152086477,
+        -0.031217737570460695
+      ],
+      "tool_z": [
+        0.08052985875645884,
+        -0.006533712485348926,
+        -0.9967307823328342
+      ],
+      "gripper_position": [
+        0.21375200078317094,
+        -0.0003475098718460495,
+        0.04309970563721422
+      ],
+      "gripper_orientation": [
+        0.47596693656066613,
+        0.8785333610441165,
+        0.016321412016321094,
+        0.03698946259918384
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.9916999999999999
+          ],
+          "elapsed_s": 0.0005185669870115817,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -0.9916999999999999
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.9916999999999999
+        ],
+        "elapsed_s": 0.0005185669870115817,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -0.9916999999999999
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.765185795421437e-17,
+        "orientation_error_deg": 2.3862247308919263e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0012",
+      "pitch_deg": 4.482728966361173,
+      "approach_yaw_deg": -6.518418889706226,
+      "roll_deg": 67.57035893980957,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.017231821396229918,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -1.2916999999999998
+      ],
+      "tcp_position": [
+        0.21952628074823172,
+        -0.0010217956521598845,
+        -0.031234550093306522
+      ],
+      "tool_z": [
+        0.07765332201081786,
+        -0.008872766697239385,
+        -0.9969409388684071
+      ],
+      "gripper_position": [
+        0.21373635587511872,
+        -0.00036023151989367935,
+        0.04309856263784855
+      ],
+      "gripper_orientation": [
+        0.6019726749512953,
+        0.7975583790834285,
+        0.019864697935007232,
+        0.033688638169974715
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.2916999999999998
+          ],
+          "elapsed_s": 0.000501176982652396,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.2916999999999998
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -1.2916999999999998
+        ],
+        "elapsed_s": 0.000501176982652396,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -1.2916999999999998
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.195500883094664e-17,
+        "orientation_error_deg": 2.8693081610002212e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    },
+    {
+      "candidate_id": "js_0011",
+      "pitch_deg": 4.296673686046476,
+      "approach_yaw_deg": -7.867228406815116,
+      "roll_deg": 83.41293084697111,
+      "standoff_m": 0.0,
+      "is_exact_fk": false,
+      "source": "joint_sample",
+      "refined": false,
+      "target_offset_m": 0.01745843924659822,
+      "sampled_joints": [
+        -0.0011999999999998678,
+        -0.6618,
+        -1.6012,
+        -0.7916999999999998,
+        -1.5917
+      ],
+      "tcp_position": [
+        0.21925126888896898,
+        -0.00113237531885578,
+        -0.0312544337633879
+      ],
+      "tool_z": [
+        0.07421567377003367,
+        -0.010255012530938079,
+        -0.9971894847444243
+      ],
+      "gripper_position": [
+        0.21371765919386676,
+        -0.0003677492785339998,
+        0.043097210846538066
+      ],
+      "gripper_orientation": [
+        0.7144594048386038,
+        0.6986719553623719,
+        0.02296186556382085,
+        0.02963123955586257
+      ],
+      "sanity": {
+        "ok": true,
+        "issues": []
+      },
+      "ik_attempts": [
+        {
+          "ok": true,
+          "code": 1,
+          "name": "SUCCESS",
+          "joints": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.5917
+          ],
+          "elapsed_s": 0.0005395890329964459,
+          "seed_index": 0,
+          "seed_kind": "sampled",
+          "seed": [
+            -0.0011999999999998678,
+            -0.6618,
+            -1.6012,
+            -0.7916999999999998,
+            -1.5917
+          ]
+        }
+      ],
+      "ik": {
+        "ok": true,
+        "code": 1,
+        "name": "SUCCESS",
+        "joints": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -1.5917
+        ],
+        "elapsed_s": 0.0005395890329964459,
+        "seed_index": 0,
+        "seed_kind": "sampled",
+        "seed": [
+          -0.0011999999999998678,
+          -0.6618,
+          -1.6012,
+          -0.7916999999999998,
+          -1.5917
+        ]
+      },
+      "joint_margin": {
+        "checked": true,
+        "ok": true,
+        "margin_rad": 0.0,
+        "min_margin_rad": 0.0,
+        "violations": []
+      },
+      "fk_check": {
+        "ok": true,
+        "position_error_m": 5.0545802959243814e-17,
+        "orientation_error_deg": 9.876242375238339e-15,
+        "position_tolerance_m": 0.001,
+        "orientation_tolerance_deg": 1.0
+      },
+      "collision": {
+        "ok": true,
+        "contact_count": 0,
+        "contacts": []
+      },
+      "status": "COLLISION_FREE"
+    }
+  ]
+}
