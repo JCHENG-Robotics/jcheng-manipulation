@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "name": "fiducial_grasp_onsite_20261119_envelope",
+  "task": "fiducial_grasp",
+  "tolerance": {
+    "translation_mm": 6.0,
+    "rotation_deg": 2.0
+  },
+  "tolerance_basis": "Measured gripper envelope, 2026-11-19: the opening axis passes [-6, +12] mm (centre +3 mm, \u00b19 mm about the true cube centre), x and z pass at \u00b19 mm with no failure. 6 mm is the conservative worst-side value; the 2 deg rotation tolerance is still the provisional protocol gate.",
+  "sources": [
+    {
+      "id": "hand_eye_translation",
+      "category": "calibration",
+      "metric": "translation_mm",
+      "value": 3.29,
+      "kind": "bounded",
+      "basis": "held_out_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/calibration/20261117/",
+      "notes": "Held-out final base error from the 14-pose bus-servo hand-eye dataset (3.29 mm); the same dataset reports 3.41 mm leave-one-out std. Treated as a bound, not a Gaussian sigma."
+    },
+    {
+      "id": "hand_eye_rotation",
+      "category": "calibration",
+      "metric": "rotation_deg",
+      "value": 0.43,
+      "kind": "bounded",
+      "basis": "held_out_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/calibration/20261117/",
+      "notes": "Held-out final base rotation error (0.43 deg); treated as a bound."
+    },
+    {
+      "id": "fiducial_translation",
+      "category": "perception",
+      "metric": "translation_mm",
+      "value": 1.69,
+      "kind": "bounded",
+      "basis": "semi_synthetic_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/phase2/real_background_20261117/",
+      "notes": "Worst of 15/15 semi-synthetic poses on real camera frames; the marker was composited, not physically present. This is a relative-pose detection error."
+    },
+    {
+      "id": "fiducial_rotation",
+      "category": "perception",
+      "metric": "rotation_deg",
+      "value": 0.53,
+      "kind": "bounded",
+      "basis": "semi_synthetic_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/phase2/real_background_20261117/",
+      "notes": "Worst semi-synthetic rotation error (0.53 deg); treated as a bound."
+    },
+    {
+      "id": "arm_repeatability",
+      "category": "repeatability",
+      "metric": "translation_mm",
+      "value": 1.017,
+      "kind": "bounded",
+      "basis": "hardware_max_30_visits",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+      "notes": "30 visits to the grasp pose [0, -0.6618, -1.8012, -0.3917, 0], AprilTag-observed. Radial RMS 0.449 mm, radial max 1.017 mm; the measured joints repeat to 0-1 pulse."
+    },
+    {
+      "id": "arm_repeatability_rotation",
+      "category": "repeatability",
+      "metric": "rotation_deg",
+      "value": 0.867,
+      "kind": "bounded",
+      "basis": "hardware_max_30_visits",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+      "notes": "Max geodesic deviation of the tag frame from the mean over the same 30 visits; mean 0.446 deg."
+    },
+    {
+      "id": "arm_backlash",
+      "category": "backlash",
+      "metric": "translation_mm",
+      "value": 1.117,
+      "kind": "bounded",
+      "basis": "hardware_hysteresis",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/backlash/",
+      "notes": "15 forward + 15 reverse visits to the same pose from joint4 +/-0.1 rad. Hysteresis vector (-0.971, -0.064, -0.549) mm, magnitude 1.117 mm; joint4 settles 10 pulses apart."
+    },
+    {
+      "id": "grasp_execution",
+      "category": "execution",
+      "metric": "translation_mm",
+      "value": null,
+      "kind": "bounded",
+      "basis": null,
+      "status": "unmeasured",
+      "required": true,
+      "evidence": null,
+      "notes": "Still not isolated. The 24-pair trial measured the end-to-end placement error: 3.31 mm mean (SD 1.48) for the corrected method, 4.97 mm (SD 2.87) for the uncorrected one; that value also carries the residual constant-correction error and release dynamics."
+    },
+    {
+      "id": "grasp_execution_rotation",
+      "category": "execution",
+      "metric": "rotation_deg",
+      "value": null,
+      "kind": "bounded",
+      "basis": null,
+      "status": "unmeasured",
+      "required": true,
+      "evidence": null,
+      "notes": "No real grasp has been executed; angular execution error is unknown."
+    },
+    {
+      "id": "gripper_placement",
+      "category": "gripper",
+      "metric": "translation_mm",
+      "value": null,
+      "kind": "bounded",
+      "basis": null,
+      "status": "unmeasured",
+      "required": true,
+      "evidence": null,
+      "notes": "The tolerance-envelope protocol is implemented; the 24-pair trial only sampled two offsets (0 and 13.7 mm) and is not a tolerance grid."
+    },
+    {
+      "id": "object_fixture_pose",
+      "category": "other",
+      "metric": "translation_mm",
+      "value": null,
+      "kind": "bounded",
+      "basis": null,
+      "status": "unmeasured",
+      "required": true,
+      "evidence": null,
+      "notes": "The physical fixture ground truth has not been measured with a caliper or guide."
+    }
+  ],
+  "limitations": [
+    "Rotation tolerance (2 deg) is still a provisional gate; the envelope swept translation only.",
+    "The envelope used two trials per offset point in one session; the boundary between 6 and 12 mm in y is bracketed, not resolved.",
+    "Still partial: grasp execution, gripper placement and object-fixture pose are unmeasured as separate sources.",
+    "Repeatability and backlash are hardware maxima over one session, treated as bounds like the calibration terms.",
+    "The fiducial term comes from a composited marker on real frames, not a physically present marker."
+  ]
+}

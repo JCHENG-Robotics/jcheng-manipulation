@@ -133,7 +133,35 @@ container (`/tmp/repeatability`, `/tmp/backlash_forward`,
 `/tmp/backlash_reverse`); the datasets and analyses are in
 [`repeatability/`](repeatability/) and [`backlash/`](backlash/).
 
-## 7. Yaw-envelope check (tag, no grasp)
+## 7. Gripper tolerance envelope (46 grasps)
+
+The 39.4 mm cube stayed at the fixture and the commanded target was offset
+along one base axis at a time, two trials per point, seeded random order:
+`x` = finger length, `y` = gripper opening (the critical axis), `z` = height.
+
+| Axis | Offsets attempted (mm) | Result |
+|---|---|---|
+| `x` | 0, ±3, ±6, ±9 | **2/2 at every point** — no failure to ±9 mm |
+| `y` | 0, ±3, ±6, ±9, ±12, ±15 | 2/2 at −6…+12; **1/2 at −9**; **0/2 at −12, −15 and +15** |
+| `z` | 0, ±3, ±6, ±9 | **2/2 at every point** — no failure to ±9 mm |
+
+The usable `y` interval is **[−6, +12] mm**, i.e. **±9 mm around a centre
+3 mm to the +y side**. That shift is not a gripper asymmetry: it matches the
+~3 mm `y` residual of the constant correction (the true correction at this
+pose is ≈ +7 mm in `y`, the constant is +3.9), so the interval is symmetric
+about the *true* cube centre. The grip tolerance is therefore about **±9 mm**
+in the opening axis and ≥ 9 mm in the finger-length and vertical axes.
+
+This replaces the provisional 5 mm gate as the physical tolerance basis. Used
+conservatively (the worst side with the current correction), the tolerance is
+**6 mm**; the budget's RSS (3.995 mm) still fits it, the worst case (7.114 mm)
+does not. Ten of the 46 releases landed too tilted to measure and are recorded
+as `landing_unmeasured`; the grip outcome is unaffected.
+
+Files: [`envelope/`](envelope/) — per-trial JSONL, aggregated measurement and
+the analyzer report.
+
+## 8. Yaw-envelope check (tag, no grasp)
 
 The constant correction was measured at `j1 ≈ 0`, so its validity for a yawed
 grasp was open. A 60 mm tag was placed at `(0.272, 0.106) m` and observed from
@@ -163,7 +191,7 @@ inside the ±4 mm margin. **The constant remains the only usable model at
 this yaw; the configuration-dependent models are rejected again.** The
 envelope is therefore measured to `j1 ≈ 0.5 rad`, not just ±0.06.
 
-## 8. Files
+## 9. Files
 
 | File | Content |
 |---|---|
@@ -176,9 +204,10 @@ envelope is therefore measured to `j1 ≈ 0.5 rad`, not just ±0.06.
 | `backlash/` | 15+15 forward/reverse datasets, measurement, analysis |
 | `error_budget.md` / `error_budget.json` | updated budget with the measured repeatability and backlash terms |
 | `yaw_envelope/` | three paired view/grasp tag captures and the model comparison |
+| `envelope/` | 46-trial tolerance grid, aggregated protocol measurement, analyzer report |
 | `discarded_*.jsonl`, `trials_with_p003_artifact.jsonl` | the four deviations' raw records |
 
-## 9. Reproduction
+## 10. Reproduction
 
 ```bash
 # session (interactive; resumable; skips completed entries)

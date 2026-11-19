@@ -1,7 +1,11 @@
 # Error Budget
 
 > Status: **Framework implemented and demo-validated; project budget partial
-> (2026-11-17, Session 4; updated 2026-11-19).** Calibration, perception,
+> (2026-11-17, Session 4; updated 2026-11-19).** The tolerance is no longer
+> provisional: a 46-grasp tolerance grid measured the opening-axis envelope at
+> **[-6, +12] mm** (centre +3 mm, ±9 mm about the true cube centre) with `x`
+> and `z` passing at ±9 mm and no failure. The conservative worst-side value,
+> **6 mm**, replaces the 5 mm gate; the 2° rotation gate is still provisional. Calibration, perception,
 > **repeatability and backlash** are now measured. The 2026-11-19 on-site
 > session added the two motion terms with a fixed AprilTag at the grasp pose:
 > repeatability **1.017 mm max** (0.449 mm radial RMS, 30 visits) and backlash
@@ -109,6 +113,21 @@ Evidence:
 and
 [`error_budget_baseline_report.svg`](../../evidence/phase3/session4_20261117/error_budget_baseline_report.svg).
 
+### Gripper tolerance envelope (2026-11-19)
+
+46 grasps, two per offset point, one base axis at a time:
+
+| Axis | Offsets | Passing |
+|---|---|---|
+| `x` (finger length) | 0, ±3, ±6, ±9 | all |
+| `y` (opening) | 0, ±3, ±6, ±9, ±12, ±15 | −6…+12 (1/2 at −9; 0/2 at ±15 and −12) |
+| `z` (height) | 0, ±3, ±6, ±9 | all |
+
+The `y` interval `[-6, +12]` is ±9 mm about a centre 3 mm to the +y side,
+which is the constant correction's own `y` residual, not a gripper asymmetry.
+The physical tolerance is therefore **±9 mm** in the opening axis and ≥9 mm in
+`x`/`z`; the budget uses 6 mm as the conservative worst side.
+
 ### 2026-11-17 baseline (calibration + perception only)
 
 | Metric | RSS | Worst case | Tolerance | Status |
@@ -116,7 +135,7 @@ and
 | Translation | **3.699 mm** | **4.980 mm** | 5.000 mm (provisional) | partial, both gates pass |
 | Rotation | **0.682°** | **0.960°** | 2.000° (provisional) | partial, both gates pass |
 
-### 2026-11-19 on-site update (adds repeatability and backlash)
+### 2026-11-19 on-site update (adds repeatability, backlash and the tolerance)
 
 Measured sources:
 
@@ -137,8 +156,13 @@ generated from
 
 | Metric | RSS | Worst case | Tolerance | Status |
 |---|---:|---:|---:|---|
-| Translation | **3.995 mm** | **7.114 mm** | 5.000 mm (provisional) | RSS passes, worst case fails |
+| Translation | **3.995 mm** | **7.114 mm** | **6.000 mm (measured)** | RSS passes, worst case fails |
 | Rotation | **1.103°** | **1.827°** | 2.000° (provisional) | both pass |
+
+The tolerance basis changed from the 5 mm protocol gate to the measured
+gripper envelope. With the conservative 6 mm, the same conclusions hold: the
+RSS fits, the worst case does not. Report:
+[`evidence/phase3/onsite_20261119/error_budget_envelope.md`](../../evidence/phase3/onsite_20261119/error_budget_envelope.md).
 
 Required and still unmeasured:
 
@@ -204,6 +228,8 @@ for an RSS of several independent terms.
 - The measured values mix held-out maxima and semi-synthetic maxima. They are
   bounds, not a common statistical basis.
 - A partial budget must not be presented as a measured task error.
+- The envelope boundary between 6 and 12 mm in `y` is bracketed, not resolved
+  (two trials per point); the 6 mm budget value is deliberately conservative.
 - The measurement session's PnP is tag-relative; a tag rotation bias would
   enter the reconstructed positions as a common shift and cancel in the spread,
   so the repeatability/backlash values are relative, not absolute.

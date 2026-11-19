@@ -79,6 +79,7 @@
 | 机械臂重复性，30 次 | 径向 **RMS 0.449 mm / 最大 1.017 mm**；关节重复到 0–1 脉冲；Tag 旋转最大 **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
 | 机械臂回差，joint4 ±0.1 rad | 回差 **1.117 mm**（−0.971, −0.064, −0.549 mm）；joint4 落点相差 10 脉冲 | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |
 | 误差预算（更新） | 平移 **RSS 3.995 mm**（通过）/ 最坏 **7.114 mm**（未通过）；旋转 **RSS 1.103° / 最坏 1.827°**（均通过） | [`error_budget.md`](evidence/phase3/onsite_20261119/error_budget.md) |
+| 夹爪容差包络，46 次抓取 | 开口方向通过区间 **[-6, +12] mm**（以 +3 mm 为中心 **±9 mm**，即修正量的 y 残余）；`x` 与 `z` 到 **±9 mm** 均无失败；±15 与 −12 均 0/2 | [`envelope/`](evidence/phase3/onsite_20261119/envelope/) |
 | 抓取工作半径 | 指垫半径 **205–210 mm**；`joint1` 偏航范围 **±103.2°（206°）** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | 视野外搜索 + 底盘往返 | **+16° `joint1` 偏航**找到 **0.469 m** 处木块；闭环底盘移动 **0.325 m**；抓取并抬升 150 mm；回位残差 **9.4 mm**（地标校验）；放置相对机器人 **1.1 mm** | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | 最低可达位置 | 物理最低点离地 **10 mm**；名义 TCP 离地 **15 mm**；机械极限为 joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
@@ -200,7 +201,7 @@ tools/
 - [x] 带逐轮证据的量化结果
 - [x] 失败模式分类与批判性分析
 - [x] 可复现命令与测试套件
-- [ ] 完整误差预算——重复性与回差已测，末端放置误差 3.31 mm；执行、夹爪放置与夹具位姿仍待测
+- [ ] 完整误差预算——重复性、回差与容差（±9 mm）已测；末端放置误差 3.31 mm；执行、夹爪放置与夹具位姿仍待测
 - [x] 具备统计功效的配对实机试验（2026-11-19）：24 对，McNemar p = 0.00049，配对放置改善 2.19 mm（p = 0.0063）
 - [x] 低构型模型标定（2026-11-19）——关节偏置假设被否决，实测包络内支持常数偏置
 - [ ] 正式机械限位测量与 `mapping_verified=true`

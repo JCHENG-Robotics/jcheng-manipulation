@@ -10,10 +10,16 @@
 > | `repeatability` (30 visits) | radial RMS **0.449 mm**, max **1.017 mm**; joints repeat to 0–1 pulse; tag rotation max **0.867°** |
 > | `backlash` (15 + 15 visits, joint4 ±0.1 rad) | hysteresis **1.117 mm** (vector −0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart |
 >
-> Both pass the placeholder gates (5 mm / 2 mm). The `visual_displacement` and
-> `gripper_envelope` protocols still have no hardware data; the earlier
-> AprilTag displacement check is a partial substitute for the former, and the
-> 24-pair trial sampled only two offsets, not a tolerance grid.
+> Both pass the placeholder gates (5 mm / 2 mm).
+>
+> | Protocol | Hardware result |
+> |---|---|
+> | `gripper_envelope` (46 grasps) | opening axis passes **[-6, +12] mm** (±9 mm about a centre 3 mm to +y, the constant correction's `y` residual); `x` and `z` pass at **±9 mm** with no failure; 0/2 at `y` ±15 and −12 |
+>
+> The measured envelope replaces the provisional 5 mm tolerance in the error
+> budget (conservative worst side: 6 mm). The `visual_displacement` protocol
+> still has no hardware data; the earlier AprilTag displacement check is a
+> partial substitute.
 > Evidence: [`evidence/phase3/onsite_20261119/`](../../evidence/phase3/onsite_20261119/README.md).
 >
 > Downstream (Session 4): [`docs/phase3/ERROR_BUDGET.md`](../phase3/ERROR_BUDGET.md)
@@ -45,9 +51,10 @@ tag-based runner is
 [`tools/phase3/measurement_run.py`](../../tools/phase3/measurement_run.py):
 it generates the schedule, runs `low_config_tag_survey.py` in the robot
 container, reconstructs the tag centre in `base_link`, and calls this tool's
-`--mode analyze`. Only the tag-based protocols (`repeatability`, `backlash`)
-are automated; `visual_displacement` and `gripper_envelope` still need a
-supervised session.
+`--mode analyze`. The tag-based protocols (`repeatability`, `backlash`) are automated by that
+runner; `gripper_envelope` is automated by
+[`tools/phase3/gripper_envelope_run.py`](../../tools/phase3/gripper_envelope_run.py);
+`visual_displacement` still needs a supervised session.
 
 ## Protocols
 

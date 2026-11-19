@@ -7,6 +7,19 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Gripper tolerance envelope measured: the physical tolerance is ±9 mm, not
+  the provisional 5 mm.** 46 grasps, two per point, offsetting the commanded
+  target along one base axis at a time: **`x`** (finger length) passes at
+  every offset to **±9 mm**; **`z`** (height) passes at **±9 mm**; **`y`**
+  (opening) passes over **[-6, +12] mm** with 1/2 at −9 and 0/2 at −12, ±15.
+  The usable `y` interval is ±9 mm about a centre **3 mm to the +y side**,
+  which is the constant correction's own `y` residual (true ≈ +7 mm, constant
+  +3.9), not a gripper asymmetry. The 5 mm gate is replaced by a measured
+  6 mm conservative tolerance; the budget's RSS (3.995 mm) fits and the worst
+  case (7.114 mm) does not. Ten releases landed too tilted to measure and are
+  recorded as `landing_unmeasured`; grip outcomes are unaffected. Evidence:
+  [`evidence/phase3/onsite_20261119/envelope/`](evidence/phase3/onsite_20261119/envelope/).
+  New runner `tools/phase3/gripper_envelope_run.py` (4 tests).
 - **Yaw extension of the low-configuration envelope.** The constant correction
   had only been validated at `j1 ≈ 0`; a fixed-tag measurement at a yawed grasp
   pose (`j1 = 0.487 rad = 27.9°`, `joint4 = -0.339`) gives a required

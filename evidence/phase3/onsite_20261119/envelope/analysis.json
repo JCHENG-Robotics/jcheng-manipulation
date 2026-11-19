@@ -2,7 +2,7 @@
   "schema_version": 1,
   "protocol": "gripper_envelope",
   "mode": "analyze",
-  "generated_at": "2026-11-19T11:07:10.110974+00:00",
+  "generated_at": "2026-11-19T11:39:31.474581+00:00",
   "dry_run": false,
   "no_hardware": true,
   "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
@@ -545,6 +545,26 @@
     {
       "offset_m": [
         0.0,
+        -0.015,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 0
+    },
+    {
+      "offset_m": [
+        0.0,
+        -0.012,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 0
+    },
+    {
+      "offset_m": [
+        0.0,
         -0.009,
         0.0
       ],
@@ -597,6 +617,86 @@
         0.0,
         0.009,
         0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.012,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.015,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 0
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        -0.009
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        -0.006
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        -0.003
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        0.003
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        0.006
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        0.009
       ],
       "yaw_deg": 0.0,
       "trials": 2,
@@ -728,6 +828,40 @@
       {
         "offset_m": [
           0.0,
+          -0.015,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          -15.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 0,
+        "success_rate": 0.0,
+        "pass": false
+      },
+      {
+        "offset_m": [
+          0.0,
+          -0.012,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          -12.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 0,
+        "success_rate": 0.0,
+        "pass": false
+      },
+      {
+        "offset_m": [
+          0.0,
           -0.009,
           0.0
         ],
@@ -826,12 +960,148 @@
         "successes": 2,
         "success_rate": 1.0,
         "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.012,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          12.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.015,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          15.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 0,
+        "success_rate": 0.0,
+        "pass": false
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.009
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          -9.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.006
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          -6.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.003
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          -3.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          0.003
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          3.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          0.006
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          6.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          0.009
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          9.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
       }
     ],
     "envelope_mm": {
       "x": 9.0,
-      "y": 9.0,
-      "z": 0.0
+      "y": 12.0,
+      "z": 9.0
     },
     "envelope_deg": null,
     "success_threshold": 0.8
