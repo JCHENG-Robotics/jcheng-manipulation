@@ -108,10 +108,10 @@
     <axis xyz="-0.0010551 -0.99998 0.0068419"/>
     <!-- ADOPTED 2026-11-18: low stop measured at 322 pulse (mechanical,
          inside the EEPROM range) + 20 = 342 -> -0.6618 rad; high bound is
-         the EEPROM limit 830 pulse - 20 = 810 -> 1.2985 rad (the high
+         the hand-measured high stop 795 - 20 = 775 -> 1.1519 rad (the high
          mechanical stop, 873, is beyond the EEPROM clamp).
          Evidence: docs/phase2/JOINT_LIMITS.md. -->
-    <limit effort="1000" lower="-0.6618" upper="1.2985" velocity="10"/>
+    <limit effort="1000" lower="-0.6618" upper="1.1519" velocity="10"/>
   </joint>
   <link name="link3">
     <inertial>

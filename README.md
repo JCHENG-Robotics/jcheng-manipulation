@@ -141,7 +141,7 @@ remains partial and a yawed-envelope grasp is still open.
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
-| Adopted joint limits | servo EEPROM **−20 pulses**; joint2 low measured **322**; `mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
+| Adopted joint limits | servo EEPROM **−20 pulses**, joint2 high tightened to **775** after the formal survey; all five joints hand-measured 2026-11-19; `mapping_verified=true` (operating envelope) | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 tracking | **712 commanded / 711 measured** samples; max **0.008321 rad**, RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
@@ -236,7 +236,7 @@ separately.
 | Fiducial localization | **Validated (synthetic + real background + physical tag)** | 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic (max 1.69 mm / 0.53°); 0 false detections on 8 real frames; physical tag scale 0.67 % lateral |
 | Constrained grasp search | **Implemented; mock + real use** | 80 candidates → 40 IK → 26 collision-free → 3 plans (mock); real search used in every grasp pass |
 | Real visual grasping | **Validated: 3/5 attempts** | Passes 1, 2 and 5 succeeded; passes 3–4 failed and measured the low-configuration error; pass 5 used a tag correction |
-| Joint limits | **Partially measured; adopted EEPROM−20** | joint2 low 322, joint3 stop 939, joint4 high 901; joint1 low / joint3 positive / joint5 not formally measured; `mapping_verified=false` |
+| Joint limits | **Formally surveyed 2026-11-19; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 |
 | Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
 | Measurement protocols | **Implemented; dry-run/simulate validated** | Repeatability, backlash, visual displacement, gripper envelope; no full hardware dataset |
@@ -269,7 +269,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
       constant base-frame offset supported inside the measured envelope
-- [ ] Formal mechanical joint-limit survey and `mapping_verified=true`
+- [x] Formal mechanical joint-limit survey and `mapping_verified=true`
+      (2026-11-19; stops are pose-dependent, verified for the operating envelope)
 
 ## Quick start
 
@@ -439,8 +440,9 @@ rate, jitter and age on both hosts. None of these tools commands the robot.
 - **No e-stop, no brake.** Cutting power drops the arm; the vendor stack
   recovers in ~89 s. All motion is supervised.
 - **Adopted limits are commandable limits, not mechanical guarantees.**
-  `mapping_verified=false`; the backend and Studio keep motion disabled by
-  default.
+  `mapping_verified=true` since the 2026-11-19 survey, but the stops are
+  pose-dependent self-collision limits; the backend and Studio keep motion
+  disabled by default.
 - **Never read or command a negative servo register.** It crashes the vendor
   node; the recovery restart itself moves the arm.
 - **MoveIt execute needs a clock lead.** Set the robot clock 1–2 s ahead of the
@@ -457,22 +459,24 @@ rate, jitter and age on both hosts. None of these tools commands the robot.
 
 ## Limitations and threats to validity
 
-- **Single platform, single object, five attempts.** The 3/5 result is a
-  feasibility demonstration, not a success-rate estimate; there is no
-  statistical power for a reliability claim.
-- **The low-configuration correction is local.** One tag point at ~15 mm from
-  the cube supplies a constant offset; the error is not modelled as a function
-  of joint configuration. A joint-offset calibration is the proper fix.
-- **The error budget is partial.** Repeatability, backlash, grasp execution,
-  gripper placement and fixture pose are unmeasured; the 5 mm / 2° tolerance
-  is a provisional gate.
+- **Single platform, single object, single session.** The 24-pair result is a
+  measured effect for this fixture, cube and battery state; it is not a
+  population success-rate estimate.
+- **The correction is a constant, not a physical model.** Joint offsets and
+  `link4`-frame models were fitted and rejected; the constant holds to
+  `j1 ≈ 0.5 rad` but is not claimed beyond the measured envelope.
+- **The error budget is partial.** Repeatability, backlash and the tolerance
+  (±9 mm) are measured; grasp execution, gripper placement and fixture pose
+  remain unmeasured, and the 2° rotation tolerance is still provisional.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
 - **Hand–eye validation is board-relative.** It establishes consistency, not
   absolute metrology; the tag scale check is the independent physical anchor.
-- **Joint limits are EEPROM-derived.** Joint1 low, joint3 positive and joint5
-  stops are not formally measured; `mapping_verified` stays false.
+- **Joint limits are formally surveyed but pose-dependent.** All five arm
+  joints were hand-measured with torque released on 2026-11-19; the stops are
+  self-collision-limited, so `mapping_verified=true` covers the operating
+  envelope only.
 - **No force/torque sensing, no e-stop, no brake.** Contact-rich manipulation
   and autonomous recovery are out of scope.
 - **Mock and Gazebo results are never hardware validation.** `mock_components`
@@ -559,10 +563,10 @@ without a per-object correction. Complete the error budget with repeatability,
 backlash, execution, gripper and fixture terms. Run a paired hardware trial
 with the intervention selected from the dominant measured term.
 
-**Then.** Formalise the mechanical joint-limit survey and set
-`mapping_verified=true`; add gripper-only trajectory support to
-`armpi_safety`; widen the object set beyond the 39.4 mm cube. The optional
-mobile base follows only after the fixed-base pipeline is stable.
+**Then.** Add gripper-only trajectory support to `armpi_safety`; widen the
+object set beyond the 39.4 mm cube; measure the remaining error-budget terms.
+The optional mobile base follows only after the fixed-base pipeline is
+stable.
 
 ## License
 

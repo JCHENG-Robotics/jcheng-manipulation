@@ -15,7 +15,7 @@
 | Controller board | STM32 (vendor firmware) | vendor source | `[S]` |
 | Serial link | `/dev/rrc` (CH340) → `/dev/ttyUSB0` | `ls -l /dev/rrc` | `[V]` |
 | Bus servos | IDs 1–6; positions 500 at the 2026-11-17 reset pose | `/controller_manager/servo_states` | `[V]` |
-| Arm joint limits | **Adopted EEPROM−20 pulses** (joint1 ±1.8012, joint2 −0.6618…1.2985, joint3 −1.8012…0, joint4 ±1.5917, joint5 −1.5917…1.5499); joint2 low 322, joint3 stop 939, joint4 high 901; `mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md) | `[P]` |
+| Arm joint limits | **Formally surveyed 2026-11-19** (joint1 ±1.8012, joint2 −0.6618…1.1519, joint3 −1.8012…0, joint4 ±1.5917, joint5 −1.5917…1.5499); stops are pose-dependent/self-collision; `mapping_verified=true` for the operating envelope | [`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md) | `[P]` |
 | Gripper | `r_joint`, servo ID 1; **re-measured 2026-11-18 19:59**: increasing `r_joint` closes; range `-2.22 … 0.0 rad` (raw 170 … 700); servo register 167 (open stop) … 640 (closed); ~34 counts of backlash | action + `bus_servo/get_state` | `[V]` |
 | Camera | Deptrum Aurora 930; USB `3251:1930`; serial `HY400523001036827G00179`; firmware 2.0.8; SDK 1.1.19 | `aurora930_node` log | `[V]` |
 | Camera link | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `lsusb -t` | `[V]`; bandwidth ceiling |

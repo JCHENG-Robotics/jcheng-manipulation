@@ -142,9 +142,10 @@ No valid dispatch was sent. The arm did not move during this verification.
 
 ## Limitations
 
-- `mapping_verified` is still **false**: joint1 low, joint3 stops and joint5
-  stops are not formally measured. The supervised path is a restricted
-  commissioning mode, not a verification of the limits.
+- `mapping_verified` became **true** on 2026-11-19 after the formal stop
+  survey (all five arm joints); the supervised path remains a restricted
+  commissioning mode. The mechanical stops are self-collision-limited and
+  pose-dependent, which `docs/phase2/JOINT_LIMITS.md` records.
 - No physical e-stop, brake or independent encoder. Stop is a hold request.
 - Single-joint only; no trajectory streaming from the Studio, no MoveIt action
   dispatch, no multi-joint coordinated commands.

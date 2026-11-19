@@ -9,7 +9,7 @@
 # 1 rad/s^2) so a future executor cannot pass a fast trajectory through the
 # veto layer.
 schema_version: 1
-source: EEPROM-bounded limits adopted 2026-11-18; mechanical survey partial
+source: EEPROM-bounded 2026-11-18 + formal stop survey 2026-11-19 (joint2 high tightened)
 
 joint_limits:
   joint1:
@@ -19,9 +19,10 @@ joint_limits:
     max_velocity: 1.2
     max_acceleration: 0.5
   joint2:
-    # low mechanical stop 322 + 20 = 342; high EEPROM 830 - 20 = 810.
+    # low mechanical stop 322 + 20 = 342; high hand-measured stop 795
+    # (2026-11-19 low-pose survey) - 20 = 775 -> 1.1519.
     lower: -0.6618
-    upper: 1.2985
+    upper: 1.1519
     max_velocity: 1.2
     max_acceleration: 0.5
   joint3:

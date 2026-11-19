@@ -83,7 +83,7 @@
 | 抓取工作半径 | 指垫半径 **205–210 mm**；`joint1` 偏航范围 **±103.2°（206°）** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | 视野外搜索 + 底盘往返 | **+16° `joint1` 偏航**找到 **0.469 m** 处木块；闭环底盘移动 **0.325 m**；抓取并抬升 150 mm；回位残差 **9.4 mm**（地标校验）；放置相对机器人 **1.1 mm** | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | 最低可达位置 | 物理最低点离地 **10 mm**；名义 TCP 离地 **15 mm**；机械极限为 joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
-| 采纳关节限位 | 舵机 EEPROM **减 20 脉冲**；joint2 下限实测 **322**；`mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
+| 采纳关节限位 | 舵机 EEPROM **减 20 脉冲**，普查后 joint2 上限收紧到 **775**；五个关节 2026-11-19 全部手推实测；`mapping_verified=true`（作业包络） | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | 夹爪行程 | **2.22 rad**（张开 −2.22，闭合 0.0）；回差 **约 34 counts**；39.4 mm 木块在 −0.63 夹住 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | 相机 / DDS | 跨主机 RGB **约 12 Hz**（容器内订阅低估到约 8 Hz）；深度 **8.2 Hz**；ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 跟踪 | **712 命令 / 711 实测**样本；最大 **0.008321 rad**，RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
@@ -175,7 +175,7 @@ tools/
 | Fiducial 定位 | **已验证（合成 + 真实背景 + 实体 Tag）** | 合成 5/5（最大 1.82 mm / 1.49°）；半合成 15/15（最大 1.69 mm / 0.53°）；8 帧真实图像 0 误检；实体 Tag 横向尺度 0.67% |
 | 约束抓取搜索 | **已实现；Mock + 实机使用** | Mock：80 候选 → 40 IK → 26 无碰撞 → 3 条规划；每轮实机抓取均使用该搜索 |
 | 实机视觉抓取 | **已验证：3/5 轮成功** | 第 1、2、5 轮成功；第 3–4 轮失败并测出低构型误差；第 5 轮使用 Tag 修正 |
-| 关节限位 | **部分实测；采纳 EEPROM−20** | joint2 下限 322、joint3 止挡 939、joint4 上限 901；joint1 下限 / joint3 正向 / joint5 未正式测量；`mapping_verified=false` |
+| 关节限位 | **2026-11-19 正式普查；`mapping_verified=true`** | 五个关节全部手推实测（释放扭矩）；止挡为姿态相关的自碰撞限位；joint2 上限 810→775 |
 | 无头抓取工具链 | **已验证** | `grasp_150mm` 工具、`moveit_execute`、`pulse_move`；每条机械臂规划均经安全否决 |
 | 安全层 | **已实现；Mock 验证 + 实机否决** | 看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；桌面平面间隙；无急停或抱闸 |
 | 测量协议 | **已实现；dry-run/simulate 验证** | 重复性、回差、视觉位移、夹爪包络；尚无完整实机数据集 |
@@ -204,7 +204,7 @@ tools/
 - [ ] 完整误差预算——重复性、回差与容差（±9 mm）已测；末端放置误差 3.31 mm；执行、夹爪放置与夹具位姿仍待测
 - [x] 具备统计功效的配对实机试验（2026-11-19）：24 对，McNemar p = 0.00049，配对放置改善 2.19 mm（p = 0.0063）
 - [x] 低构型模型标定（2026-11-19）——关节偏置假设被否决，实测包络内支持常数偏置
-- [ ] 正式机械限位测量与 `mapping_verified=true`
+- [x] 正式机械限位测量与 `mapping_verified=true`（2026-11-19；止挡与姿态相关，按作业包络认定）
 
 ## 快速开始
 
@@ -337,7 +337,7 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 ## 安全与运行包络
 
 - **没有急停、没有抱闸。** 断电会使机械臂下落；厂商栈约 89 s 自动恢复。所有运动均受监督。
-- **采纳限位是可指令限位，不是机械保证。** `mapping_verified=false`；后端与 Studio 默认关闭运动。
+- **采纳限位是可指令限位，不是机械保证。** 2026-11-19 普查后 `mapping_verified=true`，但止挡是姿态相关的自碰撞限位；后端与 Studio 仍默认关闭运动。
 - **绝不读取或指令负舵机寄存器。** 它会使厂商节点崩溃；恢复时的节点重启本身就会移动机械臂。
 - **MoveIt 执行需要时钟领先。** 跨主机执行前，将机器人时钟设为比工作站快 1–2 s。
 - **`/joint_states` 是命令回显。** 实测真值是 `/controller_manager/servo_states`；寄存器读数用 `get_state` 服务。
@@ -348,11 +348,11 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 ## 局限性与有效性威胁
 
 - **单一平台、单一物体、单一会话。** 24 对试验给出的是该夹具、该木块、该电池状态下的效应，不是总体成功率估计；连续误差比较以 baseline 也成功的 12 对为条件。
-- **低构型修正是有包络的。** 固定 Tag 普查证明它在实测包络内是常数（散布 0.40–0.99 mm）；关节偏置与 `link4` 偏置模型虽然能拟合 Tag 数据，却把修正量预测偏差 10.6–15.0 mm，被四次成功抓取否决。包络之外（例如 `j1 ≈ 0.3–0.6 rad` 的偏航抓取）尚未验证。
-- **误差预算不完整。** 重复性、回差、抓取执行、夹爪放置与夹具位姿均未测；5 mm / 2° 是暂定门限。
+- **低构型修正是有包络的。** 固定 Tag 普查证明它在实测包络内是常数（散布 0.40–0.99 mm）；关节偏置与 `link4` 偏置模型把修正量预测偏差 10.6–15.0 mm 并被否决。偏航延伸实验把包络测到 `j1 ≈ 0.5 rad`：该处所需修正 (9.14, 7.18, 8.75) mm，常数差 5.6 mm，拟合模型差 14–19 mm 且 y 反号。
+- **误差预算不完整。** 重复性（0.449 mm RMS）、回差（1.117 mm）与容差（±9 mm）已测；抓取执行、夹爪放置与夹具位姿仍未测，2° 旋转门限仍是暂定值。
 - **48° 斜视下绝对深度有偏。** RGB 与深度在该视角相差约 40–50 mm；桌面下俯与深度平面估计才是可靠参考。
 - **手眼验证是板相对的。** 它证明一致性而非绝对计量；Tag 尺度检查是独立的物理锚点。
-- **关节限位来自 EEPROM。** joint1 下限、joint3 正向与 joint5 止挡未正式测量；`mapping_verified` 保持 false。
+- **关节限位已正式普查但依赖姿态。** 五个关节在 2026-11-19 释放扭矩手推实测；止挡是自碰撞限位，`mapping_verified=true` 仅覆盖作业包络。
 - **无力/力矩传感、无急停、无抱闸。** 接触丰富操作与自主恢复不在范围内。
 - **Mock 与 Gazebo 结果从不作为硬件验证。** `mock_components` 与合成标记只验证软件路径。
 
@@ -410,7 +410,7 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 
 **下一步（最高优先级）。** 用一次偏航位形抓取（`j1 ≈ 0.3–0.6 rad`）检验常数修正的包络边界——常数模型与 `link4` 偏置模型在该处相差 12–16 mm，一次抓取即可判别。随后补齐重复性、回差、执行、夹爪与夹具项，完成误差预算。
 
-**随后。** 正式化机械关节限位测量并设置 `mapping_verified=true`；为 `armpi_safety` 增加仅夹爪轨迹支持；把物体集从 39.4 mm 木块扩展到更多形状。可选移动底盘只在固定基座链路稳定后推进。
+**随后。** 为 `armpi_safety` 增加仅夹爪轨迹支持；把物体集从 39.4 mm 木块扩展到更多形状；补齐误差预算剩余三项。可选移动底盘只在固定基座链路稳定后推进。
 
 ## 许可证
 

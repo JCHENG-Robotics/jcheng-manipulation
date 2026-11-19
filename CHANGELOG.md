@@ -7,6 +7,21 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Formal joint-limit survey on all five arm joints; `mapping_verified=true`.**
+  One joint at a time with servo torque released by hand, in the vendor
+  vertical pose (all joints at 0 rad), plus joint2 at the low operating pose:
+  joint1 **58…957**, joint2 **186…873** upright / **327…795 hand at the low
+  pose**, joint3 **100…923**, joint4 **130…882**, joint5 **122…869** pulse;
+  repeat spreads 0…2 pulses. The result is that the "mechanical stops" are
+  **self-collision-limited and pose-dependent** (joint2's high stop 795 vs
+  873; joint3's low stop 939 vs 923), so the static limits are verified for
+  the operating envelope, not as universal stops. The adopted high bound of
+  joint2 was **tightened 810 → 775 pulse (1.2985 → 1.1519 rad)** in the URDF,
+  MoveIt, safety and Studio configs; no operation uses that region. One
+  crash occurred during the first joint5 attempt (wrist fell, negative
+  register); the node alone was restarted and torque restored, and the second
+  attempt succeeded. Evidence:
+  [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md).
 - **Gripper tolerance envelope measured: the physical tolerance is ±9 mm, not
   the provisional 5 mm.** 46 grasps, two per point, offsetting the commanded
   target along one base axis at a time: **`x`** (finger length) passes at

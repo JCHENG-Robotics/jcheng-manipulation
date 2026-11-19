@@ -37,7 +37,7 @@
 | Camera | Aurora 930; RGB **~12 Hz cross-host** (`bgr8`, 640×400; in-container subscribers undercount to ~8 Hz), depth 8.2 Hz `mono16` (mm) prior in-container; intrinsics read |
 | TF | `base_link → … → rgb_camera_link` / `depth_camera_link` verified; measured `camera_optical_calibrated` published; no live model `camera_optical_frame` |
 | Camera optical extrinsic | **Validated** 14-pose chessboard hand-eye: 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43°; body→optical 89.798° |
-| Joint limits | **Partially measured; adopted EEPROM−20 pulses**: joint2 low 322, joint3 stop 939, joint4 high 901; joint1 low, joint3 positive and joint5 unmeasured; `mapping_verified=false` |
+| Joint limits | **Formally surveyed 2026-11-19**: all five joints hand-measured with torque released (joint1 58…957, joint2 327…795 low pose / 186…873 upright, joint3 100…923, joint4 130…882, joint5 122…869); adopted EEPROM−20 with joint2 high tightened to 775; `mapping_verified=true` for the operating envelope |
 | Gripper | Stroke **2.22 rad** (open −2.22, closed 0.0), ~34 counts backlash; measured 2026-11-18 |
 | Controller board | Battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; **IMU, encoders, e-stop, onboard gamepad/SBUS absent** (probed 2026-11-19) |
 | Battery | **7812 mV** latest (2026-11-19); 7.651 V at the 2026-11-17 baseline |

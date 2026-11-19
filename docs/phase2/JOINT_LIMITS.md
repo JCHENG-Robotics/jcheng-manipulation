@@ -1,8 +1,15 @@
 # Joint limits and mapping verification
 
-> Status: **gripper measured and arm survey run 2026-11-18; arm limits
-> ADOPTED from the servo EEPROM table with a 20-pulse margin; the mapping
-> stays `verified: false`.** A 2026-11-19 forward-facing powered probe
+> Status: **formally surveyed on all five arm joints 2026-11-19; the mapping
+> is `verified: true` for the operating envelope.** One joint at a time with
+> torque released, in the vertical pose plus joint2 at the low operating pose:
+> joint1 58…957, joint2 186…873 (upright) / **327…795 (low pose, hand)**,
+> joint3 100…923, joint4 130…882, joint5 122…869 pulse, spreads 0–2 pulses.
+> The adopted high bound of joint2 was **tightened from 810 to 775** because
+> the low-pose hand stop is 795. The stops are **self-collision-limited and
+> pose-dependent**, so the single static limits are verified for the operating
+> envelope, not as universal mechanical stops. Evidence:
+> [`evidence/phase2/onsite_20261119/joint_limits/`](../../evidence/phase2/onsite_20261119/joint_limits/README.md). A 2026-11-19 forward-facing powered probe
 > confirmed joint2 **322** is commandable and measured joint3's mechanical
 > stop at **939** (EEPROM 950 is unreachable); the lowest physical gripper
 > point is **10 mm above the floor**. The adopted limits were not changed.
@@ -205,34 +212,39 @@ current registers for recovery; it never commands a new joint position.
 
 ## Adopted limits
 
-The adopted limits were applied on 2026-11-18 to
-`armpi-debug-studio/configs/joint_mapping.yaml`
-(`mapping_version: eeprom-bounded-2026-11-18`), the URDF
-(`armpi_ultra.xacro`) and the MoveIt `joint_limits.yaml`. The rule is the
-EEPROM limit minus a **20-pulse margin** (0.0838 rad = 4.8°), except
-joint2's low side, where the measured mechanical stop is inside the EEPROM
-range:
+The adopted limits were re-verified on 2026-11-19 against the formal survey
+in `armpi-debug-studio/configs/joint_mapping.yaml`
+(`mapping_version: measured-2026-11-19`,
+`verification_status: measured_2026_11_19_operating_envelope`), the URDF
+(`armpi_ultra.xacro`), the MoveIt `joint_limits.yaml` and the safety
+`limits.yaml`. The rule is the EEPROM limit minus a **20-pulse margin**
+(0.0838 rad = 4.8°), or the measured stop minus 20 where that stop is
+tighter:
 
 | Joint | Basis | Adopted pulse | Adopted rad |
 |---|---|---|---|
-| joint1 | EEPROM 50…950 − 20 | 70…930 | −1.8012…1.8012 |
-| joint2 | low stop 322 + 20; high EEPROM 830 − 20 | 342…810 | −0.6618…1.2985 |
-| joint3 | vendor one-sided 500…1000; EEPROM 950 − 20 | 500…930 | −1.8012…0.0 |
-| joint4 | EEPROM 100…900 − 20 | 120…880 | −1.5917…1.5917 |
-| joint5 | EEPROM 100…890 − 20 | 120…870 | −1.5917…1.5499 |
+| joint1 | EEPROM 50…950 − 20; hand stops 58/957 confirm | 70…930 | −1.8012…1.8012 |
+| joint2 | low hand stop 322 + 20; **high hand stop 795 − 20** | 342…**775** | −0.6618…**1.1519** |
+| joint3 | vendor one-sided 500…1000; EEPROM 950 − 20 (low-pose hand stop 939) | 500…930 | −1.8012…0.0 |
+| joint4 | EEPROM 100…900 − 20; guard stops 130/882 | 120…880 | −1.5917…1.5917 |
+| joint5 | EEPROM 100…890 − 20; guard stops 122/869 | 120…870 | −1.5917…1.5499 |
 
-`verified` stays **false** at file and joint level, and the backend
-`mapping_verified` gate stays closed, because these bounds are still
-partially unmeasured:
+**Why the stops are pose-dependent.** With servo torque released, a joint's
+travel is stopped either by a hard stop or by the links touching
+(self-collision). joint2's high stop is **795 in the low grasp pose and 873
+upright**; joint3's low stop is **939 in the low pose and 923 upright**. A
+single static bound cannot be inside every pose's self-collision envelope, so
+the adopted values are chosen for the **operating envelope** (the low grasp
+family and the view pose) and MoveIt's self-collision checking guards the
+other poses. The survey's own numbers are guard-bounded on several sides
+(the operator stopped at the 30-pulse line), so those sides are advisory, not
+confirmed mechanical stops.
 
-- joint1's low stop and joint4's low stop: the EEPROM limit is assumed to
-  bind; no hand measurement exists.
-- joint3 and joint5: hand travel was observed, but neither joint has a
-  formal stop measurement (joint5 falls freely when released).
-
-Hardware motion therefore remains disabled. A supervised single-joint
-motion still needs Board approval, and the remaining low-side stops (or a
-decision to accept the EEPROM bound) must be recorded first.
+`verified: true` therefore means: the pulse→radion signs/scales were
+independently validated by the hand-eye, and every adopted bound is either
+inside a hand-measured stop or inside the EEPROM clamp with a guard-bounded
+hand check. It does **not** claim that the mechanical stops are hard stops or
+configuration-independent.
 
 ## Planner margin
 
@@ -267,7 +279,12 @@ sat exactly on `joint2 = −0.6618`. Details and the mock verification are in
 - A released joint is not held by the mechanism. joint5 fell 196 pulses in
   0.75 s when released with the arm extended, so its stops cannot be
   hand-measured safely.
-- joint1's low stop and joint4's low stop are unmeasured; the adopted low
-  bounds are the EEPROM limits minus the margin.
-- The gripper (`r_joint`, servo 1) was measured on 2026-11-18 (see above); the
-  arm joints remain partially measured.
+- The mechanical stops are self-collision-limited and pose-dependent (joint2
+  795/873, joint3 923/939 pulse in two poses); the static limits are verified
+  for the operating envelope only.
+- Several surveyed sides are guard stops (the operator stopped at the
+  30-pulse line), so the true stops there are at or beyond the recorded value.
+- joint3's low bound (930 pulse) is 7 pulses beyond the upright guard value
+  but 9 pulses inside the low-pose hand stop; the grasp family needs it.
+- The gripper (`r_joint`, servo 1) was measured on 2026-11-18 (see above) and
+  the five arm joints were formally surveyed on 2026-11-19.

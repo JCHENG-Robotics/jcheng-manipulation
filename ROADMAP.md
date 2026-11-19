@@ -11,7 +11,7 @@
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; adopted limits are EEPROM−20 pulses, `mapping_verified=false` |
+| Robot model and TF | **Implemented; live arm/camera TF verified; limits formally surveyed** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; all five joints hand-surveyed 2026-11-19, `mapping_verified=true` for the operating envelope |
 | MoveIt 2 constrained planning | **Implemented; mock + real execution validated** | Pilz `PTP` 6D-constrained goal (mock); real execution through Humble Docker MoveIt on 2026-11-18/19 |
 | 5-DoF grasp candidate search | **Implemented; mock + real use** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans (mock); the same search fed all five real grasp passes |
 | Fiducial → grasp bridge | **Implemented; mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; the real grasps used the grasp planner directly, not this bridge |
@@ -130,10 +130,12 @@ Status (2026-11-19), evidence in
   and intrinsics captured.
 - [x] ROS 2 Humble, CycloneDDS, domain, container and one-action-server graph
   verified.
-- [ ] Measured joint limits and servo offsets — **partial**: joint2 low 322,
-  joint3 stop 939, joint4 high 901; joint1 low, joint3 positive and joint5
-  remain unmeasured. Adopted limits are servo EEPROM − 20 pulses;
-  `mapping_verified=false`.
+- [x] Measured joint limits and servo offsets — **formal survey complete
+  2026-11-19** on all five arm joints with torque released (joint1 58…957,
+  joint2 327…795 low pose / 186…873 upright, joint3 100…923, joint4 130…882,
+  joint5 122…869 pulse). Adopted limits are EEPROM − 20 pulses, tightened on
+  joint2's high side to 775; the stops are self-collision-limited and
+  pose-dependent, so `mapping_verified=true` covers the operating envelope.
 - [x] Control/feedback interfaces audited live; `joint_states` are cached
   commands, `get_state` reads the servo register.
 - [x] Camera topics and TF verified; the live frames are `rgb_camera_link` /

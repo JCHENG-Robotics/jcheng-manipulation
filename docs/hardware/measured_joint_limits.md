@@ -141,9 +141,12 @@ EEPROM bound:
 | joint4 | 120…880 | −1.5917…1.5917 |
 | joint5 | 120…870 | −1.5917…1.5499 |
 
-These are adopted for planning, **not verified**: joint1's and joint4's
-low stops are unmeasured, and joint3/joint5 have no formal stop values.
-`mapping_verified` stays false and hardware motion stays disabled.
+These were the 2026-11-18 adopted values. The 2026-11-19 formal survey then
+measured every arm joint by hand with torque released (joint1 58…957, joint2
+327…795 low pose / 186…873 upright, joint3 100…923, joint4 130…882, joint5
+122…869) and tightened joint2's high bound to 775. `mapping_verified` is now
+true for the operating envelope; see
+[`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md).
 
 ### Forward-facing lowest reach (2026-11-19)
 
@@ -168,8 +171,8 @@ Evidence:
   point, and the fingertip is ~**5 mm below the nominal TCP**. The safety
   `clearance_m: 0.01` is a TCP-vs-fitted-plane guard, not a 10 mm physical
   fingertip guarantee.
-- The adopted limits were **not changed**; `mapping_verified` stays false
-  (joint1/joint4/joint5 low stops remain unmeasured).
+- The adopted limits were not changed by the lowest-reach probe itself; the
+  later 2026-11-19 formal survey did tighten joint2's high bound.
 
 ### Four-direction grasp working radius (2026-11-19)
 

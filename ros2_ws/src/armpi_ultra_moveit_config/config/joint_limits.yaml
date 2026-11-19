@@ -23,11 +23,12 @@ joint_limits:
     has_acceleration_limits: true
     max_acceleration: 1.0
   joint2:
-    # low mechanical stop 322 + 20 = 342 -> -0.6618; high EEPROM 830 - 20
-    # = 810 -> 1.2985.
+    # low mechanical stop 322 + 20 = 342 -> -0.6618; high hand-measured
+    # stop 795 (low-pose survey 2026-11-19) - 20 = 775 -> 1.1519. The high
+    # stop is pose-dependent (873 upright), so the low-pose value is used.
     has_position_limits: true
     min_position: -0.6618
-    max_position: 1.2985
+    max_position: 1.1519
     has_velocity_limits: true
     max_velocity: 10.0
     has_acceleration_limits: true
