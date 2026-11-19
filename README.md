@@ -274,9 +274,11 @@ python -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_error_budget.py \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
-  tools/phase2/tests/test_measurement_protocol.py \
+  tools/phase2/tests/test_grasp_joint_fit.py \
   tools/phase2/tests/test_low_config_model_fit.py \
+  tools/phase2/tests/test_measurement_protocol.py \
   tools/phase2/tests/test_object_segment.py \
+  tools/phase3/tests \
   tools/phase4/tests
 
 # debug studio: backend 92, gateway 38, mock Playwright 10

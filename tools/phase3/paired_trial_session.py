@@ -1,0 +1,475 @@
+#!/usr/bin/env python3
+"""Run a paired baseline/intervention grasp session on the real robot.
+
+The experiment unit is a matched pair (see ``docs/phase3/PAIRED_TRIALS.md``).
+For every pair the operator places the same cube at the same floor fixture and
+the session runs both methods in the randomized order of the plan:
+
+``baseline``
+    Target = the measured top-face point, no low-configuration correction.
+    This is the method that failed passes 3-4 on 2026-11-19.
+``intervention``
+    Target = the measured point + the grasp-validated constant correction
+    ``(+13.7, +3.9, +8.9) mm``.
+
+Per trial the runner measures the cube at the view pose, fits the deep-family
+joints (``grasp_joint_fit``), grasps, checks whether the floor is empty, and
+for a held cube releases it back and measures the landing displacement. Every
+trial is appended to the paired-trial JSONL through the validated recorder, so
+the session is resumable.
+
+Run on the laptop (needs ``sg docker`` for the Humble container and an SSH key
+for the robot)::
+
+    sg docker -c "python3 tools/phase3/paired_trial_session.py \
+        --pairs 24 --seed 7 --fixture floor_square_A \
+        --plan evidence/phase3/onsite_20261119/paired_trials_plan.json \
+        --trials evidence/phase3/onsite_20261119/trials.jsonl"
+
+Add ``--dry-run`` to exercise the control flow and the recorder with synthetic
+measurements and no robot calls.
+"""
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+import numpy as np
+
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(REPO, 'tools', 'phase2'))
+sys.path.insert(0, os.path.join(REPO, 'ros2_ws', 'src', 'armpi_analysis'))
+
+import grasp_joint_fit  # noqa: E402
+from armpi_analysis import paired_trials  # noqa: E402
+
+ARM_JOINTS = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
+DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
+DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
+ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
+               'low_config_grasp_validate.py')
+
+
+def now_iso():
+    """Return the current UTC time as an ISO-8601 string."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+def run_command(command, timeout, what):
+    """Run one command and fail loudly with its output on error."""
+    started = time.time()
+    completed = subprocess.run(
+        command, capture_output=True, text=True, timeout=timeout)
+    if completed.returncode != 0:
+        raise RuntimeError(
+            '{} failed ({} s, rc {}):\nstdout: {}\nstderr: {}'.format(
+                what, round(time.time() - started, 1), completed.returncode,
+                completed.stdout[-2000:], completed.stderr[-2000:]))
+    return completed.stdout
+
+
+class RobotLink:
+    """The robot's vendor container over SSH."""
+
+    def __init__(self, host, container):
+        self.host = host
+        self.container = container
+
+    def exec(self, arguments, timeout=90.0):
+        """Run one command in the robot container and return stdout."""
+        inner = 'source ~/.zshrc >/dev/null 2>&1; exec ' + ' '.join(
+            shlex.quote(str(value)) for value in arguments)
+        remote = 'sudo docker exec -u ubuntu {} /bin/zsh -c {}'.format(
+            self.container, shlex.quote(inner))
+        return run_command(
+            ['ssh', self.host, remote], timeout,
+            'robot command {}'.format(arguments[0]))
+
+    def install_tools(self, local_tools):
+        """Copy the container-side helper scripts into the container."""
+        for name in ROBOT_TOOLS:
+            local = os.path.join(local_tools, name)
+            inner = ('rm -f /tmp/{0}; cat > /tmp/{0}; chmod 644 /tmp/{0}'
+                     .format(name))
+            remote = 'sudo docker exec -i -u root {} /bin/zsh -c {}'.format(
+                self.container, shlex.quote(inner))
+            with open(local, 'rb') as handle:
+                completed = subprocess.run(
+                    ['ssh', self.host, remote], stdin=handle,
+                    capture_output=True, timeout=30)
+            if completed.returncode != 0:
+                raise RuntimeError('copy {} failed: {}'.format(
+                    name, completed.stderr[-500:]))
+
+    def pulses(self):
+        """Read the five arm registers."""
+        text = self.exec(['python3', '/tmp/bus_pulses.py'], timeout=40)
+        values = [int(value) for value in text.strip().split(',') if value]
+        if len(values) != 5:
+            raise RuntimeError('unexpected pulse output: {!r}'.format(text))
+        return values
+
+    def move_to_pose(self, pose, tag='move'):
+        """Move the arm to one pose and return the run report."""
+        output = '/tmp/{}_{}.json'.format(tag, int(time.time()))
+        self.exec(['python3', '/tmp/move_to_pose.py',
+                   '--pose', ','.join('{:.6f}'.format(v) for v in pose),
+                   '--output', output, '--i-have-clear-workspace'],
+                  timeout=120)
+        return self.read_json(output)
+
+    def grasp(self, grasp_joints, view_pose, tag):
+        """Grasp, close and rise to the view pose."""
+        output = '/tmp/grasp_{}.json'.format(tag)
+        self.exec(['python3', '/tmp/low_config_grasp_validate.py',
+                   '--grasp', ','.join('{:.6f}'.format(v)
+                                       for v in grasp_joints[:4]),
+                   '--verify-pose', ','.join('{:.6f}'.format(v)
+                                             for v in view_pose),
+                   '--output', output, '--i-have-clear-workspace'],
+                  timeout=180)
+        report = self.read_json(output)
+        if not report.get('ok'):
+            raise RuntimeError('grasp sequence failed: {}'.format(
+                report.get('error')))
+        return report
+
+    def release(self, grasp_joints, view_pose, tag):
+        """Lower a held cube back to the grasp pose and open."""
+        output = '/tmp/release_{}.json'.format(tag)
+        self.exec(['python3', '/tmp/low_config_grasp_validate.py',
+                   '--grasp', ','.join('{:.6f}'.format(v)
+                                       for v in grasp_joints[:4]),
+                   '--verify-pose', ','.join('{:.6f}'.format(v)
+                                             for v in view_pose),
+                   '--release-only', '--output', output,
+                   '--i-have-clear-workspace'], timeout=180)
+        report = self.read_json(output)
+        if not report.get('ok'):
+            raise RuntimeError('release sequence failed: {}'.format(
+                report.get('error')))
+        return report
+
+    def read_json(self, path):
+        """Read a JSON file from the container without copying it."""
+        text = self.exec(['cat', path], timeout=20)
+        return json.loads(text)
+
+
+class HumbleLink:
+    """The laptop's Humble container (segmentation)."""
+
+    def __init__(self, container, hand_eye, repo):
+        self.container = container
+        self.hand_eye = hand_eye
+        self.repo = repo
+
+    def docker(self, arguments, timeout=90.0):
+        """Run one command in the Humble container and return stdout."""
+        command = 'docker exec {} {}'.format(
+            self.container,
+            ' '.join(shlex.quote(str(value)) for value in arguments))
+        return run_command(['sg', 'docker', '-c', command], timeout,
+                           'container command {}'.format(arguments[0]))
+
+    def install_hand_eye(self, source):
+        """Copy the hand-eye calibration into the container."""
+        run_command(['sg', 'docker', '-c',
+                     'docker cp {} {}:{}'.format(
+                         source, self.container, self.hand_eye)],
+                    30, 'hand-eye copy')
+
+    def segment(self, pulses, tag):
+        """Segment the cube at the current pose; return the JSON report."""
+        output = '/tmp/seg_{}.json'.format(tag)
+        inner = (
+            'source /opt/ros/humble/setup.bash; '
+            'source /workspace/install/setup.bash 2>/dev/null; '
+            'python3 /repo_tools/phase2/object_segment_rgbd.py '
+            '--output {out} --hand-eye {he} --joints-pulses {pulses}'
+        ).format(
+            out=output,
+            he=self.hand_eye,
+            pulses=','.join(str(value) for value in pulses),
+        )
+        self.docker(['bash', '-lc', inner], timeout=90)
+        return json.loads(self.docker(['cat', output], timeout=20))
+
+
+def cube_point(report):
+    """Return the measured cube point, or None.
+
+    A valid top face gives ``grasp_point_base``. A clipped view is rejected as
+    a grasp target but keeps ``rejected_point_base``; the session uses it only
+    for the landing measurement and records that caveat.
+    """
+    selected = report.get('selected') or {}
+    if selected.get('grasp_point_base') is not None:
+        return np.asarray(selected['grasp_point_base'], dtype=np.float64), True
+    if selected.get('rejected_point_base') is not None:
+        return np.asarray(selected['rejected_point_base'],
+                          dtype=np.float64), False
+    return None, False
+
+
+class Session:
+    """One paired-trial session."""
+
+    def __init__(self, args):
+        self.args = args
+        self.correction = np.asarray(
+            [float(v) for v in args.correction.split(',')], dtype=np.float64)
+        if self.correction.size != 3:
+            raise SystemExit('--correction needs three millimetres values')
+        self.view_pose = [float(v) for v in args.view_pose.split(',')]
+        self.plan = self._load_plan()
+        self.done = self._load_done()
+        self.robot = RobotLink(args.robot, args.robot_container)
+        self.humble = HumbleLink(
+            args.humble_container, args.hand_eye_container, REPO)
+        self.counter = 0
+
+    def _load_plan(self):
+        path = self.args.plan
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as handle:
+                return json.load(handle)
+        pair_ids = ['p{:03d}'.format(index + 1)
+                    for index in range(self.args.pairs)]
+        plan = paired_trials.build_plan(
+            pair_ids, fixtures=[self.args.fixture], seed=self.args.seed)
+        os.makedirs(os.path.dirname(os.path.abspath(path)) or '.',
+                    exist_ok=True)
+        with open(path, 'w', encoding='utf-8') as handle:
+            json.dump(plan, handle, indent=2)
+        print('wrote the randomization plan: {}'.format(path))
+        return plan
+
+    def _load_done(self):
+        if not os.path.exists(self.args.trials):
+            return set()
+        records = paired_trials.load_records(self.args.trials)
+        return {(record['pair_id'], record['method']) for record in records}
+
+    def prepare(self):
+        """Install the container helpers and put the arm at the view pose."""
+        if self.args.dry_run:
+            return
+        self.robot.install_tools(os.path.join(REPO, 'tools', 'phase2'))
+        self.humble.install_hand_eye(os.path.join(
+            REPO, self.args.hand_eye_host))
+        print('moving to the view pose ...')
+        self.robot.move_to_pose(self.view_pose, tag='view')
+        print('arm at the view pose.')
+
+    def measure(self, pulses, tag, retries=3):
+        """Measure the cube, prompting the operator to re-place if needed."""
+        for attempt in range(retries):
+            report = self.humble.segment(pulses, tag)
+            point, valid = cube_point(report)
+            if valid:
+                return point, report
+            clusters = report.get('segmentation', {}).get('clusters', 0)
+            print('measurement not usable '
+                  '(success={}, clusters={}, {})'.format(
+                      report.get('success'), clusters,
+                      report.get('rejection', {}).get('reason')))
+            if attempt + 1 < retries and not self.args.dry_run:
+                input('  adjust the cube and press Enter to re-measure ... ')
+                pulses = self.robot.pulses()
+        return None, report
+
+    def trial(self, entry):
+        """Run one trial and append its record."""
+        method = entry['method']
+        tag = '{}_s{:02d}'.format(entry['pair_id'], entry['sequence'])
+        self.counter += 1
+        print('\n=== [{}] {} / {} ({}) ==='.format(
+            self.counter, entry['pair_id'], method,
+            entry['object_pose_fixture']))
+        if self.args.dry_run:
+            return self._dry_trial(entry, tag)
+        input('  place the cube at the fixture and press Enter ... ')
+        pulses = self.robot.pulses()
+        point, report = self.measure(pulses, tag + '_pre')
+        if point is None:
+            raise RuntimeError(
+                'no usable pre-trial measurement for {}'.format(tag))
+        target = point + (self.correction if method == 'intervention'
+                          else np.zeros(3))
+        fit = grasp_joint_fit.fit(target)
+        print('  cube  ({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*point))
+        print('  target({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*target))
+        print('  joints {}  xy error {:.2f} mm'.format(
+            ','.join('{:.4f}'.format(v) for v in fit['joints'][:4]),
+            fit['xy_error_mm']))
+        grasp_report = self.robot.grasp(fit['joints'], self.view_pose, tag)
+        grip_pulses = [
+            grasp_report['pulses_at_verify'][str(servo)]
+            for servo in (6, 5, 4, 3, 2)
+        ]
+        grip_report = self.humble.segment(grip_pulses, tag + '_grip')
+        clusters = grip_report.get('segmentation', {}).get('clusters', 0)
+        held = (not grip_report.get('success')) and clusters == 0
+        notes = {
+            'cube_point': [float(v) for v in point],
+            'target': [float(v) for v in target],
+            'joints': fit['joints'],
+            'xy_error_mm': fit['xy_error_mm'],
+            'residual_mm': fit['residual_mm'],
+            'grip_clusters': clusters,
+            'grip_success': grip_report.get('success'),
+            'pre_seg_ok': report.get('success'),
+        }
+        notes['grip_rejection'] = grip_report.get('rejection')
+        notes['grip_selected'] = bool(grip_report.get('selected'))
+        if not held:
+            code = 'MISS' if clusters > 0 else 'NO_GRIP'
+            if clusters > 0:
+                self._operator_note(
+                    'a cluster is still above the floor; confirm the cube '
+                    'was not held')
+            self._record(entry, success=False, error_mm=None,
+                         failure_code=code, notes=notes)
+            return False
+        self._operator_note('the cube is held; the arm will put it back')
+        release_report = self.robot.release(
+            fit['joints'], self.view_pose, tag)
+        land_pulses = [
+            release_report['pulses_at_verify'][str(servo)]
+            for servo in (6, 5, 4, 3, 2)
+        ]
+        land_report = self.humble.segment(land_pulses, tag + '_land')
+        landing, valid = cube_point(land_report)
+        if landing is None:
+            notes['landing_measured'] = False
+            raise RuntimeError(
+                'the cube could not be measured after the release; record the '
+                'trial manually in the JSONL')
+        error_mm = float(np.linalg.norm((landing - point)[:2]) * 1000.0)
+        notes['landing'] = [float(v) for v in landing]
+        notes['landing_measured'] = bool(valid)
+        self._record(entry, success=True, error_mm=error_mm,
+                     failure_code=None, notes=notes)
+        print('  held and released; landing error {:.2f} mm'.format(error_mm))
+        return True
+
+    def _operator_note(self, text):
+        """Print an operator instruction without blocking in dry-run."""
+        print('  operator: {}'.format(text))
+
+    def _record(self, entry, success, error_mm, failure_code, notes):
+        """Append one validated record."""
+        record = {
+            'pair_id': entry['pair_id'],
+            'trial_order': entry['trial_order'],
+            'method': entry['method'],
+            'object_pose_fixture': entry['object_pose_fixture'],
+            'continuous_error_mm': error_mm,
+            'grasp_success': bool(success),
+            'failure_code': failure_code,
+            'recorded_at': now_iso(),
+            'notes': json.dumps(notes, sort_keys=True),
+        }
+        paired_trials.append_record(self.args.trials, record, plan=self.plan)
+        self.done.add((entry['pair_id'], entry['method']))
+        print('  recorded {} / {}: success={} error={}'.format(
+            entry['pair_id'], entry['method'], success,
+            'n/a' if error_mm is None else '{:.2f} mm'.format(error_mm)))
+
+    def _dry_trial(self, entry, tag):
+        """Exercise the control flow without the robot."""
+        point = np.asarray([0.2300, 0.0000, -0.0506])
+        target = point + (self.correction if entry['method'] == 'intervention'
+                          else np.zeros(3))
+        fit = grasp_joint_fit.fit(target)
+        notes = {
+            'dry_run': True,
+            'cube_point': point.tolist(),
+            'target': target.tolist(),
+            'joints': fit['joints'],
+            'xy_error_mm': fit['xy_error_mm'],
+            'residual_mm': fit['residual_mm'],
+        }
+        if entry['method'] == 'baseline':
+            self._record(entry, success=False, error_mm=None,
+                         failure_code='MISS', notes=notes)
+            return False
+        self._record(entry, success=True, error_mm=2.0,
+                     failure_code=None, notes=notes)
+        return True
+
+    def run(self):
+        """Run every pending trial in plan order."""
+        self.prepare()
+        pending = [entry for entry in self.plan['entries']
+                   if (entry['pair_id'], entry['method']) not in self.done]
+        print('{} pending trials of {}'.format(
+            len(pending), len(self.plan['entries'])))
+        if self.args.max_trials:
+            pending = pending[:self.args.max_trials]
+        for entry in pending:
+            self.trial(entry)
+        print('\n{} trials recorded in {}'.format(
+            len(self.done), self.args.trials))
+
+
+def build_parser():
+    """Return the argument parser."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--pairs', type=int, default=24)
+    parser.add_argument('--seed', type=int, default=7)
+    parser.add_argument('--fixture', default='floor_square_A')
+    parser.add_argument(
+        '--plan',
+        default='evidence/phase3/onsite_20261119/paired_trials_plan.json')
+    parser.add_argument(
+        '--trials',
+        default='evidence/phase3/onsite_20261119/trials.jsonl')
+    parser.add_argument(
+        '--correction',
+        default=','.join(str(v) for v in DEFAULT_CORRECTION_MM),
+        help='constant correction in millimetres for the intervention')
+    parser.add_argument(
+        '--view-pose', default=','.join(str(v) for v in DEFAULT_VIEW_POSE),
+        help='five joints of the measurement pose')
+    parser.add_argument(
+        '--hand-eye-host',
+        default='evidence/calibration/20261118/table_down/'
+                'calibration_table_down_20261118.json',
+        help='hand-eye calibration on the host')
+    parser.add_argument(
+        '--hand-eye-container', default='/tmp/hand_eye_table_down.json',
+        help='hand-eye path inside the Humble container')
+    parser.add_argument('--robot', default='pi@10.42.0.218')
+    parser.add_argument('--robot-container', default='ArmPiUltra')
+    parser.add_argument('--humble-container', default='armpi-humble')
+    parser.add_argument('--max-trials', type=int, default=0)
+    parser.add_argument(
+        '--dry-run', action='store_true',
+        help='synthetic measurements, no robot or container calls')
+    return parser
+
+
+def main(argv=None):
+    """Run the session."""
+    args = build_parser().parse_args(argv)
+    if not args.dry_run and not sys.stdin.isatty():
+        raise SystemExit('the session needs an interactive operator prompt')
+    session = Session(args)
+    try:
+        session.run()
+    except KeyboardInterrupt:
+        print('\ninterrupted; completed trials are already recorded')
+        return 130
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
