@@ -5,8 +5,10 @@
 > board scatter, 3.29 mm / 0.43° held-out). The measured optical frame is
 > wired into the localizer as `camera_optical_calibrated`. A 24-pose diverse
 > set is selected offline for the next capture. The fiducial → grasp bridge and
-> a mock visual-grasp E2E are now validated; a real visual grasp is still
-> pending. A flat AprilTag independently checked the scale: **100.67 mm vs
+> a mock visual-grasp E2E are now validated. **A real autonomous visual grasp is
+> done (2026-11-19): a 39.3 mm cube was grasped, lifted ≈149 mm and put back
+> with no operator** (see the state table and the evidence record). A flat
+> AprilTag independently checked the scale: **100.67 mm vs
 > 100.0 mm lateral (0.67 %)**, and a table-down chessboard fit is
 > relative-consistent (2.7 mm / 0.42°). A follow-up depth point-cloud plane
 > (**147,626 inliers, 0.7 mm RMS**) plus a **215 mm ruler check** place the
@@ -50,7 +52,7 @@
 | Supervised object-free approach | **Executed (2026-11-18)** | `camera_forward` → planner plan-only (3/3 safety approved) → exact trajectory → final TCP 1 mm from plan; camera_forward view volume is not a grasp volume |
 | Calibration pose selection | **Implemented, offline-validated (2026-11-17)** | 24 poses from 14,176 evaluated poses / 3,093 feasible; diversity, rotation-excitation and coplanarity checks pass; not executed |
 | Markerless RGB-D segmentation | **Implemented, real-cloud validated (2026-11-18)** | `tools/phase2/object_segment_rgbd.py`: floor RANSAC + 5 mm voxel clustering + top-slab fit; 39.2 × 39.8 mm cluster, 1.9/−4.1/−3.5 mm vs the RGB; `--min-top-extent` rejects a clipped top view (the first-grasp miss) |
-| Real visual grasping | **First grasp achieved (2026-11-18)** | Markerless floor cube at the reach limit. The autonomous placement missed by a few mm; the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/) |
+| Real visual grasping | **First grasp (2026-11-18); autonomous pick-lift-place (2026-11-19)** | 2026-11-18: markerless floor cube at the reach limit; the autonomous placement missed by a few mm, the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. 2026-11-19: one attempt, no operator — vision-measured 39.3 mm cube, grasp, **≈149 mm lift**, place back and release (7.5 mm residual). `joint5 = 0` at the view pose is required: 1.383 clips the top face to 35 mm and biases the centroid. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/) and [`evidence/phase2/onsite_20261119/grasp_150mm/`](../../evidence/phase2/onsite_20261119/grasp_150mm/) |
 | Grasp execution and verification | **Real execution validated (2026-11-18)** | measured bus-servo completion on every executed trajectory; the lift was confirmed by the operator. Release verification is open (see the evidence follow-ups) |
 
 Evidence:

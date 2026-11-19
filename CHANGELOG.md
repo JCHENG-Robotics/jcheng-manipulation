@@ -3,6 +3,31 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-19 autonomous pick-lift-place of the floor cube
+
+### Verified (real hardware, 2026-11-19)
+
+- One attempt, no operator: vision-measured a 39.4 mm wooden cube (top face
+  41.0 × 37.7 mm, bounds 38.7 × 40.0 mm, centre (0.2265, 0.0009) m), grasped
+  it with `joint5 = 0`, lifted the TCP from −0.0375 to +0.1097 m
+  (**≈149 mm** above the floor), lowered back and released. All 10 arm
+  trajectories and 3 gripper goals returned `status=4`; safety approved each
+  arm plan.
+- **`joint5` must be 0 at the table-down view.** With the half-open gripper at
+  `joint5 = 1.383` its fingers cross the camera→cube ray: the segmented top
+  face shrinks to 35.0 × 37.7 mm and the per-slice centroid moves by up to
+  5 mm. `joint5` is a pure roll about the TCP (the TCP is invariant), so it can
+  be set freely; 0 also aligns the finger axis to 2.3° of the cube face.
+- The same-orientation IK for the lift fails (`/compute_ik` code −31); the
+  150 mm lift needs a joint-space target (j2 0.15, j3 −1.40, j4 −1.20 at
+  x 0.238). The floor reach boundary still caps the grasp TCP 5.9 mm short of
+  the cube centre (along the finger length, not across the opening).
+- Absolute base-frame estimates drift ~10 mm between captures because the real
+  arm pitch differs from FK by ~2.5° (sag/backlash): the same-transform
+  re-segmentation after placing the cube back moved the fitted floor plane
+  10 mm. Cube-relative numbers (height above the floor, size, yaw) are stable.
+- Evidence: [`evidence/phase2/onsite_20261119/grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/).
+
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
 
 ### Security
