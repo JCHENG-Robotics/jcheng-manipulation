@@ -1,0 +1,845 @@
+{
+  "schema_version": 1,
+  "protocol": "gripper_envelope",
+  "mode": "analyze",
+  "generated_at": "2026-11-19T11:07:10.110974+00:00",
+  "dry_run": false,
+  "no_hardware": true,
+  "limits_source": "/home/jerichocheng/jcheng/jcheng-manipulation/ros2_ws/src/armpi_safety/config/safety_limits.yaml",
+  "limits": {
+    "joint1": [
+      -1.8012,
+      1.8012
+    ],
+    "joint2": [
+      -0.6618,
+      1.2985
+    ],
+    "joint3": [
+      -1.8012,
+      0.0
+    ],
+    "joint4": [
+      -1.5917,
+      1.5917
+    ],
+    "joint5": [
+      -1.5917,
+      1.5499
+    ]
+  },
+  "target_joints": [
+    0.0,
+    0.59888,
+    -1.25664,
+    -0.71209,
+    0.0
+  ],
+  "target_point_m": [
+    0.2,
+    0.0,
+    0.1
+  ],
+  "schedule": {
+    "step_mm": 2.0,
+    "max_offset_mm": 10.0,
+    "trials_per_offset": 3,
+    "yaw_step_deg": 5.0,
+    "max_yaw_deg": 20.0,
+    "offsets": [
+      {
+        "id": "x_-10mm",
+        "offset_m": [
+          -0.01,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_-8mm",
+        "offset_m": [
+          -0.008,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_-6mm",
+        "offset_m": [
+          -0.006,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_-4mm",
+        "offset_m": [
+          -0.004,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_-2mm",
+        "offset_m": [
+          -0.002,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+2mm",
+        "offset_m": [
+          0.002,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+4mm",
+        "offset_m": [
+          0.004,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+6mm",
+        "offset_m": [
+          0.006,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+8mm",
+        "offset_m": [
+          0.008,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "x_+10mm",
+        "offset_m": [
+          0.01,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_-10mm",
+        "offset_m": [
+          0.0,
+          -0.01,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_-8mm",
+        "offset_m": [
+          0.0,
+          -0.008,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_-6mm",
+        "offset_m": [
+          0.0,
+          -0.006,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_-4mm",
+        "offset_m": [
+          0.0,
+          -0.004,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_-2mm",
+        "offset_m": [
+          0.0,
+          -0.002,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+2mm",
+        "offset_m": [
+          0.0,
+          0.002,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+4mm",
+        "offset_m": [
+          0.0,
+          0.004,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+6mm",
+        "offset_m": [
+          0.0,
+          0.006,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+8mm",
+        "offset_m": [
+          0.0,
+          0.008,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "y_+10mm",
+        "offset_m": [
+          0.0,
+          0.01,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_-10mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.01
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_-8mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.008
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_-6mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.006
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_-4mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.004
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_-2mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          -0.002
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+0mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+2mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.002
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+4mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.004
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+6mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.006
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+8mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.008
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "z_+10mm",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.01
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      }
+    ],
+    "yaw_offsets": [
+      {
+        "id": "yaw_-20deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": -20.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_-15deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": -15.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_-10deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": -10.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_-5deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": -5.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_+0deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_+5deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 5.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_+10deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 10.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_+15deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 15.0,
+        "trials": 3
+      },
+      {
+        "id": "yaw_+20deg",
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 20.0,
+        "trials": 3
+      }
+    ]
+  },
+  "samples": [
+    {
+      "offset_m": [
+        -0.009,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        -0.006,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        -0.003,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.003,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.006,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.009,
+        0.0,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        -0.009,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 1
+    },
+    {
+      "offset_m": [
+        0.0,
+        -0.006,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        -0.003,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.003,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.006,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    },
+    {
+      "offset_m": [
+        0.0,
+        0.009,
+        0.0
+      ],
+      "yaw_deg": 0.0,
+      "trials": 2,
+      "successes": 2
+    }
+  ],
+  "analysis": {
+    "kind": "gripper_envelope",
+    "records": [
+      {
+        "offset_m": [
+          -0.009,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          -9.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          -0.006,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          -6.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          -0.003,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          -3.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.003,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          3.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.006,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          6.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.009,
+          0.0,
+          0.0
+        ],
+        "offset_mm": [
+          9.0,
+          0.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          -0.009,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          -9.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 1,
+        "success_rate": 0.5,
+        "pass": false
+      },
+      {
+        "offset_m": [
+          0.0,
+          -0.006,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          -6.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          -0.003,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          -3.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.003,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          3.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.006,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          6.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      },
+      {
+        "offset_m": [
+          0.0,
+          0.009,
+          0.0
+        ],
+        "offset_mm": [
+          0.0,
+          9.0,
+          0.0
+        ],
+        "yaw_deg": 0.0,
+        "trials": 2,
+        "successes": 2,
+        "success_rate": 1.0,
+        "pass": true
+      }
+    ],
+    "envelope_mm": {
+      "x": 9.0,
+      "y": 9.0,
+      "z": 0.0
+    },
+    "envelope_deg": null,
+    "success_threshold": 0.8
+  },
+  "limitations": [
+    "Dry-run/simulate only; the robot is not moved.",
+    "Joint limits are provisional URDF/MoveIt values; mechanical limits are not measured.",
+    "Simulation noise is synthetic and does not model servo dynamics, backlash or camera noise.",
+    "A hardware run needs the supervised joint-limit survey and the safety review first."
+  ]
+}

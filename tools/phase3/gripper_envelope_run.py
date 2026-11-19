@@ -43,18 +43,22 @@ import paired_trial_session as pts  # noqa: E402
 
 DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
 DEFAULT_OFFSETS_MM = [0, 3, -3, 6, -6, 9, -9]
+DEFAULT_Y_OFFSETS_MM = [0, 3, -3, 6, -6, 9, -9, 12, -12, 15, -15]
+DEFAULT_Z_OFFSETS_MM = [0, 3, -3, 6, -6, 9, -9]
+AXIS_INDEX = {'x': 0, 'y': 1, 'z': 2}
 DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
 MAX_RELATIVE_YAW_DEG = 10.0
 
 
-def build_schedule(offsets_mm, axis_repeats, seed):
-    """Return the randomized trial list [(block, axis, offset_mm), ...]."""
-    points = []
-    for axis in ('x', 'y'):
-        for offset in offsets_mm:
-            if axis == 'y' and offset == 0:
-                continue  # the zero offset is shared by both axes
-            points.append((axis, int(offset)))
+def build_schedule(x_offsets, y_offsets, z_offsets, axis_repeats, seed):
+    """Return the randomized trial list [(block, axis, offset_mm), ...].
+
+    ``x`` keeps its zero offset; ``y`` and ``z`` drop theirs because a zero
+    offset on any axis is the same central target.
+    """
+    points = [('x', int(offset)) for offset in x_offsets]
+    points += [('y', int(offset)) for offset in y_offsets if offset != 0]
+    points += [('z', int(offset)) for offset in z_offsets if offset != 0]
     schedule = []
     for block in range(axis_repeats):
         block_points = list(points)
@@ -89,6 +93,8 @@ class EnvelopeSession:
             dtype=np.float64) / 1000.0
         self.view_pose = [float(v) for v in args.view_pose.split(',')]
         self.offsets = [int(v) for v in args.offsets.split(',')]
+        self.y_offsets = [int(v) for v in args.y_offsets.split(',')]
+        self.z_offsets = [int(v) for v in args.z_offsets.split(',')]
         self.robot = pts.RobotLink(args.robot, args.robot_container)
         self.humble = pts.HumbleLink(
             args.humble_container, args.hand_eye_container, REPO)
@@ -149,7 +155,7 @@ class EnvelopeSession:
             raise RuntimeError('no usable placement for {} {:+d}'.format(
                 axis, offset))
         offset_vector = np.zeros(3)
-        offset_vector[0 if axis == 'x' else 1] = offset / 1000.0
+        offset_vector[AXIS_INDEX[axis]] = offset / 1000.0
         target = point + self.correction + offset_vector
         fit = grasp_joint_fit.fit(target)
         pts.validate_target(target, fit, self.args.max_xy_error_mm)
@@ -242,8 +248,9 @@ class EnvelopeSession:
     def run(self):
         """Run every pending trial in schedule order."""
         self.prepare()
-        schedule = build_schedule(self.offsets, self.args.repeats,
-                                  self.args.seed)
+        schedule = build_schedule(
+            self.offsets, self.y_offsets, self.z_offsets,
+            self.args.repeats, self.args.seed)
         pending = [entry for entry in schedule if entry not in self.done]
         print('{} pending of {} trials'.format(len(pending), len(schedule)))
         if self.args.max_trials:
@@ -262,7 +269,7 @@ class EnvelopeSession:
         samples = []
         for (axis, offset), group in sorted(groups.items()):
             vector = [0.0, 0.0, 0.0]
-            vector[0 if axis == 'x' else 1] = offset / 1000.0
+            vector[AXIS_INDEX[axis]] = offset / 1000.0
             samples.append({
                 'offset_m': vector,
                 'yaw_deg': 0.0,
@@ -292,7 +299,11 @@ def build_parser():
         '--measurement-out',
         default='evidence/phase3/onsite_20261119/envelope/measurement.json')
     parser.add_argument('--offsets', default=','.join(
-        str(v) for v in DEFAULT_OFFSETS_MM))
+        str(v) for v in DEFAULT_OFFSETS_MM), help='x offsets')
+    parser.add_argument('--y-offsets', default=','.join(
+        str(v) for v in DEFAULT_Y_OFFSETS_MM), help='y offsets')
+    parser.add_argument('--z-offsets', default=','.join(
+        str(v) for v in DEFAULT_Z_OFFSETS_MM), help='z offsets')
     parser.add_argument('--repeats', type=int, default=2)
     parser.add_argument('--seed', type=int, default=7)
     parser.add_argument(
