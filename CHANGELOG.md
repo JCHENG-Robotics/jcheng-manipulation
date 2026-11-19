@@ -7,6 +7,29 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **First physical paired trial: 24 pairs, 48 trials.** Pre-registered design
+  and a committed 24-pair randomization plan (seed 7) compared the raw
+  FK/hand–eye target (`baseline`) with the constant low-configuration
+  correction `(+13.7, +3.9, +8.9) mm` (`intervention`). **Baseline 12/24
+  (50.0 %) vs intervention 24/24 (100 %)**; all 12 discordant pairs favour the
+  intervention, exact McNemar **p = 0.00049**. Among the 12 pairs where both
+  methods gripped, the intervention places the cube **2.19 mm** closer to the
+  pre-grasp measurement (95 % CI **[−3.96, −0.83] mm**, Cohen's `dz = −0.75`,
+  sign test 11 wins / 1 loss, **p = 0.0063**). Placement error: **3.31 mm**
+  (SD 1.48) vs **4.97 mm** (SD 2.87). Four protocol deviations were recorded
+  and handled: a runner unit error (D1), a grip-classifier artefact from a
+  background cluster (D2), a contaminated placement with a tape roll in the
+  grasp region plus a negative-argument crash (D3), and a landing measurement
+  that selected a 21.7 mm object (D4). Discarded records are kept in the
+  evidence bundle. Evidence:
+  [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md).
+- New tools for the trial: `tools/phase2/grasp_joint_fit.py` (offline
+  deep-family `joint1`/`joint4` fit, reproduces the recorded validation joints
+  to 2 mrad without MoveIt), `tools/phase2/bus_pulses.py` (read-only register
+  reader), `tools/phase2/move_to_pose.py` (container single-pose move) and
+  `tools/phase3/paired_trial_session.py` (resumable session runner with
+  `--dry-run`, target/fit guards, a cube-box grip classifier and placement
+  gates). 14 session tests and 5 joint-fit tests are in the pure-Python CI.
 - **Low-configuration model selection: joint offsets rejected, constant offset
   supported.** The roadmap's planned "joint-offset calibration over the low
   configuration" was tested against the 10-pose tag survey. A fixed `link4`

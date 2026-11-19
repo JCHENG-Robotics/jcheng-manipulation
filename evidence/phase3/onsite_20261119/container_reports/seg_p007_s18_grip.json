@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "mode": "markerless_rgbd_segment",
+  "cloud": {
+    "topic": "/depth_cam/depth_registered/points",
+    "frame_id": "depth_camera_link",
+    "point_step": 16,
+    "points_total": 181342,
+    "points_in_range": 181296
+  },
+  "joints": {
+    "source": "measured_bus_servo",
+    "pulses": [
+      502.0,
+      556.0,
+      791.0,
+      102.0,
+      496.0
+    ],
+    "radians": [
+      0.00837758,
+      0.23457224000000002,
+      -1.21893789,
+      -1.6671384200000001,
+      -0.01675516
+    ],
+    "fk_tip": "link4"
+  },
+  "hand_eye": {
+    "calibration": "/tmp/hand_eye_table_down.json",
+    "method": "TSAI",
+    "T_base_cloud": [
+      [
+        0.009777678558480189,
+        -0.9004890278686191,
+        0.43476879797225254,
+        0.18791667916566765
+      ],
+      [
+        -0.9999308716381673,
+        -0.011644504977288202,
+        -0.001630168325639266,
+        0.01201213334857534
+      ],
+      [
+        0.006530616122774596,
+        -0.43472280385558815,
+        -0.9005406347639137,
+        0.19751869944704292
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "floor": {
+    "normal_base": [
+      0.03095139124886004,
+      0.0005907967573715101,
+      0.9995207163130494
+    ],
+    "offset_base": 0.08049946958999332,
+    "rms_m": 0.000641403003145677,
+    "inliers": 181296,
+    "z_at_0p24": -0.0879699660593936,
+    "angle_to_z_deg": 1.7739905472388136
+  },
+  "segmentation": {
+    "voxel_m": 0.005,
+    "points_above_floor": 0,
+    "clusters": 0,
+    "cluster_details": []
+  },
+  "success": false
+}

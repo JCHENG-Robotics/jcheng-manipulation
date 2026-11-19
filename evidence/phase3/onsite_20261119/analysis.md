@@ -1,6 +1,6 @@
 # Paired Trial Analysis
 
-- Generated: `2026-11-19T09:29:32.194758+00:00`
+- Generated: `2026-11-19T09:32:38.608337+00:00`
 - Seed: 7; bootstrap draws: 10000
 - Complete pairs: 24; input records: 48; invalid: 0
 
@@ -9,7 +9,7 @@
 | Method | n | Error mean (mm) | Error SD (mm) | Success rate |
 |---|---:|---:|---:|---:|
 | baseline | 24 | 4.965 | 2.873 | 50.0% |
-| intervention | 24 | 4.820 | 7.307 | 100.0% |
+| intervention | 24 | 3.314 | 1.478 | 100.0% |
 
 ## Paired continuous error
 

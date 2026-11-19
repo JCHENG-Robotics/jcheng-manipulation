@@ -43,7 +43,7 @@
 | **Platform** | HiWonder ArmPi Ultra: 5-DoF arm, two-finger gripper, mecanum chassis, Raspberry Pi 5, Aurora 930 RGB-D camera |
 | **Software** | ROS 2 Humble on the robot, ROS 2 Jazzy on the workstation, MoveIt 2 + Pilz `PTP` + KDL, FastAPI/React debug studio |
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
-| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube: grasp, ≈149 mm lift and return (pass 1); return within 6.6 mm / 8° (pass 2); a measured −8.0/−15.3/−5.8 mm low-configuration error corrected by one AprilTag observation (pass 5) |
+| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; a fixed-tag survey measured the low-configuration error as a **constant**, and a pre-registered **24-pair** hardware trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049) with a **2.19 mm** paired placement improvement (p = 0.0063) |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
 | **Status** | 2026-11-19. Hardware motion is supervised; joint mapping remains `verified: false`; the robot has no e-stop or brake |
 
@@ -64,8 +64,10 @@ observation at that configuration supplied a correction, after which pass 5
 held the cube, lifted it ≈148 mm and released it. Joint limits were adopted
 from the servo EEPROM with a 20-pulse margin after a powered survey, and a
 gripper re-measurement corrected the stroke from 0.84 rad to 2.22 rad. The
-project contributes a measured failure taxonomy and an explicit evidence
-trail; the full error budget and paired hardware trials remain open.
+project contributes a measured failure taxonomy, a pre-registered paired
+hardware trial that turned the measured low-configuration error into a
+24/24 grasp result, and an explicit evidence trail; the full error budget
+remains partial and a yawed-envelope grasp is still open.
 
 ## Objectives and contributions
 
@@ -98,13 +100,18 @@ trail; the full error budget and paired hardware trials remain open.
    same model is 2–3 mm in its validated volume. Joint offsets and `link4`-frame
    models were fitted and **rejected**: they predict the correction 10.6–15.0 mm
    away from what four passing grasps used.
-5. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
+5. **A pre-registered paired hardware trial.** 24 matched pairs compared the
+   raw FK/hand–eye target with the constant low-configuration correction:
+   **12/24 vs 24/24** success (McNemar p = 0.00049) and a **2.19 mm** paired
+   placement improvement among dual-success pairs (95 % CI −3.96…−0.83 mm,
+   p = 0.0063), with four protocol deviations recorded and quantified.
+6. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
-6. **Reliability tooling.** Error-budget framework, paired-trial recorder,
-   read-only host/DDS benchmark, and a G1–G6 debug studio with 92 backend +
-   38 gateway tests.
-7. **Evidence-first documentation.** Every quantitative statement links to a
+7. **Reliability tooling.** Error-budget framework, paired-trial recorder and
+   runner, read-only host/DDS benchmark, and a G1–G6 debug studio with 92
+   backend + 38 gateway tests.
+8. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
 
@@ -121,6 +128,7 @@ trail; the full error budget and paired hardware trials remain open.
 | Best autonomous lift | TCP **+0.0993 m**, object **≈148 mm** above the floor; cube **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | Low-configuration model error | fixed tag: **constant (+11.6, +4.0, +8.5) mm**, per-pose spread **0.40–0.99 mm**; grasp-validated correction **(+13.7, +3.9, +8.9) mm**, release **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
 | Low-config model selection | joint offsets / `link4` 3-DoF / `link4` 6-DoF fit the tag survey (1.4–2.3 mm RMS) but miss the validated correction by **10.6–15.0 mm**; **constant offset supported** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
+| Paired hardware trial, 24 pairs | **baseline 12/24 vs intervention 24/24** (McNemar **p = 0.00049**); placement error **3.31 mm** vs **4.97 mm**; paired improvement **2.19 mm** (95 % CI −3.96…−0.83, **p = 0.0063**) | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
@@ -224,7 +232,7 @@ separately.
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
 | Measurement protocols | **Implemented; dry-run/simulate validated** | Repeatability, backlash, visual displacement, gripper envelope; no full hardware dataset |
 | Error budget | **Framework implemented; project budget partial** | Measured hand–eye + fiducial terms, RSS 3.699 mm / 0.682°; five required terms unmeasured |
-| Paired trials | **Framework implemented; synthetic only** | 24-pair randomized plan, bootstrap/sign/McNemar; no physical paired trial |
+| Paired trials | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
@@ -246,7 +254,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Failure taxonomy and critical analysis
 - [x] Reproducible commands and test suite
 - [ ] Full error budget (repeatability, backlash, execution, gripper, fixture)
-- [ ] Paired hardware trials with statistical power
+- [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
+      McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
       constant base-frame offset supported inside the measured envelope
 - [ ] Formal mechanical joint-limit survey and `mapping_verified=true`

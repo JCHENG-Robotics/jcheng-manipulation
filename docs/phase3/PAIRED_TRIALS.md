@@ -1,10 +1,16 @@
 # Paired Trials
 
-> Status: **Implemented and simulated-validated (2026-11-17, Session 4).**
-> No physical **paired** grasp trial exists. Five real unpaired grasps were run
-> on 2026-11-19 (3/5); they establish feasibility and a failure mode, not a
-> baseline/intervention effect. The recorder and analysis are ready for the
-> first paired on-site experiment.
+> Status: **Implemented, simulated-validated and exercised on hardware
+> (2026-11-19).** The first physical paired trial ran 24 pairs / 48 trials:
+> baseline (raw FK/hand–eye target) vs the constant low-configuration
+> correction. **Baseline 12/24 (50.0 %), intervention 24/24 (100 %)**; all 12
+> discordant pairs favour the intervention (exact McNemar **p = 0.00049**).
+> Among the 12 pairs where both gripped, the intervention places the cube
+> **2.19 mm** closer to the pre-grasp measurement (95 % CI [−3.96, −0.83] mm,
+> `dz = −0.75`, sign test 11/1, **p = 0.0063**). The earlier five unpaired
+> grasps (3/5) remain feasibility evidence, not a treatment effect. Design:
+> [`PAIRED_TRIAL_DESIGN.md`](PAIRED_TRIAL_DESIGN.md); evidence:
+> [`evidence/phase3/onsite_20261119/`](../../evidence/phase3/onsite_20261119/README.md).
 >
 > The Studio **G3 Experiment Lab** (2026-11-18) exposes the same pair/method
 > schema and statistical formulas through immutable experiment definitions,
@@ -12,6 +18,20 @@
 > export and an Experiment Lab page. See
 > [`armpi-debug-studio/docs/g3-experiment-lab.md`](../../armpi-debug-studio/docs/g3-experiment-lab.md).
 > It has no hardware trial data either.
+
+## First physical result (2026-11-19)
+
+| Method | n | Success | Placement error mean (mm) | SD (mm) |
+|---|---:|---:|---:|---:|
+| baseline | 24 | 12 (50.0 %) | 4.965 | 2.873 |
+| intervention | 24 | 24 (100 %) | 3.314 | 1.478 |
+
+The binary outcome is primary because a baseline miss has no release landing to
+measure; the continuous comparison is conditional on both methods gripping.
+Four protocol deviations (a runner unit error, a grip-classifier artefact, a
+contaminated placement, a landing artefact) are documented in the design note
+and their raw records are kept in the evidence directory. Limits: one session,
+one cube, one fixture, one battery state.
 
 ## Design
 

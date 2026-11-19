@@ -22,7 +22,7 @@
 | Hardware baseline | **Captured; limits partially measured; board probed** | Pi/ROS/servo/TF/camera live baseline; joint2 low 322, joint3 stop 939, joint4 high 901; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
 | Calibration and visual grasping | **Validated: 3/5 real pick–lift–place attempts; constant low-config correction supported, joint offsets rejected** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; a 10-pose fixed-tag survey measured it as a constant (+11.6, +4.0, +8.5) mm (spread 0.40–0.99 mm) and the +13.7/+3.9/+8.9 mm correction was grasp-validated (release 1.3 mm); four models were fitted, joint offsets and link4-frame models were rejected; 24-pose chessboard set still planned, not executed |
 | Error budget and tolerance envelope | **Framework implemented; project budget partial** | `armpi_analysis` RSS/worst-case/Monte-Carlo framework; measured hand-eye + fiducial terms (3.699 mm / 0.682° RSS) but repeatability, backlash, execution, gripper and fixture terms are unmeasured; tolerance is provisional |
-| Paired trial framework | **Implemented; simulated only** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no physical paired trial |
+| Paired trial framework | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
 | ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; 92 backend + 38 gateway tests; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=false`, no e-stop |
 | Mobile base | **Open-loop only; planned extension** | four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration |
@@ -235,16 +235,20 @@ Possible examples:
 - calibration sample-selection improvement;
 - final visual correction.
 
-**Status (2026-11-19):** the dominant term is the FK/hand–eye error at the low
-grasp pose. The intervention is a constant base-frame correction
-(`(+13.7, +3.9, +8.9) mm`, grasp-validated to 1.3 mm). The planned joint-offset
-calibration was **attempted and rejected**: joint offsets, a `link4` 3-DoF
-offset and a `link4` 6-DoF offset all fit the tag survey to 1.4–2.3 mm but
-predict a correction 10.6–15.0 mm away from the one four passing runs used, at
-their measured configurations. The constant is therefore the supported model
-inside the tested envelope (tool-down, `j1 ±0.06 rad`, view `j4 −1.58…−1.66`);
-a yawed-envelope grasp is the open extension test. Next: the paired hardware
-trial. See
+**Status (2026-11-19): completed.** The dominant term is the FK/hand–eye error
+at the low grasp pose. The planned joint-offset calibration was **attempted and
+rejected**: joint offsets, a `link4` 3-DoF offset and a `link4` 6-DoF offset
+all fit the tag survey to 1.4–2.3 mm but predict a correction 10.6–15.0 mm away
+from the one four passing runs used, at their measured configurations. The
+intervention is therefore the constant base-frame correction
+(`(+13.7, +3.9, +8.9) mm`), and the paired hardware trial tested it: **24
+pairs**, baseline 12/24 vs intervention 24/24 (McNemar p = 0.00049), and a
+**2.19 mm** paired placement improvement among the 12 dual-success pairs
+(95 % CI −3.96…−0.83 mm, p = 0.0063). The constant is supported inside the
+tested envelope (tool-down, `j1 ±0.06 rad`, view `j4 −1.58…−1.66`); a
+yawed-envelope grasp is the open extension test. See
+[`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md)
+and
 [`evidence/calibration/20261119/low_config_error/model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md).
 
 ## 10. Experimental Design
@@ -277,9 +281,11 @@ same object placement
 
 Randomize execution order.
 
-**Current evidence (2026-11-19):** the five real grasp attempts are unpaired
-feasibility runs, not a randomized paired experiment. They establish the
-pipeline and the dominant error term, not a treatment effect.
+**Current evidence (2026-11-19):** the first physical paired trial (24 pairs)
+is complete: the correction raises grasp success from 12/24 to 24/24 and
+reduces the placement error by 2.19 mm among dual-success pairs. The earlier
+five unpaired grasps (3/5) remain feasibility evidence. Because a baseline miss
+has no release landing, the binary outcome is the primary test.
 
 ## 11. Safety
 
