@@ -269,6 +269,24 @@ tilted view is outside the validated volume and the x/y correction is the
 load-bearing quantity. Evidence:
 [`evidence/phase2/onsite_20261119/low_config_grasp_validation/`](../../evidence/phase2/onsite_20261119/low_config_grasp_validation/).
 
+**Replay and out-of-reach use (2026-11-19).** The same joints re-gripped the
+same cube with **no new measurement** — registers at the grasp
+(`496/339/929/421`) and at the verify pose (`496/555/792/103`) identical to the
+validation run, grip check **0 floor clusters** — so a retry is just the four
+action phases when the cube is within the ±4 mm margin. A cube placed at model
+**x = 0.431 m** (beyond reach) was brought to **0.234 m** by pulsing the base
+forward and re-segmenting from the park view between pulses (five pulses, net
+0.197 m, 7.5 mm y drift; a **0.15 s pulse stays inside the dead band** at duty
+10 %). Two limits matter for placement: the deep family reaches only
+**x ≈ 0.2447** at that z (a 0.248 target left a −2.5 mm x residual), and a cube
+at **x = 0.221** already clips the top face to **34.5 mm** (the segmenter
+rejects it, and the clipped centroid is ~3 mm biased), so park the base to
+measure the cube at **0.226–0.234 m**. Result: grip, ≈150 mm lift and release
+**6.8 mm** off. Evidence:
+[`evidence/phase2/onsite_20261119/quick_replay_grasp/`](../../evidence/phase2/onsite_20261119/quick_replay_grasp/)
+and
+[`.../far_grasp/`](../../evidence/phase2/onsite_20261119/far_grasp/).
+
 ## Why the first run failed
 
 The first dataset used the controller's cached `joint_states` as if they were
