@@ -20,7 +20,7 @@
 | Measurement protocols | **Implemented; dry-run/simulate validated** | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no full hardware dataset |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **Captured; limits partially measured; board probed** | Pi/ROS/servo/TF/camera live baseline; joint2 low 322, joint3 stop 939, joint4 high 901; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
-| Calibration and visual grasping | **Validated: 3/5 real pick–lift–place attempts** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; passes 1–2 and 5 succeeded; passes 3–4 measured a −8.0/−15.3/−5.8 mm low-configuration error; pass 5 used a one-point AprilTag correction; 24-pose set still planned, not executed |
+| Calibration and visual grasping | **Validated: 3/5 real pick–lift–place attempts; constant low-config correction supported, joint offsets rejected** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; a 10-pose fixed-tag survey measured it as a constant (+11.6, +4.0, +8.5) mm (spread 0.40–0.99 mm) and the +13.7/+3.9/+8.9 mm correction was grasp-validated (release 1.3 mm); four models were fitted, joint offsets and link4-frame models were rejected; 24-pose chessboard set still planned, not executed |
 | Error budget and tolerance envelope | **Framework implemented; project budget partial** | `armpi_analysis` RSS/worst-case/Monte-Carlo framework; measured hand-eye + fiducial terms (3.699 mm / 0.682° RSS) but repeatability, backlash, execution, gripper and fixture terms are unmeasured; tolerance is provisional |
 | Paired trial framework | **Implemented; simulated only** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no physical paired trial |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
@@ -235,11 +235,17 @@ Possible examples:
 - calibration sample-selection improvement;
 - final visual correction.
 
-**Status (2026-11-19):** the first measured dominant term is the
-configuration-dependent FK/hand–eye error at the low grasp pose. The current
-intervention is an empirical one-point AprilTag correction; the planned proper
-fix is a joint-offset calibration over the low configuration, followed by a
-paired hardware trial.
+**Status (2026-11-19):** the dominant term is the FK/hand–eye error at the low
+grasp pose. The intervention is a constant base-frame correction
+(`(+13.7, +3.9, +8.9) mm`, grasp-validated to 1.3 mm). The planned joint-offset
+calibration was **attempted and rejected**: joint offsets, a `link4` 3-DoF
+offset and a `link4` 6-DoF offset all fit the tag survey to 1.4–2.3 mm but
+predict a correction 10.6–15.0 mm away from the one four passing runs used, at
+their measured configurations. The constant is therefore the supported model
+inside the tested envelope (tool-down, `j1 ±0.06 rad`, view `j4 −1.58…−1.66`);
+a yawed-envelope grasp is the open extension test. Next: the paired hardware
+trial. See
+[`evidence/calibration/20261119/low_config_error/model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md).
 
 ## 10. Experimental Design
 

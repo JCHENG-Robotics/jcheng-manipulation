@@ -92,10 +92,12 @@ trail; the full error budget and paired hardware trials remain open.
 3. **A complete real grasp pipeline.** RGB-D segmentation → constrained
    grasp search → Pilz `PTP` plan → safety veto → measured servo execution →
    verification, exercised end-to-end on hardware.
-4. **A measured configuration-dependent error.** The FK/hand–eye error at the
-   low grasp configuration is −8.0/−15.3/−5.8 mm while the same model is
-   sub-millimetre at the table-down view; a one-point tag correction made the
-   grasp succeed on the first attempt.
+4. **A measured low-configuration error and a tested model.** A fixed-tag
+   survey showed the FK/hand–eye error at the low grasp configuration is a
+   **constant (+11.6, +4.0, +8.5) mm** vector (spread 0.40–0.99 mm) while the
+   same model is 2–3 mm in its validated volume. Joint offsets and `link4`-frame
+   models were fitted and **rejected**: they predict the correction 10.6–15.0 mm
+   away from what four passing grasps used.
 5. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
@@ -117,7 +119,8 @@ trail; the full error budget and paired hardware trials remain open.
 | Depth table plane | **147,626 inliers, 0.7 mm RMS**; table z **−0.0787 m** (depth) vs **−0.0784 m** (215 mm ruler) | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
 | Real grasp trials | **3 / 5** successful pick–lift–place attempts on the 39.4 mm cube | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/), [`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | Best autonomous lift | TCP **+0.0993 m**, object **≈148 mm** above the floor; cube **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
-| Low-configuration model error | **e = (−8.0, −15.3, −5.8) mm**; corrected grasp first try | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Low-configuration model error | fixed tag: **constant (+11.6, +4.0, +8.5) mm**, per-pose spread **0.40–0.99 mm**; grasp-validated correction **(+13.7, +3.9, +8.9) mm**, release **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
+| Low-config model selection | joint offsets / `link4` 3-DoF / `link4` 6-DoF fit the tag survey (1.4–2.3 mm RMS) but miss the validated correction by **10.6–15.0 mm**; **constant offset supported** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
@@ -244,7 +247,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Reproducible commands and test suite
 - [ ] Full error budget (repeatability, backlash, execution, gripper, fixture)
 - [ ] Paired hardware trials with statistical power
-- [ ] Joint-offset calibration over the low configuration
+- [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
+      constant base-frame offset supported inside the measured envelope
 - [ ] Formal mechanical joint-limit survey and `mapping_verified=true`
 
 ## Quick start
@@ -271,6 +275,7 @@ python -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
   tools/phase2/tests/test_measurement_protocol.py \
+  tools/phase2/tests/test_low_config_model_fit.py \
   tools/phase2/tests/test_object_segment.py \
   tools/phase4/tests
 

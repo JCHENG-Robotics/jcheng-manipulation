@@ -287,6 +287,31 @@ measure the cube at **0.226–0.234 m**. Result: grip, ≈150 mm lift and releas
 and
 [`.../far_grasp/`](../../evidence/phase2/onsite_20261119/far_grasp/).
 
+**Model selection: joint offsets rejected (2026-11-19).** The roadmap named a
+*low-configuration joint-offset calibration* as the proper replacement for the
+constant. Four hypotheses were fitted to the ten-pose tag survey against the
+table-down hand-eye: no correction, a fixed `link4`-frame translation (3
+parameters), a fixed `link4` 6-DoF transform (6) and joint offsets `dq1..dq4`
+(4). All three correction models fit the tag data to 1.4–2.3 mm RMS and none is
+preferred by the survey alone; `dq1` is unidentifiable (a flat direction from
+0.02 to 0.13 rad) and the `link4` fit is dominated by a 44 mm lumped `z` term.
+
+The grasps discriminate. Applied at the runs' actual measured view and grasp
+configurations (joints reconstructed from the bus-servo registers), the models
+predict corrections **10.6–15.0 mm** away from the constant `(+13.7, +3.9,
++8.9) mm` that four runs used and passed with — the validation run landed
+**1.3 mm** from its measurement. The survey's reference pair sits 0.08 rad in
+`j4` and 0.03 rad in `j2`/`j3` from the runs' view pose, and every
+configuration-dependent model expects the correction to change over that gap;
+it does not. **Conclusion: the supported model remains a constant base-frame
+offset**, bounded to tool-down grasps with `j1` within ±0.06 rad of 0 and the
+view pose at `j4 = −1.58 … −1.66` rad. A yawed grasp (`j1 ≈ 0.3–0.6 rad`) is
+the decisive extension test and is not yet run. Tools:
+[`tools/phase2/low_config_model_fit.py`](../../tools/phase2/low_config_model_fit.py),
+[`low_config_correction.py`](../../tools/phase2/low_config_correction.py);
+evidence:
+[`evidence/calibration/20261119/low_config_error/model_selection.md`](../../evidence/calibration/20261119/low_config_error/model_selection.md).
+
 ## Why the first run failed
 
 The first dataset used the controller's cached `joint_states` as if they were

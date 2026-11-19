@@ -160,10 +160,25 @@ relative to the tilted view; the pass-5 vector pointed the other way.
 | `dataset_low_tag_20261119.json` | 10 samples: commanded + measured joints, servo start/end pulses, camera K/D, tag PnP |
 | `report_low_config_error_table_down_model.json` | full report against the table-down fit |
 | `report_low_config_error_camera_forward_model.json` | full report against the camera-forward fit |
+| `report_low_config_model_fit.json` | four-model fit: parameters, cost, AIC, per-pose residuals, LOO, implied correction |
+| `model_selection.md` | model-comparison report and the grasp-based rejection |
 | `../joint1_approach_test/` | the two approach-direction samples |
 | private images | `low_tag_survey_20261119` inside the robot container (not committed) |
 
-## 8. Reproduction
+## 8. Model selection (added 2026-11-19)
+
+The survey's constant vector was tested against three configuration-dependent
+models (fixed `link4` translation, fixed `link4` 6-DoF, joint offsets). All fit
+the ten tag poses to 1.4–2.3 mm RMS, but every one of them predicts a grasp
+correction **10.6–15.0 mm** away from the `(+13.7, +3.9, +8.9) mm` constant
+that four 2026-11-19 runs used and passed with (joints reconstructed from their
+bus-servo registers). The joint-offset hypothesis is therefore **rejected**, and
+the constant base-frame offset remains the supported model inside the tested
+envelope. Full analysis:
+[`model_selection.md`](model_selection.md); artefacts:
+[`report_low_config_model_fit.json`](report_low_config_model_fit.json).
+
+## 9. Reproduction
 
 ```bash
 # inside the robot container, zsh environment (CycloneDDS)

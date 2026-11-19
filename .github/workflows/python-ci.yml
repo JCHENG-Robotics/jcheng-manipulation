@@ -53,6 +53,7 @@ jobs:
             ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
             ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
             tools/phase2/tests/test_base_pulse.py \
+            tools/phase2/tests/test_low_config_model_fit.py \
             tools/phase2/tests/test_measurement_protocol.py \
             tools/phase2/tests/test_object_segment.py \
             tools/phase4/tests

@@ -7,6 +7,28 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Low-configuration model selection: joint offsets rejected, constant offset
+  supported.** The roadmap's planned "joint-offset calibration over the low
+  configuration" was tested against the 10-pose tag survey. A fixed `link4`
+  translation (3 parameters), a fixed `link4` 6-DoF transform (6) and joint
+  offsets `dq1..dq4` (4) all fit the tag data to **1.4–2.3 mm RMS**, so the
+  survey alone cannot choose between them; `dq1` is unidentifiable (a flat
+  direction from 0.02 to 0.13 rad) and the `link4` translation is dominated by
+  a 44 mm lumped `z` term. The four passing 2026-11-19 grasps discriminate:
+  evaluated at the runs' actual measured view and grasp joints (reconstructed
+  from the bus-servo registers, exact on the survey's own samples), every
+  configuration-dependent model predicts a correction **10.6–15.0 mm away**
+  from the constant `(+13.7, +3.9, +8.9) mm` they used — the validation run
+  landed **1.3 mm** from its measurement. The **constant base-frame offset is
+  therefore the supported model**, bounded to tool-down grasps with
+  `j1 ±0.06 rad` and the view pose at `j4 −1.58…−1.66`; a yawed grasp
+  (`j1 ≈ 0.3–0.6 rad`, where the two model classes differ by 12–16 mm) is the
+  open extension test. Evidence:
+  [`evidence/calibration/20261119/low_config_error/model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md).
+- New tools: `tools/phase2/low_config_model_fit.py` (numpy-only profile fit,
+  LOO, AIC and implied correction) and `tools/phase2/low_config_correction.py`
+  (model correction for a given view/grasp pair), with five synthetic tests in
+  the pure-Python CI list.
 - **Out-of-view search, one base approach, grasp and return.** The cube was
   outside the frame at the tilted view; a **+16° `joint1` yaw at the raised
   pose** found it at **0.469 m** (bearing +38.8°), 0.22 m beyond the 0.2447 m
