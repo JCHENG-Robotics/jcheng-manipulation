@@ -1,364 +1,408 @@
-# JCHENG Manipulation: A ROS 2-Based Robotic Manipulation System with Quantitative Reliability Evaluation
+# JCHENG Manipulation
+
+**面向五自由度 ArmPi Ultra 的实测视觉操作：修正模型、自主标定、实机抓取执行与量化可靠性预算。**
 
 [English](README.md) | **简体中文**
 
-JCHENG Manipulation 是一个围绕 **ArmPi Ultra** 五自由度机械臂的个人机器人项目：修正模型与 TF、约束运动规划、标定、真实视觉抓取，以及量化的误差预算。
+> 本项目为应用机器人方向的项目制硕士毕业课题。本仓库是该工作的完整、可追溯记录：修正后的五自由度模型与 TF 树、约束 MoveIt 2 规划、经独立标记验证的自主手眼标定、实机抓取—抬升—放置、安全否决，以及基于实测的失败模式分类。厂商固件与驱动仅作为**只读基线**，不复制进本仓库。
 
-厂商技术栈被视为**只读基线**。本仓库包含项目特定的代码、模型、实验与证据，**不**复制 16 GB 的厂商源码树。
-
-> 历史说明：本仓库最初是一个为期 8 周的 ROS 2 / Panda 学习项目。相关记录保留在
+> 历史说明：本仓库最初是一个为期 8 周的 ROS 2 / Panda 学习项目。该记录归档于
 > [`docs/archive/README_8WEEK.md`](docs/archive/README_8WEEK.md) 和
-> [`docs/weekly-log/`](docs/weekly-log/)。旧路线图位于
-> [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md)。
+> [`docs/weekly-log/`](docs/weekly-log/)；它不属于本毕业课题的结论。早期 Panda
+> 与 M2.2 产物仅为可追溯性保留。
 
-## 状态（2026-11-17）
+**目录：** [项目概览](#项目概览) · [摘要](#摘要) · [目标与贡献](#目标与贡献) ·
+[关键结果](#关键结果实机实测) · [系统架构](#系统架构) · [仓库结构](#仓库结构) ·
+[项目状态](#项目状态2026-11-19) · [交付清单](#毕业项目交付清单) ·
+[快速开始](#快速开始) · [实验方法](#实验方法) ·
+[失败分类](#失败模式分类实测) · [安全包络](#安全与运行包络) ·
+[局限性](#局限性与有效性威胁) · [证据索引](#可复现性与证据索引) ·
+[文档](#文档) · [结论](#结论) · [路线图](#路线图) · [许可证](#许可证)
 
-状态约定：**已实现 / 已验证 / 进行中 / 计划中**。厂商功能单独标注。`已验证` 表示 `evidence/` 中存在命令、日志或数据文件；它**不**代表已完成硬件验证。
+<p align="center">
+  <img src="evidence/phase2/onsite_20261118/first_grasp/operator_grasp_20261118.jpg" width="420" alt="ArmPi Ultra 夹住地面上的 39.4 mm 木块">
+  <br>
+  <em>首次实机抓取（2026-11-18）：机械臂夹住地面上的 39.4 mm 木块。
+  全自主抓取—抬升—放置于 2026-11-19 完成。</em>
+</p>
 
-| 领域 | 状态 | 证据 / 限制 |
+## 项目概览
+
+| 项目 | 摘要 |
+|---|---|
+| **平台** | HiWonder ArmPi Ultra：五自由度机械臂、两指夹爪、麦克纳姆底盘、Raspberry Pi 5、Aurora 930 RGB-D 相机 |
+| **软件** | 机器人端 ROS 2 Humble；工作站端 ROS 2 Jazzy；MoveIt 2 + Pilz `PTP` + KDL；FastAPI/React 调试台 |
+| **核心问题** | 当每一个变换、限位和失效模式都被实测而非假设时，低成本五自由度机械臂加腕部相机能在桌面上实现多精确的操作？ |
+| **代表性结果** | 对无标记 39.4 mm 木块完成自主抓取—抬升—放置：第 1 轮抓取、约 149 mm 抬升并放回；第 2 轮放回误差 6.6 mm / 8°；第 5 轮用单次 AprilTag 观测修正实测的 −8.0/−15.3/−5.8 mm 低构型误差后成功 |
+| **证据** | 20+ 个证据包：会话日志、标定数据集、舵机总线记录、Studio 测试报告与机器可读 JSON |
+| **状态** | 2026-11-19。实机运动均为受监督执行；关节映射仍为 `verified: false`；机器人没有急停或抱闸 |
+
+## 摘要
+
+本项目研究：当每一个变换、限位和失效模式都被实测而非假设时，低成本五自由度机械臂加腕部 RGB-D 相机能否完成可重复的桌面视觉抓取。ArmPi Ultra 被建模为受约束的五自由度机械臂；相机通过自主实现的棋盘格手眼流程标定到 `link4`（14 个位姿，板位姿一致性 2.94 mm / 0.39°，留出基位姿 3.29 mm / 0.43°）。无标记 RGB-D 分割、关节空间抓取搜索、MoveIt/Pilz `PTP` 执行与独立轨迹否决构成抓取链路。对无标记 39.4 mm 木块进行了 5 轮实机抓取—抬升—放置试验，3 轮成功。第 3、4 轮失败并暴露出低抓取构型下系统性的 −8.0/−15.3/−5.8 mm FK/手眼误差；在该构型下用一次 AprilTag 观测得到修正量后，第 5 轮成功夹住木块、抬升约 148 mm 并释放。关节限位在通电测量后按舵机 EEPROM 减 20 脉冲采纳；夹爪重测将行程从 0.84 rad 修正为 2.22 rad。本项目的贡献是实测失败模式分类与明确的证据链；完整误差预算与配对实机试验仍未完成。
+
+## 目标与贡献
+
+**项目目标**
+
+1. 重建可信的五自由度模型：关节类型、限位、TF 与相机坐标系均对实机核验。
+2. 建立带独立验证的自主标定流程，而不是依赖厂商默认值。
+3. 在约束规划与独立安全否决下执行实机视觉抓取。
+4. 量化各项误差来源，并识别主导项。
+5. 让系统可观测、可复现：每条结论背后都有命令、日志或数据文件。
+
+**主要贡献**
+
+1. **实测模型与坐标系契约。** 修正后的 xacro 模型、实机 TF 核验，以及供 fiducial 定位器使用的实测 body→optical 变换 `camera_optical_calibrated`。
+2. **带独立检查的自主标定。** 棋盘格手眼、桌面下俯重标定，以及暴露 4.87% 桌面纵向偏差的实体 AprilTag 尺度测试。
+3. **完整的实机抓取链路。** RGB-D 分割 → 约束抓取搜索 → Pilz `PTP` 规划 → 安全否决 → 实测舵机执行 → 验证，并在实机上端到端运行。
+4. **实测的构型相关误差。** 低抓取构型下 FK/手眼误差为 −8.0/−15.3/−5.8 mm，而同一模型在桌面下俯视角达到亚毫米级；单点 Tag 修正使抓取一次成功。
+5. **安全的关节限位测量。** 以 EEPROM 为界的采纳限位、通电探测到机械止挡，以及规避厂商节点负寄存器崩溃的工具链。
+6. **可靠性工具。** 误差预算框架、配对试验记录器、只读主机/DDS 基准，以及 G1–G6 调试台（后端 92 + 网关 38 个测试）。
+7. **证据优先的文档。** 每条量化结论都链接到带时间戳的证据包；Mock、仿真与实机结果严格区分。
+
+## 关键结果（实机实测）
+
+| 结果 | 实测值 | 证据 |
 |---|---|---|
-| Panda 学习演示 | 已实现，仿真验证 | `panda-baseline-v1` tag；`docs/archive/README_8WEEK.md`；每周日志 |
-| ArmPi URDF / TF | 已实现；模型 + 实机 TF 验证 | `xacro` + `check_urdf`；实机 `base_link → rgb_camera_link` / `depth_camera_link`；**关节限位仍为暂定值** |
-| ArmPi MoveIt 2 | 已实现，Mock 验证；实机 `reset_servo` 验证 | KDL IK；关节空间规划 `error_code=1`；6D 约束的 Pilz `PTP`（Mock）；Humble Docker MoveIt 完成一次受监督实机运动 |
-| ArmPi 约束抓取 | 已实现，Mock 验证 | 5-DoF 抓取搜索：80 个关节空间候选 → 40 个 IK 成功 → 26 个无碰撞 → 3 条 Pilz `PTP` 规划；仅规划 |
-| Fiducial 目标定位 | 已实现，合成 + 真实背景半合成验证 | AprilTag 36h11；5/5 合成位姿（最大 1.82 mm / 1.49°）；真实背景 15/15 半合成位姿（最大 1.69 mm / 0.53°）；8 帧真实图像 0 误检 |
-| 相机 frame 契约 | 已实现，已验证 | `camera_optical_calibrated` = 实测 body→optical 适配（89.798°，5.4/10.1/−27.4 mm）；模型 `camera_optical_frame` 仅用于 Mock |
-| Phase 0 验收 | **完成（Mock 范围）** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
-| 真实 ArmPi 硬件 | **已采集基线，部分验证** | 2026-11-17 实机 Pi/ROS/舵机/TF/相机基线；关节限位和 IMU 待完成 |
-| 相机 / 标定 | **相机可用；手眼标定已验证；已离线选姿** | Aurora 930 RGB/depth 实时；RGB 跨主机实测约 12 Hz（容器内订阅会低估到约 8 Hz）；14 姿态棋盘手眼（读取舵机实测位置）：板位姿一致性 2.94 mm / 0.39°，留出基姿态 3.29 mm / 0.43°，留一验证 3.41 mm / 0.44°（std）；独立 Tag 位移验证：横向 100.67 mm vs 100.0 mm（0.67%），桌面纵向 104.87 mm vs 100.0 mm（4.87%）；桌面下俯 15 姿态拟合相对一致性 2.7 mm / 0.42°，但 48° 斜视绝对 RGB 深度偏置约 40–50 mm（深度 340 vs RGB 约 380 mm）；实测光轴 frame 已发布；从 14,176 个评估位姿中离线选出 24 个多样位姿（尚未实机执行） |
-| 视觉抓取 | 进行中 — Mock 链路已验证 | 感知、抓取搜索、已验证的相机标定与 frame；fiducial → 抓取桥接 + 安全否决通过合成 Mock E2E；尚无实机抓取 |
-| 安全层 | 已实现，Mock 验证 | 状态看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；`ValidateTrajectory` 否决服务；限位仍为暂定值，无急停集成 |
-| 测量协议 | 已实现，dry-run/simulate 验证 | 重复性/回差/视觉位移/夹爪包络的计划与分析器；尚无实机数据 |
-| 误差预算框架 | 已实现，demo 验证；项目预算**仍不完整** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md)；已测量手眼 + fiducial 项，RSS 3.699 mm / 0.682°；重复性/回差/执行/夹爪/夹具位姿仍未测量 |
-| 配对试验框架 | 已实现，仿真验证 | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md)；24 对随机计划、种子化 bootstrap/sign/McNemar 分析；尚无实机试验 |
-| 主机/DDS 基准 | 已实现，只读实机快照 | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md)；笔记本 + Pi 主机指标、20 Hz 状态、跨主机约 12 Hz 相机、0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + 只读硬件 + G2–G6 | 92 个后端 + 38 个网关测试通过；10 个 Mock + 3 个硬件 Playwright；E7 网关已实机验证并常驻（systemd）；G2 轨迹分析、G3 实验记录、G4 可视化工作台（`/tf` 已实机验证）、G5 只读轨迹记录器（已含一次受监督运动采集）、G6 受监督运动写路径（默认关闭，已做无运动实机验证；实测位移 0.0 rad） |
-| M2.2 控制器配置 | 已实现，仿真验证 | default / 0.1 / 0.2 轨迹在 Gazebo 中均成功（2026-11-15） |
+| 手眼标定，14 位姿 | 板位姿一致性 **2.94 mm / 0.39°**；留出基位姿 **3.29 mm / 0.43°**；留一标准差 **3.41 mm / 0.44°** | [`evidence/calibration/20261117/`](evidence/calibration/20261117/) |
+| 桌面下俯重标定，15 位姿 | 一致性 **2.7 mm / 0.42°**；留出 **2.2 mm / 0.29°**；留一 **3.1 mm / 0.45°** | [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| 标定位姿选择 | 从 14,176 个评估位姿 / 3,093 个可行位姿中选出 **24 个**；视角跨度 33.5°；已规划、未执行 | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
+| 独立 Tag 尺度 | 横向 **100.67 mm vs 100.0 mm（0.67%）**；桌面纵向 **104.87 mm vs 100.0 mm（4.87%）**；夹角 **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
+| 深度桌面平面 | **147,626 个内点，RMS 0.7 mm**；桌面 z **−0.0787 m**（深度）vs **−0.0784 m**（215 mm 直尺） | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
+| 实机抓取试验 | 39.4 mm 木块的抓取—抬升—放置 **3 / 5** 成功 | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/)、[`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/)、[`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| 最佳自主抬升 | TCP **+0.0993 m**，物体离地 **约 148 mm**；木块 **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| 低构型模型误差 | **e = (−8.0, −15.3, −5.8) mm**；修正后抓取一次成功 | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| 抓取工作半径 | 指垫半径 **205–210 mm**；`joint1` 偏航范围 **±103.2°（206°）** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
+| 最低可达位置 | 物理最低点离地 **10 mm**；名义 TCP 离地 **15 mm**；机械极限为 joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
+| 采纳关节限位 | 舵机 EEPROM **减 20 脉冲**；joint2 下限实测 **322**；`mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
+| 夹爪行程 | **2.22 rad**（张开 −2.22，闭合 0.0）；回差 **约 34 counts**；39.4 mm 木块在 −0.63 夹住 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
+| 相机 / DDS | 跨主机 RGB **约 12 Hz**（容器内订阅低估到约 8 Hz）；深度 **8.2 Hz**；ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
+| Studio G5 跟踪 | **712 命令 / 711 实测**样本；最大 **0.008321 rad**，RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
+| 部分误差预算 | 已测项 RSS **3.699 mm / 0.682°**；重复性、回差、执行、夹爪与夹具位姿未测 | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) |
 
-详细审计（来源、冲突、决策）见
-[`docs/audit/2026-11-15/`](docs/audit/2026-11-15/)。
+## 系统架构
+
+```text
+┌────────────────────────────── 工作站（笔记本）──────────────────────────────────┐
+│  MoveIt 2（Humble 容器）     armpi_safety 否决      armpi_analysis                │
+│  Pilz PTP / KDL IK           轨迹检查               误差预算、配对试验             │
+│  Debug Studio（FastAPI+React）G1–G6、只读网关、G5 记录器                          │
+└───────────────────────────────────────┬───────────────────────────────────────────┘
+                                        │ CycloneDDS，直连以太网
+                                        │ 10.42.0.1 ↔ 10.42.0.218
+┌───────────────────────────────────────┴───────────────────────────────────────────┐
+│ Raspberry Pi 5 — 厂商 Humble 核心栈                                                │
+│ ros_robot_controller · servo_manager · camera · TF · start_node.service            │
+└───────────────┬───────────────────────────────┬───────────────────────────┬────────┘
+                │ 6 路总线舵机                  │ 4 路电机通道              │ USB
+        机械臂关节 2–6 + 夹爪 1           麦克纳姆底盘（开环）        Aurora 930 RGB-D
+```
+
+抓取链路为：
+
+```text
+RGB-D 帧
+  → 地面/桌面平面拟合
+  → 物体掩码 + 体素聚类 + 顶面切片位姿
+  → TF 变换到 base_link
+  → 约束抓取搜索（位置 + 俯仰 + 腕部滚转 + 接近偏置）
+  → 全位姿 KDL IK → FK 校验 → 碰撞检查
+  → Pilz PTP 规划（仅规划）
+  → /armpi_safety/validate_trajectory
+  → 实测舵机执行
+  → 视角位姿验证（物体已不在原地）
+```
 
 ## 仓库结构
 
 ```text
-armpi-debug-studio/        # G1-Mock 控制台（FastAPI + React）；不做硬件运动
+armpi-debug-studio/        # G1–G6 控制台（FastAPI + React）+ 只读/受监督网关
 docs/
 ├── armpi/                 # PRD + G0 厂商审计
-├── audit/2026-11-15/      # 源码清单、变更核对、状态、合并计划
-├── hardware/              # 硬件基线（2026-11-17 实机；关节限位/IMU 待完成）
+├── audit/2026-11-15/      # 源码清单、核对与决策
+├── hardware/              # 硬件基线、坐标系契约、网络访问、限位
 ├── phase0/                # Phase 0 验收、5-DoF 约束、历史审计
-├── phase2/                # 抓取候选搜索；标定/视觉抓取准备
+├── phase2/                # 标定、抓取搜索、fiducial 桥接、安全、限位
 ├── phase3/                # 误差预算、配对试验、主机/DDS 基准
-├── archive/               # 旧 README/ROADMAP、过期 URDF、Phase II 分支说明
+├── archive/               # 旧 README/ROADMAP、过期 URDF、8 周记录
 └── weekly-log/            # 8 周学习记录
 evidence/
-├── m2_2_v2/               # M2.2 bag（已 gitignore）、CSV、报告、快照
-├── armpi_moveit/          # 模型检查、MoveIt 冒烟测试和 Phase 0 日志
-├── armpi_grasp/           # 抓取候选搜索证据（Mock，仅规划）
-├── fiducial/              # 合成 fiducial 检测 + ROS TF 证据
 ├── phase1/                # 实机 Pi/ROS/舵机/TF/相机基线（2026-11-17）
-├── phase2/                # frame、关节限位、桥接 E2E、安全层、测量
-└── phase3/                # 误差预算、配对试验、主机/DDS 基准证据
+├── calibration/           # 棋盘手眼（20261117）+ 桌面下俯（20261118）
+├── fiducial/              # 合成 + 真实背景 AprilTag 验证
+├── armpi_moveit/          # 模型检查、MoveIt 冒烟、Phase 0 日志
+├── armpi_grasp/           # Mock 抓取候选搜索（仅规划）
+├── phase2/onsite_20261118 # 现场安全、限位、夹爪、首次抓取
+├── phase2/onsite_20261119 # 第 1–5 轮抓取、最低可达、偏航包络、控制板探测
+├── phase3/                # 误差预算、配对试验仿真、基准
+└── studio_g*/             # G2–G6 测试与实机证据
 ros2_ws/src/
-├── arm_basics/            # 学习节点（历史遗留）
-├── arm_description/       # 2-DOF simple_arm + M2.2 控制器配置
-├── arm_interfaces/        # 自定义 action + 轨迹校验服务
-├── arm_moveit_demo/       # Panda 抓取放置演示
-├── armpi_fiducial_localizer/  # AprilTag/ArUco 目标定位
-├── armpi_grasp_planner/   # 5-DoF 候选生成 + 桥接 + Mock E2E launch
-├── armpi_safety/          # 状态看门狗 + 轨迹否决
-├── armpi_analysis/        # 误差预算、配对试验、主机/DDS 基准
-├── armpi_ultra_description/   # 5-DoF ArmPi xacro + 夹爪 + 相机坐标系
-└── armpi_ultra_moveit_config/ # 5-DoF MoveIt 配置（Mock + 实机 launch）
+├── armpi_ultra_description/    # 5-DoF xacro + 夹爪 + 相机坐标系
+├── armpi_ultra_moveit_config/  # MoveIt 配置（Mock + 实机 launch）
+├── armpi_fiducial_localizer/   # AprilTag/ArUco 目标定位
+├── armpi_grasp_planner/        # 5-DoF 候选生成 + 桥接 + Mock E2E
+├── armpi_safety/               # 状态看门狗 + 轨迹否决
+├── armpi_analysis/             # 误差预算、配对试验、主机基准
+├── arm_basics/                 # 历史学习节点
+├── arm_description/            # 2-DOF simple_arm + M2.2 控制器配置
+├── arm_interfaces/             # 自定义 action + 轨迹校验服务
+└── arm_moveit_demo/            # Panda 抓取放置演示
 tools/
 ├── humble_moveit/         # 实机使用的 Humble Docker MoveIt/RViz
 ├── phase1/                # 实机基线辅助工具
-├── phase2/                # 标定、fiducial、桥接 E2E 与测量工具
+├── phase2/                # 标定、分割、抓取、限位、安全工具
 └── phase4/                # 只读主机/DDS 基准采集
 ```
 
-## 构建
+## 项目状态（2026-11-19）
+
+状态约定：**已实现 / 已验证 / 进行中 / 计划中**。`已验证` 表示 `evidence/` 中存在命令、日志或数据文件；它本身不代表完成硬件验证。厂商功能单独标注。
+
+| 工作流 | 状态 | 证据 / 限制 |
+|---|---|---|
+| 机器人模型与 TF | **已实现；实机 TF 已验证** | 修正 xacro；`check_urdf`；实机 `base_link → rgb_camera_link` / `depth_camera_link`；实测光学坐标系 |
+| ArmPi MoveIt 2 | **已实现；Mock + 实机执行验证** | KDL 全位姿 IK；关节空间规划 `error_code=1`；6D 约束 Pilz `PTP`；实机使用 Humble Docker MoveIt |
+| 手眼标定 | **已验证** | 14 位姿棋盘：2.94 mm / 0.39°；留出 3.29 mm / 0.43°；桌面下俯 15 位姿重拟合 2.7 mm / 0.42° |
+| Fiducial 定位 | **已验证（合成 + 真实背景 + 实体 Tag）** | 合成 5/5（最大 1.82 mm / 1.49°）；半合成 15/15（最大 1.69 mm / 0.53°）；8 帧真实图像 0 误检；实体 Tag 横向尺度 0.67% |
+| 约束抓取搜索 | **已实现；Mock + 实机使用** | Mock：80 候选 → 40 IK → 26 无碰撞 → 3 条规划；每轮实机抓取均使用该搜索 |
+| 实机视觉抓取 | **已验证：3/5 轮成功** | 第 1、2、5 轮成功；第 3–4 轮失败并测出低构型误差；第 5 轮使用 Tag 修正 |
+| 关节限位 | **部分实测；采纳 EEPROM−20** | joint2 下限 322、joint3 止挡 939、joint4 上限 901；joint1 下限 / joint3 正向 / joint5 未正式测量；`mapping_verified=false` |
+| 无头抓取工具链 | **已验证** | `grasp_150mm` 工具、`moveit_execute`、`pulse_move`；每条机械臂规划均经安全否决 |
+| 安全层 | **已实现；Mock 验证 + 实机否决** | 看门狗、关节/速度/加速度/起始状态/时长/工作空间检查；桌面平面间隙；无急停或抱闸 |
+| 测量协议 | **已实现；dry-run/simulate 验证** | 重复性、回差、视觉位移、夹爪包络；尚无完整实机数据集 |
+| 误差预算 | **框架已实现；项目预算部分完成** | 已测手眼 + fiducial 项，RSS 3.699 mm / 0.682°；五个必需项未测 |
+| 配对试验 | **框架已实现；仅合成验证** | 24 对随机计划、bootstrap/符号检验/McNemar；无实体配对试验 |
+| 主机/DDS 基准 | **已实现；只读实机快照** | 笔记本 + Pi 指标；状态 20 Hz；相机约 12 Hz；ping 0.24 ms |
+| Debug Studio | **G1–G6 已实现；测试通过** | 后端 92 + 网关 38；Mock 10 + 硬件 3 个 Playwright；G5 运动采集；G6 受监督路径无运动验证 |
+| 控制板 | **已探测（2026-11-19）** — 电池、6 路总线舵机、4 路开环电机占空比、蜂鸣器与 LED1/2 为真实功能；IMU、编码器、急停、板载手柄/SBUS 不存在；KEY1/2 已拆除 | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
+| 移动底盘 | **仅开环；计划扩展** | 4 路电机占空比，无编码器/IMU/里程计；0.5 s 看门狗；任何底盘运动都会使桌面标定失效 |
+
+历史学习路线：Panda 抓取放置演示（`arm_moveit_demo`）与 M2.2 双自由度控制器
+配置（`arm_description`）属于归档的学习产物，证据在
+[`evidence/m2_2_v2/`](evidence/m2_2_v2/) 与 [`docs/archive/`](docs/archive/)；
+它们不属于本毕业课题的结果。
+
+## 毕业项目交付清单
+
+- [x] 问题定义、范围与平台约束
+- [x] 修正模型、TF 树与实测相机坐标系
+- [x] 自主标定与独立验证
+- [x] 约束规划与抓取候选搜索
+- [x] 安全否决下的实机执行
+- [x] 带逐轮证据的量化结果
+- [x] 失败模式分类与批判性分析
+- [x] 可复现命令与测试套件
+- [ ] 完整误差预算（重复性、回差、执行、夹爪、夹具）
+- [ ] 具备统计功效的配对实机试验
+- [ ] 低构型关节偏置标定
+- [ ] 正式机械限位测量与 `mapping_verified=true`
+
+## 快速开始
+
+### 环境要求
+
+- 工作站 ROS 2 Jazzy；机器人 ROS 2 Humble + CycloneDDS。
+- Humble MoveIt/RViz 的 Docker 容器（`tools/humble_moveit/`）。
+- Python 3.10+、Node 20+（调试台）。
+- 实机运行还需：直连以太网、厂商 `start_node.service`，以及
+  [`docs/hardware/network_access.md`](docs/hardware/network_access.md) 中的网络锁定。
+
+### 构建与测试
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd ros2_ws
 colcon build --symlink-install
+
+# 纯 Python CI：误差预算、配对试验、基准、测量、分割
+python -m pytest -q \
+  ros2_ws/src/armpi_analysis/test/test_error_budget.py \
+  ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
+  ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
+  tools/phase2/tests/test_measurement_protocol.py \
+  tools/phase2/tests/test_object_segment.py \
+  tools/phase4/tests
+
+# 调试台：后端 92、网关 38、Mock Playwright 10
+cd armpi-debug-studio/backend && pytest
+cd ../ros2_gateway && pytest
+cd ../frontend && npm run test:e2e
 ```
 
-Panda 演示还需要归档的 8 周 README 中描述的 MoveIt/Panda underlay（单独的 `~/ws_moveit` 工作区）。
-
-## 运行
-
-### ArmPi 模型与 MoveIt（Mock 硬件）
+### Mock 链路（无硬件）
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ros2_ws/install/setup.bash
 
-# 模型检查
+# 模型 + MoveIt Mock
 xacro ros2_ws/src/armpi_ultra_description/urdf/armpi_ultra.xacro > /tmp/armpi.urdf
 check_urdf /tmp/armpi.urdf
-
-# 仅模型 RViz（不启动 MoveIt）；无头检查用 use_rviz:=false
-ros2 launch armpi_ultra_description display.launch.py
-
-# MoveIt 演示：mock_components，无真实硬件
-# 无头运行加 use_rviz:=false
 ros2 launch armpi_ultra_moveit_config demo.launch.py \
   ros2_control_hardware_type:=mock_components \
   use_sim_time:=false use_gazebo:=false use_real:=false
 
-# 在 gripper_link 上做 6D 约束目标（仅规划，不执行）
+# 6D 约束目标（仅规划）
 python3 tools/phase0/constrained_plan_check.py \
   --pipeline pilz_industrial_motion_planner --planner PTP
+
+# fiducial → 抓取 → 安全 E2E，隔离域 77
+tools/phase2/run_mock_visual_grasp_e2e.sh evidence/phase2/session3_20261117
 ```
 
-预期：`move_group` 加载成功，KDL IK 初始化，`arm_controller` 和
-`gripper_controller` 处于 active 状态。关节空间冒烟测试见
-`evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`；约束目标检查返回
-`error_code=1 (SUCCESS)`，且轨迹点数量非零。详见
-[`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md)。
+### 实机运行（仅受监督）
 
-> **不要把这当作硬件验证。** `mock_components` 是仿真系统；`joint_states`
-> 语义、限位、相机和夹爪均未测量。
+实机流程刻意不提供一条可直接复制执行的命令。必需步骤见：
 
-### 5-DoF 抓取候选搜索（Mock，仅规划）
+- [`docs/hardware/network_access.md`](docs/hardware/network_access.md) — 有线链路、防火墙、网关绑定。
+- [`tools/humble_moveit/README.md`](tools/humble_moveit/README.md) — Humble MoveIt/RViz 容器与 CycloneDDS。
+- [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) — 采纳限位、测量与恢复规则。
+- [`docs/phase2/SAFETY_LAYER.md`](docs/phase2/SAFETY_LAYER.md) — 否决服务与运行包络。
+- [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md) — body 与 optical 坐标系、`camera_optical_calibrated`。
 
-保持上面的无头 MoveIt Mock 运行，另开终端：
+2026-11-19 的抓取使用 `tools/phase2/real_moveit_execute.py`、
+`tools/phase2/object_segment_rgbd.py`、`tools/phase2/depth_plane_fit.py`
+以及 Studio G5/G6 路径；详见
+[`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/)。
 
-```bash
-# 正例：FK 精确的笛卡尔候选
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-joints 0.3 0.9 -1.8 -1.7 0.4 --max-plan 3 --json-out /tmp/grasp_cartesian.json
-
-# 实用搜索：目标点周围的关节空间采样
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-point 0.1382 0.0225 0.0896 --sampler joint \
-  --max-plan 3 --json-out /tmp/grasp_joint.json
-
-# 负例：不可达点（预期退出码 1）
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-point 0.60 0.0 0.30 --sampler joint --json-out /tmp/grasp_unreachable.json
-```
-
-流程为：策略检查 → 全位姿 IK → FK 校验 → 碰撞检查 → 仅规划的 Pilz `PTP`。
-不会执行任何轨迹。2026-11-16 的关节采样结果为 80 个候选 → 40 个 IK 成功 →
-26 个无碰撞 → 3 条规划成功。详见
-[`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
-和 [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/)。
-
-### Fiducial 目标定位（真实相机 + 合成检查）
+### 离线分析（不运动）
 
 ```bash
-# 合成精度检查：5 个已知位姿，输出 JSON + 叠加图
-ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
-  --output-dir evidence/fiducial/20261116
-
-# 真实相机：定位器 + 实测光学 frame 发布器
-ros2 launch armpi_fiducial_localizer fiducial_localizer.launch.py \
-  image_topic:=/depth_cam/rgb/image_raw \
-  camera_info_topic:=/depth_cam/rgb/camera_info \
-  marker_size_m:=0.06 output_frame:=base_link
-
-# 快速节点检查：合成图像流（无真实相机）
-ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
-  --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
-```
-
-AprilTag 36h11 检测器默认在 `camera_optical_calibrated`（实测光学 frame）发布
-`target_pose`，设置 `output_frame:=base_link` 后经 TF 转换；使用
-`solvePnPRefineLM` 消除正对相机的 IPPE 二义性。结果：合成 5/5，最大
-1.82 mm / 1.49°；真实背景半合成 15/15，最大 1.69 mm / 0.53°；8 帧真实图像
-0 误检。详见
-[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md)、
-[`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md)、
-[`evidence/fiducial/20261116/`](evidence/fiducial/20261116/) 和
-[`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/)。
-
-### M2.2 控制器配置（Gazebo，2-DOF `simple_arm`）
-
-```bash
-source /opt/ros/jazzy/setup.bash
-source ros2_ws/install/setup.bash
-ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
-```
-
-配置：`default`、`gain_0p1`、`gain_0p2`。2026-11-15 的回归测试向
-`/arm_controller/follow_joint_trajectory` 发送 `joint1=0.2, joint2=0.2`；
-三者均返回 `error_code=0`。详见
-[`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md)。
-
-### ArmPi Debug Studio（Mock、只读硬件、G2–G6）
-
-```bash
-cd armpi-debug-studio/backend
-python3 -m venv .venv && . .venv/bin/activate
-pip install -e '.[dev]'
-pytest
-uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
-
-# 另一个终端
-cd armpi-debug-studio/frontend
-npm install && npm run dev
-npm run test:e2e          # 构建并运行 10 个 Playwright Mock 测试
-
-# 硬件模式：显式门控、私有网关、只读、不进 CI
-ARMPI_E2E_HARDWARE=1 \
-ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
-ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
-npm run test:e2e:hardware
-```
-
-Mock 模式界面必须显示 `SIMULATION`。使用 `ARMPI_MODE=hardware` 并在机器人上
-运行只读网关时，界面显示 `LIVE` 电池与相机数据；关节位置取实测
-`servo_states`（命令回显仍单独保留）。硬件运动**默认关闭**；G6 受监督路径需要
-`ARMPI_HARDWARE_MOTION=1` 加固定的 `ARMPI_SUPERVISED_MOTION_ACK` 短语，每次
-只允许一个关节，步长上限 0.096342 rad。网关已于 2026-11-17 实机验证，并已作为宿主机 systemd 服务常驻；
-其 `/tf` 路径已于 2026-11-18 实机验证（11 条动态 + 8 条静态边，
-`base_link→link5` 与 `tf2_echo` 差异 <0.4 mm）。详见
-[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md)、
-[`armpi-debug-studio/ros2_gateway/deploy/README.md`](armpi-debug-studio/ros2_gateway/deploy/README.md)
-和 [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md)。关节限位仍为
-provisional；只读实测与关力矩测量工具见
-[`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md)。
-
-G2 Trajectory Inspector 已于 2026-11-18 实现为离线 JSON 数据集分析：计划/命令/
-反馈三流分离、逐关节误差与采样质量、CSV 可复算，以及仅在浏览器内播放的 Replay；
-G5 记录器已产生一份无运动静态采集和一次受监督 `camera_forward` 运动采集
-（0.892 s，712 命令 / 711 测量样本），示例仍明确标记为 simulated。详见
-[`armpi-debug-studio/docs/g2-trajectory-inspector.md`](armpi-debug-studio/docs/g2-trajectory-inspector.md)。
-
-G3 Experiment Lab 同日实现为离线实验记录：不可变实验定义、带随机化计划的追加式
-配对 trial、失败代码、G2 数据集/rosbag2 路径引用、CSV/JSON 导出，以及与 Phase 3
-一致的 bootstrap/符号检验/McNemar 分析。示例 16 对全部标记 simulated，二元端点
-样本量不足并在界面中明确警告，不能据此宣称成功率显著改善。详见
-[`armpi-debug-studio/docs/g3-experiment-lab.md`](armpi-debug-studio/docs/g3-experiment-lab.md)。
-
-G4 Visual Workbench 实现为只读可视化：解析项目 URDF 做前向运动学，可选使用网关
-`/tf` + `/tf_static` 快照，显示 link/joint 轴、已验证手眼的
-`camera_optical_calibrated` 光学帧、相机画面与标定/TF/URDF provisional 警示；相机
-引用只保存元数据，不保存图像字节。`/tf` 已于 2026-11-18 在真实机器人 TF 图上验证，
-状态为 `live`；没有实时 TF 时回退到 URDF FK。渲染层不进入安全/运动链。详见
-[`armpi-debug-studio/docs/g4-visual-workbench.md`](armpi-debug-studio/docs/g4-visual-workbench.md)。
-
-G5 只读轨迹记录器订阅 `/controller_manager/joint_states`（命令回显）和
-`/controller_manager/servo_states`（总线舵机实测位置，脉冲转弧度），接受 MoveIt
-计划 JSON，输出 G2 数据集。记录器不创建 publisher、service client 或运动接口；
-舵机脉冲越界时立即停止采集。硬件证据包括 5 s 静态保持和一次受监督
-`camera_forward` 运动（0.892 s，G2 tracking max 0.008321 rad / RMSE
-0.003962 rad）；误差主要来自舵机脉冲量化和一个控制周期的起始偏移，不能作为
-完整跟踪精度结论。详见
-[`armpi-debug-studio/docs/g5-trajectory-recorder.md`](armpi-debug-studio/docs/g5-trajectory-recorder.md)。
-
-G6 受监督运动写路径在限位仍为 provisional 的前提下增加 Studio 下发：单关节、
-脉冲对齐的 0.096342 rad 步长、1.0 s 时长下限、实测反馈新鲜度与完成判定，并由网关
-按实测脉冲独立复核。默认关闭，必须显式确认；只读服务继续占用 `8765`，受监督实例
-单独开在 `8766`。实机验证中受监督后端达到 `safety.ready=true`，越限与超步长命令
-被拒绝，机械臂**未运动**（实测位移 0.0 rad），没有发送任何有效运动命令。详见
-[`armpi-debug-studio/docs/g6-motion-write-path.md`](armpi-debug-studio/docs/g6-motion-write-path.md)
-和 [`evidence/studio_g6/20261118/`](evidence/studio_g6/20261118/README.md)。
-
-### 误差预算、配对试验与主机基准（离线/只读）
-
-```bash
-# 误差预算：仓库内的部分项目预算 + 合成 demo
+# 误差预算：仓库内部分预算 + 合成 demo
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
   --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
   --markdown-out /tmp/error_budget.md
-PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget --demo
 
-# 配对试验：随机计划、合成仿真、分析
+# 配对试验：计划、合成运行、分析
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
   plan --pairs 24 --seed 7 --json-out /tmp/paired_plan.json
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
-  simulate --pairs 24 --seed 7 --jsonl-out /tmp/paired.jsonl
-PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
   analyze --input /tmp/paired.jsonl --markdown-out /tmp/paired.md
 
-# 只读主机/DDS 基准（笔记本 + 机器人；不运动）
+# 只读主机/DDS 基准
 tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 ```
 
-误差预算**仍不完整**：重复性、回差、抓取执行、夹爪放置和夹具位姿尚未测量。
-配对试验分析只在合成数据上验证。基准为只读，不向机器人发送命令。详见
-[`docs/phase3/`](docs/phase3/README.md) 和
-[`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/)。
+## 实验方法
 
-## 模型注意事项（重要）
+### 标定
 
-- **关节限位是暂定值。** `joint3` 上限为 `0.0`（厂商软件映射），而不是
-  `+2.09`。`r_joint` 上限为 `1.257`，取 URDF 与厂商软件范围的交集。
-  机械限位和所有 `effort="1000"` 数值均未测量；每个机械臂限位都带有
-  `PROVISIONAL` 注释。
-- **相机 frame 分为模型与实机两套。** `camera_connet_link` 是厂商安装座；
-  模型中的 `camera_link` / `camera_optical_frame` 是 Mock 用的名义 frame
-  （单位变换/REP-103）。实机上 `rgb_camera_link` 是 body frame，实测光学
-  frame 是 `camera_optical_calibrated`，由已验证的手眼和全精度实机 TF 组合
-  得到；模型 frame 不会在实机上发布。详见
-  [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md)。
-- **IK 默认是 KDL 全位姿。** 未安装 TRAC-IK。
-  `position_only_ik: false` 是仓库中的默认值，因此 6D 目标不会被静默降级为
-  位置目标。仅在“机械臂能否到达该点？”检查中使用
-  `config/kinematics_reachability.yaml`。详见
-  [`docs/phase0/ARMPI_5DOF_CONSTRAINTS.md`](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md)。
-- **约束目标使用 Pilz `PTP`。** 即使 `/compute_ik` 能求解，OMPL 的目标采样器
-  在 KDL 下仍无法处理该 6D 目标；`LIN` 失败，因为固定姿态的直线会离开
-  5-DoF 可达集。细节见 Phase 0 验收文档。
-- **抓取搜索基于可达集。** 在固定工具点处，可达姿态构成一个很薄的 5-DoF
-  流形，因此大多数笛卡尔姿态邻域都会 IK 失败。对目标点请使用关节空间采样
-  （`--sampler joint`）；结果中的 `target_offset_m` 给出候选与目标点的残余偏差。
-  TCP 偏置为标称值，所有结果均为仅规划。
-- **Fiducial 定位仅完成合成验证。** AprilTag 检测器使用打印边长
-  （`marker_size_m`，默认 0.06 m）和相机 `CameraInfo`。真实内参、
-  `link4 → camera` 外参、光照和镜头畸变均未测量；不要把合成精度当作真实
-  相机计量结果。
-- **已移除过期 URDF。** 厂商预生成的 `armpi_ultra.urdf`（joint1 和 r_joint
-  为 `fixed`）已归档到 `docs/archive/armpi_ultra.urdf.stale`；只使用 xacro。
-- **无硬件。** 没有 `/dev/rrc`、没有相机、没有底盘、没有真实运动。
+相机安装在 `link4` 上、位于最终腕部旋转之前，因此标定的是 `link4 → camera`，而不是直接的夹爪→相机变换。棋盘采集使用舵机实测位置而非命令回显。验证采用三种独立程序：板位姿一致性、留出基位姿与留一交叉验证。桌面下俯采集针对实际工作视角重新拟合变换，实体 AprilTag 提供独立尺度检查。厂商手眼矩阵对当前安装已过期，**不**作为 Baseline A。
 
-## 证据与可复现性
+### 抓取
 
-- `evidence/m2_2_v2/` — 四个 MCAP bag、分析 CSV/PNG、源码快照、Gate 2 报告。
-  `*.mcap` 已 gitignore；请保留本地/远程备份。
-- `evidence/armpi_moveit/` — 展开后的 URDF、`check_urdf`、MoveIt 日志和
-  Phase 0 约束规划证据。
-- `evidence/armpi_grasp/` — 抓取候选搜索 JSON 与无头 MoveIt 日志
-  （Mock，仅规划）。
-- `evidence/fiducial/` — 合成标记精度 JSON/叠加图与 ROS 定位器/TF 集成日志。
-- `evidence/calibration/20261117/` — 棋盘手眼数据集、逐方法验证和离线
-  24 位姿选择。
-- `evidence/phase2/real_background_20261117/` — 真实背景负对照 + 半合成位姿精度。
-- `evidence/phase2/frames_20261117/` — 全精度 body→optical frame 契约。
-- `evidence/phase2/session3_20261117/` — 合成标记 → 抓取 → 安全 E2E、安全服务负对照、测量 dry-run/simulate 报告。
-- `evidence/phase3/session4_20261117/` — 部分误差预算、配对试验仿真、只读笔记本/机器人主机/DDS 基准。
-- `evidence/README.md` 和 `evidence/m2_2_v2/MANIFEST.md` 说明了哪些内容被跟踪。
+物体不使用标记：地面平面 RANSAC、体素聚类与顶面切片拟合给出位置、尺寸和偏航。约束抓取搜索在五自由度可达集内采样，筛选全位姿 IK、校验 FK、检查碰撞，并用 Pilz `PTP` 规划。独立安全节点在执行前否决轨迹。执行以舵机实测完成判定，而不是命令回显。只有物体在已验证视角下从地面消失，才判定抓取成功；安装在运动臂上的相机离被夹物体太近，不能作为可靠的夹持传感器。
 
-永远不要把 Mock/Gazebo 结果当作硬件验证。
+### 关节限位与安全
+
+限位按舵机 EEPROM 减 20 脉冲（0.0838 rad）采纳，因为多个手工测得的机械止挡位于可指令 EEPROM 范围之外。通电探测到达 joint2 = 322、joint3 = 939；夹爪在发现原始张开值只是卡滞而非止挡后重新测量。厂商节点在读到负舵机寄存器时会因 `uint16` 断言崩溃，因此所有测量运动单调推进，并带自由下落中止保护。
+
+### 模型与规划注意事项
+
+- 仓库默认使用 KDL 全位姿 IK（`position_only_ik: false`）；未安装 TRAC-IK。
+  仅位置可达性检查使用单独配置。
+- 约束目标使用 Pilz `PTP`：OMPL 的目标采样器在 KDL 下无法求解该 6D 目标，
+  而 `LIN` 会离开五自由度可达集。
+- 厂商预生成的 URDF 已归档；只使用 xacro。
+- 厂商手眼矩阵对当前安装已过期，不作为 Baseline A。
+
+### 可靠性分析
+
+误差预算框架区分已测与未测来源，报告 RSS、最坏情况、主导项与 Monte Carlo 区间。配对试验记录器采用追加式 JSONL、带种子的对内随机化与精确配对检验。主机/DDS 基准为只读，测量两端主机的 topic 速率、抖动与消息年龄。以上工具均不向机器人发送运动命令。
+
+## 失败模式分类（实测）
+
+| # | 发现 | 后果 | 状态 |
+|---|---|---|---|
+| 1 | 夹爪“张开”值 −0.8378 rad 是卡滞，不是连杆止挡 | 手指只张开约 60%，木块可能卡住 | **已修复**：行程重测为 2.22 rad |
+| 2 | FK/手眼误差与构型相关：低抓取位姿为 −8.0/−15.3/−5.8 mm，桌面下俯为亚毫米 | 第 3–4 轮在木块旁闭合 | **已缓解**：单点 Tag 修正；根因待解 |
+| 3 | 深度相机近端截止 0.176 m；低构型下物体距相机 72 mm | “物体位于视野中心”门控物理上不可行 | **已记录**；目标改由桌面下俯视角提供 |
+| 4 | 用距被夹物体 0.10 m 的相机判断夹持 | 第 3–4 轮出现错误的“已夹住”证据 | **协议已修复**：在视角位姿检查地面原位 |
+| 5 | 地面可达边界使 TCP 沿手指方向差 5.9 mm | 抓取位于工作空间边缘 | **已知**；使用深关节族 |
+| 6 | 负舵机寄存器使厂商 `get_state` 回调崩溃 | 限位测量期间 4 次节点崩溃 | **已缓解**：单调测量、自由下落中止、绝不读负值 |
+| 7 | 机器人无 RTC、无 NTP；`/joint_states` 到达即过期 | MoveIt 在运动前中止 | **操作修复**：机器人时钟比工作站快 1–2 s |
+| 8 | AprilTag 尺寸错误（估计 73 mm，实际 60 mm） | Tag 被放到地面以下 59 mm | **已修复**：用直尺实测尺寸 |
+| 9 | `armpi_safety` 拒绝仅夹爪轨迹（“FK failed: joint1”） | MoveIt 无法 `--execute` 夹爪动作 | **未解决**；夹爪走 `/gripper_controller` |
+| 10 | 底盘运动使桌面标定失效；无里程计/IMU | 任何底盘移动后必须重标定 | **已知**；移动扩展单列 |
+
+## 安全与运行包络
+
+- **没有急停、没有抱闸。** 断电会使机械臂下落；厂商栈约 89 s 自动恢复。所有运动均受监督。
+- **采纳限位是可指令限位，不是机械保证。** `mapping_verified=false`；后端与 Studio 默认关闭运动。
+- **绝不读取或指令负舵机寄存器。** 它会使厂商节点崩溃；恢复时的节点重启本身就会移动机械臂。
+- **MoveIt 执行需要时钟领先。** 跨主机执行前，将机器人时钟设为比工作站快 1–2 s。
+- **`/joint_states` 是命令回显。** 实测真值是 `/controller_manager/servo_states`；寄存器读数用 `get_state` 服务。
+- **低构型对深度相机是盲区。** 近端截止 0.176 m；不要从低视角规划抓取。
+- **入站只走有线链路。** 默认拒绝的 nftables，仅允许 `eth0`，SSH 仅密钥，网关绑定 `10.42.0.218`。
+- **没有自主运行。** G6 路径为单关节、步长受限，并要求显式确认短语。
+
+## 局限性与有效性威胁
+
+- **单一平台、单一物体、五轮试验。** 3/5 是可行性演示，不是成功率估计；没有足够的统计功效支撑可靠性结论。
+- **低构型修正是局部的。** 距木块约 15 mm 的一个 Tag 点给出常数偏置；误差没有建模为关节构型的函数。正确做法是关节偏置标定。
+- **误差预算不完整。** 重复性、回差、抓取执行、夹爪放置与夹具位姿均未测；5 mm / 2° 是暂定门限。
+- **48° 斜视下绝对深度有偏。** RGB 与深度在该视角相差约 40–50 mm；桌面下俯与深度平面估计才是可靠参考。
+- **手眼验证是板相对的。** 它证明一致性而非绝对计量；Tag 尺度检查是独立的物理锚点。
+- **关节限位来自 EEPROM。** joint1 下限、joint3 正向与 joint5 止挡未正式测量；`mapping_verified` 保持 false。
+- **无力/力矩传感、无急停、无抱闸。** 接触丰富操作与自主恢复不在范围内。
+- **Mock 与 Gazebo 结果从不作为硬件验证。** `mock_components` 与合成标记只验证软件路径。
+
+## 可复现性与证据索引
+
+本 README 中的每条量化结论都可追溯到以下证据包之一：
+
+| 领域 | 证据 |
+|---|---|
+| 硬件基线 | [`evidence/phase1/20261117/`](evidence/phase1/20261117/)、[`docs/hardware/README.md`](docs/hardware/README.md) |
+| 模型 / MoveIt | [`evidence/armpi_moveit/`](evidence/armpi_moveit/)、[`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
+| 标定 | [`evidence/calibration/20261117/`](evidence/calibration/20261117/)、[`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| Fiducial | [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/)、[`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/) |
+| 抓取搜索 | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
+| 现场安全 / 限位 | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
+| 实机抓取 / 可达 | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/) |
+| 可靠性分析 | [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/)、[`studio_g2/`](evidence/studio_g2/)、[`studio_g3/`](evidence/studio_g3/)、[`studio_g4/`](evidence/studio_g4/)、[`studio_g5/`](evidence/studio_g5/)、[`studio_g6/`](evidence/studio_g6/) |
+| 安全加固 | [`evidence/security/20261118/`](evidence/security/20261118/) |
+
+仓库保留原始日志与机器可读 JSON；当图像是主要证据时也会保留。`*.mcap` bag 已 gitignore，需单独备份。`evidence/README.md` 说明了跟踪范围。
 
 ## 文档
 
-- [技术路线图](ROADMAP.md) — 包含当前状态的公开技术路线图。
-- [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 检查清单、证据和剩余缺口。
+- [技术路线图](ROADMAP.md) — 公开技术路线图与后续步骤。
+- [变更日志](CHANGELOG.md) — 按会话记录的时间顺序变更。
+- [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 检查清单与剩余缺口。
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。
-- [Phase 2 抓取搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成、筛选流程、Mock 结果与限制。
-- [Phase 2 Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 检测、位姿约定、真实背景精度与 frame 契约。
-- [Phase 2 Fiducial → 抓取桥接](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — `target_pose` → TF → 抓取搜索 → 安全否决，Mock E2E 结果。
-- [Phase 2 安全层](docs/phase2/SAFETY_LAYER.md) — 看门狗、限位、工作空间与轨迹否决服务。
-- [Phase 3 测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移与夹爪包络。
-- [Phase 3 误差预算](docs/phase3/ERROR_BUDGET.md) — 误差源 schema、RSS/最坏情况、部分项目预算与缺失测量。
-- [Phase 3 配对试验](docs/phase3/PAIRED_TRIALS.md) — 配对记录器、随机化与精确配对分析。
-- [Phase 3 主机/DDS 基准](docs/phase3/HOST_BENCHMARK.md) — 只读笔记本/Pi 指标、topic 速率/抖动/延迟与相机速率修正。
-- [相机 frame 契约](docs/hardware/camera_frames.md) — body/optical frame 与 `camera_optical_calibrated`。
-- [Vendor 标定基线](docs/hardware/vendor_calibration_baseline.md) — vendor 矩阵解码与 Baseline A 状态。
-- [Phase 2 关节限位](docs/phase2/JOINT_LIMITS.md) — 舵机只读证据、关力矩测量流程与 CycloneDDS 注意事项。
-- [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态、合并计划、待决事项。
+- [标定](docs/phase2/CALIBRATION.md) — 棋盘手眼流程与验证结果。
+- [标定位姿选择](docs/phase2/CALIBRATION_POSES.md) — 离线 24 位姿选择。
+- [抓取候选搜索](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — 候选生成与筛选。
+- [Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 位姿约定与验证。
+- [Fiducial → 抓取桥接](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — TF、搜索与安全否决。
+- [安全层](docs/phase2/SAFETY_LAYER.md) — 看门狗、限位与否决。
+- [测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移、夹爪包络。
+- [关节限位](docs/phase2/JOINT_LIMITS.md) — 测量、EEPROM 边界与恢复规则。
+- [误差预算](docs/phase3/ERROR_BUDGET.md) — schema、RSS 与缺失项。
+- [配对试验](docs/phase3/PAIRED_TRIALS.md) — 记录器、随机化与分析。
+- [主机/DDS 基准](docs/phase3/HOST_BENCHMARK.md) — 只读指标与相机速率修正。
+- [相机坐标系契约](docs/hardware/camera_frames.md) — body 与 optical。
+- [网络访问](docs/hardware/network_access.md) — 有线链路与安全锁定。
+- [厂商标定基线](docs/hardware/vendor_calibration_baseline.md) — 矩阵解码与 Baseline A 状态。
+- [2026-11-15 审计](docs/audit/2026-11-15/README.md) — 来源、冲突、状态与决策。
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
 - [G0 厂商审计](docs/armpi/g0/README.md)
-- [硬件基线](docs/hardware/README.md)
-- [Phase 0 审计](docs/phase0/)
 - [8 周学习日志](docs/weekly-log/)
 
 `MASTER_PLAN_V3_PRIVATE.md` 有意**不**放入这个公开仓库。
+
+## 结论
+
+本工作支持一个范围有限但有意义的结论：在该平台上，借助实测标定、约束规划与安全否决，可以对无标记 39.4 mm 木块完成自主抓取—抬升—放置；主要残余误差来自运动学，而不是感知。第 1–2 轮建立了完整链路；第 3–4 轮定位了 −8/−15/−6 mm 的构型相关模型误差；第 5 轮证明，在工作构型下做一次观测就足以补偿该误差并完成抓取。同一批证据也说明了尚未解决的部分：误差是被修正而非被建模；误差预算仍不完整；样本量不足以支撑可靠性结论。这些就是具体的下一步。
+
+## 路线图
+
+**下一步（最高优先级）。** 用低构型关节偏置标定替代单点 Tag 修正，然后在无逐物体修正的情况下重跑抓取。补齐重复性、回差、执行、夹爪与夹具项，完成误差预算。根据实测主导项选择干预，开展配对实机试验。
+
+**随后。** 正式化机械关节限位测量并设置 `mapping_verified=true`；为 `armpi_safety` 增加仅夹爪轨迹支持；把物体集从 39.4 mm 木块扩展到更多形状。可选移动底盘只在固定基座链路稳定后推进。
 
 ## 许可证
 

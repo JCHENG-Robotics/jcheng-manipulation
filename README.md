@@ -1,450 +1,540 @@
-# JCHENG Manipulation: A ROS 2-Based Robotic Manipulation System with Quantitative Reliability Evaluation
+# JCHENG Manipulation
+
+**Measured visual manipulation on a 5-DoF ArmPi Ultra: corrected model, self-implemented calibration, real grasp execution and a quantitative reliability budget.**
 
 **English** | [简体中文](README.zh-CN.md)
 
-JCHENG Manipulation is a personal robotics project around the **ArmPi Ultra** 5-DoF arm: corrected model
-and TF, constrained motion planning, calibration, real visual grasping, and a
-quantitative error budget.
+> A project-based master's capstone in applied robotics. The repository is the
+> complete, evidence-backed record of the work: a corrected 5-DoF model and TF
+> tree, constrained MoveIt 2 planning, a self-implemented hand–eye calibration
+> validated against independent markers, real pick–lift–place execution, a
+> safety veto, and a measured failure taxonomy. Vendor firmware and drivers are
+> treated as a **read-only baseline** and are never copied into this repository.
 
-The vendor stack is treated as a **read-only baseline**. This repository contains
-project-specific code, models, experiments and evidence; it does **not** copy
-the 16 GB vendor tree.
-
-> Historical note: the repository started as an 8-week ROS 2/Panda learning
-> project. That record is preserved at
+> Historical note: the repository began as an 8-week ROS 2/Panda learning
+> project. That record is archived at
 > [`docs/archive/README_8WEEK.md`](docs/archive/README_8WEEK.md) and
-> [`docs/weekly-log/`](docs/weekly-log/). The old roadmap is at
-> [`docs/archive/ROADMAP_8WEEK.md`](docs/archive/ROADMAP_8WEEK.md).
+> [`docs/weekly-log/`](docs/weekly-log/); it is not part of the capstone
+> claims. Earlier Panda and M2.2 artifacts are retained for traceability.
 
-## Status (2026-11-17)
+**Contents:** [At a glance](#at-a-glance) · [Abstract](#abstract) ·
+[Objectives](#objectives-and-contributions) ·
+[Key results](#key-results-measured-on-hardware) ·
+[Architecture](#system-architecture) · [Repository layout](#repository-layout) ·
+[Status](#project-status-2026-11-19) ·
+[Deliverables](#capstone-deliverables-checklist) · [Quick start](#quick-start) ·
+[Method](#experimental-method) · [Failure taxonomy](#failure-taxonomy-measured) ·
+[Safety](#safety-and-operating-envelope) ·
+[Limitations](#limitations-and-threats-to-validity) ·
+[Evidence](#reproducibility-and-evidence-map) · [Documentation](#documentation) ·
+[Conclusion](#conclusion) · [Roadmap](#roadmap) · [License](#license)
 
-Status convention: **Implemented / Validated / In Progress / Planned**. Vendor
-functionality is marked separately. `Validated` means there is a command, log or
-data file in `evidence/`; it does **not** mean hardware validation.
+<p align="center">
+  <img src="evidence/phase2/onsite_20261118/first_grasp/operator_grasp_20261118.jpg" width="420" alt="ArmPi Ultra holding a 39.4 mm wooden cube on the floor">
+  <br>
+  <em>First real grasp (2026-11-18): the arm holds a 39.4 mm wooden cube on the floor.
+  The fully autonomous pick–lift–place sequence followed on 2026-11-19.</em>
+</p>
 
-| Area | Status | Evidence / limit |
+## At a glance
+
+| Item | Summary |
+|---|---|
+| **Platform** | HiWonder ArmPi Ultra: 5-DoF arm, two-finger gripper, mecanum chassis, Raspberry Pi 5, Aurora 930 RGB-D camera |
+| **Software** | ROS 2 Humble on the robot, ROS 2 Jazzy on the workstation, MoveIt 2 + Pilz `PTP` + KDL, FastAPI/React debug studio |
+| **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
+| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube: grasp, ≈149 mm lift and return (pass 1); return within 6.6 mm / 8° (pass 2); a measured −8.0/−15.3/−5.8 mm low-configuration error corrected by one AprilTag observation (pass 5) |
+| **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
+| **Status** | 2026-11-19. Hardware motion is supervised; joint mapping remains `verified: false`; the robot has no e-stop or brake |
+
+## Abstract
+
+This project asks whether a low-cost 5-DoF arm with a wrist-mounted RGB-D
+camera can perform repeatable tabletop visual grasping when every transform,
+limit and failure mode is measured rather than assumed. The ArmPi Ultra is
+modelled as a constrained 5-DoF manipulator, and the camera is calibrated to
+`link4` with a self-implemented chessboard hand–eye procedure (14 poses,
+2.94 mm / 0.39° board-pose scatter, 3.29 mm / 0.43° held-out). A markerless
+RGB-D segmentation, joint-space grasp search, MoveIt/Pilz `PTP` execution and
+an independent trajectory veto form the grasp pipeline. Five real
+pick–lift–place attempts were run on an unmarked 39.4 mm cube; three
+succeeded. Passes 3–4 failed and exposed a systematic −8.0/−15.3/−5.8 mm
+FK/hand–eye error at the low grasp configuration; a single AprilTag
+observation at that configuration supplied a correction, after which pass 5
+held the cube, lifted it ≈148 mm and released it. Joint limits were adopted
+from the servo EEPROM with a 20-pulse margin after a powered survey, and a
+gripper re-measurement corrected the stroke from 0.84 rad to 2.22 rad. The
+project contributes a measured failure taxonomy and an explicit evidence
+trail; the full error budget and paired hardware trials remain open.
+
+## Objectives and contributions
+
+**Objectives**
+
+1. Reconstruct a trustworthy 5-DoF model: joint types, limits, TF and camera
+   frames verified against the live robot.
+2. Build a self-implemented calibration workflow with independent validation,
+   instead of relying on vendor defaults.
+3. Execute real visual grasps under constrained planning and an independent
+   safety veto.
+4. Quantify the error sources and identify the dominant term.
+5. Make the system observable and reproducible: every claim has a command,
+   log or data file behind it.
+
+**Contributions**
+
+1. **Measured model and frame contract.** A corrected xacro model, live TF
+   verification, and a measured body→optical adapter (`camera_optical_calibrated`)
+   used by the fiducial localizer.
+2. **Self-implemented calibration with independent checks.** Chessboard
+   hand–eye, table-down re-calibration, and a physical AprilTag scale test that
+   exposed a 4.87 % table-forward bias.
+3. **A complete real grasp pipeline.** RGB-D segmentation → constrained
+   grasp search → Pilz `PTP` plan → safety veto → measured servo execution →
+   verification, exercised end-to-end on hardware.
+4. **A measured configuration-dependent error.** The FK/hand–eye error at the
+   low grasp configuration is −8.0/−15.3/−5.8 mm while the same model is
+   sub-millimetre at the table-down view; a one-point tag correction made the
+   grasp succeed on the first attempt.
+5. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
+   probe to the mechanical stops, and tooling that avoids the vendor node's
+   negative-register crash.
+6. **Reliability tooling.** Error-budget framework, paired-trial recorder,
+   read-only host/DDS benchmark, and a G1–G6 debug studio with 92 backend +
+   38 gateway tests.
+7. **Evidence-first documentation.** Every quantitative statement links to a
+   timestamped evidence bundle; mock, simulation and hardware results are kept
+   separate.
+
+## Key results (measured on hardware)
+
+| Result | Measured value | Evidence |
 |---|---|---|
-| Panda learning demo | Implemented, simulation-validated | `panda-baseline-v1` tag; `docs/archive/README_8WEEK.md`; weekly logs |
-| ArmPi URDF / TF | Implemented; model + live TF verified | `xacro` + `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; **limits provisional** |
-| ArmPi MoveIt 2 | Implemented, mock-validated; real `reset_servo` verified | KDL IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP` (mock); Humble Docker MoveIt with one supervised real motion |
-| ArmPi constrained grasp | Implemented, mock-validated | 5-DoF grasp search: 80 joint-space candidates → 40 IK OK → 26 collision-free → 3 Pilz `PTP` plans; plan-only |
-| Fiducial target localization | Implemented, synthetic + real-background semi-synthetic validated | AprilTag 36h11; 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic on real frames (max 1.69 mm / 0.53°); 0 false detections on 8 real frames |
-| Camera frame contract | Implemented, validated | `camera_optical_calibrated` = measured body→optical adapter (89.798°, 5.4/10.1/−27.4 mm); model `camera_optical_frame` stays mock-only |
-| Phase 0 acceptance | **Complete (mock scope)** | [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
-| Real ArmPi hardware | **Baseline captured, partially validated** | live Pi/ROS/servo/TF/camera baseline 2026-11-17; joint limits and IMU open |
-| Camera / calibration | **Camera + validated hand-eye + selected pose set** | Aurora 930 RGB/depth live; RGB ~12 Hz cross-host (in-container subscribers undercount to ~8 Hz); 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°, leave-one-out 3.41 mm / 0.44° std; independent tag check 100.67 mm vs 100.0 mm lateral (0.67 %) and 104.87 mm vs 100.0 mm table-forward (4.87 %); table-down 15-pose fit 2.7 mm / 0.42° relative, but absolute RGB depth at 48° is biased ~40–50 mm (depth 340 vs RGB ~380 mm); measured optical frame published; 24 diverse poses selected offline from 14,176 evaluated poses (not executed) |
-| Visual grasping | In progress — mock chain validated | perception + grasp search + validated camera calibration and frame; fiducial → grasp bridge and safety veto pass a synthetic mock E2E; no real grasp yet |
-| Safety layer | Implemented, mock-validated | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; `ValidateTrajectory` veto service; provisional limits, no e-stop |
-| Measurement protocols | Implemented, dry-run/simulate validated | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no hardware data |
-| Error budget framework | Implemented, demo-validated; project budget **partial** | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md); measured hand-eye + fiducial terms, RSS 3.699 mm / 0.682°, required repeatability/backlash/execution/gripper/fixture terms unmeasured |
-| Paired trial framework | Implemented, simulated-validated | [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md); 24-pair randomized plan, seeded bootstrap/sign/McNemar analysis; no physical trial |
-| Host/DDS benchmark | Implemented, read-only hardware snapshot | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md); laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping |
-| ArmPi Debug Studio | G1-Mock + read-only hardware + G2–G6 | 92 backend + 38 gateway tests pass; 10 mock + 3 hardware Playwright; E7 gateway hardware-verified and persistent (systemd); G2 trajectory analysis, G3 experiment records, G4 visual workbench with live `/tf`, G5 read-only recorder with a supervised moving capture, G6 supervised motion write path (off by default, verified without motion; measured delta 0.0 rad) |
-| M2.2 controller profiles | Implemented, simulation-validated | default / 0.1 / 0.2 trajectories succeeded in Gazebo (2026-11-15) |
+| Hand–eye calibration, 14 poses | **2.94 mm / 0.39°** board scatter; held-out **3.29 mm / 0.43°**; LOO std **3.41 mm / 0.44°** | [`evidence/calibration/20261117/`](evidence/calibration/20261117/) |
+| Table-down re-calibration, 15 poses | **2.7 mm / 0.42°** scatter; held-out **2.2 mm / 0.29°**; LOO **3.1 mm / 0.45°** | [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| Calibration pose selection | **24 poses** from 14,176 evaluated / 3,093 feasible; 33.5° view-angle spread; planned, not executed | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
+| Independent tag scale | lateral **100.67 mm vs 100.0 mm (0.67 %)**; table-forward **104.87 mm vs 100.0 mm (4.87 %)**; angle **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
+| Depth table plane | **147,626 inliers, 0.7 mm RMS**; table z **−0.0787 m** (depth) vs **−0.0784 m** (215 mm ruler) | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
+| Real grasp trials | **3 / 5** successful pick–lift–place attempts on the 39.4 mm cube | [`grasp_150mm/`](evidence/phase2/onsite_20261119/grasp_150mm/), [`attempt2/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Best autonomous lift | TCP **+0.0993 m**, object **≈148 mm** above the floor; cube **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Low-configuration model error | **e = (−8.0, −15.3, −5.8) mm**; corrected grasp first try | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
+| Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
+| Adopted joint limits | servo EEPROM **−20 pulses**; joint2 low measured **322**; `mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
+| Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
+| Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
+| Studio G5 tracking | **712 commanded / 711 measured** samples; max **0.008321 rad**, RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
+| Partial error budget | RSS **3.699 mm / 0.682°** from measured terms; repeatability, backlash, execution, gripper and fixture unmeasured | [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) |
 
-The detailed audit (sources, conflicts, decisions) is in
-[`docs/audit/2026-11-15/`](docs/audit/2026-11-15/).
+## System architecture
+
+```text
+┌────────────────────────────── workstation (laptop) ──────────────────────────────┐
+│  MoveIt 2 (Humble Docker)      armpi_safety veto      armpi_analysis              │
+│  Pilz PTP / KDL IK             trajectory checks       error budget, paired tests   │
+│  Debug Studio (FastAPI+React)  G1–G6, read-only gateway, G5 recorder               │
+└───────────────────────────────────────┬───────────────────────────────────────────┘
+                                        │ CycloneDDS over direct Ethernet
+                                        │ 10.42.0.1 ↔ 10.42.0.218
+┌───────────────────────────────────────┴───────────────────────────────────────────┐
+│ Raspberry Pi 5 — vendor Humble core stack                                          │
+│ ros_robot_controller · servo_manager · camera · TF · start_node.service            │
+└───────────────┬───────────────────────────────┬───────────────────────────┬────────┘
+                │ 6 bus servos                  │ 4 motor channels          │ USB
+        arm joints 2–6 + gripper 1        mecanum chassis (open loop)   Aurora 930 RGB-D
+```
+
+The grasp pipeline is:
+
+```text
+RGB-D frame
+  → floor/table plane fit
+  → object mask + voxel cluster + top-slab pose
+  → TF to base_link
+  → constrained grasp search (position + pitch + wrist roll + approach offset)
+  → full-pose KDL IK → FK verification → collision check
+  → Pilz PTP plan (plan-only)
+  → /armpi_safety/validate_trajectory
+  → measured servo execution
+  → view-pose verification (object no longer on the floor)
+```
 
 ## Repository layout
 
 ```text
-armpi-debug-studio/        # G1 console (FastAPI + React) + gateway; motion off by default
+armpi-debug-studio/        # G1–G6 console (FastAPI + React) + read-only/supervised gateway
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
-├── audit/2026-11-15/      # source inventory, reconciliation, status, merge plan
-├── hardware/              # hardware baseline (live 2026-11-17; joint limits/IMU open)
+├── audit/2026-11-15/      # source inventory, reconciliation, decisions
+├── hardware/              # hardware baseline, frame contract, network access, limits
 ├── phase0/                # Phase 0 acceptance, 5-DoF constraints, historical audits
-├── phase2/                # grasp candidate search; calibration/grasping prep
+├── phase2/                # calibration, grasp search, fiducial bridge, safety, limits
 ├── phase3/                # error budget, paired trials, host/DDS benchmark
-├── archive/               # old README/ROADMAP, stale URDF, Phase II branch note
+├── archive/               # old README/ROADMAP, stale URDF, 8-week record
 └── weekly-log/            # 8-week learning record
 evidence/
-├── m2_2_v2/               # M2.2 bags (gitignored), CSVs, reports, snapshots
-├── armpi_moveit/          # model check, MoveIt smoke and Phase 0 logs
-├── armpi_grasp/           # grasp candidate search evidence (mock, plan-only)
-├── fiducial/              # synthetic fiducial detection + ROS TF evidence
 ├── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
-├── phase2/                # frames, joint limits, bridge E2E, safety, measurements
-└── phase3/                # error budget, paired trial and host/DDS benchmark evidence
+├── calibration/           # chessboard hand-eye (20261117) + table-down (20261118)
+├── fiducial/              # synthetic + real-background AprilTag validation
+├── armpi_moveit/          # model check, MoveIt smoke, Phase 0 logs
+├── armpi_grasp/           # mock grasp candidate search (plan-only)
+├── phase2/onsite_20261118 # on-site safety, limits, gripper, first grasp
+├── phase2/onsite_20261119 # grasps 1–5, lowest reach, yaw envelope, board probe
+├── phase3/                # error budget, paired-trial simulation, benchmark
+└── studio_g*/             # G2–G6 test and hardware evidence
 ros2_ws/src/
-├── arm_basics/            # learning nodes (legacy)
-├── arm_description/       # 2-DOF simple_arm + M2.2 controller profiles
-├── arm_interfaces/        # custom action + trajectory validation service
-├── arm_moveit_demo/       # Panda pick-and-place demo
-├── armpi_fiducial_localizer/  # AprilTag/ArUco target localization
-├── armpi_grasp_planner/   # 5-DoF candidate generation + bridge + mock E2E launch
-├── armpi_safety/          # state watchdog + trajectory veto
-├── armpi_analysis/        # error budget, paired trials, host/DDS benchmark
-├── armpi_ultra_description/   # 5-DoF ArmPi xacro + gripper + camera frames
-└── armpi_ultra_moveit_config/ # 5-DoF MoveIt config (mock + real-robot launch)
+├── armpi_ultra_description/    # 5-DoF xacro + gripper + camera frames
+├── armpi_ultra_moveit_config/  # MoveIt config (mock + real-robot launch)
+├── armpi_fiducial_localizer/   # AprilTag/ArUco target localization
+├── armpi_grasp_planner/        # 5-DoF candidate generation + bridge + mock E2E
+├── armpi_safety/               # state watchdog + trajectory veto
+├── armpi_analysis/             # error budget, paired trials, host benchmark
+├── arm_basics/                 # legacy learning nodes
+├── arm_description/            # 2-DOF simple_arm + M2.2 controller profiles
+├── arm_interfaces/             # custom action + trajectory validation service
+└── arm_moveit_demo/            # Panda pick-and-place demo
 tools/
 ├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
 ├── phase1/                # live hardware baseline helpers
-├── phase2/                # calibration, fiducial, bridge E2E and measurement tools
+├── phase2/                # calibration, segmentation, grasp, limits, safety tools
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
-## Build
+## Project status (2026-11-19)
+
+Status convention: **Implemented / Validated / In Progress / Planned**.
+`Validated` means a command, log or data file exists in `evidence/`; it does
+not by itself mean hardware validation. Vendor functionality is marked
+separately.
+
+| Workstream | Status | Evidence / limit |
+|---|---|---|
+| Robot model and TF | **Implemented; live TF verified** | Corrected xacro; `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame |
+| ArmPi MoveIt 2 | **Implemented; mock + real execution validated** | KDL full-pose IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP`; Humble Docker MoveIt on the real robot |
+| Hand–eye calibration | **Validated** | 14-pose chessboard: 2.94 mm / 0.39°; held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42° |
+| Fiducial localization | **Validated (synthetic + real background + physical tag)** | 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic (max 1.69 mm / 0.53°); 0 false detections on 8 real frames; physical tag scale 0.67 % lateral |
+| Constrained grasp search | **Implemented; mock + real use** | 80 candidates → 40 IK → 26 collision-free → 3 plans (mock); real search used in every grasp pass |
+| Real visual grasping | **Validated: 3/5 attempts** | Passes 1, 2 and 5 succeeded; passes 3–4 failed and measured the low-configuration error; pass 5 used a tag correction |
+| Joint limits | **Partially measured; adopted EEPROM−20** | joint2 low 322, joint3 stop 939, joint4 high 901; joint1 low / joint3 positive / joint5 not formally measured; `mapping_verified=false` |
+| Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
+| Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
+| Measurement protocols | **Implemented; dry-run/simulate validated** | Repeatability, backlash, visual displacement, gripper envelope; no full hardware dataset |
+| Error budget | **Framework implemented; project budget partial** | Measured hand–eye + fiducial terms, RSS 3.699 mm / 0.682°; five required terms unmeasured |
+| Paired trials | **Framework implemented; synthetic only** | 24-pair randomized plan, bootstrap/sign/McNemar; no physical paired trial |
+| Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
+| Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
+| Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
+| Mobile base | **Open-loop only; planned extension** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration |
+
+Legacy learning track: the Panda pick-and-place demo (`arm_moveit_demo`) and
+the M2.2 2-DOF controller profiles (`arm_description`) are archived learning
+artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
+[`docs/archive/`](docs/archive/); they are not part of the capstone results.
+
+## Capstone deliverables checklist
+
+- [x] Problem definition, scope and platform constraints
+- [x] Corrected model, TF tree and measured camera frame
+- [x] Self-implemented calibration with independent validation
+- [x] Constrained planning and grasp-candidate search
+- [x] Real hardware execution under a safety veto
+- [x] Quantitative results with per-run evidence
+- [x] Failure taxonomy and critical analysis
+- [x] Reproducible commands and test suite
+- [ ] Full error budget (repeatability, backlash, execution, gripper, fixture)
+- [ ] Paired hardware trials with statistical power
+- [ ] Joint-offset calibration over the low configuration
+- [ ] Formal mechanical joint-limit survey and `mapping_verified=true`
+
+## Quick start
+
+### Prerequisites
+
+- ROS 2 Jazzy on the workstation; ROS 2 Humble + CycloneDDS on the robot.
+- Docker for the Humble MoveIt/RViz container (`tools/humble_moveit/`).
+- Python 3.10+, Node 20+ for the debug studio.
+- For hardware: the direct Ethernet link, the vendor `start_node.service`,
+  and the network lockdown described in
+  [`docs/hardware/network_access.md`](docs/hardware/network_access.md).
+
+### Build and test
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd ros2_ws
 colcon build --symlink-install
+
+# pure-Python CI: error budget, paired trials, benchmark, measurement, segmentation
+python -m pytest -q \
+  ros2_ws/src/armpi_analysis/test/test_error_budget.py \
+  ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
+  ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
+  tools/phase2/tests/test_measurement_protocol.py \
+  tools/phase2/tests/test_object_segment.py \
+  tools/phase4/tests
+
+# debug studio: backend 92, gateway 38, mock Playwright 10
+cd armpi-debug-studio/backend && pytest
+cd ../ros2_gateway && pytest
+cd ../frontend && npm run test:e2e
 ```
 
-The Panda demo also needs the MoveIt/Panda underlay described in the archived
-8-week README (a separate `~/ws_moveit` workspace).
-
-## Run
-
-### ArmPi model and MoveIt (mock hardware)
+### Mock pipeline (no hardware)
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ros2_ws/install/setup.bash
 
-# model check
+# model + MoveIt mock
 xacro ros2_ws/src/armpi_ultra_description/urdf/armpi_ultra.xacro > /tmp/armpi.urdf
 check_urdf /tmp/armpi.urdf
-
-# model-only RViz (no MoveIt); use_rviz:=false for a headless check
-ros2 launch armpi_ultra_description display.launch.py
-
-# MoveIt demo: mock_components, no real hardware
-# add use_rviz:=false for a headless run
 ros2 launch armpi_ultra_moveit_config demo.launch.py \
   ros2_control_hardware_type:=mock_components \
   use_sim_time:=false use_gazebo:=false use_real:=false
 
-# constrained 6D goal on gripper_link (plan only, no execution)
+# constrained 6D goal (plan only)
 python3 tools/phase0/constrained_plan_check.py \
   --pipeline pilz_industrial_motion_planner --planner PTP
-```
 
-Expected: `move_group` loads, KDL IK initializes, `arm_controller` and
-`gripper_controller` are active. The joint-space smoke test is in
-`evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`; the constrained-goal check
-returns `error_code=1 (SUCCESS)` with a non-zero trajectory point count. See
-[`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
-
-> **Do not treat this as hardware validation.** `mock_components` is a fake
-> system; `joint_states` semantics, limits, camera and gripper are unmeasured.
-
-### 5-DoF grasp candidate search (mock, plan-only)
-
-With the headless MoveIt mock above still running:
-
-```bash
-# positive control: an FK-exact Cartesian candidate
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-joints 0.3 0.9 -1.8 -1.7 0.4 --max-plan 3 --json-out /tmp/grasp_cartesian.json
-
-# practical search: joint-space sampler around a target point
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-point 0.1382 0.0225 0.0896 --sampler joint \
-  --max-plan 3 --json-out /tmp/grasp_joint.json
-
-# negative control: unreachable point (expects exit 1)
-ros2 run armpi_grasp_planner grasp_candidate_check \
-  --target-point 0.60 0.0 0.30 --sampler joint --json-out /tmp/grasp_unreachable.json
-```
-
-The pipeline is sanity → full-pose IK → FK verification → collision validity →
-plan-only Pilz `PTP`. It never executes. On 2026-11-16 the joint sampler produced
-80 candidates → 40 IK OK → 26 collision-free → 3 plans. See
-[`docs/phase2/GRASP_CANDIDATE_SEARCH.md`](docs/phase2/GRASP_CANDIDATE_SEARCH.md)
-and [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/).
-
-### Fiducial target localization (real camera + synthetic checks)
-
-```bash
-# synthetic accuracy check: 5 known poses, JSON + overlays
-ros2 run armpi_fiducial_localizer fiducial_synthetic_check \
-  --output-dir evidence/fiducial/20261116
-
-# real camera: localizer + measured optical frame publisher
-ros2 launch armpi_fiducial_localizer fiducial_localizer.launch.py \
-  image_topic:=/depth_cam/rgb/image_raw \
-  camera_info_topic:=/depth_cam/rgb/camera_info \
-  marker_size_m:=0.06 output_frame:=base_link
-
-# synthetic image stream (no camera) for a quick node check
-ros2 run armpi_fiducial_localizer synthetic_marker_publisher \
-  --tvec 0 0 0.4 --rvec 3.141592653589793 0 0 --marker-size 0.06
-```
-
-The AprilTag 36h11 detector publishes `target_pose` in
-`camera_optical_calibrated` (the measured optical frame) by default, or in
-`base_link` after TF. It uses `solvePnPRefineLM` to remove the fronto-parallel
-IPPE ambiguity. Results: 5/5 synthetic poses, max 1.82 mm / 1.49°; 15/15
-semi-synthetic poses on real frames, max 1.69 mm / 0.53°; 0 false detections on
-8 real frames. See
-[`docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md),
-[`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md),
-[`evidence/fiducial/20261116/`](evidence/fiducial/20261116/) and
-[`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/).
-
-### Fiducial → grasp mock E2E (plan-only, safety-vetoed)
-
-```bash
-# One command: synthetic marker -> localizer -> bridge -> grasp search ->
-# safety veto. It starts/stops the mock chain and uses isolated domain 77.
+# fiducial → grasp → safety E2E, isolated domain 77
 tools/phase2/run_mock_visual_grasp_e2e.sh evidence/phase2/session3_20261117
 ```
 
-Manual form (two terminals, same isolated environment):
+### Real hardware (supervised only)
+
+Hardware procedures are deliberately not a single copy-paste command. The
+required sequence is documented in:
+
+- [`docs/hardware/network_access.md`](docs/hardware/network_access.md) — wired
+  link, firewall, gateway binding.
+- [`tools/humble_moveit/README.md`](tools/humble_moveit/README.md) — Humble
+  MoveIt/RViz container and CycloneDDS.
+- [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) — adopted
+  limits, survey and recovery rules.
+- [`docs/phase2/SAFETY_LAYER.md`](docs/phase2/SAFETY_LAYER.md) — veto service
+  and operating envelope.
+- [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md) — body vs
+  optical frame and `camera_optical_calibrated`.
+
+The 2026-11-19 grasp runs used `tools/phase2/real_moveit_execute.py`,
+`tools/phase2/object_segment_rgbd.py`, `tools/phase2/depth_plane_fit.py` and
+the Studio G5/G6 paths; see
+[`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/).
+
+### Offline analysis (no motion)
 
 ```bash
-ros2 launch armpi_grasp_planner mock_visual_grasp.launch.py use_rviz:=false
-export ROS_DOMAIN_ID=77 ROS_LOCALHOST_ONLY=1
-ros2 run armpi_grasp_planner grasp_target_bridge \
-  --safety-service /armpi_safety/validate_trajectory \
-  --include-trajectory --json-out /tmp/bridge.json
-```
-
-The bridge accepts `target_pose` in `camera_optical_calibrated`, transforms it
-to `base_link`, rejects stale/tilted markers, and runs the joint-space grasp
-search. On 2026-11-17 it produced 3/3 plan-only Pilz `PTP` plans, all approved
-by the safety service; it never executes. See
-[`docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md).
-
-### Safety supervisor (veto only)
-
-```bash
-ros2 launch armpi_safety safety_supervisor.launch.py
-ros2 service list | grep armpi_safety
-```
-
-It watches `/joint_states`, publishes `safety_status` / `safety_stop`, and
-exposes `armpi_safety/validate_trajectory` + `armpi_safety/reset_stop`. It does
-not forward or execute commands. Limits are provisional; see
-[`docs/phase2/SAFETY_LAYER.md`](docs/phase2/SAFETY_LAYER.md).
-
-### Phase 3 measurement protocols (no motion)
-
-```bash
-python3 tools/phase2/measurement_protocol.py repeatability \
-  --mode dry-run --trials 30 --json-out /tmp/repeatability.json
-python3 tools/phase2/measurement_protocol.py backlash \
-  --mode simulate --json-out /tmp/backlash_sim.json
-python3 tools/phase2/measurement_protocol.py visual_displacement \
-  --mode simulate --json-out /tmp/visual_sim.json
-python3 tools/phase2/measurement_protocol.py gripper_envelope \
-  --mode simulate --json-out /tmp/gripper_sim.json
-```
-
-`dry-run` writes a schedule and does not import ROS; `simulate` exercises the
-analyzers with synthetic noise/bias; `analyze` reads a later hardware file.
-Joint-limit measurement remains the separate physical
-`tools/phase2/joint_limit_survey.py` (read-only mode is safe; torque-off survey
-needs support). See
-[`docs/phase2/MEASUREMENT_PROTOCOL.md`](docs/phase2/MEASUREMENT_PROTOCOL.md)
-and [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
-
-### Error budget, paired trials and host benchmark (offline/read-only)
-
-```bash
-# Error budget: checked-in partial project budget + synthetic demo
+# error budget: checked-in partial budget + synthetic demo
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
   --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
   --markdown-out /tmp/error_budget.md
-PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget --demo
 
-# Paired trials: randomized plan, synthetic simulation, analysis
+# paired trials: plan, synthetic run, analysis
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
   plan --pairs 24 --seed 7 --json-out /tmp/paired_plan.json
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
-  simulate --pairs 24 --seed 7 --jsonl-out /tmp/paired.jsonl
-PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
   analyze --input /tmp/paired.jsonl --markdown-out /tmp/paired.md
 
-# Read-only host/DDS benchmark (laptop + robot; no motion)
+# read-only host/DDS benchmark
 tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 ```
 
-The error budget is **partial**: repeatability, backlash, grasp execution,
-gripper placement and fixture pose are still unmeasured. The paired-trial
-analysis is validated on synthetic data only. The benchmark is read-only and
-does not command the robot. See
-[`docs/phase3/`](docs/phase3/README.md) and
-[`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/).
+## Experimental method
 
-### M2.2 controller profiles (Gazebo, 2-DOF `simple_arm`)
+### Calibration
 
-```bash
-source /opt/ros/jazzy/setup.bash
-source ros2_ws/install/setup.bash
-ros2 launch arm_description gazebo.launch.py controller_profile:=gain_0p2
-```
+The camera is mounted on `link4`, before the final wrist rotation, so the
+calibrated transform is `link4 → camera`, not a direct gripper→camera
+transform. Chessboard captures use measured bus-servo positions rather than
+commanded values. Validation uses three independent procedures: board-pose
+scatter, a held-out final base, and leave-one-out cross-validation. A
+table-down capture re-fits the transform for the actual working view, and a
+physical AprilTag supplies an independent scale check. The vendor hand–eye
+matrix is stale for the current mount and is **not** treated as baseline A.
 
-Profiles: `default`, `gain_0p1`, `gain_0p2`. The 2026-11-15 regression sent
-`joint1=0.2, joint2=0.2` to `/arm_controller/follow_joint_trajectory`; all three
-returned `error_code=0`. See
-[`evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md`](evidence/m2_2_v2/rework1_runtime/REWORK1_RUNTIME_20261115.md).
+### Grasping
 
-### ArmPi Debug Studio (Mock, read-only hardware, G2–G6)
+The object is measured without a marker: floor-plane RANSAC, voxel clustering,
+and a top-slab fit give a position, extent and yaw. A constrained grasp search
+samples the 5-DoF reachable set, screens full-pose IK, verifies FK, checks
+collision, and plans with Pilz `PTP`. A separate safety node vetoes the
+trajectory before execution. Execution is judged by measured bus-servo
+completion, not by the command echo. A grasp is accepted only if the object
+disappears from the floor at the validated view pose; the camera on the moving
+arm is too close to the held object to be a reliable grip sensor.
 
-```bash
-cd armpi-debug-studio/backend
-python3 -m venv .venv && . .venv/bin/activate
-pip install -e '.[dev]'
-pytest
-uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
+### Joint limits and safety
 
-# another terminal
-cd armpi-debug-studio/frontend
-npm install && npm run dev
-npm run test:e2e          # builds + 10 Playwright mock tests
+Limits are adopted from the servo EEPROM with a 20-pulse (0.0838 rad) margin,
+because several hand-measured mechanical stops lie outside the commandable
+EEPROM range. A powered probe reached joint2 = 322 and joint3 = 939; the
+gripper stops were re-measured after the original open value proved to be a
+binding stall. The vendor node crashes on a negative servo register
+(`uint16` assertion), so all survey motion is monotonic and guarded by a
+free-fall abort.
 
-# hardware mode, explicit and private; read-only, never in CI
-ARMPI_E2E_HARDWARE=1 \
-ARMPI_GATEWAY_URL=http://10.42.0.218:8765 \
-ARMPI_GATEWAY_TOKEN_FILE=/tmp/armpi_gateway_token \
-npm run test:e2e:hardware
-```
+### Model and planning caveats
 
-The Mock UI must show `SIMULATION`. With `ARMPI_MODE=hardware` and the
-read-only gateway running on the robot, the UI shows `LIVE` battery and camera
-data; joint positions are the measured `servo_states` value (the command echo
-is still available separately). Hardware motion is **off by default**; the G6
-supervised path requires `ARMPI_HARDWARE_MOTION=1` plus the fixed
-`ARMPI_SUPERVISED_MOTION_ACK` phrase, one joint per command and a 0.096342 rad
-step cap. The gateway was hardware-verified on 2026-11-17 and now runs as a host
-systemd service; its `/tf` path was verified on 2026-11-18 (11 dynamic + 8
-static edges, `base_link→link5` within 0.4 mm of `tf2_echo`). See
-[`armpi-debug-studio/docs/e7-gateway-verification.md`](armpi-debug-studio/docs/e7-gateway-verification.md),
-[`armpi-debug-studio/ros2_gateway/deploy/README.md`](armpi-debug-studio/ros2_gateway/deploy/README.md)
-and [`armpi-debug-studio/README.md`](armpi-debug-studio/README.md). Joint
-limits remain provisional; the read-only survey and the torque-off tool are in
-[`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md).
+- KDL full-pose IK is the checked-in default (`position_only_ik: false`);
+  TRAC-IK is not installed. Position-only reachability uses a separate config.
+- Constrained goals use Pilz `PTP`: OMPL's goal sampler does not solve the 6D
+  goal with KDL, and `LIN` leaves the 5-DoF reachable set.
+- The vendor pre-generated URDF is archived; only the xacro is used.
+- The vendor hand–eye matrix is stale for the current mount and is not
+  Baseline A.
 
-The **G5 read-only recorder** captures the vendor command echo and
-`/controller_manager/servo_states` measured positions and writes a G2 dataset.
-A 5 s no-motion capture and a supervised `camera_forward` moving capture
-(0.892 s, 712 commanded / 711 measured samples) both imported successfully;
-the moving dataset reports tracking max 0.008321 rad / RMSE 0.003962 rad, which
-is dominated by servo pulse quantization and a one-period start offset. See
-[`armpi-debug-studio/docs/g5-trajectory-recorder.md`](armpi-debug-studio/docs/g5-trajectory-recorder.md).
+### Reliability analysis
 
-The **G6 supervised motion write path** adds Studio-side dispatch while the
-limits remain provisional: one joint, a pulse-aligned 0.096342 rad step, a
-1.0 s duration floor, measured-feedback freshness and completion, and an
-independent gateway revalidation against measured pulses. It is off by default
-and requires an explicit acknowledgement; a separate supervised gateway instance
-on `8766` was started, the read-only service stayed on `8765`, and a supervised
-backend reached `safety.ready=true`. Out-of-limit and over-step commands were
-rejected and the arm did **not** move (measured delta 0.0 rad); no valid
-dispatch was sent. See
-[`armpi-debug-studio/docs/g6-motion-write-path.md`](armpi-debug-studio/docs/g6-motion-write-path.md)
-and [`evidence/studio_g6/20261118/`](evidence/studio_g6/20261118/README.md).
+The error-budget framework separates measured from unmeasured sources and
+reports RSS, worst case, dominance and a Monte Carlo interval. The paired-trial
+recorder stores append-only JSONL with seeded within-pair randomization and
+exact paired tests. The host/DDS benchmark is read-only and measures topic
+rate, jitter and age on both hosts. None of these tools commands the robot.
 
-## Model caveats (important)
+## Failure taxonomy (measured)
 
-- **Joint limits are provisional.** `joint3` upper bound is `0.0` (vendor
-  software mapping), not `+2.09`. `r_joint` upper bound is `1.257`, the
-  intersection of URDF and vendor software range. Mechanical limits and all
-  `effort="1000"` values are unmeasured; every arm limit carries a
-  `PROVISIONAL` comment.
-- **Camera frames split model vs hardware.** `camera_connet_link` is the vendor
-  mount; the model `camera_link` / `camera_optical_frame` are nominal mock
-  frames (identity/REP-103). On the real robot `rgb_camera_link` is a body
-  frame and the measured optical frame is `camera_optical_calibrated`, derived
-  from the validated hand-eye and the full-precision live TF. The old
-  model-only frame is not published on hardware; see
-  [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md).
-- **IK is KDL, full-pose by default.** TRAC-IK is not installed.
-  `position_only_ik: false` is the checked-in default, so a 6D goal is not
-  silently reduced to position. Use `config/kinematics_reachability.yaml` only
-  for “can the arm reach this point?” checks. See
-  [`docs/phase0/ARMPI_5DOF_CONSTRAINTS.md`](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md).
-- **Constrained goals use Pilz `PTP`.** OMPL's goal sampler fails on the 6D goal
-  with KDL even though `/compute_ik` solves it; `LIN` fails because a
-  fixed-orientation straight line leaves the 5-DoF reachable set. Details are in
-  the Phase 0 acceptance document.
-- **Grasp search is reachable-set based.** At a fixed tool point the reachable
-  orientations form a thin 5-DoF manifold, so most Cartesian orientation
-  neighbours fail IK. Use the joint-space sampler (`--sampler joint`) for a
-  target point; it reports the residual `target_offset_m` for each candidate.
-  The TCP offset is nominal and all plans are plan-only.
-- **Fiducial localization is synthetic + real-background validated, not a
-  physical-target test.** The AprilTag detector uses a printed edge length
-  (`marker_size_m`, default 0.06 m) and the real camera `CameraInfo`. The
-  measured intrinsics and the `link4 → camera` optical frame are validated;
-  the real-background test composites the marker, so it does not measure
-  lighting/printing/mount errors or a physical target.
-- **Stale URDF removed.** The vendor pre-generated `armpi_ultra.urdf` (joint1 and
-  r_joint `fixed`) is archived at `docs/archive/armpi_ultra.urdf.stale`; use
-  xacro only.
-- **Hardware is live but motion is limited.** The Pi/ROS/servo/camera stack runs
-  and one supervised `reset_servo` motion plus plan-only checks were verified.
-  Joint limits and the IMU remain open; there is no autonomous motion and no
-  real grasp.
+| # | Finding | Consequence | Status |
+|---|---|---|---|
+| 1 | Gripper "open" at −0.8378 rad was a binding stall, not the linkage stop | fingers opened only ~60 %; cube could jam | **Fixed**: stroke re-measured to 2.22 rad |
+| 2 | FK/hand–eye error is configuration-dependent: −8.0/−15.3/−5.8 mm at the low grasp pose, sub-mm at the table-down view | passes 3–4 closed beside the cube | **Mitigated** by one tag point; root fix open |
+| 3 | Depth camera near cutoff 0.176 m; at the low pose the object is 72 mm away | "object at visual centre" gate is physically impossible | **Recorded**; target comes from the table-down view |
+| 4 | Grip judged from a camera 0.10 m from the held object | false "held" evidence in passes 3–4 | **Fixed protocol**: check the floor spot at the view pose |
+| 5 | Floor reach boundary leaves the TCP 5.9 mm short along the finger length | grasp at the edge of the workspace | **Known**; deep-joint family used |
+| 6 | Negative servo register kills the vendor `get_state` callback | four node crashes during the limit survey | **Mitigated**: monotonic survey, free-fall abort, never read negative |
+| 7 | Robot has no RTC and no NTP; `/joint_states` arrives stale | MoveIt aborts before motion | **Operational fix**: robot clock 1–2 s ahead of the workstation |
+| 8 | Wrong AprilTag size (73 mm estimate vs 60 mm actual) | tag placed 59 mm below the floor | **Fixed**: ruler-measured size |
+| 9 | `armpi_safety` rejects gripper-only trajectories ("FK failed: joint1") | MoveIt cannot `--execute` a gripper move | **Open**; gripper runs through `/gripper_controller` |
+| 10 | A base move invalidates the table calibration; no odometry/IMU | calibration must be repeated after any chassis motion | **Known**; mobile extension is separate |
 
-## Evidence and reproducibility
+## Safety and operating envelope
 
-- `evidence/m2_2_v2/` — four MCAP bags, analysis CSVs/PNGs, source snapshot,
-  Gate 2 reports. `*.mcap` is gitignored; keep a local/remote backup.
-- `evidence/armpi_moveit/` — expanded URDF, `check_urdf`, MoveIt logs and the
-  Phase 0 constrained-plan evidence.
-- `evidence/armpi_grasp/` — grasp candidate search JSON and headless MoveIt log
-  (mock, plan-only).
-- `evidence/fiducial/` — synthetic marker accuracy JSON/overlays and the ROS
-  localizer/TF integration logs.
-- `evidence/calibration/20261117/` — chessboard hand-eye dataset, per-method
-  validation and the offline 24-pose selection.
-- `evidence/phase2/real_background_20261117/` — real-background negative
-  control and semi-synthetic pose accuracy.
-- `evidence/phase2/frames_20261117/` — full-precision body→optical frame
-  contract.
-- `evidence/phase2/vendor_calibration_20261117/` — decoded vendor calibration
-  and Baseline A status.
-- `evidence/phase2/session3_20261117/` — synthetic marker → grasp → safety E2E,
-  safety service negative controls, and measurement dry-run/simulate reports.
-- `evidence/phase3/session4_20261117/` — partial error budget, paired-trial
-  simulation, and read-only laptop/robot host/DDS benchmark.
-- `evidence/README.md` and `evidence/m2_2_v2/MANIFEST.md` explain what is tracked.
+- **No e-stop, no brake.** Cutting power drops the arm; the vendor stack
+  recovers in ~89 s. All motion is supervised.
+- **Adopted limits are commandable limits, not mechanical guarantees.**
+  `mapping_verified=false`; the backend and Studio keep motion disabled by
+  default.
+- **Never read or command a negative servo register.** It crashes the vendor
+  node; the recovery restart itself moves the arm.
+- **MoveIt execute needs a clock lead.** Set the robot clock 1–2 s ahead of the
+  workstation before any cross-host execute.
+- **`/joint_states` is a command echo.** The measured truth is
+  `/controller_manager/servo_states`; the register read is the `get_state`
+  service.
+- **The low pose is depth-blind.** The near cutoff is 0.176 m; do not plan a
+  grasp from the low view.
+- **Wired link only for inbound access.** Default-deny nftables, `eth0` only,
+  SSH key-only, gateway bound to `10.42.0.218`.
+- **No autonomous operation.** The G6 path is single-joint, step-capped and
+  requires an explicit acknowledgement phrase.
 
-Never present Mock/Gazebo results as hardware validation.
+## Limitations and threats to validity
+
+- **Single platform, single object, five attempts.** The 3/5 result is a
+  feasibility demonstration, not a success-rate estimate; there is no
+  statistical power for a reliability claim.
+- **The low-configuration correction is local.** One tag point at ~15 mm from
+  the cube supplies a constant offset; the error is not modelled as a function
+  of joint configuration. A joint-offset calibration is the proper fix.
+- **The error budget is partial.** Repeatability, backlash, grasp execution,
+  gripper placement and fixture pose are unmeasured; the 5 mm / 2° tolerance
+  is a provisional gate.
+- **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
+  the oblique view; table-down and depth-plane estimates are the reliable
+  references.
+- **Hand–eye validation is board-relative.** It establishes consistency, not
+  absolute metrology; the tag scale check is the independent physical anchor.
+- **Joint limits are EEPROM-derived.** Joint1 low, joint3 positive and joint5
+  stops are not formally measured; `mapping_verified` stays false.
+- **No force/torque sensing, no e-stop, no brake.** Contact-rich manipulation
+  and autonomous recovery are out of scope.
+- **Mock and Gazebo results are never hardware validation.** `mock_components`
+  and synthetic markers exercise software paths only.
+
+## Reproducibility and evidence map
+
+Every quantitative statement in this README traces to one of these bundles:
+
+| Area | Evidence |
+|---|---|
+| Hardware baseline | [`evidence/phase1/20261117/`](evidence/phase1/20261117/), [`docs/hardware/README.md`](docs/hardware/README.md) |
+| Model / MoveIt | [`evidence/armpi_moveit/`](evidence/armpi_moveit/), [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
+| Calibration | [`evidence/calibration/20261117/`](evidence/calibration/20261117/), [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| Fiducial | [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/), [`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/) |
+| Grasp search | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
+| On-site safety / limits | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
+| Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/) |
+| Reliability analysis | [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
+| Security | [`evidence/security/20261118/`](evidence/security/20261118/) |
+
+The repository keeps raw logs and machine-readable JSON; images are kept when
+they are the primary evidence. `*.mcap` bags are gitignored and must be backed
+up separately. `evidence/README.md` explains what is tracked.
 
 ## Documentation
 
-- [Technical roadmap](ROADMAP.md) — public technical roadmap with current status.
-- [Phase 0 acceptance](docs/phase0/PHASE0_ACCEPTANCE.md) — checklist, evidence
-  and remaining gaps.
-- [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space limits
-  and grasp policy.
-- [Phase 2 grasp search](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — candidate
-  generation, screening pipeline, mock results and limitations.
-- [Phase 2 fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
-  AprilTag detection, pose convention, real-background accuracy and frame
-  contract.
-- [Phase 2 fiducial → grasp bridge](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) —
-  `target_pose` → TF → grasp search → safety veto, mock E2E result.
-- [Phase 2 safety layer](docs/phase2/SAFETY_LAYER.md) — watchdog, limits,
-  workspace and trajectory-veto service.
-- [Phase 3 measurement protocols](docs/phase2/MEASUREMENT_PROTOCOL.md) —
-  repeatability, backlash, visual displacement and gripper envelope.
-- [Phase 3 error budget](docs/phase3/ERROR_BUDGET.md) — source schema, RSS/worst
-  case, partial project budget and the missing measurements.
-- [Phase 3 paired trials](docs/phase3/PAIRED_TRIALS.md) — matched-pair recorder,
-  randomization and exact paired analysis.
-- [Phase 3 host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only
-  laptop/Pi metrics, topic rates/jitter/age and the camera-rate correction.
-- [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical
-  frames and `camera_optical_calibrated`.
+- [Technical roadmap](ROADMAP.md) — public technical roadmap and next steps.
+- [Changelog](CHANGELOG.md) — chronological, per-session record of changes.
+- [Phase 0 acceptance](docs/phase0/PHASE0_ACCEPTANCE.md) — checklist and
+  remaining gaps.
+- [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space
+  limits and grasp policy.
+- [Calibration](docs/phase2/CALIBRATION.md) — chessboard hand–eye procedure
+  and validated result.
+- [Calibration pose selection](docs/phase2/CALIBRATION_POSES.md) — offline
+  24-pose selection.
+- [Grasp candidate search](docs/phase2/GRASP_CANDIDATE_SEARCH.md) — candidate
+  generation and screening.
+- [Fiducial localization](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) —
+  AprilTag pose convention and validation.
+- [Fiducial → grasp bridge](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — TF, search
+  and safety veto.
+- [Safety layer](docs/phase2/SAFETY_LAYER.md) — watchdog, limits and veto.
+- [Measurement protocols](docs/phase2/MEASUREMENT_PROTOCOL.md) —
+  repeatability, backlash, visual displacement, gripper envelope.
+- [Joint limits](docs/phase2/JOINT_LIMITS.md) — survey, EEPROM bounds and
+  recovery rules.
+- [Error budget](docs/phase3/ERROR_BUDGET.md) — schema, RSS and missing terms.
+- [Paired trials](docs/phase3/PAIRED_TRIALS.md) — recorder, randomization and
+  analysis.
+- [Host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only metrics and
+  camera-rate correction.
+- [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical.
+- [Network access](docs/hardware/network_access.md) — wired link and lockdown.
 - [Vendor calibration baseline](docs/hardware/vendor_calibration_baseline.md) —
-  decoded vendor matrices and Baseline A status.
-- [Phase 2 joint limits](docs/phase2/JOINT_LIMITS.md) — read-only bus-servo
-  evidence, the torque-off measurement procedure and the CycloneDDS gotcha.
+  decoded matrices and Baseline A status.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
-  status, merge plan, open decisions.
+  status and decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
 - [G0 vendor audit](docs/armpi/g0/README.md)
-- [Hardware baseline](docs/hardware/README.md)
-- [Phase 0 audits](docs/phase0/)
 - [8-week learning log](docs/weekly-log/)
 
 `MASTER_PLAN_V3_PRIVATE.md` is intentionally **not** in this public repository.
+
+## Conclusion
+
+The work supports a narrow but useful claim: on this platform, an autonomous
+pick–lift–place of an unmarked 39.4 mm cube is achievable with measured
+calibration, constrained planning and a safety veto, and the dominant residual
+error is kinematic rather than perceptual. Passes 1–2 established the pipeline;
+passes 3–4 located a −8/−15/−6 mm configuration-dependent model error; pass 5
+showed that a single in-configuration observation is sufficient to compensate
+it for a grasp. The same evidence also shows what is not yet solved: the error
+is corrected, not modelled; the budget is partial; and the sample size cannot
+support a reliability claim. Those are the concrete next steps.
+
+## Roadmap
+
+**Next (highest priority).** Replace the one-point tag correction with a
+joint-offset calibration over the low configuration, then re-run the grasp
+without a per-object correction. Complete the error budget with repeatability,
+backlash, execution, gripper and fixture terms. Run a paired hardware trial
+with the intervention selected from the dominant measured term.
+
+**Then.** Formalise the mechanical joint-limit survey and set
+`mapping_verified=true`; add gripper-only trajectory support to
+`armpi_safety`; widen the object set beyond the 39.4 mm cube. The optional
+mobile base follows only after the fixed-base pipeline is stable.
 
 ## License
 

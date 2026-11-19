@@ -3,8 +3,11 @@
 > Status: **Implemented and mock-validated (2026-11-17, Session 3).** The bridge
 > consumes a live `target_pose`, transforms it to `base_link`, runs the 5-DoF
 > grasp search and sends the selected plan to the safety veto. The marker,
-> camera and robot are synthetic/mock; **nothing is executed** and no real
-> visual grasp has been attempted.
+> camera and robot are synthetic/mock; **nothing is executed through this
+> bridge**. Real markerless grasps were later executed through the grasp
+> planner on 2026-11-18/19 (see
+> [`evidence/phase2/onsite_20261119/`](../../evidence/phase2/onsite_20261119/)),
+> but the fiducial bridge itself remains mock-only.
 
 ## Why this exists
 
@@ -130,8 +133,9 @@ The mock joint state is also not a hardware measurement.
 
 - **No real camera, marker or object.** The image is rendered; the marker is
   not printed; there is no lighting, motion blur or lens model.
-- **No real grasp.** The selected trajectory is not executed; there is no
-  gripper command, object contact or grasp-success measurement.
+- **No real grasp through this bridge.** The selected trajectory is not
+  executed; there is no gripper command, object contact or grasp-success
+  measurement. The later real grasps used the grasp planner directly.
 - **Marker centre = TCP.** The bridge does not segment the object or estimate
   its centre. `--marker-offset` is a manual correction in the marker frame.
 - **Flat-marker assumption.** Markers tilted more than 45° are rejected; a
@@ -139,7 +143,8 @@ The mock joint state is also not a hardware measurement.
 - **No temporal filtering.** Each run uses one accepted pose; there is no
   multi-frame average or outlier rejection.
 - **Safety is a veto layer.** It does not own the controller, the e-stop or a
-  real-time deadline. The limits are provisional.
+  real-time deadline. The limits are adopted EEPROM-bounded values with
+  `mapping_verified=false`.
 - **DDS isolation is mandatory.** Use the launch's default domain 77 or set
   `ROS_DOMAIN_ID`/`ROS_LOCALHOST_ONLY` consistently for the launch, bridge and
   any `ros2` CLI inspection.

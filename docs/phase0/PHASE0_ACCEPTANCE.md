@@ -10,6 +10,12 @@
 > frame (`camera_optical_calibrated`, 2.94 mm / 0.39° hand-eye); see
 > [`docs/hardware/camera_frames.md`](../hardware/camera_frames.md). This
 > acceptance remains the mock-scope record for Phase 0.
+>
+> **Update (2026-11-19):** the hardware items that Phase 0 could not test have
+> since been exercised: adopted EEPROM-bounded joint limits, a re-measured
+> 2.22 rad gripper stroke, real MoveIt execution, and 3/5 real
+> pick–lift–place attempts on a 39.4 mm cube. The Phase 0 acceptance itself is
+> still a mock-scope record; see the repository README for current status.
 
 ## 1. Acceptance checklist (MASTER_PLAN_V3 §5)
 
@@ -86,26 +92,28 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
    the intended 5-DoF behaviour. Use `config/kinematics_reachability.yaml` for
    reachability-only experiments.
 5. **No hardware** — no `/dev/rrc`, camera, gripper feedback, base or real
-   motion.
+   motion. **Superseded after Phase 1:** the live robot, camera, gripper and
+   supervised motion were exercised on 2026-11-17/19.
 
 ## 5. Gap against the master plan
 
-| Plan area | State on 2026-11-17 | Blocker |
+| Plan area | State on 2026-11-19 | Blocker |
 |---|---|---|
 | Phase 0 Panda freeze | Complete: `panda-baseline-v1` tag; 8-week README/roadmap archived; Phase II work archived, not merged | — |
 | Phase 0 ArmPi model | Complete for model/mock scope (see checklist) | — |
 | Phase 0 constrained planning | Complete for endpoint-constrained PTP; candidate search is Phase 2 | — |
-| Phase 1 hardware baseline | **In progress**; live Pi/ROS/servo/TF/camera baseline captured | Joint limits/IMU/stop behaviour open; one supervised motion only |
-| Phase 2 grasp candidate search | **Implemented, mock-validated** | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; plan-only |
-| Phase 2 fiducial localization | **Implemented, synthetic + real-background validated** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; real camera frames, no physical target |
-| Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; synthetic marker, plan-only |
-| Phase 2 calibration + real visual grasp | **Calibration validated; mock visual chain validated; real grasp not started** | Hardware + physical target/object + execution decision |
-| Phase 3 Error Budget v1 | **Framework + partial budget implemented (2026-11-17 Session 4)**; measured hand-eye/fiducial terms only, required repeatability/backlash/execution/gripper/fixture terms unmeasured; paired-trial framework simulated only | Hardware measurements and a physical tolerance experiment |
+| Phase 1 hardware baseline | **Captured; limits partially measured; controller board probed** | joint1 low, joint3 positive and joint5 stops unmeasured; IMU/encoders/e-stop absent |
+| Phase 2 grasp candidate search | **Implemented; mock-validated and used on hardware** | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; mock search fed all five real passes |
+| Phase 2 fiducial localization | **Implemented; synthetic + real-background validated; physical tag scale check** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; physical tag scale 0.67 % lateral |
+| Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; real grasps used the planner directly, not this bridge |
+| Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 real pick–lift–place attempts** | Passes 1–2 and 5 succeeded; passes 3–4 measured the low-configuration error; pass 5 used a tag correction |
+| Phase 3 Error Budget v1 | **Framework + partial budget implemented**; measured hand-eye/fiducial terms only, required repeatability/backlash/execution/gripper/fixture terms unmeasured; paired-trial framework simulated only | Hardware measurements and a physical tolerance experiment |
 | Host/DDS benchmark | **Read-only snapshot measured** (2026-11-17 Session 4); one laptop/Pi run, no load sweep | Repeated runs under controlled load |
-| Bonus mobile base | **Not started** | Hardware purchase deadline 2027-01-31 |
+| Bonus mobile base | **Open-loop only** | No encoders/IMU/odometry; purchase/extension decision open |
 
-Phase 1 started on 2026-11-17. Do not promote any hardware-dependent item to
-“validated” before the corresponding Phase 1 data exists.
+Phase 1 started on 2026-11-17. Hardware-dependent items are promoted only
+where the corresponding evidence exists; see the repository README for the
+current per-workstream status.
 
 ## 6. Changes made on 2026-11-16
 

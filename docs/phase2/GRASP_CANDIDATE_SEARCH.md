@@ -1,7 +1,10 @@
 # 5-DoF Constrained Grasp Candidate Search
 
-> Status: **Implemented, mock-validated.** No hardware was used. All runs are
-> plan-only with `mock_components`; nothing is executed.
+> Status: **Implemented; the runs in this document are mock-validated and
+> plan-only.** The same planner was later used on hardware for the five real
+> grasp passes (2026-11-19); those results are in
+> [`evidence/phase2/onsite_20261119/`](../../evidence/phase2/onsite_20261119/)
+> and are not part of this mock record.
 >
 > Plan references: `MASTER_PLAN_V3_PRIVATE.md` §3, §4, §8 and §17.
 

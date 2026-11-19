@@ -1,10 +1,13 @@
 # Fiducial Target Localization
 
-> Status: **Implemented; synthetic and real-background semi-synthetic
-> validated (2026-11-16/17)**. The real Aurora 930 streams RGB/depth and the
+> Status: **Implemented; synthetic and real-background validated; physical-tag
+> scale check (2026-11-16/18)**. The real Aurora 930 streams RGB/depth and the
 > camera optical extrinsic is validated (2.94 mm / 0.39° board scatter). The
-> detector now refines the PnP pose with `solvePnPRefineLM`. A **physical**
-> marker at a surveyed position and a real grasp have not been run.
+> detector refines the PnP pose with `solvePnPRefineLM`. A **physical** AprilTag
+> at a surveyed position was measured on 2026-11-18: 100.67 mm vs 100.0 mm
+> lateral (0.67 %), 104.87 mm vs 100.0 mm table-forward (4.87 %). The real
+> floor-cube grasps on 2026-11-19 were **markerless**, so this detector was not
+> the grasp input.
 >
 > Plan reference: `MASTER_PLAN_V3_PRIVATE.md` §7 and §8 (fiducial detection →
 > target pose → TF → constrained grasp).
@@ -199,7 +202,7 @@ The localizer was exercised through ROS with a synthetic image, a static
 [`tools/phase2/fiducial_ros_check.py`](../../tools/phase2/fiducial_ros_check.py).
 
 | Output frame | Expected position | Position error | Angle error | Result |
-|---|---|---|---:|---:|---|
+|---|---|---|---|---|
 | `camera_optical_frame` | (0, 0, 0.4) m | 0.44 mm | 0.03° | PASS |
 | `base_link` | (0, 0, 0.9) m | 0.44 mm | 0.03° | PASS |
 
@@ -218,8 +221,10 @@ practical portability fix, not a claim about OpenCV quality.
 ## 7. Limitations
 
 - The real-background check is **semi-synthetic**: the marker is composited,
-  not physically present. It validates detection and pose math, not the camera
-  extrinsic or a real grasp.
+  not physically present. It validates detection and pose math. A physical
+  AprilTag at a surveyed position supplied an independent scale check on
+  2026-11-18; the 2026-11-19 real grasps were markerless and did not use this
+  detector.
 - The marker interior is warped with a planar homography; lens distortion is
   applied to the corners but not inside the marker.
 - Marker size must be measured on the printed target; a size error scales the

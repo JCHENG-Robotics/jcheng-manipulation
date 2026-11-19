@@ -88,8 +88,11 @@ Consequences:
 - Calibration pose collection must deliberately vary arm elevation, viewing
   direction, distance and image position. Nearly coplanar poses are not
   acceptable.
-- The real `link4 → camera` extrinsic is unmeasured; the checked-in frames are
-  nominal (identity mount + REP-103 optical rotation).
+- At Phase 0 the real `link4 → camera` extrinsic was unmeasured and the
+  checked-in frames were nominal (identity mount + REP-103 optical rotation).
+  It was measured on 2026-11-17 (2.94 mm / 0.39° hand-eye) and is published as
+  `camera_optical_calibrated`; see
+  [`docs/hardware/camera_frames.md`](../hardware/camera_frames.md).
 
 ## 6. Planning behaviour observed on 2026-11-16 (mock hardware)
 

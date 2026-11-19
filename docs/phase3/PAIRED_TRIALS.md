@@ -1,8 +1,10 @@
 # Paired Trials
 
 > Status: **Implemented and simulated-validated (2026-11-17, Session 4).**
-> No physical paired grasp trial exists. The recorder and analysis are ready
-> for the first on-site experiment.
+> No physical **paired** grasp trial exists. Five real unpaired grasps were run
+> on 2026-11-19 (3/5); they establish feasibility and a failure mode, not a
+> baseline/intervention effect. The recorder and analysis are ready for the
+> first paired on-site experiment.
 >
 > The Studio **G3 Experiment Lab** (2026-11-18) exposes the same pair/method
 > schema and statistical formulas through immutable experiment definitions,

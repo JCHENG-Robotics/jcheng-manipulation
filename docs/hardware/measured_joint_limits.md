@@ -4,8 +4,9 @@
 > 2026-11-18; forward-facing lowest reach measured 2026-11-19.** The torque
 > path is understood: the vendor SDK boolean is
 > inverted on this servo firmware (`enable_torque=[1, 1]` / 0x0B **releases**,
-> `[1, 0]` / 0x0C **engages**). joint2 was measured (322…873 pulse),
-> joint4's high stop reached 901, joint3 was observed over 23…940, and
+> `[1, 0]` / 0x0C **engages**). joint2 was measured (322…873 pulse), a
+> 2026-11-19 powered probe held 322; joint4's high stop reached 901; joint3
+> was observed over 23…940 and a powered 2026-11-19 probe stops at **939**;
 > joint5's released wrist falls under gravity so it could not be measured.
 > joint1's positive side reached 1164 and a command at 1164 was clamped to
 > ~952. The servo EEPROM position limits are the effective commandable
@@ -19,7 +20,7 @@
 |---|---:|---:|---:|---:|---:|---:|---|
 | joint1 | **-1.8012 … 1.8012** | -2.094 … 2.094 | **+0.8378** (servo 700) | **0.0** (servo 500) | — (EEPROM 50 assumed) | ≥1164 pulse (clamped ~952) | `[P]` |
 | joint2 | **-0.6618 … 1.2985** | -2.094 … 2.094 | 0.0 | 0.0 | 322 pulse (−0.746) | 873 pulse (+1.562) | `[M]` |
-| joint3 | **-1.8012 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | travel reached 23 pulse, no stop | travel reached 940 pulse, no stop | `[P]` |
+| joint3 | **-1.8012 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | travel reached 23 pulse, no stop | powered probe stops at **939** | `[P]` |
 | joint4 | **-1.5917 … 1.5917** | -2.094 … 2.094 | 0.0 | 0.0 | — (EEPROM 100 assumed) | 901 pulse (+1.680) | `[P]` |
 | joint5 | **-1.5917 … 1.5499** | -2.094 … 2.094 | 0.0 | 0.0 | travel reached 62, then fell negative | travel reached 875 | `[P]` |
 | r_joint | **-2.22 … 0.0** (re-measured 2026-11-18 19:59) | -2.932 … 1.257 | -0.8378 (partial open) | -0.8378 (partial open) | **-2.22** (raw 170, register 188) | **0.0** (raw 700, register 640) | `[V]` |

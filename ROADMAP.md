@@ -7,52 +7,49 @@
 
 > Technical roadmap: this document tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
-## Current status (2026-11-17)
+## Current status (2026-11-19)
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; model `camera_optical_frame` stays mock-only |
-| MoveIt 2 constrained planning | **Implemented, mock-validated; real reset_servo verified** | Pilz `PTP` 6D-constrained goal (plan-only); one supervised real motion through Humble Docker MoveIt |
-| 5-DoF grasp candidate search | **Implemented, mock-validated** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans; no hardware trials |
-| Fiducial → grasp bridge | **Implemented, mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; no real grasp |
-| Fiducial target localization | **Implemented, synthetic + real-background validated** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames |
-| Safety supervisor | **Implemented, mock-validated (2026-11-17)** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; veto service; provisional limits, no e-stop |
-| Measurement protocols | **Implemented, dry-run/simulate validated (2026-11-17)** | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no hardware data |
+| Robot model and TF | **Implemented; live arm/camera TF verified** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; adopted limits are EEPROM−20 pulses, `mapping_verified=false` |
+| MoveIt 2 constrained planning | **Implemented; mock + real execution validated** | Pilz `PTP` 6D-constrained goal (mock); real execution through Humble Docker MoveIt on 2026-11-18/19 |
+| 5-DoF grasp candidate search | **Implemented; mock + real use** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans (mock); the same search fed all five real grasp passes |
+| Fiducial → grasp bridge | **Implemented; mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; the real grasps used the grasp planner directly, not this bridge |
+| Fiducial target localization | **Implemented; synthetic + real-background validated; physical tag scale check** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames; physical tag scale 100.67 mm vs 100.0 mm (0.67 %) |
+| Safety supervisor | **Implemented; mock + hardware veto** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace/table-clearance checks; veto service; adopted EEPROM-bounded limits; no e-stop or brake |
+| Measurement protocols | **Implemented; dry-run/simulate validated** | repeatability/backlash/visual-displacement/gripper-envelope schedules and analyzers; no full hardware dataset |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
-| Hardware baseline | **In progress (2026-11-17)** | Pi/ROS/servo/TF/camera live baseline; joint limits and IMU open |
-| Calibration and visual grasping | **In progress — hand-eye validated, diverse 24-pose set selected, mock visual chain validated** | 14-pose chessboard hand-eye with measured bus-servo joints: 2.94 mm / 0.39° board scatter, held-out 3.29 mm / 0.43°; measured optical frame (89.798°) published; next capture uses 24 offline-selected poses (not executed); synthetic marker → grasp → safety E2E passes plan-only; real grasp not started |
+| Hardware baseline | **Captured; limits partially measured; board probed** | Pi/ROS/servo/TF/camera live baseline; joint2 low 322, joint3 stop 939, joint4 high 901; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
+| Calibration and visual grasping | **Validated: 3/5 real pick–lift–place attempts** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; passes 1–2 and 5 succeeded; passes 3–4 measured a −8.0/−15.3/−5.8 mm low-configuration error; pass 5 used a one-point AprilTag correction; 24-pose set still planned, not executed |
 | Error budget and tolerance envelope | **Framework implemented; project budget partial** | `armpi_analysis` RSS/worst-case/Monte-Carlo framework; measured hand-eye + fiducial terms (3.699 mm / 0.682° RSS) but repeatability, backlash, execution, gripper and fixture terms are unmeasured; tolerance is provisional |
-| Paired trial framework | **Implemented, simulated-validated** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no hardware trial |
+| Paired trial framework | **Implemented; simulated only** | randomized matched-pair plan, append-only recorder, bootstrap/sign/McNemar analysis; 24-pair synthetic check; no physical paired trial |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
-| ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=false`, no e-stop |
-| Mobile base | **Planned (bonus)** | Purchase decision deadline 2027-01-31 |
+| ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; 92 backend + 38 gateway tests; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=false`, no e-stop |
+| Mobile base | **Open-loop only; planned extension** | four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration |
 
-Phase 1 started on 2026-11-17. The live robot runs the vendor Humble core stack
-in `ArmPiUltra`; the laptop runs Humble MoveIt/RViz in Docker and one supervised
-`reset_servo` motion was verified. The Aurora 930 publishes RGB at about 12 Hz
-cross-host (`bgr8`) and depth at 8.2 Hz in-container (`mono16`, mm); an
-in-container RGB subscriber undercounts to ~8 Hz, so the cross-host number is
-the sensor rate. Joint limits are **not measured** and the IMU is
-not publishing. The chessboard hand-eye is **validated** with 14 poses and
-measured bus-servo joint angles: 2.94 mm / 0.39° board-pose scatter, a
-3.29 mm / 0.43° held-out final base and 3.41 mm / 0.44° leave-one-out std.
-The measured body→optical adapter
-(89.798°, `[5.4, 10.1, -27.4] mm`) is published as
-`camera_optical_calibrated` and is now used by the fiducial localizer. The
-next hand-eye capture uses a 24-pose set selected offline from 14,176
-evaluated poses (3,093 feasible) with 33.5° view-angle spread and
-non-coplanar camera centres; the set is planned, not yet executed. The real-background
-semi-synthetic check passes 15/15 poses (max 1.69 mm / 0.53°)
-with zero false detections on 8 real frames. The shipped vendor
-`hand2cam_tf_matrix` is **stale for the current mount** and is not valid
-Baseline A. The grasp-candidate search remains mock-validated. On 2026-11-17
-Session 3, the fiducial → grasp bridge and a safety veto were added and a
-synthetic marker → localizer → grasp search → safety E2E passed (3/3 plans
-approved, plan-only). Session 4 added the error-budget framework, the paired
-trial recorder and a read-only host/DDS benchmark; the project budget remains
-partial and no paired hardware trial exists. The measurement protocols still
-have dry-run/simulate validation only. A real visual grasp is still not
-started.
+By 2026-11-19 the live robot runs the vendor Humble core stack in
+`ArmPiUltra`; the workstation runs Humble MoveIt/RViz in Docker. The Aurora 930
+publishes RGB at about 12 Hz cross-host (`bgr8`) and depth at 8.2 Hz
+in-container (`mono16`, mm); an in-container RGB subscriber undercounts to
+~8 Hz, so the cross-host number is the sensor rate. The chessboard hand-eye is
+**validated** with 14 poses and measured bus-servo joint angles: 2.94 mm /
+0.39° board-pose scatter, a 3.29 mm / 0.43° held-out final base and
+3.41 mm / 0.44° leave-one-out std; a table-down 15-pose re-fit gives 2.7 mm /
+0.42°. The measured body→optical adapter (89.798°, `[5.4, 10.1, -27.4] mm`) is
+published as `camera_optical_calibrated`. The 24-pose set selected offline from
+14,176 evaluated poses (3,093 feasible) remains planned, not executed.
+
+Real visual grasping ran on 2026-11-18/19. Five markerless pick–lift–place
+attempts were made on a 39.4 mm cube; three succeeded. Passes 1–2 established
+the pipeline (≈149 mm lift; return within 6.6 mm / 8°). Passes 3–4 failed and
+measured a configuration-dependent FK/hand–eye error of −8.0/−15.3/−5.8 mm at
+the low grasp pose; pass 5 corrected it with a single AprilTag observation and
+succeeded (TCP +0.0993 m, object ≈148 mm). The gripper stroke was re-measured
+to 2.22 rad after the original open value proved to be a binding stall. Joint
+limits were adopted from the servo EEPROM with a 20-pulse margin, and the
+controller board probe found only battery, six bus servos, four open-loop
+motor duties, buzzer and LEDs — no IMU, encoders, e-stop or onboard gamepad.
+The error budget remains partial and no paired hardware trial exists.
 Detailed checklist: [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
 ## 1. Technical Goal
@@ -124,23 +121,29 @@ Calibration pose collection must account for the limited orientation diversity o
 - verify camera topics and TF;
 - correct URDF and frame definitions.
 
-Status (2026-11-17), evidence in
-[`evidence/phase1/20261117/`](evidence/phase1/20261117/):
+Status (2026-11-19), evidence in
+[`evidence/phase1/20261117/`](evidence/phase1/20261117/),
+[`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) and
+[`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/):
 
 - [x] Vendor core stack and `vision.launch.py` run; camera RGB/depth streams
   and intrinsics captured.
 - [x] ROS 2 Humble, CycloneDDS, domain, container and one-action-server graph
   verified.
-- [ ] Measured joint limits and servo offsets — **open**; only two command
-  snapshots exist.
+- [ ] Measured joint limits and servo offsets — **partial**: joint2 low 322,
+  joint3 stop 939, joint4 high 901; joint1 low, joint3 positive and joint5
+  remain unmeasured. Adopted limits are servo EEPROM − 20 pulses;
+  `mapping_verified=false`.
 - [x] Control/feedback interfaces audited live; `joint_states` are cached
-  commands.
+  commands, `get_state` reads the servo register.
 - [x] Camera topics and TF verified; the live frames are `rgb_camera_link` /
   `depth_camera_link`; the measured optical frame
   `camera_optical_calibrated` is project-published.
 - [x] Correct frame definitions for the real path — body/optical contract and
   `camera_optical_calibrated` are implemented; the model keeps its nominal
   `camera_link` / `camera_optical_frame` for mock only.
+- [x] Gripper stroke re-measured to 2.22 rad; controller-board capabilities
+  probed (no IMU, encoders, e-stop or onboard gamepad/SBUS).
 
 ## 6. Milestone B — Calibration
 
@@ -176,13 +179,22 @@ fiducial detection
 → grasp verification
 ```
 
+**Status (2026-11-19): real execution validated on 3/5 attempts.** Passes 1–2
+and 5 completed pick–lift–place on a 39.4 mm cube; passes 3–4 failed and
+measured a configuration-dependent FK/hand–eye error of −8.0/−15.3/−5.8 mm at
+the low grasp pose. Pass 5 corrected it with one AprilTag observation and
+succeeded (TCP +0.0993 m, object ≈148 mm). The real trials used markerless
+RGB-D segmentation rather than a fiducial marker; the fiducial bridge remains
+mock-validated. Evidence:
+[`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/).
+
 ## 8. Milestone D — Error Budget
 
-Status (2026-11-17 Session 4): the aggregation framework, partial project
-budget, paired-trial recorder and host benchmark are implemented. The budget is
-**partial** because repeatability, backlash, grasp execution, gripper placement
-and fixture pose are unmeasured. The 5 mm / 2° tolerance is a provisional gate,
-not a measured physical tolerance. See
+Status (2026-11-19): the aggregation framework, partial project budget,
+paired-trial recorder and host benchmark are implemented. Real unpaired grasps
+now exist (3/5), but repeatability, backlash, grasp execution, gripper
+placement and fixture pose remain unmeasured. The 5 mm / 2° tolerance is a
+provisional gate, not a measured physical tolerance. See
 [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) and
 [`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md).
 
@@ -223,6 +235,12 @@ Possible examples:
 - calibration sample-selection improvement;
 - final visual correction.
 
+**Status (2026-11-19):** the first measured dominant term is the
+configuration-dependent FK/hand–eye error at the low grasp pose. The current
+intervention is an empirical one-point AprilTag correction; the planned proper
+fix is a joint-offset calibration over the low configuration, followed by a
+paired hardware trial.
+
 ## 10. Experimental Design
 
 Primary outcome:
@@ -253,6 +271,10 @@ same object placement
 
 Randomize execution order.
 
+**Current evidence (2026-11-19):** the five real grasp attempts are unpaired
+feasibility runs, not a randomized paired experiment. They establish the
+pipeline and the dominant error term, not a treatment effect.
+
 ## 11. Safety
 
 Automated experiments require:
@@ -264,6 +286,12 @@ Automated experiments require:
 - workspace checks;
 - collision checking where available;
 - accessible hardware stop / power cut.
+
+**Current state (2026-11-19):** adopted position limits are servo EEPROM − 20
+pulses; joint2's low stop is measured, the other mechanical stops are partial.
+The robot has no e-stop or brake and falls when power is cut; all motion is
+supervised. The robot clock must lead the workstation by 1–2 s for MoveIt
+execution, and inbound access is restricted to the direct Ethernet link.
 
 ## 12. Optional Mobile Extension
 

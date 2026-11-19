@@ -40,7 +40,7 @@ start-state threshold. Nothing in the node publishes a controller command.
 |---|---|---|
 | State watchdog | latest `/joint_states` receipt ≤ 0.5 s old | `STATE_INVALID` |
 | State completeness | `joint1…joint5` present and finite | `STATE_INVALID` |
-| State limits | positions inside provisional joint ranges | `STATE_INVALID` / `JOINT_LIMIT` |
+| State limits | positions inside the adopted EEPROM-bounded joint ranges | `STATE_INVALID` / `JOINT_LIMIT` |
 | Trajectory shape | arm joints present, positions length matches, ≤ 5000 points | `TRAJECTORY_INVALID` |
 | Timestamps | strictly increasing | `TIMESTAMP` |
 | Duration | ≤ 30 s | `DURATION` |
@@ -178,8 +178,10 @@ fail-closed behaviour. For a real check, pass a planned trajectory from MoveIt.
 
 ## Limitations
 
-- **No hardware validation.** Mechanical limits, servo response, backlash and
-  the physical stop/power cut are unmeasured.
+- **Partial hardware validation.** The veto has run on real MoveIt plans
+  (2026-11-18/19), and the power cut was measured (the arm falls; the vendor
+  stack recovers in ~89 s). Mechanical limits are only partially measured,
+  backlash is not measured, and no dedicated safety test has been done.
 - **No e-stop integration.** The node cannot cut power; it can only publish a
   stop flag and reject plans. A future executor must treat the flag as
   authoritative.

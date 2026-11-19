@@ -1,14 +1,17 @@
 # Hardware Baseline — ArmPi Ultra
 
-> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. Since 2026-11-18 20:20 HKT
-> the **direct Ethernet link** (`10.42.0.218` ↔ `10.42.0.1`) is the only
-> inbound path: the robot runs a default-deny firewall and office WiFi
-> (`10.51.128.226`) is outbound-only. See `network_access.md`. Read-only
-> queries, one supervised `reset_servo` motion and one plan-only
-> `camera_forward` check. Camera RGB/depth streams and intrinsics are
+> Status: **LIVE BASELINE CAPTURED 2026-11-17; updated through 2026-11-19.**
+> Since 2026-11-18 20:20 HKT the **direct Ethernet link**
+> (`10.42.0.218` ↔ `10.42.0.1`) is the only inbound path: the robot runs a
+> default-deny firewall and office WiFi (`10.51.128.226`) is outbound-only.
+> See `network_access.md`. The initial baseline was read-only plus one
+> supervised `reset_servo`; later sessions added joint-limit surveys,
+> supervised MoveIt execution, a re-measured gripper and 3/5 real
+> pick–lift–place attempts. Camera RGB/depth streams and intrinsics are
 > verified. The camera optical extrinsic is **validated** (14-pose chessboard
-> hand-eye, 2.94 mm / 0.39° board scatter). Joint limits and the IMU remain
-> open. `[U]` items must not be treated as measured.
+> hand-eye, 2.94 mm / 0.39° board scatter). Joint limits are now adopted from
+> the servo EEPROM with a 20-pulse margin; the IMU and encoders are absent.
+> `[U]` items must not be treated as measured.
 
 `MASTER_PLAN_V3_PRIVATE.md` §6 requires this folder before Phase 1.
 
@@ -30,13 +33,14 @@
 |---|---|
 | Host / OS / container | Raspberry Pi 5, Debian 12, kernel 6.6.20, Humble container `ArmPiUltra` |
 | ROS graph | one `/controller_manager`, one `/servo_manager`, one arm action server, one MoveIt client; `/joint_states` ~20 Hz |
-| Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` verified; `camera_forward` plan-only verified |
+| Real-robot MoveIt | Humble Docker MoveIt/RViz; supervised `reset_servo` and repeated grasp executions verified; 3/5 real pick–lift–place attempts |
 | Camera | Aurora 930; RGB **~12 Hz cross-host** (`bgr8`, 640×400; in-container subscribers undercount to ~8 Hz), depth 8.2 Hz `mono16` (mm) prior in-container; intrinsics read |
 | TF | `base_link → … → rgb_camera_link` / `depth_camera_link` verified; measured `camera_optical_calibrated` published; no live model `camera_optical_frame` |
 | Camera optical extrinsic | **Validated** 14-pose chessboard hand-eye: 2.94 mm / 0.39° board scatter; held-out 3.29 mm / 0.43°; body→optical 89.798° |
-| Joint limits | **not measured**; two command snapshots recorded |
-| IMU | topic exists but no messages observed |
-| Battery | 7.651 V latest |
+| Joint limits | **Partially measured; adopted EEPROM−20 pulses**: joint2 low 322, joint3 stop 939, joint4 high 901; joint1 low, joint3 positive and joint5 unmeasured; `mapping_verified=false` |
+| Gripper | Stroke **2.22 rad** (open −2.22, closed 0.0), ~34 counts backlash; measured 2026-11-18 |
+| Controller board | Battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; **IMU, encoders, e-stop, onboard gamepad/SBUS absent** (probed 2026-11-19) |
+| Battery | **7812 mV** latest (2026-11-19); 7.651 V at the 2026-11-17 baseline |
 | Root disk | 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) |
 
 Rules:

@@ -92,7 +92,8 @@ python3 tools/phase2/measurement_protocol.py repeatability \
 
 The target defaults to the validated calibration base pose
 `[0.0, 0.59888, -1.25664, -0.71209, 0.0]`; `--target-joints` changes it. The
-tool rejects targets outside the provisional limits before writing a schedule.
+tool rejects targets outside the adopted EEPROM-bounded limits
+(`mapping_verified=false`) before writing a schedule.
 
 ## Data schema
 

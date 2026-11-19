@@ -1,6 +1,7 @@
 # Chessboard Camera / Hand-Eye Calibration
 
-> Status: **Validated on 2026-11-17 (second run)**. Using the physical
+> Status: **Validated on 2026-11-17 (second run); re-validated table-down
+> 2026-11-18; used for real grasps 2026-11-19.** Using the physical
 > bus-servo positions in FK, 14 chessboard poses give a board-pose scatter of
 > **2.94 mm / 0.39°** (max 5.44 mm / 0.74°), the held-out final base is
 > **3.29 mm / 0.43°**, 2-fold cross-validation gives **2.5–3.2 mm /
@@ -8,6 +9,9 @@
 > 6.52 mm / 0.81°). The 5 mm / 2° board gate passes. The first run (cached
 > `joint_states` only) reached 13.4 mm / 2.06° and is kept as the baseline in
 > [`evidence/calibration/20261117/`](../../evidence/calibration/20261117/).
+> A table-down 15-pose fit gives 2.7 mm / 0.42°; real grasps later measured a
+> configuration-dependent FK error of up to 15 mm at the low grasp pose, which
+> is outside this calibration volume.
 
 ## Goal and frames
 
@@ -262,7 +266,9 @@ hardware read.
   camera invalidates it.
 - Raw RGB images stay private and are not committed.
 - This is a calibration result, not an absolute metrology claim. Use it for
-  visual grasping with a safety margin; no real grasp has been run yet.
+  visual grasping with a safety margin. Real grasps were run on 2026-11-18/19;
+  the low-configuration FK error is recorded in
+  [`evidence/phase2/onsite_20261119/grasp_150mm_attempt5/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt5/).
 
 ## Next
 

@@ -1,9 +1,11 @@
 # Hardware Inventory — ArmPi Ultra
 
-> Status: **LIVE BASELINE CAPTURED (2026-11-17)**. Read-only queries; the only
-> commanded motion was the supervised `reset_servo` test. `[V]` = verified by a
-> live command/log; `[S]` = vendor source/config; `[U]` = not measured or not
-> operational.
+> Status: **BASELINE CAPTURED 2026-11-17; updated through 2026-11-19.** The
+> initial baseline was read-only plus the supervised `reset_servo` test; later
+> sessions added joint-limit surveys, supervised MoveIt execution and real
+> grasps. `[V]` = verified by a live command/log; `[S]` = vendor source/config;
+> `[U]` = not measured or not operational. Values without a later date are the
+> 2026-11-17 baseline.
 
 | Item | Value | Evidence | Status |
 |---|---|---|---|
@@ -12,16 +14,17 @@
 | OS / kernel | Debian 12 (bookworm), 6.6.20+rpt-rpi-2712, aarch64 | `/etc/os-release`, `uname` | `[V]` |
 | Controller board | STM32 (vendor firmware) | vendor source | `[S]` |
 | Serial link | `/dev/rrc` (CH340) → `/dev/ttyUSB0` | `ls -l /dev/rrc` | `[V]` |
-| Bus servos | IDs 1–6; live positions 500 at the reset pose | `/controller_manager/servo_states` | `[V]` |
+| Bus servos | IDs 1–6; positions 500 at the 2026-11-17 reset pose | `/controller_manager/servo_states` | `[V]` |
+| Arm joint limits | **Adopted EEPROM−20 pulses** (joint1 ±1.8012, joint2 −0.6618…1.2985, joint3 −1.8012…0, joint4 ±1.5917, joint5 −1.5917…1.5499); joint2 low 322, joint3 stop 939, joint4 high 901; `mapping_verified=false` | [`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md) | `[P]` |
 | Gripper | `r_joint`, servo ID 1; **re-measured 2026-11-18 19:59**: increasing `r_joint` closes; range `-2.22 … 0.0 rad` (raw 170 … 700); servo register 167 (open stop) … 640 (closed); ~34 counts of backlash | action + `bus_servo/get_state` | `[V]` |
 | Camera | Deptrum Aurora 930; USB `3251:1930`; serial `HY400523001036827G00179`; firmware 2.0.8; SDK 1.1.19 | `aurora930_node` log | `[V]` |
 | Camera link | **USB 2.0, 480 Mbps** (Bus 003, Port 1) | `lsusb -t` | `[V]`; bandwidth ceiling |
 | Camera streams | RGB **~12 Hz** cross-host, 640×400 `bgr8` (2026-11-17 Session 4); in-container subscribers undercount to ~8 Hz. Depth measured 8.2 Hz in-container (not re-measured cross-host). | `host_benchmark.py`, `ros2 topic hz` | `[V]` |
 | Camera frames | RGB `rgb_camera_link`; depth `depth_camera_link`; measured optical `camera_optical_calibrated` (project-published); no live `camera_optical_frame` | `camera_info`, TF | `[V]` |
 | Camera calibration | RGB/depth intrinsics read from the driver; `link4 → camera` hand-eye **validated** (2.94 mm / 0.39°); body→optical published as `camera_optical_calibrated` | `camera_info`, TF, `evidence/calibration/20261117/` | `[V]` |
-| Base | Mecanum chassis; `CHASSIS_TYPE=Mecanum` | container env | `[S]` config, `[U]` motion |
+| Base | Mecanum chassis; `CHASSIS_TYPE=Mecanum`; 4 open-loop motor duties verified 2026-11-18 (10 % → 55 mm/s, 20 % → 110 mm/s, `duty ≈ 182 × v`); no encoders or odometry | container env, chassis test | `[V]` motion, `[U]` feedback |
 | E-stop / power cut | **No electronic e-stop or brake.** Main-power cut verified 2026-11-18: the arm falls immediately (joints 2–5 lose holding torque); Pi reboots automatically in ~89 s and `joint1` re-homes to +0.8378 | operator observation, ping/SSH | `[V]` |
-| Battery | 2S pack; 7704 mV after the 2026-11-18 reboot | `/ros_robot_controller/battery` | `[V]` |
+| Battery | 2S pack; 7704 mV after the 2026-11-18 reboot; **7812 mV** on 2026-11-19 | `/ros_robot_controller/battery` | `[V]` |
 | Storage | root filesystem 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) | `df -h /` | `[V]`; boot/log risk |
 | Thermal | 48.8 °C after boot, `throttled=0x0` | `vcgencmd` | `[V]` |
 | Network | `eth0 10.42.0.218/24` (**SSH + DDS + gateway HTTP, the only inbound path** since the 2026-11-18 lockdown; 0.2 ms); `wlan0 10.51.128.226/23` (office WiFi: up for internet only, **outbound-only**) | `ip -brief addr` | `[V]` |

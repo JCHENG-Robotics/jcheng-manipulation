@@ -5,7 +5,8 @@
 > the exact base pose) using the validated `T_link4_camera` and the measured
 > chessboard pose in `base_link`. The set
 > passes the diversity, rotational-excitation and coplanarity checks. It has
-> **not** been executed on the robot yet.
+> **not** been executed on the robot yet. The 2026-11-19 real grasps used the
+> table-down 15-pose calibration, not this set.
 
 ## Why select poses
 

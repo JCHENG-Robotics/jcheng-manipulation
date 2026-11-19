@@ -5,9 +5,13 @@
 > board scatter, 3.29 mm / 0.43° held-out). The measured optical frame is
 > wired into the localizer as `camera_optical_calibrated`. A 24-pose diverse
 > set is selected offline for the next capture. The fiducial → grasp bridge and
-> a mock visual-grasp E2E are now validated. **A real autonomous visual grasp is
-> done (2026-11-19): a 39.3 mm cube was grasped, lifted ≈149 mm and put back
-> with no operator** (see the state table and the evidence record). A flat
+> a mock visual-grasp E2E are now validated. **Five real markerless
+> pick–lift–place attempts were run on 2026-11-19; three succeeded.** Passes
+> 1–2 established the pipeline (pass 1: ≈149 mm lift; pass 2: 6.6 mm / 8°
+> return), passes 3–4
+> failed and measured a −8.0/−15.3/−5.8 mm low-configuration FK/hand–eye error,
+> and pass 5 corrected it with one AprilTag observation (≈148 mm lift). See the
+> state table and the evidence record. A flat
 > AprilTag independently checked the scale: **100.67 mm vs
 > 100.0 mm lateral (0.67 %)**, and a table-down chessboard fit is
 > relative-consistent (2.7 mm / 0.42°). A follow-up depth point-cloud plane
@@ -37,9 +41,9 @@
 
 | Item | State | Note |
 |---|---|---|
-| 5-DoF grasp candidate generation | **Implemented, mock-validated** | `armpi_grasp_planner`; Cartesian family + joint-space reachability sampler |
-| IK → FK → collision → plan screening | **Implemented, mock-validated** | full-pose IK, FK verification, state validity, plan-only Pilz PTP |
-| Fiducial target localization | **Implemented, synthetic + real-background semi-synthetic validated** | 15/15 semi-synthetic poses, 1.69 mm / 0.53° max; 0 false detections on 8 real frames; LM pose refinement |
+| 5-DoF grasp candidate generation | **Implemented; mock-validated and used on hardware** | `armpi_grasp_planner`; Cartesian family + joint-space reachability sampler |
+| IK → FK → collision → plan screening | **Implemented; mock-validated and used on hardware** | full-pose IK, FK verification, state validity, plan-only Pilz PTP |
+| Fiducial target localization | **Implemented; synthetic + real-background validated; physical tag scale check** | 15/15 semi-synthetic poses, 1.69 mm / 0.53° max; 0 false detections on 8 real frames; physical tag scale 0.67 % lateral; LM pose refinement |
 | Camera optical frame | **Implemented, validated** | `camera_optical_calibrated` = measured body→optical adapter (89.798°, 5.4/10.1/−27.4 mm) |
 | Fiducial → grasp planner hand-off | **Implemented, mock E2E validated (2026-11-17)** | `grasp_target_bridge`; age/TF/marker-tilt gate; 3/3 plans approved by safety; plan-only |
 | Safety supervisor | **Implemented, mock-validated (2026-11-17); EEPROM-bounded limits adopted (2026-11-18)** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; veto service; the real MoveIt plan/execute path now requires approval |
@@ -52,8 +56,8 @@
 | Supervised object-free approach | **Executed (2026-11-18)** | `camera_forward` → planner plan-only (3/3 safety approved) → exact trajectory → final TCP 1 mm from plan; camera_forward view volume is not a grasp volume |
 | Calibration pose selection | **Implemented, offline-validated (2026-11-17)** | 24 poses from 14,176 evaluated poses / 3,093 feasible; diversity, rotation-excitation and coplanarity checks pass; not executed |
 | Markerless RGB-D segmentation | **Implemented, real-cloud validated (2026-11-18)** | `tools/phase2/object_segment_rgbd.py`: floor RANSAC + 5 mm voxel clustering + top-slab fit; 39.2 × 39.8 mm cluster, 1.9/−4.1/−3.5 mm vs the RGB; `--min-top-extent` rejects a clipped top view (the first-grasp miss) |
-| Real visual grasping | **First grasp (2026-11-18); autonomous pick-lift-place (2026-11-19, two passes)** | 2026-11-18: markerless floor cube at the reach limit; the autonomous placement missed by a few mm, the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. 2026-11-19 pass 1: one attempt, no operator — vision-measured 39.3 mm cube, grasp, **≈149 mm lift**, place back and release (7.5 mm residual). Pass 2 (operator feedback): start at the **adopted-low forward pose** with `joint5 = 0` (no wrist roll, no lens occlusion), **one-step** 150 mm lift (+149.9 mm TCP in a single 8.3 s trajectory), place back within **6.6 mm / 8°** verified in the same view frame. Pass 3: adopted home start/end, the object-centring gate was **measured to be incompatible** with the 0.176 m depth cutoff and the link4 camera mount (centred ⇒ ≤0.10 m ⇒ blind, and the FK/hand-eye is 15–50 mm off there); the reach planner's flat solution closed above the cube and the **deep family was executed but FAILED** (operator-confirmed: the cube was never held; the in-run "grip" evidence was a projection artefact). Pass 4 also failed and measured the cause: with `joint5 = 0` the TCP is a fixed image pixel (364.8, 344.2) and the cube sits 7–10 mm from it at the low configuration. Pass 5 **PASSED** after a one-point correction with a **60 mm AprilTag placed flat on the floor**: the tag's base position is (0.2373, 0.0202, **−0.0788**) at the validated view (on the floor) but (0.2293, 0.0049, −0.0846) at the grasp configuration, i.e. an error **e = (−8.0, −15.3, −5.8) mm**; grasping at `C_view + e` aligned the pads, the floor cube disappeared at the view-pose check, one-step lift reached TCP +0.0993 (object ≈148 mm), release, and return to adopted. `joint5 = 0` at the view is required: 1.383 clips the top face to 35 mm and biases the centroid. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/), [`evidence/phase2/onsite_20261119/grasp_150mm/`](../../evidence/phase2/onsite_20261119/grasp_150mm/) and [`.../grasp_150mm_attempt2/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt2/) |
-| Grasp execution and verification | **Real execution validated (2026-11-18)** | measured bus-servo completion on every executed trajectory; the lift was confirmed by the operator. Release verification is open (see the evidence follow-ups) |
+| Real visual grasping | **First grasp (2026-11-18); five real attempts (2026-11-19), 3/5 passed** | 2026-11-18: markerless floor cube at the reach limit; the autonomous placement missed by a few mm, the operator-placed retry held and lifted the 39.4 mm cube, then jammed on release and needed a servo torque release. 2026-11-19 pass 1: one attempt, no operator — vision-measured 39.3 mm cube, grasp, **≈149 mm lift**, place back and release (7.5 mm residual). Pass 2 (operator feedback): start at the **adopted-low forward pose** with `joint5 = 0` (no wrist roll, no lens occlusion), **one-step** 150 mm lift (+149.9 mm TCP in a single 8.3 s trajectory), place back within **6.6 mm / 8°** verified in the same view frame. Pass 3: adopted home start/end, the object-centring gate was **measured to be incompatible** with the 0.176 m depth cutoff and the link4 camera mount (centred ⇒ ≤0.10 m ⇒ blind, and the FK/hand-eye is 15–50 mm off there); the reach planner's flat solution closed above the cube and the **deep family was executed but FAILED** (operator-confirmed: the cube was never held; the in-run "grip" evidence was a projection artefact). Pass 4 also failed and measured the cause: with `joint5 = 0` the TCP is a fixed image pixel (364.8, 344.2) and the cube sits 7–10 mm from it at the low configuration. Pass 5 **PASSED** after a one-point correction with a **60 mm AprilTag placed flat on the floor**: the tag's base position is (0.2373, 0.0202, **−0.0788**) at the validated view (on the floor) but (0.2293, 0.0049, −0.0846) at the grasp configuration, i.e. an error **e = (−8.0, −15.3, −5.8) mm**; grasping at `C_view + e` aligned the pads, the floor cube disappeared at the view-pose check, one-step lift reached TCP +0.0993 (object ≈148 mm), release, and return to adopted. `joint5 = 0` at the view is required: 1.383 clips the top face to 35 mm and biases the centroid. See [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/), [`evidence/phase2/onsite_20261119/grasp_150mm/`](../../evidence/phase2/onsite_20261119/grasp_150mm/) and [`.../grasp_150mm_attempt2/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt2/), [`.../grasp_150mm_attempt5/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
+| Grasp execution and verification | **Real execution validated (2026-11-18/19)** | measured bus-servo completion on every executed trajectory; lifts and releases verified in passes 1, 2 and 5; the view-pose floor check is the reliable grip test |
 
 Evidence:
 
@@ -68,6 +72,14 @@ Evidence:
 - [`evidence/phase2/onsite_20261118/approach_20261118/`](../../evidence/phase2/onsite_20261118/approach_20261118/)
 - [`evidence/phase2/onsite_20261118/first_grasp/`](../../evidence/phase2/onsite_20261118/first_grasp/)
 - [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](../../evidence/phase2/onsite_20261118/depth_plane_20261118.md)
+- [`evidence/phase2/onsite_20261119/grasp_150mm/`](../../evidence/phase2/onsite_20261119/grasp_150mm/)
+- [`evidence/phase2/onsite_20261119/grasp_150mm_attempt2/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt2/)
+- [`evidence/phase2/onsite_20261119/grasp_150mm_attempt3/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt3/)
+- [`evidence/phase2/onsite_20261119/grasp_150mm_attempt4/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt4/)
+- [`evidence/phase2/onsite_20261119/grasp_150mm_attempt5/`](../../evidence/phase2/onsite_20261119/grasp_150mm_attempt5/)
+- [`evidence/phase2/onsite_20261119/lowest_reach/`](../../evidence/phase2/onsite_20261119/lowest_reach/)
+- [`evidence/phase2/onsite_20261119/reach/`](../../evidence/phase2/onsite_20261119/reach/)
+- [`evidence/phase2/onsite_20261119/board_capabilities/`](../../evidence/phase2/onsite_20261119/board_capabilities/)
 - [`evidence/phase2/vendor_calibration_20261117/`](../../evidence/phase2/vendor_calibration_20261117/)
 - [`evidence/phase2/session3_20261117/`](../../evidence/phase2/session3_20261117/)
 
@@ -75,6 +87,8 @@ Evidence:
 > held-out final base and 2-fold cross-validation. The measured optical frame
 > is wired into the localizer. The 24-pose capture is planned offline and has
 > not moved the robot. The mock E2E proves the perception → grasp → safety
-> software chain, not a real grasp: the image is synthetic and the plan is not
-> executed. The safety limits now use the adopted EEPROM-bounded joint ranges;
-> a table-based grasp is still pending.
+> software chain with a synthetic image and a plan-only trajectory; it is not
+> the real grasp. The real floor-cube grasps are recorded in
+> [`evidence/phase2/onsite_20261119/`](../../evidence/phase2/onsite_20261119/).
+> The safety limits now use the adopted EEPROM-bounded joint ranges; a
+> table-based grasp is still pending.

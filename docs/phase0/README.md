@@ -1,7 +1,9 @@
 # Phase 0 — Model, Planning and Acceptance
 
 > Current state: **Phase 0 complete for the simulation/mock scope.**
-> No hardware was used. Phase 1 starts when the real robot is connected.
+> No hardware was used in Phase 0. Phase 1/2 have since run on the real robot
+> (hardware baseline 2026-11-17; 3/5 real pick–lift–place attempts 2026-11-19);
+> see the repository README for current status.
 
 | Document | Purpose |
 |---|---|

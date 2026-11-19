@@ -1,9 +1,10 @@
 # Error Budget
 
 > Status: **Framework implemented and demo-validated; project budget partial
-> (2026-11-17, Session 4).** The measured terms are calibration and perception
-> only. Repeatability, backlash, grasp execution, gripper placement and fixture
-> pose are still required but unmeasured.
+> (2026-11-17, Session 4; updated 2026-11-19).** The measured terms are
+> calibration and perception only. Real unpaired grasps (3/5) exercised the
+> execution path on 2026-11-19, but repeatability, backlash, grasp execution,
+> gripper placement and fixture pose remain required and unmeasured.
 
 ## Purpose
 
