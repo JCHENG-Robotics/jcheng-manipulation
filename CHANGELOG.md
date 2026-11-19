@@ -44,9 +44,14 @@ All notable changes to this project are documented here. Format based on
   poses. The reach planner's flat `joint3 ≈ −1.6` solution closed the pads above
   the cube (miss, cube pushed away), so the retry used the **proven deep family**
   (`joint3 = −1.8012`, `joint4 = −0.410`): TCP aligned to 0.5 mm / 0.0 mm in
-  x/y, 3.3 mm below the top, a 15 mm diagnostic lift confirmed the grip
-  (7.6 px vs ~60 px), one-step lift `+148.1 mm` (object ≈151 mm above the
-  floor), release and return to adopted. Evidence:
+  x/y, 3.3 mm below the top. **The round FAILED**: the operator confirms the
+  cube was never held. The in-run "grip" evidence — a 7.6 px centroid shift at
+  a 15 mm lift and wood at the bottom of the 150 mm image — was a projection
+  artefact: the camera rotates during the diagnostic, and the FK/hand-eye is
+  50–90 px off in this joint region, so the wood was the cube still on the
+  floor. A held cube sits ~0.10 m from the camera (bottom edge and inside the
+  depth cutoff), so the grip check must instead put the **floor spot** in view.
+  Evidence:
   [`evidence/phase2/onsite_20261119/grasp_150mm_attempt3/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt3/).
 
 ## [Unreleased] — 2026-11-18 depth table plane, supervised approach, link/DDS fixes
