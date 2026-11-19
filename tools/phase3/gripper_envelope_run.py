@@ -127,7 +127,7 @@ class EnvelopeSession:
                 relative = relative_yaw_deg(report, point)
                 if abs(relative) <= MAX_RELATIVE_YAW_DEG:
                     return point, report, relative
-                reason = 'cube face {:.0f} deg off the arm'.format(relative)
+                reason = 'cube face {:.1f} deg off the arm'.format(relative)
             print('placement rejected: {}'.format(reason))
             if attempt + 1 < retries and not self.args.dry_run:
                 input('  place the cube flat, one face toward the arm; '
@@ -188,12 +188,16 @@ class EnvelopeSession:
                 'env_{}_{}_{:+d}_land'.format(block, axis, offset))
             landing, valid = pts.cube_point(land_report)
             land_ok, reason = pts.placement_quality(land_report)
+            # The primary outcome is the grip. A release can land tilted and
+            # shrink the projected top face (a 23 mm y extent was seen on
+            # 2026-11-19), so an unusable landing is recorded, not fatal.
             if landing is None or not valid or not land_ok:
-                raise RuntimeError(
-                    'landing rejected ({}); re-place and re-run'.format(
-                        reason))
-            error_mm = float(np.linalg.norm((landing - point)[:2]) * 1000.0)
-            notes['landing'] = [float(v) for v in landing]
+                notes['landing_unmeasured'] = (
+                    reason if landing is not None else 'no point')
+            else:
+                error_mm = float(
+                    np.linalg.norm((landing - point)[:2]) * 1000.0)
+                notes['landing'] = [float(v) for v in landing]
         record = {
             'block': block,
             'axis': axis,
