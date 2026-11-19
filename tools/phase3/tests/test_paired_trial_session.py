@@ -37,6 +37,46 @@ def test_cube_point_without_a_cluster_is_none():
     assert valid is False
 
 
+def test_cube_box_ignores_a_background_cluster():
+    """A far cluster is not the cube; an in-box cluster is."""
+    point = [0.232, 0.022, -0.049]
+    report = {'segmentation': {'cluster_details': [
+        {'bounds': {'centroid': [0.499, -0.249, -0.083]}, 'height_m': 0.016},
+    ]}}
+    assert session.cube_box_present(report, point) is False
+    report['segmentation']['cluster_details'].append(
+        {'bounds': {'centroid': [0.235, 0.020, -0.049]}, 'height_m': 0.039})
+    assert session.cube_box_present(report, point) is True
+
+
+def test_correction_is_converted_to_metres(tmp_path):
+    """The CLI takes millimetres; the target arithmetic is in metres."""
+    args = session.build_parser().parse_args([
+        '--dry-run', '--plan', str(tmp_path / 'p.json'),
+        '--trials', str(tmp_path / 't.jsonl'),
+    ])
+    sess = session.Session(args)
+    assert np.allclose(sess.correction, [0.0137, 0.0039, 0.0089])
+
+
+def test_validate_target_rejects_a_unit_error():
+    """A 13.9 m target is refused before any motion."""
+    fit = {'xy_error_mm': 0.0, 'reach_limited': False}
+    with pytest.raises(ValueError):
+        session.validate_target([13.93, 0.0039, 0.0089], fit, 3.0)
+
+
+def test_validate_target_rejects_a_failed_fit():
+    fit = {'xy_error_mm': 14.0, 'reach_limited': False}
+    with pytest.raises(ValueError):
+        session.validate_target([0.24, 0.0, -0.04], fit, 3.0)
+
+
+def test_validate_target_accepts_the_validated_target():
+    fit = {'xy_error_mm': 0.01, 'reach_limited': False}
+    session.validate_target([0.23992, -0.00205, -0.04166], fit, 3.0)
+
+
 def test_dry_run_writes_an_analyzable_dataset(tmp_path):
     """The dry session produces records the framework validates."""
     pytest.importorskip('armpi_grasp_planner.reachability')

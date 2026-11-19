@@ -127,4 +127,31 @@ joint fit are method-dependent.
 
 ## 9. Deviations
 
-(none yet)
+**D2 — 2026-11-19, trial p006/intervention: the grip classifier misread a
+success as a miss.** The segmenter counts every cluster above the floor, and
+its report included a background cluster at `(0.499, −0.249, −0.083) m`
+(`x_out_of_region`, 16 mm high). The runner's first grip rule
+(`clusters == 0`) therefore recorded a miss even though the cube was held: a
+re-measurement showed **0 clusters** and the arm was still holding it. The cube
+was released at the grasp joints and landed **2.9 mm** from the pre-grasp
+point. The trial is retained with its correct outcome (success, 2.9 mm), the
+original misclassified record is kept in
+[`discarded_grip_classifier_attempt.jsonl`](../../evidence/phase3/onsite_20261119/discarded_grip_classifier_attempt.jsonl),
+and the grip test now asks whether a cluster lies in a **40 mm box around the
+measured cube**, the same "cube box" check the validated runs used. The change
+touches only the outcome classifier, not the grasp execution or the measured
+continuous error.
+
+**D1 — 2026-11-19, before any valid trial: a unit error discarded the first
+pair.** The runner added the correction in millimetres to a target in metres,
+so the first intervention target became `(13.9319, 3.9220, 8.8507) m`. The
+joint fit saturated (`joint4 = 0.8987`, xy error 14 144 mm), the arm executed
+the bogus pose, and the trial recorded a miss. The following baseline trial
+then recorded a miss against the cube's new position. Both records are kept for
+transparency in
+[`discarded_unit_error_attempt.jsonl`](../../evidence/phase3/onsite_20261119/discarded_unit_error_attempt.jsonl)
+and are **not** part of the analysis; the plan restarts at `p006`. Fixes:
+the correction is converted to metres, and `validate_target` now refuses a
+target outside 0.10–0.30 m, a joint-fit xy error above
+`--max-xy-error-mm` (default 3.0), or a `joint4` low-limit saturation —
+before any motion.

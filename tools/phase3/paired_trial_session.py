@@ -170,13 +170,18 @@ class HumbleLink:
         self.hand_eye = hand_eye
         self.repo = repo
 
-    def docker(self, arguments, timeout=90.0):
+    def docker(self, arguments, timeout=90.0, check=True):
         """Run one command in the Humble container and return stdout."""
         command = 'docker exec {} {}'.format(
             self.container,
             ' '.join(shlex.quote(str(value)) for value in arguments))
-        return run_command(['sg', 'docker', '-c', command], timeout,
-                           'container command {}'.format(arguments[0]))
+        if check:
+            return run_command(['sg', 'docker', '-c', command], timeout,
+                               'container command {}'.format(arguments[0]))
+        completed = subprocess.run(
+            ['sg', 'docker', '-c', command], capture_output=True, text=True,
+            timeout=timeout)
+        return completed
 
     def install_hand_eye(self, source):
         """Copy the hand-eye calibration into the container."""
@@ -198,8 +203,59 @@ class HumbleLink:
             he=self.hand_eye,
             pulses=','.join(str(value) for value in pulses),
         )
-        self.docker(['bash', '-lc', inner], timeout=90)
-        return json.loads(self.docker(['cat', output], timeout=20))
+        # The segmenter exits 1 when it finds no acceptable target, which is a
+        # valid measurement result (a held cube leaves the floor empty).
+        completed = self.docker(
+            ['bash', '-lc', inner], timeout=90, check=False)
+        try:
+            text = self.docker(['cat', output], timeout=20)
+        except RuntimeError:
+            raise RuntimeError(
+                'segmentation produced no report: {}'.format(
+                    completed.stderr[-800:]))
+        return json.loads(text)
+
+
+def validate_target(target, fit, max_xy_error_mm, reach=(0.10, 0.30)):
+    """Refuse an implausible target or a failed joint fit.
+
+    A unit error in the correction (millimetres added to metres) produced a
+    13.9 m target and a 14 m joint-fit residual on the first 2026-11-19
+    attempt. This guard makes that class of bug stop before any motion.
+    """
+    target = np.asarray(target, dtype=np.float64)
+    if not np.all(np.isfinite(target)):
+        raise ValueError('target is not finite')
+    radius = float(np.linalg.norm(target[:2]))
+    if not reach[0] <= radius <= reach[1]:
+        raise ValueError(
+            'target radius {:.3f} m is outside {}-{} m'.format(
+                radius, reach[0], reach[1]))
+    if fit['xy_error_mm'] > max_xy_error_mm:
+        raise ValueError(
+            'joint fit xy error {:.2f} mm exceeds {:.2f} mm; refusing to '
+            'move'.format(fit['xy_error_mm'], max_xy_error_mm))
+    if fit['reach_limited']:
+        raise ValueError('joint4 is at its low limit; target out of reach')
+
+
+def cube_box_present(report, point, radius=0.04, min_height=0.01):
+    """Return True when a cluster sits in the box around the expected cube.
+
+    The 2026-11-19 first attempt classified a grip as a miss because the
+    segmenter counts every cluster above the floor, including objects far
+    outside the grasp region (a 0.50 m background cluster). The grip test must
+    ask about the cube's own box, which is the check the validated runs used
+    ("0 points in the cube box").
+    """
+    point = np.asarray(point, dtype=np.float64)
+    for cluster in report.get('segmentation', {}).get('cluster_details', []):
+        centroid = np.asarray(cluster['bounds']['centroid'])
+        if (abs(centroid[0] - point[0]) <= radius
+                and abs(centroid[1] - point[1]) <= radius
+                and float(cluster.get('height_m', 0.0)) >= min_height):
+            return True
+    return False
 
 
 def cube_point(report):
@@ -223,10 +279,13 @@ class Session:
 
     def __init__(self, args):
         self.args = args
-        self.correction = np.asarray(
+        correction_mm = np.asarray(
             [float(v) for v in args.correction.split(',')], dtype=np.float64)
-        if self.correction.size != 3:
+        if correction_mm.size != 3:
             raise SystemExit('--correction needs three millimetres values')
+        if np.max(np.abs(correction_mm)) > 50.0:
+            raise SystemExit('--correction looks too large for millimetres')
+        self.correction = correction_mm / 1000.0
         self.view_pose = [float(v) for v in args.view_pose.split(',')]
         self.plan = self._load_plan()
         self.done = self._load_done()
@@ -304,6 +363,7 @@ class Session:
         target = point + (self.correction if method == 'intervention'
                           else np.zeros(3))
         fit = grasp_joint_fit.fit(target)
+        validate_target(target, fit, self.args.max_xy_error_mm)
         print('  cube  ({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*point))
         print('  target({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*target))
         print('  joints {}  xy error {:.2f} mm'.format(
@@ -316,7 +376,8 @@ class Session:
         ]
         grip_report = self.humble.segment(grip_pulses, tag + '_grip')
         clusters = grip_report.get('segmentation', {}).get('clusters', 0)
-        held = (not grip_report.get('success')) and clusters == 0
+        in_box = cube_box_present(grip_report, point)
+        held = not in_box
         notes = {
             'cube_point': [float(v) for v in point],
             'target': [float(v) for v in target],
@@ -324,17 +385,18 @@ class Session:
             'xy_error_mm': fit['xy_error_mm'],
             'residual_mm': fit['residual_mm'],
             'grip_clusters': clusters,
+            'grip_cube_box': bool(in_box),
             'grip_success': grip_report.get('success'),
             'pre_seg_ok': report.get('success'),
         }
         notes['grip_rejection'] = grip_report.get('rejection')
         notes['grip_selected'] = bool(grip_report.get('selected'))
         if not held:
-            code = 'MISS' if clusters > 0 else 'NO_GRIP'
+            code = 'MISS'
             if clusters > 0:
                 self._operator_note(
-                    'a cluster is still above the floor; confirm the cube '
-                    'was not held')
+                    'the cube box still has points; confirm the cube was '
+                    'not held')
             self._record(entry, success=False, error_mm=None,
                          failure_code=code, notes=notes)
             return False
@@ -451,6 +513,9 @@ def build_parser():
     parser.add_argument('--robot-container', default='ArmPiUltra')
     parser.add_argument('--humble-container', default='armpi-humble')
     parser.add_argument('--max-trials', type=int, default=0)
+    parser.add_argument(
+        '--max-xy-error-mm', type=float, default=3.0,
+        help='refuse to move when the joint fit xy error exceeds this')
     parser.add_argument(
         '--dry-run', action='store_true',
         help='synthetic measurements, no robot or container calls')
