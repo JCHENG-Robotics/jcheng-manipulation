@@ -256,6 +256,19 @@ correction (`e = (−8.0, −15.3, −5.8) mm`), which was made with both tags w
 8 px of the frame edge:
 [`evidence/calibration/20261119/low_config_error/`](../../evidence/calibration/20261119/low_config_error/).
 
+**Grasp validation (2026-11-19).** The correction was applied to a cube
+measured from a tilted table-down view (`j4 = −1.70`, camera 0.22 m up):
+`(+13.7, +3.9, +8.9) mm` on the cube centroid, fitted joints
+`[−0.015, −0.6618, −1.8012, −0.340]`, close `r_joint −1.6 → −0.63`. The cube
+was gripped, lifted 150 mm and released **1.3 mm** from the measurement. That
+settles the sign: at the grasp configuration the model **overestimates** x by
+~14 mm relative to the tilted view, the opposite of the pass-5 vector. The same
+session measured a **~13 mm z error** at the tilted pose (the depth plane
+through the model reads −0.0918 m against the calibrated −0.0784 m), so the
+tilted view is outside the validated volume and the x/y correction is the
+load-bearing quantity. Evidence:
+[`evidence/phase2/onsite_20261119/low_config_grasp_validation/`](../../evidence/phase2/onsite_20261119/low_config_grasp_validation/).
+
 ## Why the first run failed
 
 The first dataset used the controller's cached `joint_states` as if they were

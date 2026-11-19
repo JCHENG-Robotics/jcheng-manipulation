@@ -1,14 +1,19 @@
 # Low-configuration model error survey — 2026-11-19
 
-> Status: **survey PASS, correction measured, not yet validated by a grasp.**
-> A 60 mm 36h11 tag fixed on the floor was observed from 2 reference poses in
-> the validated table-down volume and 8 poses of the low (grasp) family. The
-> reference pair agrees to **1.8 mm / 1.55°** and the tag PnP reprojection is
-> **0.12–0.49 px** with 35–108 px of frame margin at every pose. The model
-> error over the whole low family is a **constant vector**: the per-pose spread
-> is **0.40–0.99 mm** and the residual after one constant correction is at most
-> **2.4 mm**. So a single local correction is sufficient — no
-> configuration-dependent model is needed inside this volume.
+> Status: **survey PASS and grasp-validated the same day.** A 60 mm 36h11 tag
+> fixed on the floor was observed from 2 reference poses in the validated
+> table-down volume and 8 poses of the low (grasp) family. The reference pair
+> agrees to **1.8 mm / 1.55°** and the tag PnP reprojection is **0.12–0.49 px**
+> with 35–108 px of frame margin at every pose. The model error over the whole
+> low family is a **constant vector**: the per-pose spread is **0.40–0.99 mm**
+> and the residual after one constant correction is at most **2.4 mm**. So a
+> single local correction is sufficient — no configuration-dependent model is
+> needed inside this volume.
+>
+> The correction was then used on a real cube: **grip, 150 mm lift and release
+> 1.3 mm from the measurement**
+> ([validation](../../../phase2/onsite_20261119/low_config_grasp_validation/README.md)),
+> which also settles the sign conflict against the pass-5 single-tag value.
 >
 > The correction value depends on which hand-eye is treated as the model:
 > `(+11.6, +4.0, +8.5) mm` for the table-down fit (the one the 2026-11-19
@@ -119,9 +124,13 @@ out-of-plane pose is weakly constrained (the same view earlier showed a fitted
 tag plane tilted 8.4° against a 3.7° table). A several-degree tilt error at
 0.13 m is a 10 mm position error, which is the size of the y discrepancy. The
 survey's tags were framed at 35–108 px margin with 0.12–0.49 px reprojection,
-so **the survey supersedes the single-point correction** — but the sign
-conflict is not fully explained and the correction must be validated by a
-grasp before it is treated as fact.
+so **the survey supersedes the single-point correction** — and the survey's
+sign was confirmed by a grasp the same day: applying
+`(+13.7, +3.9, +8.9) mm` to a cube measured from the tilted view produced a
+grip, a 150 mm lift and a clean release 1.3 mm from the measurement. See
+[`../../../phase2/onsite_20261119/low_config_grasp_validation/`](../../../phase2/onsite_20261119/low_config_grasp_validation/README.md).
+At the grasp configuration the model therefore **overestimates** x by ~14 mm
+relative to the tilted view; the pass-5 vector pointed the other way.
 
 ## 6. Limitations
 

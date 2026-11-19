@@ -518,9 +518,25 @@ def main():
     parser.add_argument(
         '--check-only', action='store_true',
         help='capture at the current pose without moving')
-    parser.add_argument('--test', action='store_true',
-                        help='run only the first two poses')
+    parser.add_argument(
+        '--stay', action='store_true',
+        help='leave the arm at the last target instead of returning to the '
+             'start pose (for a follow-up capture at that pose)')
+    parser.add_argument(
+        '-j4min', '--j4-min', type=float, default=None,
+        help='override the joint4 lower bound for measurement-only poses; '
+             'the servo EEPROM limit is raw 120 (-1.5917 rad) and the '
+             'adopted limit is the same, so anything below it must be '
+             'justified by the pose set and is reported in the log')
+    parser.add_argument(
+        '--test', action='store_true',
+        help='run only the first two poses')
     args = parser.parse_args()
+
+    if args.j4_min is not None:
+        ARM_LIMITS['joint4'] = (args.j4_min, ARM_LIMITS['joint4'][1])
+        print('WARNING joint4 lower bound overridden to {}'.format(
+            args.j4_min), flush=True)
 
     os.makedirs(args.output_dir, exist_ok=True)
     poses = load_poses(args.poses_file)
@@ -561,6 +577,10 @@ def main():
                 node.wait_positions(target)
                 sample = node.capture(index, target, name)
                 samples.append(sample)
+                pulses = sample['servo_pulses_end']
+                print('  pulses id6..id2 = {}'.format(
+                    [pulses.get(str(sid)) for sid in
+                     (6, 5, 4, 3, 2)]), flush=True)
                 tag = sample['tag']
                 if tag is None:
                     print('  {} tag NOT detected'.format(name), flush=True)
@@ -575,7 +595,7 @@ def main():
                             [round(value, 4) for value in tag['tvec']]),
                         flush=True)
     finally:
-        if start is not None and not args.check_only:
+        if start is not None and not args.check_only and not args.stay:
             try:
                 start, clamped = clamp_target(start)
                 if clamped:
