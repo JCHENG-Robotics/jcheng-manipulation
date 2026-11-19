@@ -123,16 +123,38 @@ The roadmap item "joint-offset calibration over the low configuration" is
 therefore closed with a negative result: measuring it was worth doing, and it
 removed a plausible but wrong hypothesis instead of adding an unjustified model.
 
-## 6. What would change the conclusion
+## 6. Yaw extension (2026-11-19, same day)
 
-A **yawed grasp** is the clean discriminator between a base-frame constant and
-a `link4`-frame offset. Using the fitted `link4_translation` model at the
-runs' view pose and a yawed grasp from the same family, the model predicts
-`(+8.5, −6.3, +4.6) mm` at `j1 = 0.3 rad`, `(+11.1, −11.6, +4.6) mm` at
-`0.6 rad` and `(+15.2, −15.8, +4.6) mm` at `0.9 rad`, against the constant
-`(+13.7, +3.9, +8.9) mm` — differences of 12, 16 and 20 mm. The grip margin is
-about ±4 mm, so one such grasp with the landing measured in the same frame is
-decisive: it either widens the envelope or bounds the yaw dependence.
+The clean discriminator between a base-frame constant and a `link4`-frame
+offset is a yawed configuration. It was measured **without a grasp**, with the
+same fixed-tag method: the tag was placed at `(0.272, 0.106) m`, observed from
+the view pose and from a grasp pose at **`j1 = 0.487 rad (27.9°)`**, and the
+required correction is `e = m_grasp - m_view`.
+
+**Measured `e = (9.14, 7.18, 8.75) mm`** (three repeats, spread 1.54 / 0.13 /
+0.80 mm). Against it:
+
+| Model | Predicted (mm) | Δ (mm) | Norm |
+|---|---|---|---:|
+| **constant** | (13.7, 3.9, 8.9) | (+4.56, −3.28, +0.15) | **5.62** |
+| `joint_offsets4` | (9.65, −6.89, 5.70) | (+0.51, −14.07, −3.05) | 14.41 |
+| `link4_translation` | (8.85, −9.73, 4.05) | (−0.29, −16.91, −4.70) | 17.55 |
+| `link4_se3` | (1.55, −9.62, 3.40) | (−7.59, −16.80, −5.35) | 19.20 |
+
+The measured direction (38°) lies between the constant (16°) and a full
+link4 rotation (44°), so the correction does rotate slightly with yaw — but
+the fitted models overshoot in the **y** (grip-opening) direction by
+14–17 mm and even flip its sign. The constant's residual at 28° is 5.6 mm
+total with a **3.3 mm** y component, inside the ±4 mm grip margin.
+**The constant stays the only usable model, and the measured envelope extends
+to `j1 ≈ 0.5 rad`.** The tagged evidence is in
+[`evidence/phase3/onsite_20261119/yaw_envelope/`](../../../phase3/onsite_20261119/yaw_envelope/).
+
+A **grasped** yaw test also failed twice, but for a gripper-geometry reason
+that is worth recording: a square cube placed at a 20–30° bearing presents its
+diagonal (≈ 50 mm), which exceeds the ~40 mm opening, so the pads push it
+away regardless of the correction. Any future yawed grasp must rotate the cube
+to face the arm first.
 
 ## 7. Reproduction
 

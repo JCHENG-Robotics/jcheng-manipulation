@@ -304,9 +304,13 @@ predict corrections **10.6–15.0 mm** away from the constant `(+13.7, +3.9,
 `j4` and 0.03 rad in `j2`/`j3` from the runs' view pose, and every
 configuration-dependent model expects the correction to change over that gap;
 it does not. **Conclusion: the supported model remains a constant base-frame
-offset**, bounded to tool-down grasps with `j1` within ±0.06 rad of 0 and the
-view pose at `j4 = −1.58 … −1.66` rad. A yawed grasp (`j1 ≈ 0.3–0.6 rad`) is
-the decisive extension test and is not yet run. Tools:
+offset.** The yaw extension was then measured with the same fixed-tag method
+at `j1 = 0.487 rad (27.9°)`: the required correction is
+`(9.14, 7.18, 8.75) mm`, the constant is 5.6 mm away (grip-critical `y`
+3.3 mm, inside the ±4 mm margin) and the configuration-dependent models are
+14–19 mm away with the `y` sign flipped. The measured envelope therefore
+extends to `j1 ≈ 0.5 rad`; tool-down and the view pose at
+`j4 = −1.58 … −1.66` rad remain the other bounds. Tools:
 [`tools/phase2/low_config_model_fit.py`](../../tools/phase2/low_config_model_fit.py),
 [`low_config_correction.py`](../../tools/phase2/low_config_correction.py);
 evidence:

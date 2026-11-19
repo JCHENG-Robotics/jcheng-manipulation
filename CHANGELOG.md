@@ -7,6 +7,20 @@ All notable changes to this project are documented here. Format based on
 
 ### Verified (real hardware, 2026-11-19)
 
+- **Yaw extension of the low-configuration envelope.** The constant correction
+  had only been validated at `j1 ≈ 0`; a fixed-tag measurement at a yawed grasp
+  pose (`j1 = 0.487 rad = 27.9°`, `joint4 = -0.339`) gives a required
+  correction of **(9.14, 7.18, 8.75) mm** (three repeats, spread 1.54 / 0.13 /
+  0.80 mm). The constant `(13.7, 3.9, 8.9)` is **5.62 mm** away, with the
+  grip-critical `y` component **3.28 mm** (inside the ±4 mm margin); the fitted
+  `joint_offsets4`, `link4_translation` and `link4_se3` models are **14.4, 17.6
+  and 19.2 mm** away and flip the `y` sign. The correction does rotate slightly
+  with yaw (direction 38° vs the constant's 16°), but far less than the fitted
+  models require. Two yawed *grasps* also failed for a separate, recorded
+  reason: a square cube at a 20–30° bearing presents its ~50 mm diagonal,
+  beyond the ~40 mm opening, so future yawed grasps must rotate the cube to
+  face the arm. Evidence:
+  [`evidence/phase3/onsite_20261119/yaw_envelope/`](evidence/phase3/onsite_20261119/yaw_envelope/).
 - **Error-budget motion terms measured: repeatability and backlash.** A 60 mm
   36h11 tag fixed on the floor was observed from the grasp pose
   `[0, −0.6618, −1.8012, −0.3917, 0]`; the tag centre was reconstructed from

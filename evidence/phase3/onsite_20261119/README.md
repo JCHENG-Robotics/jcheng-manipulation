@@ -133,7 +133,37 @@ container (`/tmp/repeatability`, `/tmp/backlash_forward`,
 `/tmp/backlash_reverse`); the datasets and analyses are in
 [`repeatability/`](repeatability/) and [`backlash/`](backlash/).
 
-## 7. Files
+## 7. Yaw-envelope check (tag, no grasp)
+
+The constant correction was measured at `j1 ≈ 0`, so its validity for a yawed
+grasp was open. A 60 mm tag was placed at `(0.272, 0.106) m` and observed from
+the view pose and from a **yawed grasp pose** (`j1 = 0.487 rad = 27.9°`,
+`joint4 = -0.339`); the tag is fixed, so `e = m_grasp - m_view` is the
+correction the yawed pose needs. No grasp was involved (that removes the
+gripper-geometry confound: a square cube rotated to a 20–30° bearing presents
+its diagonal, ≈50 mm, which exceeds the opening — two earlier yawed grasps
+failed for that reason, not because of the correction).
+
+| Model | Predicted `e` (mm) | Δ from measured (mm) | Norm |
+|---|---|---:|---:|
+| **constant** `(13.7, 3.9, 8.9)` | — | (+4.56, −3.28, +0.15) | **5.62** |
+| `joint_offsets4` | (9.6, −6.9, 5.7) | (+0.51, −14.07, −3.05) | 14.41 |
+| `link4_translation` | (8.9, −9.8, 4.1) | (−0.29, −16.91, −4.70) | 17.55 |
+| `link4_se3` | (1.6, −9.6, 3.4) | (−7.59, −16.80, −5.35) | 19.20 |
+
+Measured `e = (9.14, 7.18, 8.75) mm`, three repeats, spread (1.54, 0.13,
+0.80) mm (tag PnP 0.22/0.42 px, margins 95/24 px).
+
+The measured vector's direction (38°) sits between the constant (16°) and a
+full link4-yaw rotation (44°), so the correction does rotate slightly with
+yaw — but the fitted models overshoot in the **y** (gripper-opening)
+direction by 14–17 mm and even flip its sign. The constant's residual at
+28° is 5.6 mm total, of which the grip-critical y component is **3.3 mm**,
+inside the ±4 mm margin. **The constant remains the only usable model at
+this yaw; the configuration-dependent models are rejected again.** The
+envelope is therefore measured to `j1 ≈ 0.5 rad`, not just ±0.06.
+
+## 8. Files
 
 | File | Content |
 |---|---|
@@ -145,9 +175,10 @@ container (`/tmp/repeatability`, `/tmp/backlash_forward`,
 | `repeatability/` | 30-visit AprilTag dataset, reconstructed measurement, analysis |
 | `backlash/` | 15+15 forward/reverse datasets, measurement, analysis |
 | `error_budget.md` / `error_budget.json` | updated budget with the measured repeatability and backlash terms |
+| `yaw_envelope/` | three paired view/grasp tag captures and the model comparison |
 | `discarded_*.jsonl`, `trials_with_p003_artifact.jsonl` | the four deviations' raw records |
 
-## 8. Reproduction
+## 9. Reproduction
 
 ```bash
 # session (interactive; resumable; skips completed entries)

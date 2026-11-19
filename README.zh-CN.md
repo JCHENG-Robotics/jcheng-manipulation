@@ -74,6 +74,7 @@
 | 最佳自主抬升 | TCP **+0.0993 m**，物体离地 **约 148 mm**；木块 **39.2 × 39.8 mm** | [`attempt5/`](evidence/phase2/onsite_20261119/grasp_150mm_attempt5/) |
 | 低构型模型误差 | 固定 Tag：**常数 (+11.6, +4.0, +8.5) mm**，位形散布 **0.40–0.99 mm**；抓取验证修正量 **(+13.7, +3.9, +8.9) mm**，放置残差 **1.3 mm** | [`low_config_error/`](evidence/calibration/20261119/low_config_error/) |
 | 低构型模型选择 | 关节偏置 / `link4` 3-DoF / `link4` 6-DoF 都能拟合 Tag 数据（1.4–2.3 mm RMS），但相对已验证修正量偏差 **10.6–15.0 mm**；**支持常数偏置模型** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
+| 包络的偏航延伸 | 在 `j1 = 27.9°` 处所需修正为 **(9.14, 7.18, 8.75) mm**；常数偏置相差 **5.6 mm**（夹持关键 y 分量 **3.3 mm**），构型相关模型相差 **14–19 mm** 且 y 反号 | [`yaw_envelope/`](evidence/phase3/onsite_20261119/yaw_envelope/) |
 | 配对实机试验，24 对 | **baseline 12/24 vs intervention 24/24**（McNemar **p = 0.00049**）；放置误差 **3.31 mm** vs **4.97 mm**；配对改善 **2.19 mm**（95% CI −3.96…−0.83，**p = 0.0063**） | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) |
 | 机械臂重复性，30 次 | 径向 **RMS 0.449 mm / 最大 1.017 mm**；关节重复到 0–1 脉冲；Tag 旋转最大 **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
 | 机械臂回差，joint4 ±0.1 rad | 回差 **1.117 mm**（−0.971, −0.064, −0.549 mm）；joint4 落点相差 10 脉冲 | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |

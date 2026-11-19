@@ -119,7 +119,7 @@ class RobotLink:
         """Move the arm to one pose and return the run report."""
         output = '/tmp/{}_{}.json'.format(tag, int(time.time()))
         self.exec(['python3', '/tmp/move_to_pose.py',
-                   '--pose', ','.join('{:.6f}'.format(v) for v in pose),
+                   '--pose=' + ','.join('{:.6f}'.format(v) for v in pose),
                    '--output', output, '--i-have-clear-workspace'],
                   timeout=120)
         return self.read_json(output)

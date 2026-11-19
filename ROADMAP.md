@@ -245,8 +245,10 @@ intervention is therefore the constant base-frame correction
 pairs**, baseline 12/24 vs intervention 24/24 (McNemar p = 0.00049), and a
 **2.19 mm** paired placement improvement among the 12 dual-success pairs
 (95 % CI −3.96…−0.83 mm, p = 0.0063). The constant is supported inside the
-tested envelope (tool-down, `j1 ±0.06 rad`, view `j4 −1.58…−1.66`); a
-yawed-envelope grasp is the open extension test. See
+measured envelope, which a fixed-tag yaw extension widened to `j1 ≈ 0.5 rad`
+(at `j1 = 0.487 rad` the required correction is `(9.14, 7.18, 8.75) mm`, the
+constant is 5.6 mm away and the fitted models 14–19 mm away with the `y` sign
+flipped); tool-down and view `j4 −1.58…−1.66` remain the other bounds. See
 [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md)
 and
 [`evidence/calibration/20261119/low_config_error/model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md).
