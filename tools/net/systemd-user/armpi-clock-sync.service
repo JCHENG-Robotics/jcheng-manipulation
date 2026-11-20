@@ -1,0 +1,6 @@
+[Unit]
+Description=Keep the ArmPi host clock synced from this laptop
+
+[Service]
+Type=oneshot
+ExecStart=@REPO@/tools/net/armpi-clock-sync.sh

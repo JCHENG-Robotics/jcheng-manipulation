@@ -1,0 +1,34 @@
+#!/bin/bash
+# Forced command for the laptop's clock-sync key.
+#
+# Installed as /usr/local/sbin/armpi-clock-set (root:root 0755) by
+# tools/net/install-clock-sync.sh. The key can only read the clock and set it
+# to a plausible epoch; it cannot open a shell.
+#
+# The caller sends `get` or `set <epoch>` as the SSH command; sshd exposes it
+# here as SSH_ORIGINAL_COMMAND and never runs a shell for that key.
+set -euo pipefail
+
+cmd="${SSH_ORIGINAL_COMMAND:-}"
+case "$cmd" in
+    get)
+        date +%s
+        ;;
+    set\ *)
+        epoch="${cmd#set }"
+        if [[ ! "$epoch" =~ ^[0-9]{10}$ ]]; then
+            echo "expected a 10-digit epoch" >&2
+            exit 2
+        fi
+        # 2020-01-01 .. 2100-01-01; reject a wildly wrong clock.
+        if (( epoch < 1577836800 || epoch > 4102444800 )); then
+            echo "epoch out of range" >&2
+            exit 2
+        fi
+        exec sudo -n /bin/date -u -s "@$epoch"
+        ;;
+    *)
+        echo "usage: get | set <epoch>" >&2
+        exit 2
+        ;;
+esac

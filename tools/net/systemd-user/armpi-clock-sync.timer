@@ -1,0 +1,11 @@
+[Unit]
+Description=Push the laptop clock to the ArmPi host every 60 s
+
+[Timer]
+OnActiveSec=15s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=armpi-clock-sync.service
+
+[Install]
+WantedBy=timers.target

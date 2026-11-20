@@ -97,6 +97,42 @@ closed; its `aurora930_node` became a zombie. Stop it with
 | Camera-rate undercount | An in-container subscriber measures ~8.3 Hz for RGB, while a cross-host subscriber on the laptop measures ~11.8–12.0 Hz. Local DDS delivery of large images drops/queues; do not use in-container FPS as the sensor rate. | `[V]` |
 | Camera stop leaves a defunct node | `pkill -f vision.launch.py` exits the launch but can leave `aurora930_node` as a defunct process entry; kill it by exact process name or restart the container. The publisher count returns to 0. | `[V]` |
 
+## Clock sync (2026-11-20)
+
+The Pi has no battery-backed RTC (`/dev/rtc0` reads 1970), no internet and
+`systemd-timesyncd` disabled, so after a power cycle its clock returns to the
+last RTC value (about a day behind). MoveIt rejects a plan when the
+`/joint_states` stamps are older than the request, so the robot clock must be
+kept **~2 s ahead of the laptop**.
+
+Because the Pi cannot reach the laptop (no sshd on the laptop) and has no
+internet, the sync is **pushed from the laptop**: a systemd user timer runs
+`tools/net/armpi-clock-sync.sh` every 60 s, which uses the dedicated
+`~/.ssh/id_ed25519_armpi_clock` key to call the forced command
+`/usr/local/sbin/armpi-clock-set` on the robot. That key has no passphrase but
+is restricted in `~/.ssh/authorized_keys` to `get`/`set <epoch>`; it cannot
+open a shell. The script only steps the clock when the offset leaves
+`[AHEAD - 1, AHEAD + 1]` s (default AHEAD = 2 s).
+
+```bash
+# install/re-run on the laptop (admin key must be usable, e.g. in ssh-agent)
+tools/net/install-clock-sync.sh
+
+# status and one manual push
+systemctl --user list-timers armpi-clock-sync.timer
+systemctl --user start armpi-clock-sync.service
+journalctl --user -u armpi-clock-sync.service -n 5 --no-pager
+
+# the restricted key: read-only probe
+ssh -i ~/.ssh/id_ed25519_armpi_clock pi@10.42.0.218 get
+ssh -i ~/.ssh/id_ed25519_armpi_clock pi@10.42.0.218 id   # must print usage and fail
+```
+
+The timer runs with the user manager, so the laptop must be logged in. For a
+headless boot, run `sudo loginctl enable-linger "$USER"`. Do **not** enable
+NTP on the Pi: there is no internet, and NTP would remove the deliberate +2 s
+margin. The installer keeps a dated backup of `authorized_keys`.
+
 ## Inbound lockdown (2026-11-18)
 
 The robot runs a default-deny nftables policy. `eth0` (the direct cable to the
