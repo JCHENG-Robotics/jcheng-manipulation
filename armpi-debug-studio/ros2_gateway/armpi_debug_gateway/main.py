@@ -25,7 +25,7 @@ import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
 from .auth import TokenError, resolve_token as resolve_shared_token
-from .aux_camera import UvcCamera
+from .aux_camera import RosImageCamera, UvcCamera
 from .motion import MotionConfigError, load_motion_config
 from .node import GatewayNode
 from .server import GatewayHTTPServer
@@ -54,6 +54,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--aux-camera-width", type=int, default=640)
     parser.add_argument("--aux-camera-height", type=int, default=480)
     parser.add_argument("--aux-camera-fps", type=float, default=10.0)
+    parser.add_argument(
+        "--aux-camera-topic",
+        default="",
+        help="subscribe to this Image topic instead of opening --aux-camera-device "
+        "(single-owner mode with the robot-side ext_cam_node)",
+    )
     parser.add_argument(
         "--no-aux-camera",
         action="store_true",
@@ -134,7 +140,13 @@ def main(argv: list[str] | None = None) -> None:
     _install_signal_handlers(stop_event)
 
     aux_camera = None
-    if not args.no_aux_camera:
+    if not args.no_aux_camera and args.aux_camera_topic:
+        aux_camera = RosImageCamera(
+            args.aux_camera_topic,
+            quality=args.jpeg_quality,
+            log=lambda message: print(f"  aux:     {message}", flush=True),
+        )
+    elif not args.no_aux_camera:
         aux_camera = UvcCamera(
             args.aux_camera_device,
             width=args.aux_camera_width,

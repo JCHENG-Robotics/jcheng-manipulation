@@ -91,3 +91,69 @@ def test_uvc_camera_thread_captures_then_stops() -> None:
     finally:
         camera.stop()
     assert camera._thread is None
+
+
+class FakeImage:
+    """Minimal sensor_msgs/Image stand-in."""
+
+    def __init__(self, encoding: str = "bgr8", width: int = 4, height: int = 3,
+                 data: object | None = None) -> None:
+        self.encoding = encoding
+        self.width = width
+        self.height = height
+        self.data = data if data is not None else bytearray(width * height * 3)
+
+
+def _ros_camera(**kwargs: object):
+    from armpi_debug_gateway.aux_camera import RosImageCamera
+
+    return RosImageCamera(
+        "/ext_cam/color/image_raw",
+        encoder=lambda _frame: b"\xff\xd8fake-jpeg",
+        **kwargs,
+    )
+
+
+def test_ros_camera_offers_an_image() -> None:
+    camera = _ros_camera()
+    assert camera.poll_once() is False
+    assert camera.snapshot() is None
+    before = camera.snapshot()
+
+    assert camera.offer(FakeImage()) is True
+    payload = camera.status_payload()
+    assert camera.snapshot() is not None
+    assert camera.snapshot() != before
+    assert payload["available"] is True
+    assert payload["source"] == "armpi_debug_gateway_ros"
+    assert payload["topic"] == "ros:/ext_cam/color/image_raw"
+    assert payload["width"] == 4 and payload["height"] == 3
+    assert payload["frame_count"] == 1
+    assert "ext_cam_node" in payload["notes"][0]
+
+
+def test_ros_camera_rejects_unsupported_encodings() -> None:
+    camera = _ros_camera()
+    assert camera.offer(FakeImage(encoding="yuv422")) is False
+    payload = camera.status_payload()
+    assert payload["available"] is False
+    assert payload["validity"] == "unavailable"
+    assert any("unsupported image" in note for note in payload["notes"])
+
+
+def test_ros_camera_rejects_mismatched_payload_size() -> None:
+    camera = _ros_camera()
+    bad = FakeImage(width=4, height=3, data=bytearray(3))
+    assert camera.offer(bad) is False
+    assert camera.snapshot() is None
+    assert any("does not match" in note
+               for note in camera.status_payload()["notes"])
+
+
+def test_ros_camera_encodes_rgb8_and_mono8() -> None:
+    camera = _ros_camera()
+    assert camera.offer(FakeImage(encoding="rgb8", width=4, height=3,
+                                  data=bytearray(4 * 3 * 3))) is True
+    assert camera.offer(FakeImage(encoding="mono8", width=4, height=3,
+                                  data=bytearray(4 * 3))) is True
+    assert camera.status_payload()["frame_count"] == 2

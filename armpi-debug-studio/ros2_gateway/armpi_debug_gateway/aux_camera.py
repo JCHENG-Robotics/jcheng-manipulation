@@ -1,12 +1,17 @@
-"""UVC color capture for the chassis-mounted Intel RealSense D435i.
+"""Aux-camera JPEG for the chassis-mounted Intel RealSense D435i.
 
-The D435i has no ROS driver on the robot. Its color node is a plain UVC
-device (``/dev/video4`` on the Pi 5), so the gateway reads it with OpenCV in a
-background thread and serves the latest JPEG from ``/aux-camera/snapshot``.
-Depth and IR need librealsense and are deliberately not touched here.
+Two sources are supported:
 
-The camera is optional: a missing or busy device only makes the aux endpoints
-report ``available: false``; it never stops the ROS gateway.
+- :class:`UvcCamera` opens ``/dev/video4`` directly (legacy single-process
+  mode). It works only when no other process owns the device.
+- :class:`RosImageCamera` subscribes to ``/ext_cam/color/image_raw`` published
+  by the robot-side ``ext_cam_node``. That node is the single UVC owner, so the
+  studio preview and ROS consumers share one stream; this is the deployed mode
+  once ``ext_cam_node`` runs as ``armpi-ext-cam.service``.
+
+Depth and IR need librealsense and are not touched here. The camera is
+optional: a missing device or topic only makes the aux endpoints report
+``available: false``; it never stops the ROS gateway.
 """
 
 from __future__ import annotations
@@ -20,6 +25,10 @@ from typing import Any, Callable
 FRAME_AVAILABLE_AGE_MS = 3000
 METADATA_NOTE = (
     "UVC color stream only (RealSense D435i); depth and IR need librealsense."
+)
+ROS_NOTE = (
+    "ROS colour topic from ext_cam_node (single UVC owner); depth and IR need "
+    "librealsense."
 )
 
 
@@ -167,6 +176,7 @@ class UvcCamera:
         with self._lock:
             return self._jpeg
 
+
     # --------------------------------------------------------------- internals
     def _run(self) -> None:
         interval = 1.0 / self.fps
@@ -249,3 +259,100 @@ class UvcCamera:
         if span <= 0:
             return 0.0
         return (len(self._frame_times) - 1) / span
+
+
+class RosImageCamera(UvcCamera):
+    """Serve the latest JPEG from a ROS ``sensor_msgs/Image`` topic.
+
+    The off-board D435i has exactly one owner: ``ext_cam_node`` on the robot
+    opens the UVC device and publishes the colour stream. The gateway
+    subscribes instead of opening the device, so the studio preview and any ROS
+    consumer share the same frames. Frames arrive through :meth:`offer`; there
+    is no capture thread and ``poll_once`` stays false.
+    """
+
+    def __init__(
+        self,
+        topic: str,
+        *,
+        quality: int = 80,
+        encoder: Callable[[Any], bytes | None] | None = None,
+        log: Callable[[str], None] | None = None,
+    ) -> None:
+        super().__init__(
+            device="-",
+            width=1280,
+            height=720,
+            fps=30.0,
+            quality=quality,
+            encoder=encoder,
+            log=log,
+        )
+        self.ros_topic = str(topic)
+
+    def start(self) -> None:
+        """Nothing to start: the gateway node owns the subscription."""
+
+    def stop(self) -> None:
+        """Nothing to stop."""
+
+    def poll_once(self) -> bool:
+        """Frames arrive by callback; there is nothing to poll."""
+        return False
+
+    def offer(self, message: Any) -> bool:
+        """Encode one ``sensor_msgs/Image`` and make it the latest JPEG."""
+        import numpy as np
+
+        encoding = str(getattr(message, "encoding", ""))
+        channels = {"bgr8": 3, "rgb8": 3, "mono8": 1}.get(encoding)
+        height = int(getattr(message, "height", 0))
+        width = int(getattr(message, "width", 0))
+        if channels is None or height <= 0 or width <= 0:
+            self._fail(f"unsupported image {width}x{height} {encoding or '?'}")
+            return False
+        try:
+            frame = np.frombuffer(message.data, dtype=np.uint8)
+        except TypeError:
+            frame = np.asarray(message.data, dtype=np.uint8)
+        if frame.size != width * height * channels:
+            self._fail(
+                f"image size {frame.size} does not match {width}x{height}x"
+                f"{channels} ({encoding})"
+            )
+            return False
+        frame = frame.reshape(height, width, channels)
+        if encoding == "rgb8":
+            frame = frame[:, :, ::-1]
+        jpeg = self._encode_frame(np.ascontiguousarray(frame))
+        if jpeg is None:
+            self._fail("JPEG encoding failed for the ROS image")
+            return False
+
+        now = time.monotonic()
+        with self._lock:
+            self._jpeg = jpeg
+            self._frame_at = now
+            self._frame_wall = utc_now_iso()
+            self._frame_width = width
+            self._frame_height = height
+            self._frame_times.append(now)
+            self._frame_count += 1
+            self._last_error = None
+        return True
+
+    def status_payload(self) -> dict[str, Any]:
+        payload = super().status_payload()
+        notes = [ROS_NOTE]
+        if not payload["available"]:
+            notes.extend(payload["notes"])
+        payload.update(
+            {
+                "source": "armpi_debug_gateway_ros",
+                "topic": f"ros:{self.ros_topic}",
+                "device": None,
+                "encoding": "bgr8",
+                "notes": notes,
+            }
+        )
+        return payload

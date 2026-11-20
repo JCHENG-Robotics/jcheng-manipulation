@@ -207,7 +207,7 @@ does not use `bringup vision.launch.py`.
 | Bus | **USB 3.0 (5000 Mbps)**; the USB 2.0 bus it started on shared 480 Mbps with the Aurora and dropped to 15 fps colour with 0.4% valid depth |
 | Colour | UVC 1280x720 YUYV @ 30 fps |
 | Depth | raw v4l2 640x480 Z16, ~50-60% valid; needs librealsense for aligned depth, projector control and real intrinsics |
-| ROS path | none by default: the studio gateway owns `/dev/video4` for the aux-camera preview (`036fe15`). `tools/phase2/ext_cam_frames.py` publishes only the static TF and `camera_info`; choose one owner before adding a ROS image topic |
+| ROS path | **`armpi-ext-cam.service`** runs `tools/phase2/ext_cam_node.py`, the single owner of `/dev/video4`: `/ext_cam/color/image_raw` at 1280x720/15 fps plus latched `camera_info` and the `base_link -> ext_cam_optical` static TF. The studio gateway follows that topic (`ARMPI_GATEWAY_AUX_CAMERA_TOPIC`) instead of opening the device |
 
 Calibration (2026-11-20, [`evidence/calibration/20261120/`](../../evidence/calibration/20261120/)):
 

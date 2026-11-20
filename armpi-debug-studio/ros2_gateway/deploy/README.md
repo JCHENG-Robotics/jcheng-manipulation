@@ -156,3 +156,40 @@ sudo systemctl daemon-reload
   host root beyond installing the unit; the `docker` group grants effective
   root and is required for `docker exec`.
 - The gateway has no motion endpoint. `POST /motion/dispatch` returns `501`.
+
+## Off-board camera driver (`armpi-ext-cam.service`)
+
+The chassis-mounted RealSense D435i has exactly one owner: `ext_cam_node`
+(`tools/phase2/ext_cam_node.py`), started by `armpi-ext-cam.service`. It opens
+`/dev/video4` at 1280x720 @ 15 fps and publishes:
+
+- `/ext_cam/color/image_raw` (bgr8, sensor-data QoS)
+- `/ext_cam/color/camera_info` (latched, from the 2026-11-20 calibration)
+- `base_link -> ext_cam_optical` (static, same calibration)
+
+The gateway follows that topic (`ARMPI_GATEWAY_AUX_CAMERA_TOPIC`) instead of
+opening the device, so the studio preview and ROS consumers share one stream.
+
+Install:
+
+```bash
+# node + calibration reports, into the container's shared directory
+docker cp tools/phase2/ext_cam_node.py ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
+docker cp tools/phase2/ext_cam_frames.py ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
+docker cp evidence/calibration/20261120/front_camera_extrinsic.json \
+  ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
+docker cp evidence/calibration/20261120/uvc_color_intrinsics_aspect.json \
+  ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
+
+# service
+install -d -m 755 /usr/local/lib/armpi-ext-cam
+install -m 755 deploy/ext-cam-run.sh /usr/local/lib/armpi-ext-cam/ext-cam-run.sh
+install -m 644 deploy/armpi-ext-cam.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now armpi-ext-cam.service
+systemctl restart armpi-gateway.service
+```
+
+Verify: `/aux-camera/status` must report
+`"source": "armpi_debug_gateway_ros"` and `"device": null`; `fuser /dev/video4`
+must show exactly one process.

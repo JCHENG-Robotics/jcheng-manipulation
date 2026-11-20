@@ -136,6 +136,13 @@ class GatewayNode(Node):
         self.create_subscription(UInt16, battery_topic, self._on_battery, 10)
         self.create_subscription(Image, camera_topic, self._on_image, qos_profile_sensor_data)
         self.create_subscription(JointState, joint_state_topic, self._on_joint_state, 10)
+        # Single-owner mode: the aux camera may follow a ROS topic instead of
+        # opening the UVC device itself (the robot-side ext_cam_node owns it).
+        aux_topic = getattr(self._aux_camera, "ros_topic", None) if self._aux_camera else None
+        if aux_topic:
+            self.create_subscription(
+                Image, aux_topic, self._on_aux_image, qos_profile_sensor_data
+            )
         if ServoStateList is None:
             self.get_logger().warning(
                 "servo_controller_msgs is not installed; measured servo state "
@@ -360,6 +367,12 @@ class GatewayNode(Node):
                 )[0]
                 self._tf_edges.pop(oldest, None)
             self._tf_last_at = now
+
+    def _on_aux_image(self, message: Image) -> None:
+        camera = self._aux_camera
+        offer = getattr(camera, "offer", None)
+        if callable(offer):
+            offer(message)
 
     def _on_image(self, message: Image) -> None:
         if cv2 is None:
