@@ -124,12 +124,13 @@ class RobotLink:
                   timeout=120)
         return self.read_json(output)
 
-    def grasp(self, grasp_joints, view_pose, tag):
+    def grasp(self, grasp_joints, view_pose, tag, yaw=0.0):
         """Grasp, close and rise to the view pose."""
         output = '/tmp/grasp_{}.json'.format(tag)
         self.exec(['python3', '/tmp/low_config_grasp_validate.py',
                    '--grasp=' + ','.join('{:.6f}'.format(v)
                                          for v in grasp_joints[:4]),
+                   '--yaw={:.6f}'.format(float(yaw)),
                    '--verify-pose=' + ','.join('{:.6f}'.format(v)
                                                for v in view_pose),
                    '--output', output, '--i-have-clear-workspace'],
@@ -140,12 +141,13 @@ class RobotLink:
                 report.get('error')))
         return report
 
-    def release(self, grasp_joints, view_pose, tag):
+    def release(self, grasp_joints, view_pose, tag, yaw=0.0):
         """Lower a held cube back to the grasp pose and open."""
         output = '/tmp/release_{}.json'.format(tag)
         self.exec(['python3', '/tmp/low_config_grasp_validate.py',
                    '--grasp=' + ','.join('{:.6f}'.format(v)
                                          for v in grasp_joints[:4]),
+                   '--yaw={:.6f}'.format(float(yaw)),
                    '--verify-pose=' + ','.join('{:.6f}'.format(v)
                                                for v in view_pose),
                    '--release-only', '--output', output,

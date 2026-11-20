@@ -38,10 +38,17 @@ SERVO_IDS = [6, 5, 4, 3, 2]
 class GraspRunner(Node):
     """Arm and gripper trajectory clients plus a bus-servo readback."""
 
-    def __init__(self, settle=0.6):
-        """Create the action clients and the servo service client."""
+    def __init__(self, settle=0.6, yaw=0.0):
+        """Create the action clients, the servo client and the wrist yaw.
+
+        ``yaw`` is joint5 in radians and is used for every four-joint arm
+        move. The five-joint verify pose carries its own joint5. A non-zero
+        yaw turns the gripper opening axis relative to the arm azimuth, which
+        is the relative yaw in the rotation-tolerance experiment.
+        """
         super().__init__('low_config_grasp_validate')
         self.settle = settle
+        self.yaw = float(yaw)
         self.arm = ActionClient(
             self, FollowJointTrajectory,
             '/arm_controller/follow_joint_trajectory')
@@ -83,8 +90,11 @@ class GraspRunner(Node):
         time.sleep(self.settle)
 
     def arm_move(self, positions, duration=6.0):
-        """Move the five arm joints."""
-        self.move(self.arm, ARM_JOINTS, list(positions) + [0.0], duration)
+        """Move the arm; a four-joint target keeps the configured wrist yaw."""
+        values = list(positions)
+        if len(values) == 4:
+            values.append(self.yaw)
+        self.move(self.arm, ARM_JOINTS, values, duration)
 
     def gripper_move(self, r_joint, duration=3.0):
         """Move the gripper joint."""
@@ -127,6 +137,10 @@ def main():
     parser.add_argument('--open', type=float, default=-2.22)
     parser.add_argument('--close-step', type=float, default=-1.6)
     parser.add_argument('--close', type=float, default=-0.63)
+    parser.add_argument(
+        '--yaw', type=float, default=0.0,
+        help='joint5 wrist yaw in radians for the approach, grasp and '
+             'release moves; the verify pose restores its own joint5')
     parser.add_argument('--output', default='/tmp/grasp_validate_run.json')
     parser.add_argument(
         '--release-only', action='store_true',
@@ -142,9 +156,10 @@ def main():
     approach = [grasp[0], grasp[1], grasp[2], 0.0]
 
     rclpy.init()
-    node = GraspRunner()
+    node = GraspRunner(yaw=args.yaw)
     log = {'grasp_joints': grasp, 'approach_joints': approach,
-           'verify_pose': verify, 'steps': []}
+           'verify_pose': verify, 'yaw_rad': float(args.yaw),
+           'steps': []}
     try:
         log['pulses_start'] = node.pulses()
         print('START pulses', log['pulses_start'], flush=True)
