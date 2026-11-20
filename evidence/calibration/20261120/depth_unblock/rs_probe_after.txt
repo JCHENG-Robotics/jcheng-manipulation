@@ -1,0 +1,82 @@
+=== udev runtime ===
+/run/udev reachable: no
+udev_new() ok
+
+=== usb + DEVTYPE=usb_device (librealsense query) ===
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1  vid=1d6b pid=0002 bus=1 addr=1 DEVTYPE=usb_device product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1/1-2  vid=1a86 pid=7523 bus=1 addr=2 DEVTYPE=usb_device product=CH340 serial converter
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2  vid=1d6b pid=0003 bus=2 addr=1 DEVTYPE=usb_device product=3.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1  vid=8086 pid=0b3a bus=2 addr=6 DEVTYPE=usb_device product=Intel(R) RealSense(TM) Depth Camera 435i
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3  vid=1d6b pid=0002 bus=3 addr=1 DEVTYPE=usb_device product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3/3-1  vid=3251 pid=1930 bus=3 addr=2 DEVTYPE=usb_device product=Aurora 930
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb4  vid=1d6b pid=0003 bus=4 addr=1 DEVTYPE=usb_device product=3.0 root hub
+matched: 7 device(s)
+
+=== usb, no property filter ===
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1  vid=1d6b pid=0002 bus=1 addr=1 DEVTYPE=usb_device product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1/1-0:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1/1-2  vid=1a86 pid=7523 bus=1 addr=2 DEVTYPE=usb_device product=CH340 serial converter
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb1/1-2/1-2:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=CH340 serial converter
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2  vid=1d6b pid=0003 bus=2 addr=1 DEVTYPE=usb_device product=3.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-0:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=3.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1  vid=8086 pid=0b3a bus=2 addr=6 DEVTYPE=usb_device product=Intel(R) RealSense(TM) Depth Camera 435i
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.1  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.2  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.4  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.5  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3  vid=1d6b pid=0002 bus=3 addr=1 DEVTYPE=usb_device product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3/3-0:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=2.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3/3-1  vid=3251 pid=1930 bus=3 addr=2 DEVTYPE=usb_device product=Aurora 930
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb3/3-1/3-1:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=-
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb4  vid=1d6b pid=0003 bus=4 addr=1 DEVTYPE=usb_device product=3.0 root hub
+  /sys/devices/platform/axi/1000120000.pcie/1f00300000.usb/xhci-hcd.1/usb4/4-0:1.0  vid=- pid=- bus=- addr=- DEVTYPE=usb_interface product=3.0 root hub
+all: 19 device(s)
+=== v4l2 node caps (VIDIOC_QUERYCAP) ===
+/dev/video0 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04200001 meta=no opened=rw
+/dev/video1 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04a00000 meta=YES opened=rw
+/dev/video2 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04200001 meta=no opened=rw
+/dev/video3 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04a00000 meta=YES opened=rw
+/dev/video4 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04200001 meta=no opened=rw
+/dev/video5 card=Intel(R) RealSense(TM) Depth Ca bus=usb-xhci-hcd.0-1 caps=0x84a00001 device_caps=0x04a00000 meta=YES opened=rw
+
+=== rs2::context ===
+ 20/11 07:47:54,223 DEBUG [140734706541344] (context.cpp:55) Librealsense VERSION: 2.55.1.0
+ 20/11 07:47:54,230 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video0 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,231 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video1 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 20/11 07:47:54,231 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video2 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 20/11 07:47:54,232 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video3 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 20/11 07:47:54,232 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video4 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video4
+ 20/11 07:47:54,233 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video5 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video5
+ 20/11 07:47:54,243 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video0 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,243 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video1 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 20/11 07:47:54,244 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video2 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 20/11 07:47:54,245 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video3 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 20/11 07:47:54,245 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video4 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video4
+ 20/11 07:47:54,246 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video5 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video5
+ 20/11 07:47:54,249 INFO [140734706541344] (context.cpp:116) ... /sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,249 INFO [140734706541344] (context.cpp:128) Found 1 RealSense devices (0xfe requested & 0xff from device-mask in settings)
+rs2 devices: 1
+ 20/11 07:47:54,256 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video0 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,256 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video1 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 20/11 07:47:54,257 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video2 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 20/11 07:47:54,258 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video3 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 20/11 07:47:54,259 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video4 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video4
+ 20/11 07:47:54,261 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video5 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video5
+ 20/11 07:47:54,275 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video0 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,276 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video1 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 20/11 07:47:54,277 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video2 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 20/11 07:47:54,277 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video3 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 20/11 07:47:54,278 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video4 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video4
+ 20/11 07:47:54,278 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video5 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video5
+ 20/11 07:47:54,295 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video0 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 20/11 07:47:54,295 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video1 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 20/11 07:47:54,296 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video2 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 20/11 07:47:54,296 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video3 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 20/11 07:47:54,297 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video4 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video4
+ 20/11 07:47:54,297 INFO [140734706541344] (backend-v4l2.cpp:753) Enumerating UVC video5 realpath=/sys/devices/platform/axi/1000120000.pcie/1f00200000.usb/xhci-hcd.0/usb2/2-1/2-1:1.3/video4linux/video5
+ 20/11 07:47:54,298 WARNING [140734706541344] (ds-motion-common.cpp:455) No HID info provided, IMU is disabled
+  Intel RealSense D435I sn=243522070388
+
+SUMMARY matched=7 all=19

@@ -1,0 +1,17 @@
+--- /home/ubuntu/d400-factory.cpp.orig	2024-04-16 17:33:16.000000000 +0000
++++ /home/ubuntu/librealsense-2.55.1/src/ds/d400/d400-factory.cpp	2026-11-20 07:38:42.543999485 +0000
+@@ -1146,9 +1146,13 @@
+ 
+             // Device with hids can be enabled only if both hids (gyro and accelerometer) are present
+             // Assuming that hids amount of 2 and above guarantee that gyro and accelerometer are present
++            // [armpi-local] A kernel built without CONFIG_HID_SENSOR_HUB exposes no IIO
++            // devices at all, so a D435i (IMU behind HID) is rejected here even though its
++            // depth and color streams are fine. Accept a device that presents no HID
++            // sensors (IMU simply absent) and keep rejecting a partial set.
+             if (is_device_hid_sensor)
+             {
+-                all_sensors_present &= (hids.size() >= 2);
++                all_sensors_present &= (hids.size() >= 2 || hids.empty());
+             }
+ #endif
+ 

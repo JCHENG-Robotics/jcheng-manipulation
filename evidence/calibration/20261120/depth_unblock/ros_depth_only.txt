@@ -1,0 +1,17 @@
+# date: 2026-11-20T07:49:16Z
+## ros2 topic list (camera)
+/camera/camera/depth/camera_info
+/camera/camera/depth/image_rect_raw
+/camera/camera/depth/image_rect_raw/compressed
+/camera/camera/depth/image_rect_raw/compressedDepth
+/camera/camera/depth/image_rect_raw/theora
+/camera/camera/depth/metadata
+/camera/camera/extrinsics/depth_to_depth
+## depth hz
+average rate: 7.029
+## ext_cam color hz
+average rate: 6.224
+## depth K
+[386.44525146   0.         322.18612671   0.         386.44525146  233.99105835   0.           0.           1.        ] --- 
+## depth frame_id
+---

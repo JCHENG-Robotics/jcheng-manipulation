@@ -206,8 +206,9 @@ does not use `bringup vision.launch.py`.
 | Model | Intel RealSense D435i, USB ID `8086:0b3a`, serial `308243060489` |
 | Bus | **USB 3.0 (5000 Mbps)**; the USB 2.0 bus it started on shared 480 Mbps with the Aurora and dropped to 15 fps colour with 0.4% valid depth |
 | Colour | UVC 1280x720 YUYV @ 30 fps |
-| Depth | raw v4l2 640x480 Z16, ~50-60% valid; needs librealsense for aligned depth, projector control and real intrinsics |
-| ROS path | **`armpi-ext-cam.service`** runs `tools/phase2/ext_cam_node.py`, the single owner of `/dev/video4`: `/ext_cam/color/image_raw` at 1280x720/15 fps plus latched `camera_info` and the `base_link -> ext_cam_optical` static TF. The studio gateway follows that topic (`ARMPI_GATEWAY_AUX_CAMERA_TOPIC`) instead of opening the device |
+| Depth | 640x480 Z16 through librealsense 2.55.1 (patched, see below): ~62% valid, median 0.31 m, `/camera/camera/depth/image_rect_raw`; IMU unavailable because the kernel has no `CONFIG_HID_SENSOR_HUB` |
+| ROS path (colour) | **`armpi-ext-cam.service`** runs `tools/phase2/ext_cam_node.py`, the single owner of `/dev/video4`: `/ext_cam/color/image_raw` at 1280x720/15 fps plus latched `camera_info` and the `base_link -> ext_cam_optical` static TF. The studio gateway follows that topic (`ARMPI_GATEWAY_AUX_CAMERA_TOPIC`) instead of opening the device |
+| ROS path (depth) | `realsense2_camera` (`/home/ubuntu/rs_ws`) publishes `/camera/camera/depth/image_rect_raw` + `camera_info`; started by hand so far, no unit installed |
 
 Calibration (2026-11-20, [`evidence/calibration/20261120/`](../../evidence/calibration/20261120/)):
 
@@ -238,28 +239,68 @@ Two constraints drive how this camera may be used:
   and is the camera's real contribution: far-object measurement, base-drive
   feedback and post-release verification.
 
-## Depth status (2026-11-20)
+## Depth over librealsense (2026-11-20, unblocked)
 
-The UVC depth stream works at the kernel level (640x480 Z16, ~50-60% valid
-pixels, IR shows the projector pattern), but the supported path is
-librealsense and that is **blocked inside the vendor container**:
+The SDK path works: `rs2::context` finds the D435i, the depth stream runs at
+640x480 Z16 and `realsense2_camera` publishes it. Two separate blockers had to
+be cleared, and the first documented next step was the wrong one:
 
-- librealsense 2.55.1 (Release, C++ only) and realsense-ros 4.55.1 were built
-  and installed inside the container from staged sources (the robot has no
-  package-manager network; GitHub is only reachable from the laptop).
-- `rs2::context` enumerates the six UVC nodes and then reports
-  **`Found 0 RealSense devices`**. In the same container `libusb` lists
-  `8086:0b3a`, opens it and reads its product string, and `libudev`
-  enumerates all 25 video4linux devices. The host udev rule
-  `SUBSYSTEM=="usb", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b3a", MODE="0666"`
-  is installed and the node is world-writable, so it is not permissions.
-- The container has **no `/run/udev` runtime**; copying the host database in
-  did not change the result. The next attempt should recreate the vendor
-  container with `-v /run/udev:/run/udev:ro` (a deployment change, not done
-  here) and re-run the enumeration before anything else.
+1. **`/run/udev` was not the problem.** With a fresh copy of the host
+   `/run/udev` database inside the container the result was unchanged, and the
+   library's own enumeration already worked: it listed the six UVC nodes
+   (`Enumerating UVC video0..5`), and both libusb and libudev saw `8086:0b3a`.
+   Recreating the container with `-v /run/udev:/run/udev:ro` would not have
+   helped. (It is also not free: the container's writable layer is 15 GB with
+   5.8 GB free, so there is no room to `docker commit` and recreate it.)
+2. **Root cause - the D400 HID gate.** `d400-factory.cpp` only accepts a
+   HID-sensor model (D435i/D455) when the kernel reports `>= 2` HID sensors
+   (gyro + accelerometer). Linux exposes those through the **IIO** subsystem,
+   and this kernel (`6.6.20+rpt-rpi-2712`) is built with
+   `# CONFIG_HID_SENSOR_HUB is not set`: `/sys/bus/iio/devices` does not exist,
+   the camera's HID interface binds to `hid-generic` / `hidraw0`, and
+   `query_hid_devices()` returns 0. The camera was rejected before any stream
+   was opened. The gate is at `src/ds/d400/d400-factory.cpp:1154`
+   (`all_sensors_present &= (hids.size() >= 2)`).
 
-Until then the depth stream is **not calibrated and not published**; the
-colour path (UVC, `ext_cam_node`) is unaffected.
+Patch: `tools/phase2/patches/librealsense-2.55.1-d400-hid-gate.patch` accepts a
+device that reports no HID sensors at all (`hids.size() >= 2 || hids.empty()`)
+and still rejects a partial set. It was applied inside the vendor container and
+rebuilt incrementally against the existing `/home/ubuntu/lrs_build` tree
+(`gmake -j4 realsense2 && gmake install`, ~40 s); no ABI change, so
+realsense-ros did not need a rebuild. **Consequence: the IMU is unavailable**
+(`No HID info provided, IMU is disabled`) - it cannot work on this kernel
+without `CONFIG_HID_SENSOR_HUB`. Depth and colour are unaffected.
+
+Verified (evidence: [`evidence/calibration/20261120/depth_unblock/`](../../evidence/calibration/20261120/depth_unblock/)):
+
+| Metric | Value |
+|---|---|
+| `rs2::context` | `Found 1 RealSense devices`, `Intel RealSense D435I sn=243522070388` |
+| depth profile | 640x480 Z16, depth scale 1 mm |
+| depth content | 61.5% valid pixels, median 0.312 m, range 0.154-25.7 m |
+| depth intrinsics (SDK) | fx=fy 386.445, cx/cy 322.186/233.991 |
+| ROS | `/camera/camera/depth/image_rect_raw` (16UC1, `camera_depth_optical_frame`) |
+| rate | 10.6 Hz depth only; 7-8.4 Hz with the colour stream running |
+| aligned depth | `/camera/camera/aligned_depth_to_color/image_raw` at 11.3 Hz with colour enabled |
+
+Deployment constraints found while verifying:
+
+- **Start order matters.** `realsense2_camera` must open the depth nodes
+  *before* `ext_cam_node` claims `/dev/video4`. With the colour node already
+  streaming, `VIDIOC_S_FMT` on the depth node fails with `EBUSY`; the reverse
+  order works and both streams then run together.
+- **No unit yet.** The depth node is a hand-started `ros2 launch`; it does not
+  survive a container restart. `armpi-ext-cam.service` is unchanged and was
+  restarted after the tests.
+- **Cold-start quirk.** A depth interface that has never delivered a frame can
+  report `EPROTO` (-71) in the URB completion handler. Bringing up the IR node
+  once (`/dev/video2`) cleared it during this session, and a
+  `USBDEVFS_RESET` of `/dev/bus/usb/002/002` also re-enumerates the device.
+- **SDK colour intrinsics caution.** At 640x480 the SDK reports
+  fx=fy 606.5, cx/cy 325.0/249.2, a much narrower FOV than the
+  chessboard-refined 1280x720 model (fx 903.5); the two disagree by ~34%, so the
+  640x480 colour mode is probably a crop. Re-solve the board at 640x480 before
+  using SDK colour intrinsics for geometry.
 
 ## Reboot test (2026-11-20, PASS)
 
