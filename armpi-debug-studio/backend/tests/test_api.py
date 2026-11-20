@@ -74,13 +74,16 @@ def test_health_and_state_are_simulated(client: TestClient) -> None:
     assert all(joint["truth"] == "simulated" for joint in state_body["joints"])
 
 
-def test_diagnostics_exposes_provisional_mapping(client: TestClient) -> None:
+def test_diagnostics_exposes_verified_mapping(client: TestClient) -> None:
     response = client.get("/api/diagnostics")
     assert response.status_code == 200
     body = response.json()
     assert body["mode"] == "mock"
-    assert body["mapping"]["verified"] is False
-    assert body["mapping"]["verification_status"] == "provisional"
+    assert body["mapping"]["verified"] is True
+    assert (
+        body["mapping"]["verification_status"]
+        == "measured_2026_11_19_operating_envelope"
+    )
     assert len(body["known_defects"]) >= 6
     assert body["probe_available"] is True
     assert body["safety"]["ready"] is True

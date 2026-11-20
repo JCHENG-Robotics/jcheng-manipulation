@@ -26,7 +26,10 @@ def test_valid_single_joint(mapping: MappingConfig) -> None:
     )
     assert outcome.valid
     assert outcome.normalized[0]["target_raw"] == 524
-    assert any(issue.code == "MAPPING_PROVISIONAL" for issue in outcome.warnings)
+    assert outcome.normalized[0]["limit_verified"] is True
+    assert not any(
+        issue.code == "MAPPING_PROVISIONAL" for issue in outcome.warnings
+    )
 
 
 def test_unknown_joint_rejected(mapping: MappingConfig) -> None:

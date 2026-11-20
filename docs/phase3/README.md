@@ -39,6 +39,7 @@ Session 4 of the remote work plan covers R11 (error-budget framework), R12
 | 24-site paired follow-up | **Pre-registered (2026-11-20), not run** | 24 pairs, one pre-registered floor site per pair; layout, plan (seed 17) and design are committed before data; runner and dry run tested (48 synthetic records); hardware session pending |
 | Gripper tolerance envelope | **Measured (2026-11-19)** | 46 grasps; opening axis [-6, +12] mm (±9 mm about +3 mm), `x`/`z` pass at ±9 mm; conservative budget tolerance 6 mm |
 | Execution, placement, fixture | **Measured (2026-11-20)** | 20/20 put-backs; execution 4.220 mm / 1.069° mean (5.386 mm / 1.495° max); placement 3.080 mm mean, 11.514 mm max; fixture 5.057 mm RMS, 14.815 mm radial max; three off-tape and two clipped-landing deviations kept as discarded evidence |
+| Rotation tolerance / visual displacement | **Runners added (2026-11-20), not run** | `rotation_tolerance_run.py` sweeps relative cube yaw on `joint5`; `visual_displacement_run.py` uses a seeded steel-ruler grid with a nuisance ruler yaw. Both have unit tests and dry runs, no hardware data yet |
 
 Evidence: [`evidence/phase3/session4_20261117/`](../../evidence/phase3/session4_20261117/),
 the on-site session [`evidence/phase3/onsite_20261119/`](../../evidence/phase3/onsite_20261119/README.md),

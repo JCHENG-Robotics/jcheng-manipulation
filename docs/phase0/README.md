@@ -3,9 +3,10 @@
 > Current state: **Phase 0 complete for the simulation/mock scope.**
 > No hardware was used in Phase 0. Phase 1/2 have since run on the real robot
 > (hardware baseline 2026-11-17; formal five-joint survey, 3/5 first-series
-> attempts and a 24-pair trial 12/24 → 24/24 on 2026-11-19); see
-> [`PHASE0_ACCEPTANCE.md`](PHASE0_ACCEPTANCE.md) §1 for the current acceptance
-> summary and the repository README for per-workstream status.
+> attempts and a 24-pair trial 12/24 → 24/24 on 2026-11-19; D435i front camera,
+> dual-camera grasp, fast motion and the completed error budget on 2026-11-20);
+> see [`PHASE0_ACCEPTANCE.md`](PHASE0_ACCEPTANCE.md) §1 for the current
+> acceptance summary and the repository README for per-workstream status.
 
 | Document | Purpose |
 |---|---|

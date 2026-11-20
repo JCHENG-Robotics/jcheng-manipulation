@@ -148,6 +148,10 @@ and
   small.
 - **Safety layer and joint limits**: active and measured before repeated
   motion.
+- **Site diversity**: pre-registered 2026-11-20 as the 24-site follow-up
+  (one floor site per pair, four radii × six bearings, seed-17 plan); the
+  hardware session has not run yet. See
+  [`SITE_DIVERSITY_DESIGN.md`](SITE_DIVERSITY_DESIGN.md).
 
 ## Limitations
 

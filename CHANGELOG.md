@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 progress unification (documentation only)
+
+### Changed
+
+- **README, README.zh-CN, ROADMAP and the acceptance report now reflect the
+  full 2026-11-20 progress.** Added the chassis-front D435i (calibration,
+  depth service, collision box, dual-camera grasp), fast jerk-limited motion
+  (11.67 s → 8.94 s), the completed error budget (translation 13.325 mm RSS,
+  bound gates fail), the pre-registered 24-site follow-up, the clock-sync
+  timer and the live joint2-limit reload to the status tables, key results,
+  safety notes, evidence maps and next steps.
+- **Status counts corrected:** the Studio backend is now **93 passed** and the
+  gateway **47 passed** (previously documented as 92/38). Two backend
+  assertions that still expected a provisional mapping were updated to the
+  verified 2026-11-19 mapping; no runtime behaviour changed.
+- The README deliverables checklist now marks the error budget complete (with
+  its bound-gate failure), the D435i and fast motion complete, and the 24-site
+  follow-up explicitly unchecked (pre-registered only).
+- ROADMAP next steps no longer say to complete the error budget; they now start
+  with running the pre-registered 24-site trial and then address the dominant
+  `gripper_placement` term, the rotation/ruler runners and the yawed grasp.
+
 ## [Unreleased] — 2026-11-20 24-site paired trial (pre-registered)
 
 ### Added
@@ -181,6 +203,82 @@ All notable changes to this project are documented here. Format based on
   in the front view, and the put-back returned the cube **3.65 mm** planar
   (front estimate; wrist estimate 5.22 mm).
 
+## [Unreleased] — 2026-11-20 phase-3 runners: rotation tolerance and ruler displacement
+
+### Added
+
+- `tools/phase3/rotation_tolerance_run.py`: commands the relative yaw between
+  the gripper opening axis and the cube on `joint5` instead of rotating the
+  object by hand; the tool point is invariant, so the validated deep family and
+  constant correction stay unchanged. It compensates the cube's own placement
+  yaw from the view measurement, records commanded and measured (bus-servo)
+  `joint5`, repeats yaw in seeded blocks and uses the envelope session's
+  cube-box grip classifier. `low_config_grasp_validate.py` gained `--yaw` for
+  the four-joint approach/grasp/release moves; 6 unit tests.
+- `tools/phase3/visual_displacement_run.py`: slides a 60 mm 36h11 tag through a
+  seeded two-axis grid of known steel-ruler offsets at the fixed view pose; the
+  arm does not move. It fits the ruler frame's unknown yaw as a nuisance
+  parameter and reports raw and de-rotated displacement residuals; 5 unit tests.
+
+### Status
+
+- Both runners are implemented and dry-run/tested, but **no hardware data has
+  been collected**. The `visual_displacement` protocol is therefore still
+  unmeasured, and the 2° rotation tolerance remains provisional.
+
+## [Unreleased] — 2026-11-20 off-board D435i: mount, calibration, depth and collision
+
+### Added
+
+- Chassis-front Intel RealSense D435i on the USB 3.0 bus (colour UVC
+  1280×720; depth 640×480 Z16 through librealsense 2.55.1). The camera is rigid
+  to `base_link`, not a vendor device.
+- `tools/phase2/uvc_chessboard_intrinsics.py`, `front_camera_extrinsic.py` and
+  `ext_cam_frames.py`: refined intrinsics from a flat plus propped-board sweep
+  (**fx = fy 903.5 px**, cx/cy 644.9/363.7, **RMS 0.371 px**), the chassis
+  extrinsic (**[0.136, 0.027, 0.038] m**, **31.6°** pitch, −1.1° yaw), a
+  latched `camera_info` and the `base_link → ext_cam_optical` static TF.
+  12 synthetic regression tests.
+- `tools/phase2/ext_cam_node.py` and `armpi-ext-cam.service`: the single owner
+  of `/dev/video4`, publishing `/ext_cam/color/image_raw` at 1280×720/15 fps
+  with latched `camera_info` and TF. The gateway gained `RosImageCamera` and
+  `--aux-camera-topic`, so the Studio preview follows the ROS topic instead of
+  opening the device.
+- `tools/phase2/ext_cam_collision.py`: a 90×25×26 mm planning-scene box at
+  `base_link` (0.145, 0.027, 0.032) with the calibrated orientation. The five
+  validated operating poses stay collision-free; a 0.3 m padded control
+  collides against `link1`–`link3`, proving the box is in the checker.
+- `tools/phase2/patches/librealsense-2.55.1-d400-hid-gate.patch` and
+  `armpi-rs-depth.service`: depth through `realsense2_camera`, ordered after
+  the vendor bringup, before the colour unit, with an IR wake-up and a
+  SIGKILL-escalating stop.
+- `docs/hardware/camera_mount.md` section covering the mount, frames,
+  calibration, depth limits and services.
+
+### Measured
+
+- Depth **61.5 % valid**, median 0.312 m, **10.6 Hz** depth-only and 4–9 Hz
+  with colour; IMU unavailable because the kernel has no
+  `CONFIG_HID_SENSOR_HUB`.
+- Reboot test: `NRestarts=0`, wake-up on attempt 1, node up 45 s after boot,
+  depth and colour streaming; `base_link → ext_cam_optical` survives the reboot.
+- Dual-camera grasp: **2.58 mm** x/y agreement with the wrist camera; the
+  validated `C_view + e` target was kept because `e` is an execution offset,
+  not a measurement bias; grip and put-back verified (3.65 mm front estimate).
+
+### Changed
+
+- The Studio aux feed moved from a gateway-owned UVC device to the
+  **single-owner ROS topic** (`RosImageCamera`, `--aux-camera-topic`); the
+  gateway no longer opens `/dev/video4`. This supersedes the UVC ownership
+  described in the Studio auxiliary camera entry below.
+
+### Open
+
+- IMU cannot work on this kernel; depth starts at ~0.2 m, so the grasp band is
+  colour-only; the collision box protects MoveIt plans only; the camera has a
+  single owner and must stay that way.
+
 ## [Unreleased] — 2026-11-20 Studio auxiliary camera
 
 ### Added
@@ -194,6 +292,11 @@ All notable changes to this project are documented here. Format based on
   by side with the battery card below them on narrower windows. Mock mode
   renders a labelled SVG placeholder. Depth and IR are not captured. Both feeds
   verified live on the robot 2026-11-20 (aux `measured`, 640×480, ~9 fps).
+- **Superseded later the same day:** the single-owner ROS driver
+  (`ext_cam_node.py`, `armpi-ext-cam.service`) took `/dev/video4`; the gateway
+  now follows `/ext_cam/color/image_raw` via `RosImageCamera` and
+  `--aux-camera-topic` instead of opening the UVC device. See the D435i entry
+  above.
 
 ## [Unreleased] — 2026-11-20 execution, placement and fixture measurements
 
@@ -232,6 +335,33 @@ All notable changes to this project are documented here. Format based on
   residual); three off-tape fixture placements; two clipped landings (trial 15
   and trial 20) re-run after recentring; one 11.5 mm placement tail; four
   operator recentring events caused by the put-back drift.
+
+## [Unreleased] — 2026-11-20 operations: clock sync, live limit reload, reboot test
+
+### Added
+
+- `tools/net/armpi-clock-sync.sh` and `install-clock-sync.sh`: a laptop-pushed
+  systemd user timer every 60 s keeps the Pi ~2 s ahead of the workstation.
+  The dedicated key is passphrase-free but restricted on the robot to the
+  forced command `/usr/local/sbin/armpi-clock-set` (`get` or `set <epoch>`); it
+  cannot open a shell. Documented in `docs/hardware/ros_environment.md`.
+
+### Fixed
+
+- The live stack still held joint2's pre-survey **1.2985 rad** bound after the
+  2026-11-19 file edit. Rebuilt the description with `--symlink-install` and
+  restarted `move_group`, `armpi_safety` and the Studio backend; joint2 = 1.2 is
+  now rejected with `JOINT_LIMIT`, and the headers/current-state docs match
+  1.1519 rad / 775 pulse. 17 planner + 23 safety tests passed.
+
+### Verified
+
+- Clock sync: forcing the Pi 301 s behind restored it to laptop + 2 s; the
+  timer runs; the restricted key opens no shell.
+- Reboot test (table clear): SSH answered in 25 s, the container and both
+  camera units came up, the vendor Aurora launch finished ~2.5 min after boot,
+  both camera snapshots returned 200, the calibrated D435i TF survived, and
+  the clock sat 0.9 s ahead.
 
 ## [Unreleased] — 2026-11-20 documentation unification
 

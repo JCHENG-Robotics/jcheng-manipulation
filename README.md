@@ -40,12 +40,12 @@
 
 | Item | Summary |
 |---|---|
-| **Platform** | HiWonder ArmPi Ultra: 5-DoF arm, two-finger gripper, mecanum chassis, Raspberry Pi 5, Aurora 930 RGB-D camera |
+| **Platform** | HiWonder ArmPi Ultra: 5-DoF arm, two-finger gripper, mecanum chassis, Raspberry Pi 5, wrist Aurora 930 RGB-D camera and chassis-front RealSense D435i |
 | **Software** | ROS 2 Humble on the robot, ROS 2 Jazzy on the workstation, MoveIt 2 + Pilz `PTP` + KDL, FastAPI/React debug studio |
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
-| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; a fixed-tag survey measured the low-configuration error as a **constant**, and a pre-registered **24-pair** hardware trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049) with a **2.19 mm** paired placement improvement (p = 0.0063) |
+| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; the pre-registered **24-pair** trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049); the completed error budget has translation **RSS 13.33 mm** (bounds fail 6 mm) while the empirical placement mean is **3.08 mm**; S-curve motion cuts grasp+put-back from **11.67 s to 8.94 s**; a chassis D435i agrees with the wrist camera to **2.58 mm** in x/y |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
-| **Status** | 2026-11-20 (hardware results 2026-11-19). Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
+| **Status** | 2026-11-20. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
 ## Abstract
 
@@ -79,7 +79,11 @@ radial max** — completing the budget. The component bound budget fails the
 placement mean (**3.08 mm**) is inside it. The project contributes a measured
 failure taxonomy, a physical reliability experiment and an explicit evidence
 trail; the 2° rotation tolerance is still provisional because no direct
-rotation-tolerance experiment exists.
+rotation-tolerance experiment exists. The same day added a chassis-front
+RealSense D435i as an independent `base_link` observer (2.58 mm x/y agreement
+with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
+11.67 s to 8.94 s, and a pre-registered 24-site paired follow-up that has not
+yet been run.
 
 ## Objectives and contributions
 
@@ -105,7 +109,8 @@ rotation-tolerance experiment exists.
    exposed a 4.87 % table-forward bias.
 3. **A complete real grasp pipeline.** RGB-D segmentation → constrained
    grasp search → Pilz `PTP` plan → safety veto → measured servo execution →
-   verification, exercised end-to-end on hardware.
+   verification, exercised end-to-end on hardware, now with a jerk-limited
+   S-curve path and a chassis-camera veto/verifier.
 4. **A measured low-configuration error and a tested model.** A fixed-tag
    survey showed the FK/hand–eye error at the low grasp configuration is a
    **constant (+11.6, +4.0, +8.5) mm** vector (spread 0.40–0.99 mm), with the
@@ -132,10 +137,21 @@ rotation-tolerance experiment exists.
    negative-register crash.
 8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
    runner, measurement runner, read-only host/DDS benchmark, and a G1–G6 debug
-   studio with 92 backend + 38 gateway tests.
+   studio with 93 backend + 47 gateway tests.
 9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
+10. **An independently calibrated front camera.** A chassis-front RealSense
+    D435i with refined intrinsics (fx = fy 903.5 px, RMS 0.371 px), a measured
+    chassis extrinsic (`[0.136, 0.027, 0.038] m`, 31.6° pitch), a depth service
+    that survives reboot, a MoveIt collision box, and a Studio aux feed. It
+    agreed with the wrist camera to **2.58 mm** in x/y and showed that the
+    constant correction is an execution correction, not a measurement bias.
+11. **Faster, smoother, measured motion.** A jerk-limited joint-space S-curve
+    with bus-servo settle detection replaced single-point 6–9 s moves: the
+    grasp+put-back cycle fell **11.67 s → 8.94 s** (−23 %), the no-cube cycle
+    from ~37 s to 5.43 s, and the aligned duty-20 base run put the cube back
+    **2.22 mm** from its start.
 
 ## Key results (measured on hardware)
 
@@ -143,6 +159,10 @@ rotation-tolerance experiment exists.
 |---|---|---|
 | Hand–eye calibration, 14 poses | **2.94 mm / 0.39°** board scatter; held-out **3.29 mm / 0.43°**; LOO std **3.41 mm / 0.44°** | [`evidence/calibration/20261117/`](evidence/calibration/20261117/) |
 | Table-down re-calibration, 15 poses | **2.7 mm / 0.42°** scatter; held-out **2.2 mm / 0.29°**; LOO **3.1 mm / 0.45°** | [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| Front-camera calibration, D435i | intrinsics **fx = fy 903.5 px**, cx/cy 644.9/363.7, RMS **0.371 px**; chassis extrinsic **[0.136, 0.027, 0.038] m**, pitch **31.6°**, yaw **−1.1°**; board flatness 0.8° | [`evidence/calibration/20261120/`](evidence/calibration/20261120/) |
+| Front-camera depth and services | 640×480 Z16, **61.5 % valid**, median 0.312 m; **10.6 Hz** depth-only, 4–9 Hz with colour; `armpi-rs-depth` + `armpi-ext-cam` boot with `NRestarts=0`; IMU unavailable | [`depth_unblock/`](evidence/calibration/20261120/depth_unblock/README.md), [`camera_mount.md`](docs/hardware/camera_mount.md) |
+| Fast motion, two real-cube runs | grasp+put-back motion **11.67 s → 8.94 s (−23 %)**; grasp 4.699–4.729 s, release 4.207–4.259 s; settle 0.14–0.16 s; cube held through both | [`throughput_v2/`](evidence/phase2/onsite_20261120/throughput_v2/) |
+| Base duty 20 + auto-base | 1.786 s pulse **178.9 mm (100.2 mm/s)**; 0.484 s strafe **45.3 mm**; aligned cube (0.2316, −0.0025) m, joint1 0.0065, landing **2.22 mm** vs **6.72 mm** yawed | [`throughput_v2/`](evidence/phase2/onsite_20261120/throughput_v2/) |
 | Calibration pose selection | **24 poses** from 14,176 evaluated / 3,093 feasible; 33.5° view-angle spread; planned, not executed | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
 | Independent tag scale | lateral **100.67 mm vs 100.0 mm (0.67 %)**; table-forward **104.87 mm vs 100.0 mm (4.87 %)**; angle **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
 | Depth table plane | **147,626 inliers, 0.7 mm RMS**; table z **−0.0787 m** (depth) vs **−0.0784 m** (215 mm ruler) | [`evidence/phase2/onsite_20261118/depth_plane_20261118.md`](evidence/phase2/onsite_20261118/depth_plane_20261118.md) |
@@ -180,11 +200,13 @@ rotation-tolerance experiment exists.
                                         │ CycloneDDS over direct Ethernet
                                         │ 10.42.0.1 ↔ 10.42.0.218
 ┌───────────────────────────────────────┴───────────────────────────────────────────┐
-│ Raspberry Pi 5 — vendor Humble core stack                                          │
+│ Raspberry Pi 5 — vendor Humble core stack + front-camera units                     │
 │ ros_robot_controller · servo_manager · camera · TF · start_node.service            │
+│ armpi-rs-depth (D435i depth) · armpi-ext-cam (D435i colour + TF)                   │
 └───────────────┬───────────────────────────────┬───────────────────────────┬────────┘
                 │ 6 bus servos                  │ 4 motor channels          │ USB
-        arm joints 2–6 + gripper 1        mecanum chassis (open loop)   Aurora 930 RGB-D
+        arm joints 2–6 + gripper 1        mecanum chassis (open loop)   Aurora 930 (wrist)
+                                                                         D435i (chassis front)
 ```
 
 The grasp pipeline is:
@@ -198,8 +220,9 @@ RGB-D frame
   → full-pose KDL IK → FK verification → collision check
   → Pilz PTP plan (plan-only)
   → /armpi_safety/validate_trajectory
-  → measured servo execution
+  → jerk-limited S-curve execution with measured bus-servo settle
   → view-pose verification (object no longer on the floor)
+  → optional front-camera veto / post-release check
 ```
 
 ## Repository layout
@@ -217,13 +240,16 @@ docs/
 └── weekly-log/            # 8-week learning record
 evidence/
 ├── phase1/                # live Pi/ROS/servo/TF/camera baseline (2026-11-17)
-├── calibration/           # chessboard hand-eye (20261117) + table-down (20261118)
+├── calibration/           # chessboard hand-eye (20261117), table-down (20261118), D435i (20261120)
 ├── fiducial/              # synthetic + real-background AprilTag validation
 ├── armpi_moveit/          # model check, MoveIt smoke, Phase 0 logs
 ├── armpi_grasp/           # mock grasp candidate search (plan-only)
 ├── phase2/onsite_20261118 # on-site safety, limits, gripper, first grasp
 ├── phase2/onsite_20261119 # grasps 1–5, lowest reach, yaw envelope, board probe
-├── phase3/                # error budget, paired-trial simulation, benchmark
+├── phase2/onsite_20261120 # dual-camera, fast motion, throughput v2
+├── phase3/onsite_20261119 # first paired trial, repeatability, backlash, envelope
+├── phase3/onsite_20261120 # execution/placement/fixture, completed budget
+├── phase3/onsite_20261120_sites # 24-site pre-registration (not run)
 └── studio_g*/             # G2–G6 test and hardware evidence
 ros2_ws/src/
 ├── armpi_ultra_description/    # 5-DoF xacro + gripper + camera frames
@@ -239,13 +265,14 @@ ros2_ws/src/
 tools/
 ├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
 ├── phase1/                # live hardware baseline helpers
-├── phase2/                # calibration, segmentation, grasp, limits, safety tools
+├── phase2/                # calibration, segmentation, grasp, fast motion, limits, safety
+├── phase3/                # paired-trial, fast-motion, site-diversity runners
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
 ## Project status (2026-11-20)
 
-Hardware results are as of 2026-11-19; this document was synchronized with the
+Hardware results are as of 2026-11-20; this document was synchronized with the
 roadmap, changelog and acceptance report on 2026-11-20. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
@@ -254,22 +281,25 @@ separately.
 
 | Workstream | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented; live TF verified** | Corrected xacro; `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame |
-| ArmPi MoveIt 2 | **Implemented; mock + real execution validated** | KDL full-pose IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP`; Humble Docker MoveIt on the real robot |
-| Hand–eye calibration | **Validated** | 14-pose chessboard: 2.94 mm / 0.39°; held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42° |
+| Robot model and TF | **Implemented; live TF verified** | Corrected xacro; `check_urdf`; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame; `base_link → ext_cam_optical` for the front camera |
+| ArmPi MoveIt 2 | **Implemented; mock + real execution validated** | KDL full-pose IK; joint-space plan `error_code=1`; 6D-constrained Pilz `PTP`; Humble Docker MoveIt on the real robot; D435i published as a MoveIt collision box |
+| Hand–eye calibration | **Validated** | Wrist 14-pose chessboard 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°, table-down 2.7 mm / 0.42°; front D435i intrinsics 903.5 px / 0.371 px RMS and chassis extrinsic 31.6° pitch |
+| Front camera (D435i) | **Validated with limits** | Chassis-front USB 3.0; colour UVC 1280×720, depth 640×480 Z16 ~62 % valid / 10.6 Hz depth-only; `armpi-rs-depth` + `armpi-ext-cam` services boot cleanly; IMU unavailable; depth starts ~0.2 m, so the grasp band is colour-only |
 | Fiducial localization | **Validated (synthetic + real background + physical tag)** | 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic (max 1.69 mm / 0.53°); 0 false detections on 8 real frames; physical tag scale 0.67 % lateral |
 | Constrained grasp search | **Implemented; mock + real use** | 80 candidates → 40 IK → 26 collision-free → 3 plans (mock); real search used in every grasp pass |
-| Real visual grasping | **Validated: 3/5 first series; 24/24 with the correction** | Passes 1, 2 and 5 established the pipeline; passes 3–4 exposed the low-configuration error; the 24-pair trial then measured 12/24 (raw target) vs 24/24 (corrected) |
-| Joint limits | **Formally surveyed 2026-11-19; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 |
-| Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
-| Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
-| Measurement protocols | **Implemented; all sources measured on hardware** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; visual displacement still simulated only |
+| Real visual grasping | **Validated: 3/5 first series; 24/24 with the correction; dual-camera PASS** | Passes 1, 2 and 5 established the pipeline; passes 3–4 exposed the low-configuration error; the 24-pair trial measured 12/24 (raw target) vs 24/24 (corrected); the D435i agreed to 2.58 mm x/y and verified one grip + put-back |
+| Fast motion | **Validated on hardware (two real-cube runs)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm |
+| Joint limits | **Formally surveyed 2026-11-19; live stack reloaded 2026-11-20; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 and active in move_group/safety/Studio |
+| Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; `fast_motion`/`fast_motion_e2e`; safety veto on every arm plan |
+| Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
+| Measurement protocols | **Implemented; error-budget sources measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; rotation-tolerance and visual-displacement runners added, hardware runs pending |
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trials | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); four deviations documented |
+| Paired trials | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); 24-site layout + seed-17 plan committed, not run |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
-| Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
+| Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
+| Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
-| Mobile base | **Open-loop only; planned extension** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration |
+| Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m |
 
 Legacy learning track: the Panda pick-and-place demo (`arm_moveit_demo`) and
 the M2.2 2-DOF controller profiles (`arm_description`) are archived learning
@@ -286,15 +316,22 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Quantitative results with per-run evidence
 - [x] Failure taxonomy and critical analysis
 - [x] Reproducible commands and test suite
-- [ ] Full error budget — repeatability, backlash and the tolerance (±9 mm)
-      are measured; the end-to-end placement error is 3.31 mm; grasp
-      execution, gripper placement and fixture pose are still open
+- [x] Full error budget (2026-11-20) — all sources measured; the bound
+      aggregate fails (translation RSS 13.325 mm, rotation worst 3.322°) while
+      the empirical placement mean (3.080 mm) is inside 6 mm; the 2° rotation
+      gate remains provisional
 - [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
       constant base-frame offset supported inside the measured envelope
 - [x] Formal mechanical joint-limit survey and `mapping_verified=true`
       (2026-11-19; stops are pose-dependent, verified for the operating envelope)
+- [x] Independently calibrated chassis-front D435i, depth service, MoveIt
+      collision box and dual-camera grasp verification (2026-11-20)
+- [x] Jerk-limited fast motion with measured bus-servo settles (2026-11-20):
+      grasp+put-back 11.67 s → 8.94 s, aligned auto-base landing 2.22 mm
+- [ ] 24-site paired follow-up — pre-registered 2026-11-20 (layout, seed-17
+      plan, runner and 48-record dry run); hardware session not run
 
 ## Quick start
 
@@ -304,8 +341,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - Docker for the Humble MoveIt/RViz container (`tools/humble_moveit/`).
 - Python 3.10+, Node 20+ for the debug studio.
 - For hardware: the direct Ethernet link, the vendor `start_node.service`,
-  and the network lockdown described in
-  [`docs/hardware/network_access.md`](docs/hardware/network_access.md).
+  the D435i `armpi-rs-depth` / `armpi-ext-cam` units, and the network lockdown
+  described in [`docs/hardware/network_access.md`](docs/hardware/network_access.md).
 
 ### Build and test
 
@@ -326,7 +363,7 @@ python -m pytest -q \
   tools/phase3/tests \
   tools/phase4/tests
 
-# debug studio: backend 92, gateway 38, mock Playwright 10
+# debug studio: backend 93, gateway 47, mock Playwright 10
 cd armpi-debug-studio/backend && pytest
 cd ../ros2_gateway && pytest
 cd ../frontend && npm run test:e2e
@@ -368,11 +405,21 @@ required sequence is documented in:
   and operating envelope.
 - [`docs/hardware/camera_frames.md`](docs/hardware/camera_frames.md) — body vs
   optical frame and `camera_optical_calibrated`.
+- [`docs/hardware/camera_mount.md`](docs/hardware/camera_mount.md) — Aurora
+  frames plus the chassis-front D435i mount, calibration, services and limits.
+- [`docs/phase2/FAST_MOTION.md`](docs/phase2/FAST_MOTION.md) — S-curve profile,
+  measured settles and the 4.0/20 envelope.
+- [`docs/phase3/SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md)
+  — pre-registered 24-site paired follow-up.
 
 The 2026-11-19 grasp runs used `tools/phase2/real_moveit_execute.py`,
 `tools/phase2/object_segment_rgbd.py`, `tools/phase2/depth_plane_fit.py` and
 the Studio G5/G6 paths; see
 [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/).
+The 2026-11-20 runs added `tools/phase2/fast_motion.py`,
+`tools/phase3/fast_motion_e2e.py` (throughput v2, aligned auto-base) and the
+`ext_cam_*` front-camera chain; see
+[`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/).
 
 ### Offline analysis (no motion)
 
@@ -409,6 +456,12 @@ scatter, a held-out final base, and leave-one-out cross-validation. A
 table-down capture re-fits the transform for the actual working view, and a
 physical AprilTag supplies an independent scale check. The vendor hand–eye
 matrix is stale for the current mount and is **not** treated as baseline A.
+The chassis-front D435i is calibrated separately: a chessboard sweep with the
+board flat and propped gives `fx = fy 903.5 px`, RMS 0.371 px, and the same
+board seen by both cameras at the validated table-down pose gives
+`base_link → ext_cam_optical` = `[0.136, 0.027, 0.038] m`, 31.6° pitch,
+−1.1° yaw; a flat-board check and the earlier depth-plane estimate agree
+within the stated uncertainty.
 
 ### Grasping
 
@@ -419,7 +472,18 @@ collision, and plans with Pilz `PTP`. A separate safety node vetoes the
 trajectory before execution. Execution is judged by measured bus-servo
 completion, not by the command echo. A grasp is accepted only if the object
 disappears from the floor at the validated view pose; the camera on the moving
-arm is too close to the held object to be a reliable grip sensor.
+arm is too close to the held object to be a reliable grip sensor. The D435i
+adds an independent `base_link` measurement: it can veto a wrist measurement
+above 8 mm disagreement and verify the post-grasp/post-release state, but it
+does **not** replace the constant low-configuration correction, which the
+dual-camera run showed to be an execution offset rather than a view-pose bias.
+
+Motion uses a jerk-limited joint-space S-curve (`motion_profile.py`), sent as
+dense waypoints to the vendor action server, with each move ending on a
+measured bus-servo settle (no register moving more than 3 counts in 0.12 s).
+The production defaults are `vmax = 4.0 rad/s`, `amax = 20 rad/s²`; the
+holding-cube release descent uses 1.4 rad/s. `--slow` restores the previous
+single-point timing.
 
 ### Joint limits and safety
 
@@ -459,7 +523,10 @@ measures grip tolerance rather than geometry. The 2026-11-20 session added the
 three integration terms with supervised runners: **execution** compares the
 commanded joint vector with the bus-servo registers at the grasp pose,
 **placement** is the segmented landing minus the pre-grasp measurement, and
-**fixture pose** is the spread of 20 operator placements on the tape. The
+**fixture pose** is the spread of 20 operator placements on the tape. Two
+further runners were added on 2026-11-20 and are not yet run: a wrist-yaw
+rotation-tolerance sweep on `joint5`, and a ruler-fixture visual-displacement
+grid that fits the ruler's unknown yaw as a nuisance parameter. The
 host/DDS benchmark is read-only and measures topic rate, jitter and age on
 both hosts. No measurement tool commands a grasp except the explicitly
 supervised runners.
@@ -474,10 +541,13 @@ supervised runners.
 | 4 | Grip judged from a camera 0.10 m from the held object | false "held" evidence in passes 3–4 | **Fixed protocol**: check the floor spot at the view pose |
 | 5 | Floor reach boundary leaves the TCP 5.9 mm short along the finger length | grasp at the edge of the workspace | **Known**; deep-joint family used |
 | 6 | Negative servo register kills the vendor `get_state` callback | four node crashes during the limit survey | **Mitigated**: monotonic survey, free-fall abort, never read negative |
-| 7 | Robot has no RTC and no NTP; `/joint_states` arrives stale | MoveIt aborts before motion | **Operational fix**: robot clock 1–2 s ahead of the workstation |
+| 7 | Robot has no RTC and no NTP; `/joint_states` arrives stale | MoveIt aborts before motion | **Fixed operationally**: laptop-pushed timer every 60 s keeps the Pi ~2 s ahead; restricted forced-command key |
 | 8 | Wrong AprilTag size (73 mm estimate vs 60 mm actual) | tag placed 59 mm below the floor | **Fixed**: ruler-measured size |
 | 9 | `armpi_safety` rejects gripper-only trajectories ("FK failed: joint1") | MoveIt cannot `--execute` a gripper move | **Open**; gripper runs through `/gripper_controller` |
 | 10 | A base move invalidates the table calibration; no odometry/IMU | calibration must be repeated after any chassis motion | **Known**; mobile extension is separate |
+| 11 | The live stack kept joint2's old 1.2985 rad bound after the 2026-11-19 file edit | MoveIt/safety/Studio could command the pre-survey region | **Fixed 2026-11-20**: symlink rebuild, move_group/safety/backend restart; joint2 = 1.2 rejected |
+| 12 | D435i depth blocked by the D400 HID gate on a kernel without `CONFIG_HID_SENSOR_HUB` | `rs2::context` reported 0 devices even though UVC/libusb saw the camera | **Fixed**: local librealsense patch accepts no HID sensors; IMU remains unavailable |
+| 13 | D435i collision box is a planning-scene object, not a URDF link | direct joint moves and `armpi_safety` bypass it | **Known**: republish after MoveIt restart; visual check for low/unplanned motion |
 
 ## Safety and operating envelope
 
@@ -489,13 +559,23 @@ supervised runners.
   disabled by default.
 - **Never read or command a negative servo register.** It crashes the vendor
   node; the recovery restart itself moves the arm.
-- **MoveIt execute needs a clock lead.** Set the robot clock 1–2 s ahead of the
-  workstation before any cross-host execute.
+- **MoveIt execute needs a clock lead.** A laptop systemd user timer now
+  pushes the Pi clock every 60 s and holds it ~2 s ahead through a restricted
+  forced-command key; verify the timer before a cross-host execute.
 - **`/joint_states` is a command echo.** The measured truth is
   `/controller_manager/servo_states`; the register read is the `get_state`
   service.
-- **The low pose is depth-blind.** The near cutoff is 0.176 m; do not plan a
-  grasp from the low view.
+- **The low pose is depth-blind.** The wrist near cutoff is 0.176 m; the front
+  D435i depth starts at ~0.2 m and its grasp band is colour-only, so neither
+  camera supports a low-pose depth grasp.
+- **The front camera is not a URDF link.** Its 90×25×26 mm collision box is a
+  MoveIt planning-scene object; direct joint moves and `armpi_safety` bypass
+  it. Republish it after a MoveIt restart and keep a visual check for low
+  motions.
+- **Fast motion is bounded by the measured envelope.** The defaults are
+  4.0 rad/s / 20 rad/s² with a 1.4 rad/s holding-cube descent; `--slow` restores
+  the previous timing. Every move is accepted only after a measured bus-servo
+  settle.
 - **Wired link only for inbound access.** Default-deny nftables, `eth0` only,
   SSH key-only, gateway bound to `10.42.0.218`.
 - **No autonomous operation.** The G6 path is single-joint, step-capped and
@@ -515,6 +595,17 @@ supervised runners.
   placement mean (3.080 mm) is inside 6 mm. The 2° rotation tolerance is still
   provisional, and the fixture is a tape line with no x-direction stop, not a
   repeatable jig.
+- **The front camera is a single-attempt validation with hard limits.** One
+  dual-camera grasp passed; its depth starts at ~0.2 m (the grasp band is
+  colour-only), the IMU is unavailable on this kernel, and its collision box
+  protects MoveIt plans only. The 2.58 mm x/y agreement is not a metrology
+  claim.
+- **Fast motion is validated on two runs.** 11.67 s → 8.94 s and the 2.22 mm
+  aligned landing come from two supervised runs at one floor position and one
+  battery state; other bearings and longer sessions are not yet measured.
+- **The 24-site follow-up is pre-registered but not run.** Its capability and
+  method outcomes are predictions, not results; the 2026-11-19 single-fixture
+  trial remains the only paired hardware evidence.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
@@ -537,13 +628,14 @@ Every quantitative statement in this README traces to one of these bundles:
 |---|---|
 | Hardware baseline | [`evidence/phase1/20261117/`](evidence/phase1/20261117/), [`docs/hardware/README.md`](docs/hardware/README.md) |
 | Model / MoveIt | [`evidence/armpi_moveit/`](evidence/armpi_moveit/), [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md) |
-| Calibration | [`evidence/calibration/20261117/`](evidence/calibration/20261117/), [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
+| Calibration | [`evidence/calibration/20261117/`](evidence/calibration/20261117/), [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/), [`evidence/calibration/20261120/`](evidence/calibration/20261120/) (D435i) |
 | Fiducial | [`evidence/fiducial/20261116/`](evidence/fiducial/20261116/), [`evidence/phase2/real_background_20261117/`](evidence/phase2/real_background_20261117/) |
 | Grasp search | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
 | On-site safety / limits | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
-| Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/) |
-| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/), [`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/) (dual-camera, fast motion, throughput) |
+| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) (24-site pre-registration); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
 | Joint limits | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
+| Clock / network | [`docs/hardware/ros_environment.md`](docs/hardware/ros_environment.md), [`docs/hardware/network_access.md`](docs/hardware/network_access.md) |
 | Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
 | Security | [`evidence/security/20261118/`](evidence/security/20261118/) |
 
@@ -574,13 +666,22 @@ up separately. `evidence/README.md` explains what is tracked.
   repeatability, backlash, visual displacement, gripper envelope.
 - [Joint limits](docs/phase2/JOINT_LIMITS.md) — survey, EEPROM bounds and
   recovery rules.
-- [Error budget](docs/phase3/ERROR_BUDGET.md) — schema, RSS and missing terms.
+- [Fast motion](docs/phase2/FAST_MOTION.md) — S-curve profile, measured
+  settles and the 4.0/20 envelope.
+- [Error budget](docs/phase3/ERROR_BUDGET.md) — schema, completed 2026-11-20
+  budget and its bound-gate failure.
 - [Paired trials](docs/phase3/PAIRED_TRIALS.md) — recorder, randomization and
   analysis; the design is pre-registered in
   [PAIRED_TRIAL_DESIGN.md](docs/phase3/PAIRED_TRIAL_DESIGN.md).
+- [24-site follow-up](docs/phase3/SITE_DIVERSITY_DESIGN.md) — pre-registered
+  site-diversity design, layout, envelope guard and analysis.
 - [Host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only metrics and
   camera-rate correction.
+- [Camera mount](docs/hardware/camera_mount.md) — Aurora wrist camera plus the
+  chassis-front D435i mount, calibration, services and depth limits.
 - [Camera frame contract](docs/hardware/camera_frames.md) — body vs optical.
+- [ROS environment](docs/hardware/ros_environment.md) — host/container, DDS and
+  the 2026-11-20 clock-sync timer.
 - [Network access](docs/hardware/network_access.md) — wired link and lockdown.
 - [Vendor calibration baseline](docs/hardware/vendor_calibration_baseline.md) —
   decoded matrices and Baseline A status.
@@ -604,29 +705,32 @@ it for a grasp. A fixed-tag survey then showed the error is a constant inside
 the measured envelope, and joint-offset and `link4` models were rejected
 against four passing grasps. The pre-registered 24-pair trial completed the
 argument: **12/24 → 24/24** (McNemar p = 0.00049) and a **2.19 mm** paired
-placement improvement. The same evidence also shows what is not yet solved:
-the error is corrected, not modelled outside the measured envelope; the
-completed bound budget (13.325 mm RSS) fails the 6 mm tolerance even though
-the empirical placement mean (3.080 mm) fits, so the tail and the rotation
-gate are the open risks; and the result is a within-fixture effect, not a
-population reliability claim. Those are the concrete next steps.
+placement improvement. The same day added a second, independently calibrated
+camera, a 23 % faster measured motion path and a completed error budget. The
+same evidence also shows what is not yet solved: the error is corrected, not
+modelled outside the measured envelope; the completed bound budget
+(13.325 mm RSS) fails the 6 mm tolerance even though the empirical placement
+mean (3.080 mm) fits, so the tail and the rotation gate are the open risks;
+the 24-site follow-up is pre-registered but not run; and the result is a
+within-fixture effect, not a population reliability claim. Those are the
+concrete next steps.
 
 ## Roadmap
 
-**Next (highest priority).** Test the constant correction with a yawed
-*grasp* at the measured envelope boundary (`j1 ≈ 0.3–0.6 rad`). The yaw
-extension already showed the constant is closer than the fitted models there;
-the two yawed grasp attempts failed only because a square cube at a 20–30°
-bearing presents its ~50 mm diagonal against a ~40 mm opening, so the cube
-must be rotated to face the gripper first. Complete the error budget with the
-three open terms (grasp execution, gripper placement, fixture pose), then run
-a second paired trial with the intervention selected from the dominant
-remaining term.
+**Next (highest priority).** Run the pre-registered **24-site paired trial**
+(24 pairs / 48 trials, four radii × six bearings, seed-17 plan already
+committed). It tests whether the 12/24 → 24/24 effect and the
+locate/approach chain survive site diversity. The pre-session checks at `s21`
+and `s24` must pass before the session starts.
 
-**Then.** Add gripper-only trajectory support to `armpi_safety`; widen the
-object set beyond the 39.4 mm cube; measure the remaining error-budget terms.
-The optional mobile base follows only after the fixed-base pipeline is
-stable.
+**Then.** Address the dominant error-budget term, **gripper placement**
+(74.7 % of the translation RSS): investigate the 11.5 mm tail and measure the
+cube yaw that the current placement metric does not include. Run the two new
+runners (wrist-yaw rotation tolerance and ruler-fixture visual displacement)
+and test the constant correction with a yawed grasp after rotating the cube to
+face the gripper. Add gripper-only trajectory support to `armpi_safety` and
+widen the object set beyond the 39.4 mm cube. The optional mobile base follows
+only after the fixed-base pipeline is stable.
 
 ## License
 
