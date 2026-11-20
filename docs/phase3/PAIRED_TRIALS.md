@@ -132,15 +132,21 @@ Evidence:
 and
 [`paired_trials_analysis.json`](../../evidence/phase3/session4_20261117/paired_trials_analysis.json).
 
-## What the first on-site trial still needs
+## What the first on-site trial still needed (status 2026-11-20)
 
-- A verified gripper sign and open/close range.
-- A physically repeatable fixture with measured placement.
-- A measured continuous error for each grasp (fixture/caliper or vision
-  ground truth), not only success/failure.
-- A sample size justified from the pilot variance for the continuous endpoint
-  and from the expected discordance rate for the binary endpoint.
-- The safety layer active and the joint limits measured before repeated
+- **Gripper sign and range**: verified 2026-11-18; stroke 2.22 rad, open and
+  closed stops measured.
+- **A physically repeatable fixture with measured placement**: measured
+  2026-11-20. The tape is a radial line, not a jig: 20 placements give
+  **5.057 mm radial RMS / 14.815 mm max**, so the pipeline re-measures the cube
+  at the view pose every trial instead of trusting the fixture.
+- **A measured continuous error for each grasp**: recorded as landing minus
+  pre-grasp measurement in the 2026-11-19 pairs and repeated in the 2026-11-20
+  session (**3.080 mm mean, RMS 4.082 mm, 11.514 mm max**).
+- **A sample size**: the binary endpoint is sized (24 pairs); the continuous
+  endpoint is conditional on both methods succeeding (12 pairs) and remains
+  small.
+- **Safety layer and joint limits**: active and measured before repeated
   motion.
 
 ## Limitations

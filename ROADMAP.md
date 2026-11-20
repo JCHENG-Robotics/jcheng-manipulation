@@ -20,11 +20,11 @@ README, changelog and acceptance report on 2026-11-20.
 | Fiducial → grasp bridge | **Implemented; mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; the real grasps used the grasp planner directly, not this bridge |
 | Fiducial target localization | **Implemented; synthetic + real-background validated; physical tag scale check** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames; physical tag scale 100.67 mm vs 100.0 mm (0.67 %) |
 | Safety supervisor | **Implemented; mock + hardware veto** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace/table-clearance checks; veto service; adopted EEPROM-bounded limits; no e-stop or brake |
-| Measurement protocols | **Implemented; repeatability, backlash and the gripper envelope measured on hardware (2026-11-19)** | 30-visit repeatability **0.449 mm RMS / 1.017 mm max**; backlash **1.117 mm**; 46-grasp tolerance grid: opening axis **[-6, +12] mm** (±9 mm about a +3 mm centre), `x`/`z` pass at ±9 mm; visual-displacement still simulated only |
+| Measurement protocols | **Implemented; repeatability, backlash, gripper envelope and the 2026-11-20 sources measured on hardware** | 30-visit repeatability **0.449 mm RMS / 1.017 mm max**; backlash **1.117 mm**; 46-grasp tolerance grid: opening axis **[-6, +12] mm** (±9 mm about a +3 mm centre), `x`/`z` pass at ±9 mm; 20-grasp execution **5.386 mm / 1.495° max**; 20-put-back placement **11.514 mm max / 3.080 mm mean**; 20-placement fixture **14.815 mm radial max**; visual-displacement still simulated only |
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **Captured; all five joints formally surveyed; board probed** | Pi/ROS/servo/TF/camera live baseline; joint1 58…957, joint2 186…873 upright / 327…795 low pose, joint3 100…923, joint4 130…882, joint5 122…869 pulse; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
 | Calibration and visual grasping | **Validated: 3/5 first series and 24/24 in the paired trial; constant low-config correction supported, joint offsets rejected** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; a 10-pose fixed-tag survey measured it as a constant (+11.6, +4.0, +8.5) mm (spread 0.40–0.99 mm) and the +13.7/+3.9/+8.9 mm correction was grasp-validated (release 1.3 mm); the 24-pair trial then measured 12/24 (raw target) vs 24/24 (corrected); four models were fitted, joint offsets and link4-frame models were rejected; 24-pose chessboard set still planned, not executed |
-| Error budget and tolerance envelope | **Framework implemented; tolerance now measured, budget still partial** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); translation **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail vs 6 mm); rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS; grasp execution, gripper placement and fixture pose still unmeasured |
+| Error budget and tolerance envelope | **Framework implemented; budget complete, bound gates fail** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); all sources measured, including execution **5.386 mm / 1.495° max**, placement **11.514 mm max / 3.080 mm mean** and fixture **14.815 mm radial max**; translation **RSS 13.325 mm** (fail) / worst case **24.014 mm** (fail vs 6 mm); rotation **RSS 1.858°** (pass) / worst **3.322°** (fail vs the provisional 2° gate); dominant translation term is now `gripper_placement` (74.7 %), hand-eye is 6.1 %; empirical corrected placement mean **3.080 mm** (RMS 4.082 mm) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trial framework | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
 | ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; 92 backend + 38 gateway tests; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=true` for the operating envelope, no e-stop |
@@ -53,10 +53,13 @@ limits were formally surveyed on 2026-11-19 and adopted from the servo EEPROM
 with a 20-pulse margin (joint2's high bound tightened to 775), and the
 controller board probe found only battery, six bus servos, four open-loop
 motor duties, buzzer and LEDs — no IMU, encoders, e-stop or onboard gamepad.
-The error budget is now partially measured: repeatability (0.449 mm RMS /
-1.017 mm max), backlash (1.117 mm) and a 46-grasp tolerance envelope (±9 mm,
-conservative 6 mm) are in the budget; grasp execution, gripper placement and
-fixture pose remain open. A pre-registered 24-pair hardware trial then measured
+The error budget is now complete: repeatability (0.449 mm RMS / 1.017 mm max),
+backlash (1.117 mm), a 46-grasp tolerance envelope (±9 mm, conservative 6 mm)
+and the 2026-11-20 terms (execution 5.386 mm / 1.495° max, placement
+11.514 mm max / 3.080 mm mean, fixture 14.815 mm radial max) are all measured.
+The bound aggregate fails the 6 mm gate (RSS 13.325 mm); the empirical
+corrected placement mean (3.080 mm) is inside it. A pre-registered 24-pair
+hardware trial then measured
 the intervention: baseline 12/24 vs corrected 24/24 (McNemar p = 0.00049) and
 a 2.19 mm paired placement improvement (p = 0.0063). Detailed checklist:
 [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
@@ -206,16 +209,22 @@ Evidence:
 
 ## 8. Milestone D — Error Budget
 
-Status (2026-11-20): the aggregation framework, partial project budget,
-paired-trial recorder and host benchmark are implemented. Repeatability
-(0.449 mm RMS / 1.017 mm max), backlash (1.117 mm) and the task tolerance
-(±9 mm opening axis; conservative 6 mm) are now measured, so the provisional
-5 mm gate has been replaced. Grasp execution, gripper placement and fixture
-pose remain unmeasured; the 2° rotation gate is still provisional. The
-translation budget is **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail);
-rotation is **RSS 1.103° / worst 1.827°** (both pass the provisional gate).
-See [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md) and
-[`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md).
+Status (2026-11-20): the aggregation framework, **completed** project budget,
+paired-trial recorder and host benchmark are implemented. Every required
+source is now measured: hand-eye 3.29 mm, fiducial 1.69 mm, repeatability
+1.017 mm, backlash 1.117 mm, **grasp execution 5.386 mm / 1.495° max**,
+**gripper placement 11.514 mm max / 3.080 mm mean** and **object-fixture pose
+14.815 mm radial max**; the task tolerance is the measured ±9 mm opening axis
+(conservative 6 mm). The completed **bound-level** budget fails: translation
+**RSS 13.325 mm** / worst case **24.014 mm** vs 6 mm; rotation **RSS 1.858°**
+(pass) / worst **3.322°** (fail) vs the provisional 2° gate. The empirical
+corrected placement mean is **3.080 mm** (RMS 4.082 mm), inside 6 mm; the tail
+(11.514 mm) is what pushes the bound budget over. The fixture-inclusive
+aggregate (19.926 mm RSS) is reported separately because every trial
+re-measures the cube. The 2° rotation gate is still provisional.
+See [`docs/phase3/ERROR_BUDGET.md`](docs/phase3/ERROR_BUDGET.md),
+[`docs/phase3/PAIRED_TRIALS.md`](docs/phase3/PAIRED_TRIALS.md) and
+[`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md).
 
 Measure:
 

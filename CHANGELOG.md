@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 execution, placement and fixture measurements
+
+### Added
+
+- `tools/phase3/execution_fixture_run.py`: supervised runner for the three
+  remaining error-budget sources. `fixture` detects each stable operator
+  placement at the fixed view pose (removal or >3 mm displacement) and records
+  its spread; `trials` runs pick–lift–put-back grasps and records the
+  commanded-vs-bus-servo execution error at the grasp pose plus the segmented
+  landing displacement. Both commands are resumable and write JSON/Markdown
+  reports. 13 unit tests in `tools/phase3/tests/test_execution_fixture.py`.
+- `error_budget_onsite_20261120.json` and
+  `error_budget_fixture_20261120.json`: completed pipeline and
+  fixture-inclusive budgets.
+- `evidence/phase3/onsite_20261120/`: 20 fixture placements, 20 put-backs,
+  raw/clean/discarded records, reports, budget reports and a session README.
+
+### Measured
+
+- **Grasp execution**, 20 grasps: 4.220 mm / 1.069° mean, **5.386 mm /
+  1.495° max** (commanded vs bus-servo registers at the grasp pose).
+- **Gripper placement**, 20 put-backs: **3.080 mm mean, RMS 4.082 mm,
+  11.514 mm max**; mean xy bias (−0.99, +1.63) mm. One tail event shifted the
+  cube 11.0 mm in −x while still holding and landing validly.
+- **Object-fixture pose**, 20 tape placements: **5.057 mm radial RMS /
+  14.815 mm radial max**; per-axis SD 5.112 / 0.884 / 0.362 mm. Three off-tape
+  placements were excluded and kept as discarded evidence.
+- **Completed bound budget**: pipeline translation **RSS 13.325 mm / worst
+  24.014 mm** (fail vs 6 mm), rotation **RSS 1.858° (pass) / worst 3.322°
+  (fail)**; fixture-inclusive **19.926 mm RSS**. The dominant translation term
+  is `gripper_placement` (74.7 %), the dominant rotation term is
+  `grasp_execution_rotation` (64.7 %). The empirical corrected placement mean
+  (3.080 mm) is inside 6 mm; the tail is not.
+- Deviations kept: initial x = 0.262 m placement refused (23.4 mm z
+  residual); three off-tape fixture placements; two clipped landings (trial 15
+  and trial 20) re-run after recentring; one 11.5 mm placement tail; four
+  operator recentring events caused by the put-back drift.
+
 ## [Unreleased] — 2026-11-20 documentation unification
 
 ### Changed (documentation only, no new hardware claims)
@@ -13,7 +51,7 @@ All notable changes to this project are documented here. Format based on
   operating envelope; 24-pair trial 12/24 → 24/24; repeatability 0.449 mm RMS,
   backlash 1.117 mm and a ±9 mm tolerance envelope (conservative 6 mm); the
   error budget still partial in grasp execution, gripper placement and fixture
-  pose.
+  pose (measured later the same day; see the entry above).
 - Removed the duplicate error-budget row in both READMEs and made the
   tolerance unambiguous: the **RSS 3.995 mm passes the measured 6 mm
   tolerance; the 7.114 mm worst case does not**; the 2° rotation gate remains

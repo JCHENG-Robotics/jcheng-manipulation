@@ -71,10 +71,15 @@ from 12/24 to 24/24 (McNemar p = 0.00049) with a 2.19 mm paired placement
 improvement. All five arm joints were formally surveyed by hand (the stops are
 pose-dependent self-collision limits), repeatability and backlash were
 measured (0.449 mm RMS, 1.117 mm), and a 46-grasp grid measured the grip
-tolerance at ±9 mm. The project contributes a measured failure taxonomy, a
-physical reliability experiment and an explicit evidence trail; the error
-budget remains partial in three sources and the 2° rotation tolerance is still
-provisional.
+tolerance at ±9 mm. A 2026-11-20 session then measured the three remaining
+error-budget sources — grasp execution **5.39 mm / 1.50° max**, gripper
+placement **11.51 mm max / 3.08 mm mean** and object-fixture pose **14.82 mm
+radial max** — completing the budget. The component bound budget fails the
+6 mm gate (translation RSS **13.33 mm**), while the empirical corrected
+placement mean (**3.08 mm**) is inside it. The project contributes a measured
+failure taxonomy, a physical reliability experiment and an explicit evidence
+trail; the 2° rotation tolerance is still provisional because no direct
+rotation-tolerance experiment exists.
 
 ## Objectives and contributions
 
@@ -113,10 +118,15 @@ provisional.
    **12/24 vs 24/24** success (McNemar p = 0.00049) and a **2.19 mm** paired
    placement improvement among dual-success pairs (95 % CI −3.96…−0.83 mm,
    p = 0.0063), with four protocol deviations recorded and quantified.
-6. **A measured error budget.** Repeatability **0.449 mm RMS / 1.017 mm max**
-   over 30 visits, backlash **1.117 mm**, with the budget updated to
-   **RSS 3.995 mm** (translation) and **1.103°** (rotation); the hand–eye term
-   dominates at 68 % and three integration terms remain unmeasured.
+6. **A completed measured error budget.** Repeatability **0.449 mm RMS /
+   1.017 mm max** over 30 visits, backlash **1.117 mm**, grasp execution
+   **5.386 mm / 1.495° max** over 20 grasps, gripper placement **11.514 mm max
+   / 3.080 mm mean** over 20 put-backs and fixture **14.815 mm radial max**
+   over 20 placements. The complete bound budget is **13.325 mm RSS /
+   24.014 mm worst case** (translation) and **1.858° / 3.322°** (rotation),
+   dominated by placement (74.7 %) and execution rotation (64.7 %); the
+   empirical corrected placement mean (3.080 mm) is inside the 6 mm tolerance,
+   and the 2° rotation gate remains provisional.
 7. **A safe joint-limit survey.** EEPROM-bounded adopted limits, a powered
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
@@ -145,6 +155,10 @@ provisional.
 | Arm repeatability, 30 visits | radial **0.449 mm RMS / 1.017 mm max**; joints repeat to 0–1 pulse; tag rotation max **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
 | Arm backlash, joint4 ±0.1 rad | hysteresis **1.117 mm** (−0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |
 | Gripper tolerance envelope, 46 grasps | opening axis passes **[-6, +12] mm** (**±9 mm** about a +3 mm centre = the correction's y residual); `x` and `z` pass at **±9 mm** with no failure; 0/2 at ±15 and −12 | [`envelope/`](evidence/phase3/onsite_20261119/envelope/) |
+| Grasp execution, 20 grasps | commanded vs bus-servo at the grasp pose: **4.220 mm / 1.069° mean**, **5.386 mm / 1.495° max** | [`trial_report`](evidence/phase3/onsite_20261120/trial_report.md) |
+| Gripper placement, 20 put-backs | landing − pre-grasp: **3.080 mm mean, RMS 4.082 mm, max 11.514 mm**; mean bias **(−0.99, +1.63) mm** | [`trial_report`](evidence/phase3/onsite_20261120/trial_report.md) |
+| Object-fixture pose, 20 placements | radial **5.057 mm RMS / 14.815 mm max** on the tape; per-axis SD **5.112 / 0.884 / 0.362 mm** | [`fixture_report`](evidence/phase3/onsite_20261120/fixture_report.md) |
+| Completed error budget (2026-11-20) | translation **RSS 13.325 mm / worst 24.014 mm** vs 6 mm; rotation **RSS 1.858° / worst 3.322°** vs the provisional 2°; fixture-inclusive **19.926 mm**; empirical placement mean **3.080 mm** inside 6 mm | [`error_budget.md`](evidence/phase3/onsite_20261120/error_budget.md) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
@@ -248,8 +262,8 @@ separately.
 | Joint limits | **Formally surveyed 2026-11-19; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 |
 | Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
-| Measurement protocols | **Implemented; repeatability, backlash and gripper envelope measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); visual displacement still simulated only |
-| Error budget | **Framework implemented; partial (three terms open)** | Repeatability, backlash and the tolerance measured; translation RSS 3.995 mm passes the measured 6 mm tolerance, worst case 7.114 mm does not; rotation 1.103° / 1.827° passes the provisional 2° gate; grasp execution, gripper source and fixture pose unmeasured |
+| Measurement protocols | **Implemented; all sources measured on hardware** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; visual displacement still simulated only |
+| Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trials | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
@@ -362,10 +376,15 @@ the Studio G5/G6 paths; see
 ### Offline analysis (no motion)
 
 ```bash
-# error budget: checked-in partial budget + synthetic demo
+# error budget: completed 2026-11-20 pipeline budget
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
-  --input ros2_ws/src/armpi_analysis/config/error_budget_baseline.json \
+  --input ros2_ws/src/armpi_analysis/config/error_budget_onsite_20261120.json \
   --markdown-out /tmp/error_budget.md
+
+# fixture-inclusive variant (object-fixture pose added)
+PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.error_budget \
+  --input ros2_ws/src/armpi_analysis/config/error_budget_fixture_20261120.json \
+  --markdown-out /tmp/error_budget_fixture.md
 
 # paired trials: plan, synthetic run, analysis
 PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m armpi_analysis.paired_trials \
@@ -435,9 +454,14 @@ Motion terms are measured with a **fixed AprilTag** observed from repeated
 poses (repeatability, backlash) and from a yawed grasp pose (the correction's
 yaw extension); the **tolerance** comes from a 46-grasp offset grid, and each
 placement is gated on cube height/extent and face orientation so the grid
-measures grip tolerance rather than geometry. The host/DDS benchmark is
-read-only and measures topic rate, jitter and age on both hosts. No measurement
-tool commands a grasp except the explicitly supervised runners.
+measures grip tolerance rather than geometry. The 2026-11-20 session added the
+three integration terms with supervised runners: **execution** compares the
+commanded joint vector with the bus-servo registers at the grasp pose,
+**placement** is the segmented landing minus the pre-grasp measurement, and
+**fixture pose** is the spread of 20 operator placements on the tape. The
+host/DDS benchmark is read-only and measures topic rate, jitter and age on
+both hosts. No measurement tool commands a grasp except the explicitly
+supervised runners.
 
 ## Failure taxonomy (measured)
 
@@ -484,9 +508,12 @@ tool commands a grasp except the explicitly supervised runners.
 - **The correction is a constant, not a physical model.** Joint offsets and
   `link4`-frame models were fitted and rejected; the constant holds to
   `j1 ≈ 0.5 rad` but is not claimed beyond the measured envelope.
-- **The error budget is partial.** Repeatability, backlash and the tolerance
-  (±9 mm) are measured; grasp execution, gripper placement and fixture pose
-  remain unmeasured, and the 2° rotation tolerance is still provisional.
+- **The error budget is complete but fails at the bound level.** All sources
+  are measured; the translation bound RSS is 13.325 mm and the rotation worst
+  case 3.322°, both above the 6 mm / 2° gates, while the empirical corrected
+  placement mean (3.080 mm) is inside 6 mm. The 2° rotation tolerance is still
+  provisional, and the fixture is a tape line with no x-direction stop, not a
+  repeatable jig.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
@@ -577,9 +604,11 @@ the measured envelope, and joint-offset and `link4` models were rejected
 against four passing grasps. The pre-registered 24-pair trial completed the
 argument: **12/24 → 24/24** (McNemar p = 0.00049) and a **2.19 mm** paired
 placement improvement. The same evidence also shows what is not yet solved:
-the error is corrected, not modelled outside the measured envelope; the budget
-is partial; and the result is a within-fixture effect, not a population
-reliability claim. Those are the concrete next steps.
+the error is corrected, not modelled outside the measured envelope; the
+completed bound budget (13.325 mm RSS) fails the 6 mm tolerance even though
+the empirical placement mean (3.080 mm) fits, so the tail and the rotation
+gate are the open risks; and the result is a within-fixture effect, not a
+population reliability claim. Those are the concrete next steps.
 
 ## Roadmap
 

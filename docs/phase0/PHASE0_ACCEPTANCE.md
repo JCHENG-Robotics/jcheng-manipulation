@@ -40,7 +40,7 @@ unmeasured; **Not accepted** = outside the demonstrated scope.
 | Real visual grasping | **Pass** | First series 3/5 on the unmarked 39.4 mm cube; pass 5 with the in-configuration correction; pre-registered 24-pair trial 12/24 → 24/24 (McNemar p = 0.00049) |
 | Low-configuration model | **Pass inside the measured envelope** | Fixed-tag constant (+11.6, +4.0, +8.5) mm, grasp-validated correction (+13.7, +3.9, +8.9) mm; joint-offset and `link4` models fitted and rejected; yaw extension measured to `j1 ≈ 0.5 rad` |
 | Reliability intervention | **Pass** | The constant correction is the intervention; paired trial: baseline 12/24 vs intervention 24/24, paired placement improvement 2.19 mm (p = 0.0063); four protocol deviations documented |
-| Error budget | **Partial** | Repeatability 0.449 mm RMS / 1.017 mm max, backlash 1.117 mm and tolerance ±9 mm (conservative 6 mm) measured; translation RSS 3.995 mm passes 6 mm, worst case 7.114 mm fails; rotation RSS 1.103° / worst 1.827° passes the provisional 2° gate; grasp execution, gripper placement and fixture pose unmeasured |
+| Error budget | **Complete; bound gates fail** | All required sources measured (2026-11-20 adds execution 5.386 mm / 1.495° max, placement 11.514 mm max / 3.080 mm mean, fixture 14.815 mm radial max); translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm (RMS 4.082) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Safety layer | **Pass with constraints** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks, table-plane clearance and trajectory veto exercised; **no e-stop or brake**, all motion supervised |
 | Debug Studio | **Pass G1–G6** | 92 backend + 38 gateway tests; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised single-joint path verified without motion |
 | Mobile base | **Not accepted** | Four open-loop motor duties, no encoders/IMU/odometry; any base move invalidates the table calibration; planned extension only |
@@ -49,9 +49,11 @@ unmeasured; **Not accepted** = outside the demonstrated scope.
 pick–lift–place task on this robot, cube and fixture: the pipeline works, the
 dominant error is kinematic, and the correction produces a statistically
 significant improvement in a pre-registered paired trial. The error budget is
-accepted as **partial**, and the result is **not** a population reliability
-estimate, an autonomous-operation claim, or a contact-rich manipulation claim.
-The mobile base is outside the accepted scope.
+now **complete** but fails its bound gates (translation RSS 13.325 mm,
+rotation worst 3.322°), while the empirical corrected placement mean
+(3.080 mm) fits; the result is **not** a population reliability estimate, an
+autonomous-operation claim, or a contact-rich manipulation claim. The mobile
+base is outside the accepted scope.
 
 ## 2. Acceptance checklist (MASTER_PLAN_V3 §5)
 
@@ -143,7 +145,7 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
 | Phase 2 fiducial localization | **Implemented; synthetic + real-background validated; physical tag scale check** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; physical tag scale 0.67 % lateral |
 | Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; real grasps used the planner directly, not this bridge |
 | Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 first series; 24/24 with the correction in the paired trial** | Yawed grasp test open; the cube must first be rotated to face the gripper |
-| Phase 3 Error Budget v1 | **Framework + partial budget implemented**; repeatability, backlash and tolerance measured; execution, gripper placement and fixture pose unmeasured | Three integration terms; the 2° rotation gate is still provisional |
+| Phase 3 Error Budget v1 | **Framework + completed budget**; all sources measured 2026-11-20; bound gates fail (translation RSS 13.325 mm, rotation worst 3.322°) | The empirical placement mean (3.080 mm) is inside 6 mm; the 2° rotation gate is still provisional |
 | Phase 3 paired trial | **Complete (2026-11-19)**: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; paired placement improvement 2.19 mm (p = 0.0063) | A second trial with the next dominant term as the intervention |
 | Host/DDS benchmark | **Read-only snapshot measured** (2026-11-17 Session 4); one laptop/Pi run, no load sweep | Repeated runs under controlled load |
 | Documentation | **Synchronized 2026-11-20** across README, README.zh-CN, ROADMAP, CHANGELOG and this report | Keep §1 and the ROADMAP status table aligned |
