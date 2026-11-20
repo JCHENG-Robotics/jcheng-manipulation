@@ -3,6 +3,32 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 documentation unification
+
+### Changed (documentation only, no new hardware claims)
+
+- **README, README.zh-CN, ROADMAP and the acceptance report now share one
+  status.** The four documents were aligned to the 2026-11-19 hardware
+  evidence: formal five-joint survey with `mapping_verified=true` for the
+  operating envelope; 24-pair trial 12/24 → 24/24; repeatability 0.449 mm RMS,
+  backlash 1.117 mm and a ±9 mm tolerance envelope (conservative 6 mm); the
+  error budget still partial in grasp execution, gripper placement and fixture
+  pose.
+- Removed the duplicate error-budget row in both READMEs and made the
+  tolerance unambiguous: the **RSS 3.995 mm passes the measured 6 mm
+  tolerance; the 7.114 mm worst case does not**; the 2° rotation gate remains
+  provisional. The 2026-11-19 budget entry now matches the measured 6 mm.
+- Replaced the stale next step ("replace the correction with a joint-offset
+  calibration") in both READMEs and the roadmap. Joint offsets and `link4`
+  models were already tested and rejected; the open test is a **yawed grasp at
+  `j1 ≈ 0.3–0.6 rad` with the cube rotated to face the gripper**, because the
+  two failed yawed attempts presented the cube's ~50 mm diagonal against a
+  ~40 mm opening.
+- ROADMAP and the acceptance report no longer say the limits are partially
+  measured or that no paired trial exists; the roadmap no longer describes the
+  5 mm gate as current. Their Milestone D/E, safety and gap tables now match
+  the README.
+
 ## [Unreleased] — 2026-11-19 autonomous pick-lift-place of the floor cube
 
 ### Verified (real hardware, 2026-11-19)
@@ -60,7 +86,7 @@ All notable changes to this project are documented here. Format based on
   −0.549 mm); `joint4` settles 10 pulses apart. All 45 captures detected the
   tag (PnP RMS 0.40 px mean, frame margin 45–55 px). The budget now reads
   translation **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail vs the
-  provisional 5 mm gate) and rotation **RSS 1.103° / worst 1.827°** (both
+  measured 6 mm tolerance) and rotation **RSS 1.103° / worst 1.827°** (both
   pass); the hand–eye term is still 68 % of the translation RSS, grasp
   execution, gripper placement and fixture pose remain unmeasured. New tool
   `tools/phase3/measurement_run.py`; config
@@ -104,8 +130,11 @@ All notable changes to this project are documented here. Format based on
   landed **1.3 mm** from its measurement. The **constant base-frame offset is
   therefore the supported model**, bounded to tool-down grasps with
   `j1 ±0.06 rad` and the view pose at `j4 −1.58…−1.66`; a yawed grasp
-  (`j1 ≈ 0.3–0.6 rad`, where the two model classes differ by 12–16 mm) is the
-  open extension test. Evidence:
+  (`j1 ≈ 0.3–0.6 rad`, where the two model classes differ by 12–16 mm) remains
+  the open extension test. The fixed-tag yaw survey already measured the
+  correction at `j1 = 0.487 rad`; the two yawed grasp attempts failed on
+  cube-vs-finger geometry (the cube presents its ~50 mm diagonal to a ~40 mm
+  opening), not on the correction. Evidence:
   [`evidence/calibration/20261119/low_config_error/model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md).
 - New tools: `tools/phase2/low_config_model_fit.py` (numpy-only profile fit,
   LOO, AIC and implied correction) and `tools/phase2/low_config_correction.py`

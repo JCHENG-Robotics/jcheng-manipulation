@@ -180,8 +180,9 @@ fail-closed behaviour. For a real check, pass a planned trajectory from MoveIt.
 
 - **Partial hardware validation.** The veto has run on real MoveIt plans
   (2026-11-18/19), and the power cut was measured (the arm falls; the vendor
-  stack recovers in ~89 s). Mechanical limits are only partially measured,
-  backlash is not measured, and no dedicated safety test has been done.
+  stack recovers in ~89 s). All five joints were formally surveyed on
+  2026-11-19 (`mapping_verified=true` for the operating envelope), backlash is
+  now measured (1.117 mm), and no dedicated safety test has been done.
 - **No e-stop integration.** The node cannot cut power; it can only publish a
   stop flag and reject plans. A future executor must treat the flag as
   authoritative.

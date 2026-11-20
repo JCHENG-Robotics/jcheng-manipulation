@@ -5,12 +5,15 @@
 > (`10.42.0.218` ↔ `10.42.0.1`) is the only inbound path: the robot runs a
 > default-deny firewall and office WiFi (`10.51.128.226`) is outbound-only.
 > See `network_access.md`. The initial baseline was read-only plus one
-> supervised `reset_servo`; later sessions added joint-limit surveys,
-> supervised MoveIt execution, a re-measured gripper and 3/5 real
-> pick–lift–place attempts. Camera RGB/depth streams and intrinsics are
+> supervised `reset_servo`; later sessions added formal joint-limit surveys,
+> supervised MoveIt execution, a re-measured gripper, 3/5 first-series real
+> pick–lift–place attempts and a pre-registered 24-pair trial (12/24 → 24/24).
+> Camera RGB/depth streams and intrinsics are
 > verified. The camera optical extrinsic is **validated** (14-pose chessboard
-> hand-eye, 2.94 mm / 0.39° board scatter). Joint limits are now adopted from
-> the servo EEPROM with a 20-pulse margin; the IMU and encoders are absent.
+> hand-eye, 2.94 mm / 0.39° board scatter). Joint limits are formally surveyed
+> on all five joints and adopted from the servo EEPROM with a 20-pulse margin
+> (`mapping_verified=true` for the operating envelope); the IMU and encoders
+> are absent.
 > `[U]` items must not be treated as measured.
 
 `MASTER_PLAN_V3_PRIVATE.md` §6 requires this folder before Phase 1.

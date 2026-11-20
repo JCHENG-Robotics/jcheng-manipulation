@@ -21,7 +21,7 @@
 [Objectives](#objectives-and-contributions) ·
 [Key results](#key-results-measured-on-hardware) ·
 [Architecture](#system-architecture) · [Repository layout](#repository-layout) ·
-[Status](#project-status-2026-11-19) ·
+[Status](#project-status-2026-11-20) ·
 [Deliverables](#capstone-deliverables-checklist) · [Quick start](#quick-start) ·
 [Method](#experimental-method) · [Failure taxonomy](#failure-taxonomy-measured) ·
 [Safety](#safety-and-operating-envelope) ·
@@ -45,7 +45,7 @@
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
 | **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; a fixed-tag survey measured the low-configuration error as a **constant**, and a pre-registered **24-pair** hardware trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049) with a **2.19 mm** paired placement improvement (p = 0.0063) |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
-| **Status** | 2026-11-19. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
+| **Status** | 2026-11-20 (hardware results 2026-11-19). Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
 ## Abstract
 
@@ -63,8 +63,10 @@ FK/hand–eye error at the low grasp configuration; a single AprilTag
 observation at that configuration supplied a correction, after which pass 5
 held the cube, lifted it ≈148 mm and released it. A fixed-tag survey then
 showed the low-configuration error is a **constant** vector, joint-offset and
-`link4`-frame models were fitted and **rejected**, and the constant held to a
-27.9° yaw. A **pre-registered 24-pair hardware trial** raised grasp success
+`link4`-frame models were fitted and **rejected**, and at a 27.9° yaw the
+constant remained the closest model (5.6 mm away, 3.3 mm on the grip-critical
+axis) while the fitted models were 14–19 mm away. A **pre-registered 24-pair
+hardware trial** raised grasp success
 from 12/24 to 24/24 (McNemar p = 0.00049) with a 2.19 mm paired placement
 improvement. All five arm joints were formally surveyed by hand (the stops are
 pose-dependent self-collision limits), repeatability and backlash were
@@ -101,9 +103,10 @@ provisional.
    verification, exercised end-to-end on hardware.
 4. **A measured low-configuration error and a tested model.** A fixed-tag
    survey showed the FK/hand–eye error at the low grasp configuration is a
-   **constant (+11.6, +4.0, +8.5) mm** vector (spread 0.40–0.99 mm) while the
-   same model is 2–3 mm in its validated volume. Joint offsets and `link4`-frame
-   models were fitted and **rejected**: they predict the correction 10.6–15.0 mm
+   **constant (+11.6, +4.0, +8.5) mm** vector (spread 0.40–0.99 mm), with the
+   grasp-validated correction **(+13.7, +3.9, +8.9) mm**, while the same model
+   is 2–3 mm in its validated volume. Joint offsets and `link4`-frame models
+   were fitted and **rejected**: they predict the correction 10.6–15.0 mm
    away from what four passing grasps used.
 5. **A pre-registered paired hardware trial.** 24 matched pairs compared the
    raw FK/hand–eye target with the constant low-configuration correction:
@@ -141,7 +144,6 @@ provisional.
 | Paired hardware trial, 24 pairs | **baseline 12/24 vs intervention 24/24** (McNemar **p = 0.00049**); placement error **3.31 mm** vs **4.97 mm**; paired improvement **2.19 mm** (95 % CI −3.96…−0.83, **p = 0.0063**) | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) |
 | Arm repeatability, 30 visits | radial **0.449 mm RMS / 1.017 mm max**; joints repeat to 0–1 pulse; tag rotation max **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
 | Arm backlash, joint4 ±0.1 rad | hysteresis **1.117 mm** (−0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |
-| Error budget (updated) | translation **RSS 3.995 mm** (pass) / worst case **7.114 mm** (fail); rotation **RSS 1.103° / worst 1.827°** (both pass) | [`error_budget.md`](evidence/phase3/onsite_20261119/error_budget.md) |
 | Gripper tolerance envelope, 46 grasps | opening axis passes **[-6, +12] mm** (**±9 mm** about a +3 mm centre = the correction's y residual); `x` and `z` pass at **±9 mm** with no failure; 0/2 at ±15 and −12 | [`envelope/`](evidence/phase3/onsite_20261119/envelope/) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
@@ -150,7 +152,7 @@ provisional.
 | Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 tracking | **712 commanded / 711 measured** samples; max **0.008321 rad**, RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
-| Error budget (2026-11-19) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
+| Error budget (2026-11-19) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## System architecture
 
@@ -226,9 +228,11 @@ tools/
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
-## Project status (2026-11-19)
+## Project status (2026-11-20)
 
-Status convention: **Implemented / Validated / In Progress / Planned**.
+Hardware results are as of 2026-11-19; this document was synchronized with the
+roadmap, changelog and acceptance report on 2026-11-20. Status convention:
+**Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
 separately.
@@ -245,7 +249,7 @@ separately.
 | Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; safety veto on every arm plan |
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; no e-stop or brake |
 | Measurement protocols | **Implemented; repeatability, backlash and gripper envelope measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); visual displacement still simulated only |
-| Error budget | **Framework implemented; partial (three terms open)** | Repeatability, backlash and the tolerance measured; translation RSS 3.995 mm / worst 7.114 mm, rotation 1.103° / 1.827°; grasp execution, gripper source and fixture pose unmeasured |
+| Error budget | **Framework implemented; partial (three terms open)** | Repeatability, backlash and the tolerance measured; translation RSS 3.995 mm passes the measured 6 mm tolerance, worst case 7.114 mm does not; rotation 1.103° / 1.827° passes the provisional 2° gate; grasp execution, gripper source and fixture pose unmeasured |
 | Paired trials | **Implemented; first physical trial complete (2026-11-19)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); four deviations documented |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 92 backend + 38 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion |
@@ -268,8 +272,8 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Failure taxonomy and critical analysis
 - [x] Reproducible commands and test suite
 - [ ] Full error budget — repeatability, backlash and the tolerance (±9 mm)
-      are measured; integration error 3.31 mm; execution, gripper placement and
-      fixture pose still open
+      are measured; the end-to-end placement error is 3.31 mm; grasp
+      execution, gripper placement and fixture pose are still open
 - [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
@@ -523,8 +527,8 @@ up separately. `evidence/README.md` explains what is tracked.
 
 - [Technical roadmap](ROADMAP.md) — public technical roadmap and next steps.
 - [Changelog](CHANGELOG.md) — chronological, per-session record of changes.
-- [Phase 0 acceptance](docs/phase0/PHASE0_ACCEPTANCE.md) — checklist and
-  remaining gaps.
+- [Acceptance report](docs/phase0/PHASE0_ACCEPTANCE.md) — Phase 0 checklist,
+  current capstone acceptance summary and remaining gaps.
 - [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space
   limits and grasp policy.
 - [Calibration](docs/phase2/CALIBRATION.md) — chessboard hand–eye procedure
@@ -568,17 +572,26 @@ calibration, constrained planning and a safety veto, and the dominant residual
 error is kinematic rather than perceptual. Passes 1–2 established the pipeline;
 passes 3–4 located a −8/−15/−6 mm configuration-dependent model error; pass 5
 showed that a single in-configuration observation is sufficient to compensate
-it for a grasp. The same evidence also shows what is not yet solved: the error
-is corrected, not modelled; the budget is partial; and the sample size cannot
-support a reliability claim. Those are the concrete next steps.
+it for a grasp. A fixed-tag survey then showed the error is a constant inside
+the measured envelope, and joint-offset and `link4` models were rejected
+against four passing grasps. The pre-registered 24-pair trial completed the
+argument: **12/24 → 24/24** (McNemar p = 0.00049) and a **2.19 mm** paired
+placement improvement. The same evidence also shows what is not yet solved:
+the error is corrected, not modelled outside the measured envelope; the budget
+is partial; and the result is a within-fixture effect, not a population
+reliability claim. Those are the concrete next steps.
 
 ## Roadmap
 
-**Next (highest priority).** Replace the one-point tag correction with a
-joint-offset calibration over the low configuration, then re-run the grasp
-without a per-object correction. Complete the error budget with repeatability,
-backlash, execution, gripper and fixture terms. Run a paired hardware trial
-with the intervention selected from the dominant measured term.
+**Next (highest priority).** Test the constant correction with a yawed
+*grasp* at the measured envelope boundary (`j1 ≈ 0.3–0.6 rad`). The yaw
+extension already showed the constant is closer than the fitted models there;
+the two yawed grasp attempts failed only because a square cube at a 20–30°
+bearing presents its ~50 mm diagonal against a ~40 mm opening, so the cube
+must be rotated to face the gripper first. Complete the error budget with the
+three open terms (grasp execution, gripper placement, fixture pose), then run
+a second paired trial with the intervention selected from the dominant
+remaining term.
 
 **Then.** Add gripper-only trajectory support to `armpi_safety`; widen the
 object set beyond the 39.4 mm cube; measure the remaining error-budget terms.

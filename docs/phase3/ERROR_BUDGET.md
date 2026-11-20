@@ -11,8 +11,8 @@
 > repeatability **1.017 mm max** (0.449 mm radial RMS, 30 visits) and backlash
 > **1.117 mm** (15 + 15 visits, joint4 ±0.1 rad). With them the translation
 > budget is **RSS 3.995 mm** (pass) and **worst case 7.114 mm** (fail) against
-> the provisional 5 mm gate; rotation is **RSS 1.103°**, worst case **1.827°**
-> (both pass). A physical paired trial (24 pairs) additionally measured the
+> the measured 6 mm tolerance; rotation is **RSS 1.103°**, worst case **1.827°**
+> (both pass the provisional 2° gate). A physical paired trial (24 pairs) additionally measured the
 > **end-to-end placement error**: 3.31 mm mean (SD 1.48) for the corrected
 > method and 4.97 mm (SD 2.87) for the uncorrected one. That is a task-level
 > outcome, not a decomposition: **grasp execution, gripper placement and
@@ -177,13 +177,14 @@ rotation term is now the arm's own repeatability (0.867°, 62 %).
 
 The budget has no 95 % interval because the measured values are maxima, not
 per-source distributions. With four bound-like terms the 7.114 mm worst case
-now exceeds the provisional 5 mm gate while the RSS (3.995 mm) still passes;
+exceeds the measured 6 mm tolerance while the RSS (3.995 mm) still passes;
 the two statistics bracket the same terms and neither is a confidence bound.
 The report stays **partial** because three required sources are unmeasured.
 
-The 5 mm / 2° tolerance is the existing protocol gate, not a measured physical
-grasp tolerance. It must be replaced by the gripper-envelope experiment before
-it can support a reliability claim.
+The translation tolerance is now the measured 6 mm gripper-envelope value;
+the 2° rotation tolerance is still the existing protocol gate, not a measured
+physical grasp tolerance. It must be replaced by a direct rotation experiment
+before it can support a reliability claim.
 
 ## Commands
 

@@ -23,8 +23,11 @@
 > the effective commandable range; the provisional ±2.094 rad range is
 > wider than the hardware. **All four vendor-node crashes had one cause: a
 > negative position register raises a `uint16` `AssertionError` inside the
-> vendor `get_state` callback.** Hardware motion remains disabled and the
-> backend keeps `mapping_verified=false`.
+> vendor `get_state` callback.** The 2026-11-19 formal survey changed the
+> mapping decision: `armpi-debug-studio/configs/joint_mapping.yaml` now carries
+> `mapping_version: measured-2026-11-19` and `verified: true` for the operating
+> envelope. Studio hardware motion is still **off by default** and requires the
+> explicit supervised-motion opt-in.
 
 ## What the 2026-11-18 surveys established
 

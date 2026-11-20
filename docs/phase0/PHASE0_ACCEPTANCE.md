@@ -12,12 +12,48 @@
 > acceptance remains the mock-scope record for Phase 0.
 >
 > **Update (2026-11-19):** the hardware items that Phase 0 could not test have
-> since been exercised: adopted EEPROM-bounded joint limits, a re-measured
-> 2.22 rad gripper stroke, real MoveIt execution, and 3/5 real
-> pick–lift–place attempts on a 39.4 mm cube. The Phase 0 acceptance itself is
-> still a mock-scope record; see the repository README for current status.
+> since been exercised: a formal five-joint stop survey with
+> `mapping_verified=true` for the operating envelope, a re-measured 2.22 rad
+> gripper stroke, real MoveIt execution, 3/5 first-series pick–lift–place
+> attempts, and a pre-registered 24-pair trial that raised grasp success from
+> 12/24 to 24/24.
+>
+> **Update (2026-11-20):** this file is now the single acceptance record for
+> the capstone as well as the Phase 0 mock scope. §1 is the current verdict;
+> §2 remains the original Phase 0 checklist. The README, ROADMAP and CHANGELOG
+> were synchronized to the same status on 2026-11-20.
 
-## 1. Acceptance checklist (MASTER_PLAN_V3 §5)
+## 1. Current acceptance summary (2026-11-20)
+
+Hardware results are as of 2026-11-19. Verdicts use the repository convention:
+**Pass** = implemented and backed by a command, log or data file in
+`evidence/`; **Partial** = the framework exists but required terms are still
+unmeasured; **Not accepted** = outside the demonstrated scope.
+
+| Area | Verdict | Basis / limit |
+|---|---|---|
+| Phase 0 model and constrained planning | **Pass (mock scope)** | 17 links / 16 joints, single root; Pilz `PTP` 6D goal `SUCCESS` with 66 points; +20° tool-roll negative control fails; see §2 |
+| Hardware baseline | **Pass** | Live Pi/ROS/servo/TF/camera baseline; controller board probed (battery, 6 bus servos, 4 open-loop motor duties, buzzer, LEDs; no IMU, encoders, e-stop or onboard gamepad) |
+| Joint limits | **Pass (operating envelope)** | All five joints hand-surveyed 2026-11-19 with torque released; adopted EEPROM − 20 pulses, joint2 high tightened to 775; `mapping_verified=true`; stops are pose-dependent self-collision limits |
+| Hand–eye calibration | **Pass** | 14-pose chessboard 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 15-pose re-fit 2.7 mm / 0.42°; independent physical tag scale check (0.67 % lateral) |
+| Fiducial localization | **Pass** | 5/5 synthetic (max 1.82 mm / 1.49°), 15/15 semi-synthetic on real frames, 0 false detections on 8 real frames; 4.87 % table-forward bias recorded |
+| Real visual grasping | **Pass** | First series 3/5 on the unmarked 39.4 mm cube; pass 5 with the in-configuration correction; pre-registered 24-pair trial 12/24 → 24/24 (McNemar p = 0.00049) |
+| Low-configuration model | **Pass inside the measured envelope** | Fixed-tag constant (+11.6, +4.0, +8.5) mm, grasp-validated correction (+13.7, +3.9, +8.9) mm; joint-offset and `link4` models fitted and rejected; yaw extension measured to `j1 ≈ 0.5 rad` |
+| Reliability intervention | **Pass** | The constant correction is the intervention; paired trial: baseline 12/24 vs intervention 24/24, paired placement improvement 2.19 mm (p = 0.0063); four protocol deviations documented |
+| Error budget | **Partial** | Repeatability 0.449 mm RMS / 1.017 mm max, backlash 1.117 mm and tolerance ±9 mm (conservative 6 mm) measured; translation RSS 3.995 mm passes 6 mm, worst case 7.114 mm fails; rotation RSS 1.103° / worst 1.827° passes the provisional 2° gate; grasp execution, gripper placement and fixture pose unmeasured |
+| Safety layer | **Pass with constraints** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks, table-plane clearance and trajectory veto exercised; **no e-stop or brake**, all motion supervised |
+| Debug Studio | **Pass G1–G6** | 92 backend + 38 gateway tests; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised single-joint path verified without motion |
+| Mobile base | **Not accepted** | Four open-loop motor duties, no encoders/IMU/odometry; any base move invalidates the table calibration; planned extension only |
+
+**Scope verdict.** The capstone claim is accepted for the measured fixed-base
+pick–lift–place task on this robot, cube and fixture: the pipeline works, the
+dominant error is kinematic, and the correction produces a statistically
+significant improvement in a pre-registered paired trial. The error budget is
+accepted as **partial**, and the result is **not** a population reliability
+estimate, an autonomous-operation claim, or a contact-rich manipulation claim.
+The mobile base is outside the accepted scope.
+
+## 2. Acceptance checklist (MASTER_PLAN_V3 §5)
 
 | # | Acceptance item | Status | Evidence / limit |
 |---|---|---|---|
@@ -29,7 +65,7 @@
 | 6 | 5-DoF limitations are documented | **Pass** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | 7 | Simulated limits are explicitly marked provisional where not verified | **Pass** | URDF block + per-joint `PROVISIONAL` comments; `joint_limits.yaml` header; `docs/hardware/measured_joint_limits.md` |
 
-## 2. Reproduce
+## 3. Reproduce
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -59,7 +95,7 @@ python3 tools/phase0/constrained_plan_check.py \
 Expected: the first command prints `error_code=1 (SUCCESS)` and a non-zero
 trajectory point count; the negative control prints a failure and zero points.
 
-## 3. Evidence index
+## 4. Evidence index
 
 `evidence/armpi_moveit/phase0_20261116/`:
 
@@ -74,7 +110,7 @@ trajectory point count; the negative control prints a failure and zero points.
 
 Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md`.
 
-## 4. Known non-blocking issues
+## 5. Known non-blocking issues
 
 1. **KDL root inertia warning** — `base_link` has inertia and is the URDF root;
    KDL warns but plans. A dummy root would remove the warning; not required for
@@ -95,27 +131,29 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
    motion. **Superseded after Phase 1:** the live robot, camera, gripper and
    supervised motion were exercised on 2026-11-17/19.
 
-## 5. Gap against the master plan
+## 6. Gap against the master plan (current state, 2026-11-20)
 
-| Plan area | State on 2026-11-19 | Blocker |
+| Plan area | State on 2026-11-20 | Blocker / next |
 |---|---|---|
 | Phase 0 Panda freeze | Complete: `panda-baseline-v1` tag; 8-week README/roadmap archived; Phase II work archived, not merged | — |
 | Phase 0 ArmPi model | Complete for model/mock scope (see checklist) | — |
 | Phase 0 constrained planning | Complete for endpoint-constrained PTP; candidate search is Phase 2 | — |
-| Phase 1 hardware baseline | **Captured; limits partially measured; controller board probed** | joint1 low, joint3 positive and joint5 stops unmeasured; IMU/encoders/e-stop absent |
+| Phase 1 hardware baseline | **Captured; all five joints formally surveyed; controller board probed** | Stops are pose-dependent self-collision limits; IMU/encoders/e-stop absent |
 | Phase 2 grasp candidate search | **Implemented; mock-validated and used on hardware** | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; mock search fed all five real passes |
 | Phase 2 fiducial localization | **Implemented; synthetic + real-background validated; physical tag scale check** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; physical tag scale 0.67 % lateral |
 | Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; real grasps used the planner directly, not this bridge |
-| Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 real pick–lift–place attempts** | Passes 1–2 and 5 succeeded; passes 3–4 measured the low-configuration error; pass 5 used a tag correction |
-| Phase 3 Error Budget v1 | **Framework + partial budget implemented**; measured hand-eye/fiducial terms only, required repeatability/backlash/execution/gripper/fixture terms unmeasured; paired-trial framework simulated only | Hardware measurements and a physical tolerance experiment |
+| Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 first series; 24/24 with the correction in the paired trial** | Yawed grasp test open; the cube must first be rotated to face the gripper |
+| Phase 3 Error Budget v1 | **Framework + partial budget implemented**; repeatability, backlash and tolerance measured; execution, gripper placement and fixture pose unmeasured | Three integration terms; the 2° rotation gate is still provisional |
+| Phase 3 paired trial | **Complete (2026-11-19)**: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; paired placement improvement 2.19 mm (p = 0.0063) | A second trial with the next dominant term as the intervention |
 | Host/DDS benchmark | **Read-only snapshot measured** (2026-11-17 Session 4); one laptop/Pi run, no load sweep | Repeated runs under controlled load |
-| Bonus mobile base | **Open-loop only** | No encoders/IMU/odometry; purchase/extension decision open |
+| Documentation | **Synchronized 2026-11-20** across README, README.zh-CN, ROADMAP, CHANGELOG and this report | Keep §1 and the ROADMAP status table aligned |
+| Bonus mobile base | **Open-loop only** | No encoders/IMU/odometry; base move invalidates the table calibration |
 
 Phase 1 started on 2026-11-17. Hardware-dependent items are promoted only
-where the corresponding evidence exists; see the repository README for the
-current per-workstream status.
+where the corresponding evidence exists. §1 and this table are the single
+acceptance view; the README, ROADMAP and CHANGELOG carry the same status.
 
-## 6. Changes made on 2026-11-16
+## 7. Changes made on 2026-11-16
 
 - Arm group in `armpi_ultra.srdf` is now a chain `base_link → gripper_link`, so
   the IK tip is the grasp tool frame rather than the last actuated link.

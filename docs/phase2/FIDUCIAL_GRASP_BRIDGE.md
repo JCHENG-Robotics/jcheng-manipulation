@@ -143,8 +143,9 @@ The mock joint state is also not a hardware measurement.
 - **No temporal filtering.** Each run uses one accepted pose; there is no
   multi-frame average or outlier rejection.
 - **Safety is a veto layer.** It does not own the controller, the e-stop or a
-  real-time deadline. The limits are adopted EEPROM-bounded values with
-  `mapping_verified=false`.
+  real-time deadline. The limits are adopted EEPROM-bounded values; since the
+  2026-11-19 survey the mapping is `mapping_verified=true` for the operating
+  envelope.
 - **DDS isolation is mandatory.** Use the launch's default domain 77 or set
   `ROS_DOMAIN_ID`/`ROS_LOCALHOST_ONLY` consistently for the launch, bridge and
   any `ros2` CLI inspection.

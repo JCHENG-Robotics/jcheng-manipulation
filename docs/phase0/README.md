@@ -2,12 +2,14 @@
 
 > Current state: **Phase 0 complete for the simulation/mock scope.**
 > No hardware was used in Phase 0. Phase 1/2 have since run on the real robot
-> (hardware baseline 2026-11-17; 3/5 real pick–lift–place attempts 2026-11-19);
-> see the repository README for current status.
+> (hardware baseline 2026-11-17; formal five-joint survey, 3/5 first-series
+> attempts and a 24-pair trial 12/24 → 24/24 on 2026-11-19); see
+> [`PHASE0_ACCEPTANCE.md`](PHASE0_ACCEPTANCE.md) §1 for the current acceptance
+> summary and the repository README for per-workstream status.
 
 | Document | Purpose |
 |---|---|
-| [PHASE0_ACCEPTANCE.md](PHASE0_ACCEPTANCE.md) | Acceptance checklist, evidence, known issues, gap vs the master plan |
+| [PHASE0_ACCEPTANCE.md](PHASE0_ACCEPTANCE.md) | Current capstone acceptance summary, Phase 0 checklist, evidence, known issues, gap vs the master plan |
 | [ARMPI_5DOF_CONSTRAINTS.md](ARMPI_5DOF_CONSTRAINTS.md) | 5-DoF task-space limits, grasp policy, camera geometry |
 | [JER-39-audit-and-plan.md](JER-39-audit-and-plan.md) | Historical: initial read-only audit. Its “plan files do not exist” / “no ArmPi assets” statements are **outdated** |
 | [JER-59-sprint01-audit.md](JER-59-sprint01-audit.md) | Historical Sprint 01 audit |

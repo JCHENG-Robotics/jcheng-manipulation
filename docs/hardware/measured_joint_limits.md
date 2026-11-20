@@ -1,6 +1,14 @@
 # Measured Joint Limits — [P] arm, [V] gripper
 
-> Status: **gripper measured 2026-11-18; arm joints PARTIALLY measured
+> **Historical record (2026-11-17/18), superseded for the arm on 2026-11-19.**
+> All five arm joints were formally surveyed on 2026-11-19 and the mapping is
+> now `verified: true` for the operating envelope; see
+> [`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md) and
+> [`evidence/phase2/onsite_20261119/joint_limits/`](../../evidence/phase2/onsite_20261119/joint_limits/README.md).
+> The table below remains the 2026-11-18 partial-survey record; do not use its
+> `[P]` statuses as the current mapping state.
+
+> Status at the time: **gripper measured 2026-11-18; arm joints PARTIALLY measured
 > 2026-11-18; forward-facing lowest reach measured 2026-11-19.** The torque
 > path is understood: the vendor SDK boolean is
 > inverted on this servo firmware (`enable_torque=[1, 1]` / 0x0B **releases**,
@@ -30,8 +38,9 @@ unmeasured, `[V]` verified. The URDF column shows the adopted commandable
 range (EEPROM limit − 20 pulses, or the measured stop + 20 where it is
 inside the EEPROM range). joint1's upper value is a hand-pushed mechanical
 stop beyond the servo range; commanded motion is clamped to the EEPROM
-limit (~950 pulse / +1.885 rad). The file-level `verified` flag for the
-mapping stays **false**.
+limit (~950 pulse / +1.885 rad). The file-level `verified` flag was **false**
+on 2026-11-18; the 2026-11-19 mapping is `verified: true` for the operating
+envelope (see the banner above).
 
 Servo mapping from the vendor `servo_controller.yaml`: joint1 = ID 6,
 joint2 = ID 5, joint3 = ID 4 (min 1000 / max 500 inverted), joint4 = ID 3,

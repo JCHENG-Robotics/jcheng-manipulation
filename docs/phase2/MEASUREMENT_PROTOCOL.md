@@ -10,7 +10,7 @@
 > | `repeatability` (30 visits) | radial RMS **0.449 mm**, max **1.017 mm**; joints repeat to 0–1 pulse; tag rotation max **0.867°** |
 > | `backlash` (15 + 15 visits, joint4 ±0.1 rad) | hysteresis **1.117 mm** (vector −0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart |
 >
-> Both pass the placeholder gates (5 mm / 2 mm).
+> Both pass the placeholder gates (5 mm / 2°).
 >
 > | Protocol | Hardware result |
 > |---|---|
@@ -116,7 +116,8 @@ python3 tools/phase2/measurement_protocol.py repeatability \
 The target defaults to the validated calibration base pose
 `[0.0, 0.59888, -1.25664, -0.71209, 0.0]`; `--target-joints` changes it. The
 tool rejects targets outside the adopted EEPROM-bounded limits
-(`mapping_verified=false`) before writing a schedule.
+(`mapping_verified=true` for the operating envelope since 2026-11-19) before
+writing a schedule.
 
 ## Data schema
 
