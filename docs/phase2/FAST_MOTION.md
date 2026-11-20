@@ -158,15 +158,43 @@ brought it to 0.2305 / 0.0016 m. The run then measured the cube at
 0 clusters left in the cube box), released in 6.22 s and landed **1.23 mm**
 from the measured start.
 
+## In-view and far-with-return runs (2026-11-20, latest)
+
+Two further runs on the same driver:
+
+| Run | Cube start | Base | Grasp | Release | Landing |
+|---|---|---|---:|---:|---|
+| In view (no base move) | (0.2369, 0.0003) m | none | 4.77 s | 4.44 s | **0.92 mm** (vs the cube's own start) |
+| Far + return home | (0.4325, -0.1674) m, 0.464 m at -21 deg | 2 pulses, 294.7 mm + 32.4 mm | 4.76 s | 4.31 s | **11.06 mm** (vs the fitted target) |
+
+Both grasped with `joint1 <= 0.017 rad`, a close register of 422 / 421 against
+535 on an empty grip, and 0 clusters in the cube box before and after the
+return. The two error figures use different references: the in-view cube is
+released where it was picked, so the landing is measured against its own start;
+after a home return the release point is the fitted target, which includes the
+~11-13 mm release placement error. Measured against the same target, the
+in-view run landed 12.8 mm and the far run 11.1 mm.
+
+`--return-home` reverses the commanded approach while the cube is held, with
+the same open-loop recipe as the 24-site session (`net_base_travel` +
+`return_home`, one pulse per 3 s chunk at the approach duty). The reverse
+scales both directions by the same nominal speed, so a faster or slower floor
+cancels, but there is still no odometry: the 2026-11-19 round trip came back
+32.1 mm off home and needed one correction pulse to reach 9.4 mm. The return
+home accuracy is therefore centimetre-level; the landing figure above is a
+base-frame placement error, **not** a home error.
+
 ## Remaining work
 
 * `--slow` was not re-run on hardware; it is a straight port of the old code.
-* The 4.0/20 envelope and the 1.4 rad/s release descent are validated on two
+* The 4.0/20 envelope and the 1.4 rad/s release descent are validated on four
   real-cube runs; the measured envelope table above still comes from the
   unloaded arm. Fall back with `--vmax 3.0 --amax 12
   --release-descent-vmax 0.6` if a run drops the cube.
-* The auto-base was validated from one initial placement (~0.40 m at -15 deg).
-  Other bearings and a fresh cube near the reach boundary are unmeasured.
+* The auto-base was validated from two initial placements (0.28 m at -11 deg,
+  0.46 m at -21 deg). Other bearings, a cube near the reach boundary and the
+  absolute home error after `--return-home` (needs a floor landmark) are
+  unmeasured.
 * The wide measurement region (`--x-range 0.15,0.60 --y-range 0.40`) can select
   a cube-sized background cluster; it is a supervised base-phase gate, not a
   general-purpose detector.

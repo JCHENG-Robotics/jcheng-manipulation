@@ -73,3 +73,72 @@ def test_duty_20_is_twice_duty_10():
 def test_origin_is_rejected():
     with pytest.raises(ValueError):
         e2e.base_pulse_plan([0.0, 0.0, 0.0])
+
+
+class FakeBase:
+    """Record base pulses instead of driving the chassis."""
+
+    def __init__(self):
+        self.pulses = []
+
+    def base_pulse(self, vx, vy, duty, duration):
+        self.pulses.append({
+            'vx': vx, 'vy': vy, 'duty': duty, 'duration': duration,
+            'nominal_travel_mm': duty * duration * 4.9,
+            'subscribers_matched': 1,
+        })
+        return self.pulses[-1]
+
+
+def test_net_travel_sums_the_commanded_pulses():
+    steps = [
+        {'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 1.0,
+         'subscribers_matched': 1},
+        {'vx': 0.0, 'vy': 1.0, 'duty': 20.0, 'duration': 0.5,
+         'subscribers_matched': 1},
+    ]
+    net = e2e.net_base_travel(steps)
+    assert net[0] == pytest.approx(0.098)   # 20 * 1.0 * 4.9 mm
+    assert net[1] == pytest.approx(0.049)
+
+
+def test_a_dropped_pulse_is_not_undone():
+    # a pulse with no matched subscriber never moved the robot
+    steps = [{'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 1.0,
+              'subscribers_matched': 0}]
+    assert list(e2e.net_base_travel(steps)) == [0.0, 0.0]
+    robot = FakeBase()
+    report = e2e.return_home(robot, steps)
+    assert report['pulses'] == [] and robot.pulses == []
+
+
+def test_return_home_reverses_the_approach():
+    steps = [{'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 1.0,
+              'subscribers_matched': 1},
+             {'vx': 0.0, 'vy': -1.0, 'duty': 20.0, 'duration': 1.0,
+              'subscribers_matched': 1}]
+    net = e2e.net_base_travel(steps)
+    distance = float(math.hypot(net[0], net[1]))
+    robot = FakeBase()
+    report = e2e.return_home(robot, steps)
+    assert report['distance_m'] == pytest.approx(distance)
+    assert len(robot.pulses) == 1
+    pulse = robot.pulses[0]
+    # opposite direction, and the commanded duration undoes the travel
+    assert pulse['vx'] == pytest.approx(-net[0] / distance)
+    assert pulse['vy'] == pytest.approx(-net[1] / distance)
+    assert pulse['vy'] > 0.0        # the outward -y pulse is strafed back
+    assert pulse['duration'] == pytest.approx(
+        distance * 1000.0 / (20.0 * 4.9), rel=0.01)
+
+
+def test_return_home_chunks_at_three_seconds():
+    steps = [{'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 3.0,
+              'subscribers_matched': 1},
+             {'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 3.0,
+              'subscribers_matched': 1}]
+    robot = FakeBase()
+    report = e2e.return_home(robot, steps)
+    assert all(pulse['duration'] <= 3.0 + 1e-9 for pulse in robot.pulses)
+    assert sum(pulse['duration'] for pulse in robot.pulses) == pytest.approx(
+        report['distance_m'] * 1000.0 / (20.0 * 4.9), rel=0.01)

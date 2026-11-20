@@ -16,9 +16,13 @@ duty-20 pulses, re-measured between pulses) until the cube is inside the
 0.226-0.234 m measurement band, add the validated constant correction ``e``,
 fit the deep-family joints, grasp with the fast profile, verify no cube-sized
 cluster remains in the cube box, put it back with the fast profile, and measure
-the landing displacement. Every step records its own measured time; the vendor
-report's ``motion_s`` is the pure arm motion, the wall time adds SSH and
-startup. ``--no-auto-base`` restores the manual base pulses.
+the landing displacement. ``--return-home`` reverses the commanded approach
+while the cube is held, so a far cube comes back to the robot's start pose
+before the release; the landing is then measured against the fitted target
+rather than the cube's original floor site. Every step records its own
+measured time; the vendor report's ``motion_s`` is the pure arm motion, the
+wall time adds SSH and startup. ``--no-auto-base`` restores the manual base
+pulses.
 
 The measurement is operator-gated: a cube that fails the placement gate
 (height 30-50 mm, extents 30-50 mm) is re-measured after the operator adjusts
@@ -86,6 +90,65 @@ def base_pulse_plan(point, band=BASE_BAND, duty=BASE_DUTY,
     return dx / travel, dy / travel, min(duration, 3.0)
 
 
+def net_base_travel(steps):
+    """Return the net commanded base displacement of the approach pulses.
+
+    The base has no odometry, so the return home can only undo what was
+    commanded. A pulse that the vendor watchdog dropped (no matched
+    subscriber) did not move the robot and is excluded; a pulse whose cube
+    measurement was lost still moved it and counts.
+    """
+    net = np.zeros(2)
+    for step in steps or []:
+        matched = step.get('subscribers_matched')
+        if matched is not None and int(matched) < 1:
+            continue
+        travel = (float(step['duty']) * float(step['duration'])
+                  * BASE_SPEED_PER_DUTY / 1000.0)
+        net += travel * np.asarray(
+            [float(step['vx']), float(step['vy'])], dtype=np.float64)
+    return net
+
+
+def return_home(robot, steps, duty=BASE_DUTY):
+    """Drive back along the reverse of the commanded approach, holding still.
+
+    The same open-loop reverse-pulse recipe as the 24-site session: the
+    commanded travel is undone with the same duration at the same duty, so a
+    floor that is faster or slower than the nominal 4.9 mm/s per duty scales
+    both directions equally. Pulses are chunked at 3 s, the base caps.
+    """
+    net = net_base_travel(steps)
+    distance = float(np.linalg.norm(net))
+    report = {
+        'net_travel_m': [float(value) for value in net],
+        'distance_m': distance,
+        'pulses': [],
+        'wall_s': 0.0,
+    }
+    if distance < 0.005:
+        return report
+    direction = -net / distance
+    remaining = distance
+    started = time.monotonic()
+    while remaining > 1e-6:
+        duration = min(remaining * 1000.0 / (duty * BASE_SPEED_PER_DUTY), 3.0)
+        print('  home pulse vx={:+.3f} vy={:+.3f} {:.2f} s'.format(
+            direction[0], direction[1], duration), flush=True)
+        pulse = robot.base_pulse(float(direction[0]), float(direction[1]),
+                                 duty, duration)
+        report['pulses'].append({
+            'vx': float(direction[0]), 'vy': float(direction[1]),
+            'duty': float(duty), 'duration': float(duration),
+            'nominal_travel_mm': pulse.get('nominal_travel_mm'),
+            'subscribers_matched': pulse.get('subscribers_matched'),
+        })
+        remaining -= duration * duty * BASE_SPEED_PER_DUTY / 1000.0
+        time.sleep(BASE_COAST_S)
+    report['wall_s'] = round(time.monotonic() - started, 3)
+    return report
+
+
 #: The segmenter's default region stops at x 0.32 / |y| 0.09, which a cube
 #: that still needs a base pulse can sit outside. The base phase is allowed to
 #: see it anywhere the arm could eventually reach.
@@ -146,6 +209,10 @@ def main(argv=None):
     parser.add_argument('--base-duty', type=float, default=BASE_DUTY)
     parser.add_argument('--base-pulses', type=int, default=3,
                         help='maximum closed-loop base pulses')
+    parser.add_argument(
+        '--return-home', action='store_true',
+        help='after a verified grip, reverse the commanded approach so the '
+             'cube is put back where the robot started')
     parser.add_argument('--output', default='/tmp/fast_motion_e2e.json')
     parser.add_argument('--i-have-clear-workspace', action='store_true')
     args = parser.parse_args(argv)
@@ -249,6 +316,32 @@ def main(argv=None):
         if in_box:
             raise RuntimeError('the cube is still on the floor: MISS')
 
+        landing_reference = point
+        if args.return_home and base_steps:
+            print('RETURN HOME (holding the cube)', flush=True)
+            home = return_home(robot, base_steps, args.base_duty)
+            report['return_home'] = home
+            print('  commanded displacement {:.1f} mm undone in {:.2f} s of '
+                  'pulses'.format(home['distance_m'] * 1000.0,
+                                  sum(pulse['duration']
+                                      for pulse in home['pulses'])),
+                  flush=True)
+            after = humble.segment(pulses_at(grasp, 'pulses_at_verify'),
+                                   'e2e_grip_home')
+            dropped = session.cube_box_present(after, target)
+            report['grip_after_return'] = {
+                'cube_box_present': bool(dropped),
+                'clusters': (after.get('segmentation') or {}).get(
+                    'clusters', 0),
+                'success': after.get('success'),
+            }
+            if dropped:
+                raise RuntimeError(
+                    'the cube is on the floor after the home return: MISS')
+            # The cube now leaves the arm where the base-frame target points
+            # from the *home* pose, not at its original floor site.
+            landing_reference = target
+
         print('RELEASE (fast profile)', flush=True)
         started = time.monotonic()
         release = robot.release(fit['joints'], view, 'e2e_fast')
@@ -263,7 +356,7 @@ def main(argv=None):
             raise RuntimeError('no landing measurement')
         report['landing'] = [float(v) for v in landing]
         report['landing_error_mm'] = float(
-            np.linalg.norm((landing - point)[:2]) * 1000.0)
+            np.linalg.norm((landing - landing_reference)[:2]) * 1000.0)
         print('  landing error {:.2f} mm'.format(report['landing_error_mm']),
               flush=True)
         report['ok'] = True

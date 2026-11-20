@@ -25,6 +25,34 @@ All notable changes to this project are documented here. Format based on
   with running the pre-registered 24-site trial and then address the dominant
   `gripper_placement` term, the rotation/ruler runners and the yawed grasp.
 
+## [Unreleased] — 2026-11-20 in-view and far-with-return fast runs
+
+### Added
+
+- `fast_motion_e2e.py --return-home`: after a verified grip the driver
+  reverses the commanded base approach while holding the cube, re-checks the
+  grip, and only then releases. New helpers `net_base_travel` (drops pulses
+  with no matched subscriber) and `return_home` (same open-loop reverse model
+  as the 24-site session, chunked at the 3 s vendor cap); the landing is then
+  measured against the fitted target instead of the cube's own start.
+  Four new tests in `test_fast_motion_e2e.py`.
+
+### Measured (2026-11-20, two supervised real-cube runs)
+
+- **In view, no base move:** cube at (0.2369, 0.0003) m, joints
+  (0.0216, -0.6618, -1.8012, -0.2534), close register 422, grasp 4.77 s,
+  release 4.44 s, landing **0.92 mm** from the cube's start
+  (`e2e_cube_run2.json`).
+- **Far + return home:** cube at (0.4325, -0.1674) m (0.464 m, -21 deg); two
+  closed-loop pulses (294.7 mm + 32.4 mm) brought it to (0.2277, -0.0007) m;
+  close register 421; grasp 4.76 s; one 2.50 s reverse pulse undid the
+  245.3 mm approach with 0 clusters in the cube box afterwards; release
+  4.31 s; landing **11.06 mm** from the fitted target
+  (`e2e_far_return_home.json`). The return is open-loop: 2026-11-19 measured a
+  32.1 mm home error that needed one correction pulse to reach 9.4 mm, so the
+  home accuracy is centimetre-level and the landing figure is not a home
+  error.
+
 ## [Unreleased] — 2026-11-20 24-site paired trial (pre-registered)
 
 ### Added
