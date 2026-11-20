@@ -1,6 +1,6 @@
 # Off-board RealSense D435i — intrinsics and chassis extrinsic — 2026-11-20
 
-> Status: **intrinsics provisional PASS, chassis extrinsic PASS.** The front
+> Status: **intrinsics PASS (refined 2026-11-20), chassis extrinsic PASS.** The front
 > camera is an Intel RealSense D435i (`8086:0b3a`) on the USB 3 bus, mounted on
 > the chassis front under the arm base, looking down at the table. Colour runs
 > on the UVC path; depth needs librealsense.
@@ -34,15 +34,23 @@ Sweep: one 60 s hand-held chessboard pass at 0.3-0.5 m (11x8 inner corners,
 | RMS | **0.507 px**, per-view 0.23-0.80 px |
 | Split-half spread | fx 8.1 px, cx 0.9 px, cy 16.0 px |
 
-Two limits are known and documented rather than hidden:
+The first sweep kept the board flat and centred, so the free fit split
+fx 929 / fy 1032 (22% apart) and `cy` carried a 16 px split-half spread. A
+second sweep with the board **propped at 15-30 deg on each edge in turn** fixed
+that. The adopted model (`uvc_color_intrinsics_refined.json`) merges both
+sweeps (6300 frames, 149 detected, 18 selected):
 
-- the free fit gives fx 929 / fy 1032 (22% apart) because the sweep kept the
-  board large and centred, so the vertical focal length is weakly constrained;
-  fixing fx = fy costs 0.001 px of RMS, so the constrained model is used;
-- the camera's working volume is a wedge (0.09-0.45 m on the table with at most
-  ~0.07 m of clearance above it at 0.3 m), so a hand sweep cannot vary the
-  board's distance much. A board propped at 15-30 deg would firm up `cy` and
-  the distortion; until then the intrinsics are **provisional**.
+| Metric | First sweep | Refined (adopted) |
+|---|---|---|
+| fx = fy | 892.1 px | **903.5 px** |
+| cx, cy | 648.0, 380.2 px | **644.9, 363.7 px** |
+| RMS | 0.507 px | **0.371 px** |
+| Split-half spread | fx 8.1, cx 0.9, cy 16.0 px | **fx 0.4, cx 0.5, cy 4.1 px** |
+| FOV | 71.3 x 44.0 deg | 70.6 x 43.4 deg |
+
+`cy` landing within 4 px of the image centre is the sanity check that matters:
+the flat sweep's 380 px was a conditioning artefact, not a real off-centre
+principal point.
 
 ## Chassis extrinsic
 
@@ -53,17 +61,21 @@ arm stays above the front camera's frame, so the board is unoccluded).
 
 ```text
 T_base_link_front_optical
-translation = [0.139, 0.027, 0.037] m
-pitch below horizontal = 32.6 deg
-yaw = -1.3 deg
-height above the board top = 119 mm
+translation = [0.136, 0.027, 0.038] m
+pitch below horizontal = 31.6 deg
+yaw = -1.1 deg
+height above the board top = 121 mm
 ```
+
+Solved with the refined intrinsics. The provisional model gave
+`[0.139, 0.027, 0.037] m`, 32.6 deg and 119 mm: the refinement moved the
+camera **3 mm in x and 1 deg in pitch**, inside the earlier uncertainty.
 
 | Check | Value | Independent expectation |
 |---|---|---|
 | Board plane tilt in `base_link` | **0.8 deg** | board lies flat on the table |
-| Camera pitch | **32.6 deg** | 30-36 deg from the depth plane fit |
-| Camera height above table | **115 mm** | 0.12-0.14 m from the depth plane fit |
+| Camera pitch | **31.6 deg** | 30-36 deg from the depth plane fit |
+| Camera height above table | **116 mm** | 0.12-0.14 m from the depth plane fit |
 | Wrist board spread | 2.8 mm / 0.68 deg | 2.7 mm / 0.42 deg at the 2026-11-18 table-down fit |
 | Front board spread (static board) | 0.0 mm / 0.01 deg | — |
 
@@ -79,7 +91,7 @@ reported solve is the plausible one, and the three checks above confirm it.
 
 ## Consequences for use
 
-- The camera is **0.139 m forward, 0.027 m right, 0.115 m above the table**, so
+- The camera is **0.136 m forward, 0.027 m right, 0.116 m above the table**, so
   it sits just in front of and above the arm's shoulder area. The link2 origin
   at the low poses is at z = 0.087 m, i.e. within ~2 cm of the mount: the
   camera is **not in the collision model** and any low arm pose needs a visual

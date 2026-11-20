@@ -213,9 +213,9 @@ Calibration (2026-11-20, [`evidence/calibration/20261120/`](../../evidence/calib
 
 ```text
 base_link -> ext_cam_optical
-translation = [0.139, 0.027, 0.037] m
-pitch = 32.6 deg below horizontal, yaw = -1.3 deg
-fx = fy = 892.1 px, cx/cy = 648.0/380.2, RMS 0.51 px (provisional)
+translation = [0.136, 0.027, 0.038] m
+pitch = 31.6 deg below horizontal, yaw = -1.1 deg
+fx = fy = 903.5 px, cx/cy = 644.9/363.7, RMS 0.37 px
 ```
 
 Two constraints drive how this camera may be used:
@@ -223,7 +223,7 @@ Two constraints drive how this camera may be used:
 - **It is a planning-scene object, not a URDF link.** The live robot runs the
   vendor description, so the camera is published the same way as the measured
   table: `tools/phase2/ext_cam_collision.py` adds a 90 x 25 x 26 mm box at
-  `base_link` (0.148, 0.027, 0.031) with the calibrated orientation. With that
+  `base_link` (0.145, 0.027, 0.032) with the calibrated orientation. With that
   box in the scene the five validated operating poses (upright, table-down,
   adopted-low, deep-low, 150 mm lift) stay collision-free; a control run with
   the box padded by 0.3 m reported contacts against `link1`-`link3`, so the box

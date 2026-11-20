@@ -22,4 +22,4 @@ exec docker exec -u ubuntu "${CONTAINER}" /bin/bash -lc \
    cd /home/ubuntu/shared/armpi_ext_cam; \
    exec python3 ext_cam_node.py \
      --extrinsic front_camera_extrinsic.json \
-     --intrinsics uvc_color_intrinsics_aspect.json"
+     --intrinsics uvc_color_intrinsics_refined.json"

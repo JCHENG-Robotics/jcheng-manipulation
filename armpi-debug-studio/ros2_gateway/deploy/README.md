@@ -178,7 +178,7 @@ docker cp tools/phase2/ext_cam_node.py ArmPiUltra:/home/ubuntu/shared/armpi_ext_
 docker cp tools/phase2/ext_cam_frames.py ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
 docker cp evidence/calibration/20261120/front_camera_extrinsic.json \
   ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
-docker cp evidence/calibration/20261120/uvc_color_intrinsics_aspect.json \
+docker cp evidence/calibration/20261120/uvc_color_intrinsics_refined.json \
   ArmPiUltra:/home/ubuntu/shared/armpi_ext_cam/
 
 # service
