@@ -27,7 +27,7 @@
 | Joint | URDF (adopted) | Vendor software | Boot pose 09:43 | Reset pose 09:50 | Measured lower | Measured upper | Status |
 |---|---:|---:|---:|---:|---:|---:|---|
 | joint1 | **-1.8012 … 1.8012** | -2.094 … 2.094 | **+0.8378** (servo 700) | **0.0** (servo 500) | — (EEPROM 50 assumed) | ≥1164 pulse (clamped ~952) | `[P]` |
-| joint2 | **-0.6618 … 1.2985** | -2.094 … 2.094 | 0.0 | 0.0 | 322 pulse (−0.746) | 873 pulse (+1.562) | `[M]` |
+| joint2 | **-0.6618 … 1.1519** | -2.094 … 2.094 | 0.0 | 0.0 | 322 pulse (−0.746) | 873 pulse (+1.562); low-pose hand stop **795** (adopted 775) | `[M]` |
 | joint3 | **-1.8012 … 0.0** | -2.094 … 0.0 | 0.0 | 0.0 | travel reached 23 pulse, no stop | powered probe stops at **939** | `[P]` |
 | joint4 | **-1.5917 … 1.5917** | -2.094 … 2.094 | 0.0 | 0.0 | — (EEPROM 100 assumed) | 901 pulse (+1.680) | `[P]` |
 | joint5 | **-1.5917 … 1.5499** | -2.094 … 2.094 | 0.0 | 0.0 | travel reached 62, then fell negative | travel reached 875 | `[P]` |

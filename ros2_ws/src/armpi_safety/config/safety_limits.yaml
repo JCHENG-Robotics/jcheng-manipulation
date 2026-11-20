@@ -1,13 +1,14 @@
 # Safety limits for ArmPi Ultra.
 #
-# Position bounds are the EEPROM-bounded values adopted on 2026-11-18
-# (`mapping_version: eeprom-bounded-2026-11-18`, servo EEPROM limits minus a
-# 20-pulse margin; see docs/phase2/JOINT_LIMITS.md and the MoveIt
-# joint_limits.yaml). They are still not fully mechanically surveyed, so they
-# are conservative command limits rather than a metrology claim. Velocity and
-# acceleration limits are deliberately far below the URDF limits (10 rad/s,
-# 1 rad/s^2) so a future executor cannot pass a fast trajectory through the
-# veto layer.
+# Position bounds are the adopted limits (`mapping_version:
+# measured-2026-11-19`, servo EEPROM limits minus a 20-pulse margin, with the
+# measured joint2 high stop 795 - 20 = 775; see docs/phase2/JOINT_LIMITS.md and
+# the MoveIt joint_limits.yaml). All five arm joints were surveyed by hand on
+# 2026-11-19; the stops are pose-dependent self-collision limits, so these
+# bounds are verified for the operating envelope rather than as universal
+# mechanical stops. Velocity and acceleration limits are deliberately far
+# below the URDF limits (10 rad/s, 1 rad/s^2) so a future executor cannot pass
+# a fast trajectory through the veto layer.
 schema_version: 1
 source: EEPROM-bounded 2026-11-18 + formal stop survey 2026-11-19 (joint2 high tightened)
 

@@ -51,6 +51,12 @@ Adopted = EEPROM ± 20 pulses (joint2 low from the measured stop 322 + 20):
 
 \* the guard value is not a confirmed mechanical stop, so these are advisory.
 
+> **Superseded for joint2 high.** This table records the state at the time of
+> the survey (adopted 810). The joint2 high bound was subsequently tightened
+> to **775** pulse (795 − 20) and applied to the URDF, MoveIt, safety and
+> Studio mapping; §4 and the current configs are authoritative. The row's
+> "15 beyond the low-pose hand stop" refers to the pre-tightening 810.
+
 **Pose dependence.** joint2's high stop is 795 at the low pose and 873 upright;
 joint3's low stop is 939 at the low pose and 923 upright. A single static
 limit cannot be inside every pose's self-collision envelope. The adopted

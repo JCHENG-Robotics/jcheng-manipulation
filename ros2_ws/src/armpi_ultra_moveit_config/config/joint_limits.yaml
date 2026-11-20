@@ -1,13 +1,15 @@
-# joint_limits.yaml — ArmPi Ultra (ADOPTED 2026-11-18)
+# joint_limits.yaml — ArmPi Ultra (ADOPTED 2026-11-19)
 #
 # Source of the position bounds:
-#   - servo EEPROM position limits (read-only, 2026-11-18) minus a 20-pulse
-#     margin (20 pulses = 0.0838 rad = 4.8 deg)
-#   - the one hand-measured mechanical stop that lies inside the EEPROM
-#     range: joint2 low at 322 pulse
-# Mechanical stops are NOT fully measured; joints 1 (low), 3 and 5 keep
-# `mapping_verified=false`. Evidence: docs/phase2/JOINT_LIMITS.md and
-# evidence/phase2/onsite_20261118/.
+#   - servo EEPROM position limits minus a 20-pulse margin
+#     (20 pulses = 0.0838 rad = 4.8 deg)
+#   - measured mechanical stops where they are tighter: joint2 low 322 + 20
+#     and joint2 high 795 - 20 (2026-11-19 low-pose hand survey)
+# All five arm joints were formally surveyed by hand on 2026-11-19 with
+# torque released. The stops are pose-dependent self-collision limits, so
+# these bounds are verified for the operating envelope, not as universal
+# mechanical stops (`mapping_verified=true`). Evidence:
+# docs/phase2/JOINT_LIMITS.md and evidence/phase2/onsite_20261119/joint_limits/.
 
 default_velocity_scaling_factor: 0.1
 default_acceleration_scaling_factor: 0.1

@@ -63,9 +63,9 @@ not latch the stop.
 holds the adopted limits. The main values:
 
 ```yaml
-joint_limits:      # EEPROM-bounded, 20-pulse margin (2026-11-18)
+joint_limits:      # adopted 2026-11-19, EEPROM/measured stop - 20 pulses
   joint1: {lower: -1.8012, upper: 1.8012}
-  joint2: {lower: -0.6618, upper: 1.2985}
+  joint2: {lower: -0.6618, upper: 1.1519}
   joint3: {lower: -1.8012, upper: 0.0}
   joint4: {lower: -1.5917, upper: 1.5917}
   joint5: {lower: -1.5917, upper: 1.5499}
