@@ -3,6 +3,57 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 throughput v2 (arm envelope default, faster base)
+
+### Changed
+
+- **Arm:** `fast_motion.py`, `move_to_pose.py` and
+  `low_config_grasp_validate.py` now default to the measured envelope
+  **`vmax = 4.0 rad/s`, `amax = 20 rad/s^2`** for the free moves (was 3.0/12).
+- **Release path:** the holding-cube descent runs at **1.4 rad/s** (was 0.6),
+  the release final approach at **0.8** (was 0.35), the release gripper open
+  interpolates in **0.45 s** (was 0.8) and the grip wait is **0.5 s** (was 0.7;
+  the measured stall was at 0.42 s). New CLI overrides:
+  `--release-descent-vmax`, `--release-final-vmax`,
+  `--release-open-duration`.
+- **Base:** `base_pulse_vector.py` accepts `--speed-mm-s` (scale
+  `duty = 0.182 * v`), raises the vector duty cap from 12 % to **20 %** and the
+  wheel cap from 15 % to 30 % (a 45-degree diagonal at duty 20 is 28.3), waits
+  for a matched subscriber instead of `sleep(1.5)`, and sends 4 zero messages
+  instead of 10.
+- `tools/phase2/tests/test_base_pulse.py`: 5 new tests for the duty/wheel caps,
+  the speed conversion and the nominal travel.
+
+- **Auto-base:** `fast_motion_e2e.py` drives the base in up to three
+  closed-loop duty-20 pulses while the cube is outside the 0.226-0.234 m band.
+  The plan is ``C - (0.230, 0)``, so one pulse removes both the radius error
+  and the lateral offset and the grasp stays in the `joint1 ~ 0` family.
+  `--no-auto-base` restores the manual pulses. A new wide measurement region
+  (`--x-range 0.15,0.60 --y-range 0.40 --max-xy 0.12`) lets the base phase see
+  a cube that the default region rejects.
+
+### Measured (2026-11-20, two supervised real-cube runs)
+
+- Full grasp + put-back motion **11.67 s -> 8.94 s (-23 %)**: grasp
+  5.447 -> 4.699-4.729 s, release 6.216 -> 4.207-4.259 s. The release descent
+  alone fell 2.677 -> 1.241 s. Every step settled in 0.14-0.16 s at 4.0/20 and
+  the cube was held through both runs (0 clusters in the cube box).
+- Base duty 20: a 1.786 s pulse travelled **178.9 mm (100.2 mm/s)**; a 0.484 s
+  strafe travelled 45.3 mm (93.5 mm/s). Direction error 1.6-2.5 deg. The
+  0.182 duty/mm-s scale is ~9 % optimistic at duty 20, so the planner keeps
+  4.9 mm/s per duty and undershoots.
+- Auto-base placed the cube at `(0.2316, -0.0025)` m in one pulse from
+  `(0.2228, -0.0469)`, and the grasp used `joint1 = 0.0065`; the yawed
+  bearing-only run used `joint1 = -0.2878` and landed 6.72 mm from the start
+  vs **2.22 mm** for the aligned run.
+- Evidence: `evidence/phase2/onsite_20261120/throughput_v2/`.
+
+### Open
+
+- The aligned auto-base was validated from one initial cube placement; other
+  bearings have not been run. Fallback for a drop: `--vmax 3.0 --amax 12
+  --release-descent-vmax 0.6`.
+
 ## [Unreleased] — 2026-11-20 fast, measured arm motion
 
 ### Added

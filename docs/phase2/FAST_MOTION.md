@@ -4,6 +4,10 @@
 > 2026-11-20, including a real-cube run (**5.45 s** grasp, **6.22 s** release,
 > **1.23 mm** landing) and a no-cube cycle (**5.43 s** vs ~37 s). Evidence:
 > [`evidence/phase2/onsite_20261120/fast_motion/`](../../evidence/phase2/onsite_20261120/fast_motion/).
+> The **throughput v2** defaults (4.0/20, 1.4 rad/s release descent, duty-20
+> auto-base) are hardware-verified on 2026-11-20: **11.67 s -> 8.94 s** of
+> motion for grasp + put-back, the cube held through both fast runs, and one
+> base pulse placed it at `(0.2316, -0.0025)` m with a 2.22 mm landing error.
 
 ## Why the old motion was slow and why it shook
 
@@ -73,9 +77,58 @@ Real path, view pose <-> approach pose (`0, -0.6618, -1.8012, 0, 0`):
 
 The settle time does not grow with speed and the post-stop tail jitter stays at
 1-3 counts, so the servos are not saturating in this range (the old 9 s return
-was 11x slower than the arm allows). **Production defaults: `vmax = 3.0`,
-`amax = 12`.** The 4.0/20 rows are the tested ceiling on an unloaded arm, not
-the default.
+was 11x slower than the arm allows).
+
+### 2026-11-20 v2: the envelope is now the default
+
+**Production defaults: `vmax = 4.0`, `amax = 20`** for every free move
+(approach, return, `move_to_pose`), and the holding-cube put-back is faster
+than the grasp descent:
+
+| Move | Before | Now |
+|---|---:|---:|
+| Free moves (approach, return, view) | 3.0 / 12 | **4.0 / 20** |
+| Grasp pre-grasp descent | 0.6 | 0.6 (contact-adjacent, unchanged) |
+| Grasp final 0.15 rad | 0.35 | 0.35 (unchanged) |
+| Release descent (cube held) | 0.6 | **1.4** |
+| Release final 0.15 rad | 0.35 | **0.8** |
+| Gripper close wait | 0.7 s | **0.5 s** (measured stall at 0.42 s) |
+| Release open interpolation | 0.8 s | **0.45 s** (measured 414->204 in 1.34 s) |
+
+**Measured on hardware (2026-11-20, two real-cube runs):** the full grasp +
+put-back motion fell **11.67 s -> 8.94 s (-23 %)**, grasp 5.447 ->
+4.699-4.729 s and release 6.216 -> 4.207-4.259 s; the release descent alone
+went 2.677 -> 1.241 s. Every step settled in 0.14-0.16 s at 4.0/20, the
+post-stop tail stayed at 1-3 counts, and both runs held the cube through the
+4.0/20 return and the 1.4 rad/s descent (0 clusters in the cube box).
+Evidence: [`evidence/phase2/onsite_20261120/throughput_v2/`](../../evidence/phase2/onsite_20261120/throughput_v2/).
+
+## Chassis speed
+
+`base_pulse_vector.py` now accepts `--speed-mm-s` (scale `duty = 0.182 * v`,
+10 % = 55 mm/s, 20 % = 110 mm/s) and the vector duty cap is **20 %** (a
+45-degree diagonal then commands 28.3 on two wheels, inside the 30 % wheel
+cap). Two fixed costs were removed:
+
+* the 1.5 s discovery sleep is now a **subscriber-matched wait** (state, not
+  duration), and
+* the stop burst is 4 zero messages (0.2 s) instead of 10 (0.5 s).
+
+Measured at duty 20 on 2026-11-20: a 1.786 s pulse moved **178.9 mm**
+(100.2 mm/s) and a 0.484 s strafe moved 45.3 mm (93.5 mm/s), i.e. ~2x the
+48-51 mm/s of the duty-10 runs. The linear `0.182` scale predicts 109.9 mm/s at
+duty 20, so it is ~9 % optimistic there; `fast_motion_e2e.py` keeps the
+conservative **4.9 mm/s per duty** for pulse lengths and therefore undershoots
+rather than overshoots. Each pulse invocation is also **~1.8 s** cheaper in
+startup.
+
+`fast_motion_e2e.py` now closes the loop on the base: while the cube is outside
+the 0.226-0.234 m band it pulses toward `(0.230, 0)`, so the same pulse removes
+the radius error **and** the lateral offset. That puts the grasp back in the
+`joint1 ~ 0` family that passed 24/24; the bearing-only variant left
+`joint1 = -0.288` (fingers close across the ~49 mm diagonal instead of the
+39.4 mm face) and landed 6.72 mm from the start vs 2.22 mm when aligned. The
+base is still open-loop and has no odometry; every pulse is re-measured.
 
 ## Tools
 
@@ -108,5 +161,12 @@ from the measured start.
 ## Remaining work
 
 * `--slow` was not re-run on hardware; it is a straight port of the old code.
-* The 4.0 rad/s / 20 rad/s^2 ceiling is tested on the unloaded arm only; the
-  holding-cube return ran at the 3.0 rad/s default.
+* The 4.0/20 envelope and the 1.4 rad/s release descent are validated on two
+  real-cube runs; the measured envelope table above still comes from the
+  unloaded arm. Fall back with `--vmax 3.0 --amax 12
+  --release-descent-vmax 0.6` if a run drops the cube.
+* The auto-base was validated from one initial placement (~0.40 m at -15 deg).
+  Other bearings and a fresh cube near the reach boundary are unmeasured.
+* The wide measurement region (`--x-range 0.15,0.60 --y-range 0.40`) can select
+  a cube-sized background cluster; it is a supervised base-phase gate, not a
+  general-purpose detector.

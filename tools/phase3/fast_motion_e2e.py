@@ -11,11 +11,14 @@ wrist-camera segmentation inside the Humble container::
         --output evidence/phase2/onsite_20261120/fast_motion/e2e_cube.json
 
 Sequence: move to the view pose, measure the cube with the markerless wrist
-segmenter, add the validated constant correction ``e``, fit the deep-family
-joints, grasp with the fast profile, verify no cube-sized cluster remains in
-the cube box, put it back with the fast profile, and measure the landing
-displacement. Every step records its own measured time; the vendor report's
-``motion_s`` is the pure arm motion, the wall time adds SSH and startup.
+segmenter, drive the base along the cube bearing (up to three closed-loop
+duty-20 pulses, re-measured between pulses) until the cube is inside the
+0.226-0.234 m measurement band, add the validated constant correction ``e``,
+fit the deep-family joints, grasp with the fast profile, verify no cube-sized
+cluster remains in the cube box, put it back with the fast profile, and measure
+the landing displacement. Every step records its own measured time; the vendor
+report's ``motion_s`` is the pure arm motion, the wall time adds SSH and
+startup. ``--no-auto-base`` restores the manual base pulses.
 
 The measurement is operator-gated: a cube that fails the placement gate
 (height 30-50 mm, extents 30-50 mm) is re-measured after the operator adjusts
@@ -24,6 +27,7 @@ it, and the run refuses to grasp when no usable measurement remains.
 
 import argparse
 import json
+import math
 import os
 import sys
 import time
@@ -43,14 +47,59 @@ import paired_trial_session as session  # noqa: E402
 DEFAULT_VIEW_POSE = '0,0.2574,-1.18773,-1.70,-0.01676'
 DEFAULT_CORRECTION_MM = '13.7,3.9,8.9'
 SERVOS = (6, 5, 4, 3, 2)
+#: 48-51 mm/s measured at duty 10 in the 2026-11-19 closed-loop approaches.
+BASE_SPEED_PER_DUTY = 4.9
+BASE_DUTY = 20.0
+BASE_BAND = (0.226, 0.234)
+BASE_COAST_S = 0.4
+MIN_BASE_TRAVEL_M = 0.015
+MIN_BASE_PULSE_S = 0.20
 
 
-def measure(robot, humble, tag, retries):
+def base_pulse_plan(point, band=BASE_BAND, duty=BASE_DUTY,
+                    tolerance=MIN_BASE_TRAVEL_M):
+    """Return ``(vx, vy, duration)`` to place the cube at ``(r, 0)``.
+
+    The base pulse is ``C - (target_r, 0)`` in the base frame (``C`` is the
+    measured cube point), so one pulse both brings the cube into the
+    ``band`` radius **and** removes the lateral offset. Aligning to the
+    forward axis keeps the grasp in the ``joint1 ~ 0`` family that passed
+    24/24: at a 16.5 degree yaw the gripper closes across the cube diagonal
+    (~49 mm) instead of the 39.4 mm face, which is the measured failure edge.
+    ``None`` means no useful pulse: already aligned, or the correction would
+    sit inside the ~0.15 s dead band.
+    """
+    x, y = float(point[0]), float(point[1])
+    radius = math.hypot(x, y)
+    if radius <= 0.0:
+        raise ValueError('cube at the base origin')
+    low, high = band
+    # Aim at the band midpoint, not the nearest edge: the ~2 % duty-scale error
+    # then has slack on both sides.
+    target_r = 0.5 * (low + high)
+    dx, dy = x - target_r, y
+    travel = math.hypot(dx, dy)
+    if travel < tolerance:
+        return None
+    duration = max(travel * 1000.0 / (duty * BASE_SPEED_PER_DUTY),
+                   MIN_BASE_PULSE_S)
+    return dx / travel, dy / travel, min(duration, 3.0)
+
+
+#: The segmenter's default region stops at x 0.32 / |y| 0.09, which a cube
+#: that still needs a base pulse can sit outside. The base phase is allowed to
+#: see it anywhere the arm could eventually reach.
+WIDE_REGION = ('--x-range', '0.15,0.60', '--y-range', '0.40',
+               '--max-xy', '0.12')
+
+
+def measure(robot, humble, tag, retries, wide=False):
     """Segment the cube at the current pose, with an operator retry loop."""
     pulses = robot.pulses()
     last = None
     for attempt in range(retries):
-        report = humble.segment(pulses, tag)
+        report = humble.segment(pulses, tag,
+                                extra_args=WIDE_REGION if wide else None)
         point, valid = session.cube_point(report)
         quality, reason = session.placement_quality(report)
         print('  measurement {}: success={} point={} placement={}'.format(
@@ -90,6 +139,13 @@ def main(argv=None):
     parser.add_argument('--correction', default=DEFAULT_CORRECTION_MM)
     parser.add_argument('--max-xy-error-mm', type=float, default=8.0)
     parser.add_argument('--retries', type=int, default=3)
+    parser.add_argument(
+        '--no-auto-base', action='store_true',
+        help='do not drive the base when the cube is outside the 0.226-0.234 '
+             'm measurement band')
+    parser.add_argument('--base-duty', type=float, default=BASE_DUTY)
+    parser.add_argument('--base-pulses', type=int, default=3,
+                        help='maximum closed-loop base pulses')
     parser.add_argument('--output', default='/tmp/fast_motion_e2e.json')
     parser.add_argument('--i-have-clear-workspace', action='store_true')
     args = parser.parse_args(argv)
@@ -120,9 +176,43 @@ def main(argv=None):
         report['move_to_view_s'] = round(time.monotonic() - started, 3)
 
         print('MEASURE the cube at the view pose', flush=True)
-        point, segment = measure(robot, humble, 'e2e_pre', args.retries)
+        point, segment = measure(robot, humble, 'e2e_pre', args.retries,
+                                 wide=not args.no_auto_base)
         if point is None:
             raise RuntimeError('no usable cube measurement')
+
+        base_steps = []
+        if not args.no_auto_base:
+            for attempt in range(args.base_pulses):
+                plan = base_pulse_plan(point, duty=args.base_duty)
+                if plan is None:
+                    break
+                vx, vy, duration = plan
+                print('  BASE pulse {}: vx={:.3f} vy={:.3f} duty={:.0f} '
+                      '{:.2f} s'.format(attempt + 1, vx, vy,
+                                        args.base_duty, duration),
+                      flush=True)
+                started = time.monotonic()
+                pulse = robot.base_pulse(vx, vy, args.base_duty, duration)
+                time.sleep(BASE_COAST_S)
+                point, segment = measure(
+                    robot, humble, 'e2e_base{}'.format(attempt), 1, wide=True)
+                base_steps.append({
+                    'vx': vx, 'vy': vy, 'duty': args.base_duty,
+                    'duration': duration,
+                    'nominal_travel_mm': pulse.get('nominal_travel_mm'),
+                    'subscribers_matched': pulse.get('subscribers_matched'),
+                    'wall_s': round(time.monotonic() - started, 3),
+                    'point_after': (None if point is None
+                                    else [float(v) for v in point]),
+                })
+                if point is None:
+                    raise RuntimeError(
+                        'no usable measurement after a base pulse')
+                print('  cube now {:.4f} m from the base'.format(
+                    float(np.linalg.norm(point[:2]))), flush=True)
+            report['base_pulses'] = base_steps
+
         target = point + correction
         fit = grasp_joint_fit.fit(target)
         session.validate_target(target, fit, args.max_xy_error_mm)

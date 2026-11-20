@@ -16,6 +16,11 @@ verify pose. Every arm move is a dense S-curve sent through
 step ends on a **measured** bus-servo settle instead of a fixed sleep.
 ``--slow`` reproduces the previous single-point 6-9 s moves for comparison.
 
+The free moves run at the measured envelope (4.0 rad/s, 20 rad/s^2). The
+put-back descent is faster than the grasp descent (1.4 vs 0.6 rad/s): the cube
+is already held, so no approach precision is needed and only the grip has to
+survive the move.
+
 The gripper is driven with one raw ``ServosPosition`` per step in the fast
 path; ``--slow`` keeps the vendor gripper action.
 
@@ -106,11 +111,11 @@ class GraspRunner(fast_motion.FastMover):
 
     # ------------------------------------------------------------- sequence
     def grasp(self, grasp, verify, open_rad=-2.22, preclose_rad=-1.6,
-              grip_rad=-0.63, vmax=3.0, amax=12.0,
+              grip_rad=-0.63, vmax=4.0, amax=20.0,
               descent_vmax=0.6, final_vmax=0.35, pre_gap=0.15,
               dt=fast_motion.motion_profile.MIN_SEGMENT_S, slow=False,
               open_duration=0.8, preclose_duration=0.35,
-              grip_duration=0.7):
+              grip_duration=0.5):
         """Approach, descend, grip, and return to the verify pose."""
         approach = [grasp[0], grasp[1], grasp[2], 0.0]
         steps = []
@@ -167,10 +172,10 @@ class GraspRunner(fast_motion.FastMover):
         log['motion_s'] = round(time.monotonic() - started, 3)
         return log
 
-    def release(self, grasp, verify, open_rad=-2.22, vmax=3.0, amax=12.0,
-                descent_vmax=0.6, final_vmax=0.35, pre_gap=0.15,
+    def release(self, grasp, verify, open_rad=-2.22, vmax=4.0, amax=20.0,
+                descent_vmax=1.4, final_vmax=0.8, pre_gap=0.15,
                 dt=fast_motion.motion_profile.MIN_SEGMENT_S, slow=False,
-                open_duration=0.8):
+                open_duration=0.45):
         """Lower a held cube to the grasp pose, open, and return."""
         approach = [grasp[0], grasp[1], grasp[2], 0.0]
         steps = []
@@ -227,14 +232,24 @@ def main():
         '--yaw', type=float, default=0.0,
         help='joint5 wrist yaw in radians for the approach, grasp and '
              'release moves; the verify pose restores its own joint5')
-    parser.add_argument('--vmax', type=float, default=3.0,
+    parser.add_argument('--vmax', type=float, default=4.0,
                         help='peak joint velocity (rad/s) for the free moves')
-    parser.add_argument('--amax', type=float, default=12.0,
+    parser.add_argument('--amax', type=float, default=20.0,
                         help='peak joint acceleration (rad/s^2)')
     parser.add_argument('--descent-vmax', type=float, default=0.6,
                         help='peak velocity (rad/s) for the pre-grasp descent')
     parser.add_argument('--final-vmax', type=float, default=0.35,
                         help='peak velocity (rad/s) for the final approach')
+    parser.add_argument(
+        '--release-descent-vmax', type=float, default=1.4,
+        help='peak velocity (rad/s) for the holding-cube descent; faster than '
+             'the grasp descent because the cube is already held')
+    parser.add_argument(
+        '--release-final-vmax', type=float, default=0.8,
+        help='peak velocity (rad/s) for the release final approach')
+    parser.add_argument(
+        '--release-open-duration', type=float, default=0.45,
+        help='interpolation time (s) for the release gripper open')
     parser.add_argument('--pre-gap', type=float, default=0.15,
                         help='joint4 offset (rad) of the pre-grasp pose')
     parser.add_argument('--dt', type=float,
@@ -261,18 +276,23 @@ def main():
            'approach_joints': [grasp[0], grasp[1], grasp[2], 0.0],
            'verify_pose': verify, 'yaw_rad': float(args.yaw),
            'mode': 'slow' if args.slow else 'fast',
-           'vmax': args.vmax, 'amax': args.amax,
+            'vmax': args.vmax, 'amax': args.amax,
            'descent_vmax': args.descent_vmax,
-           'final_vmax': args.final_vmax, 'steps': []}
+           'final_vmax': args.final_vmax,
+           'release_descent_vmax': args.release_descent_vmax,
+           'release_final_vmax': args.release_final_vmax,
+           'release_open_duration': args.release_open_duration,
+           'steps': []}
     try:
         log['pulses_start'] = node.pulses()
         print('START pulses', log['pulses_start'], flush=True)
         if args.release_only:
             sequence = node.release(
                 grasp, verify, open_rad=args.open, vmax=args.vmax,
-                amax=args.amax, descent_vmax=args.descent_vmax,
-                final_vmax=args.final_vmax, pre_gap=args.pre_gap,
-                dt=args.dt, slow=args.slow)
+                amax=args.amax, descent_vmax=args.release_descent_vmax,
+                final_vmax=args.release_final_vmax, pre_gap=args.pre_gap,
+                dt=args.dt, slow=args.slow,
+                open_duration=args.release_open_duration)
         else:
             sequence = node.grasp(
                 grasp, verify, open_rad=args.open,

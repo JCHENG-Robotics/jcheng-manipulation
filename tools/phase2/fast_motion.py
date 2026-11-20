@@ -451,10 +451,11 @@ def main():
     """Command-line entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--target', help='five commanded joint radians')
-    parser.add_argument('--vmax', type=float, default=3.0,
-                        help='peak joint velocity (rad/s), default 3.0')
-    parser.add_argument('--amax', type=float, default=12.0,
-                        help='peak joint acceleration (rad/s^2), default 12')
+    parser.add_argument('--vmax', type=float, default=4.0,
+                        help='peak joint velocity (rad/s), default 4.0 '
+                             '(the measured 2026-11-20 ceiling)')
+    parser.add_argument('--amax', type=float, default=20.0,
+                        help='peak joint acceleration (rad/s^2), default 20')
     parser.add_argument('--dt', type=float,
                         default=motion_profile.MIN_SEGMENT_S,
                         help='maximum segment length (s)')

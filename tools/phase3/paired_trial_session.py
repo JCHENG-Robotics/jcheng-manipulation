@@ -54,7 +54,8 @@ DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
 DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
 ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
                'low_config_grasp_validate.py', 'fast_motion.py',
-               'motion_profile.py', 'vendor_servo_map.py')
+               'motion_profile.py', 'vendor_servo_map.py',
+               'base_pulse_vector.py')
 
 
 def now_iso():
@@ -115,6 +116,18 @@ class RobotLink:
         if len(values) != 5:
             raise RuntimeError('unexpected pulse output: {!r}'.format(text))
         return values
+
+    def base_pulse(self, vx, vy, duty, duration, allow_long=False):
+        """Drive one open-loop base pulse and return its JSON report."""
+        arguments = ['python3', '/tmp/base_pulse_vector.py',
+                     '--vx={:.6f}'.format(float(vx)),
+                     '--vy={:.6f}'.format(float(vy)),
+                     '--duty={:.3f}'.format(float(duty)),
+                     '--duration={:.4f}'.format(float(duration)), '--yes']
+        if allow_long:
+            arguments.append('--allow-long-pulse')
+        text = self.exec(arguments, timeout=60)
+        return json.loads(text[text.index('{'):])
 
     def move_to_pose(self, pose, tag='move'):
         """Move the arm to one pose and return the run report."""
@@ -193,8 +206,12 @@ class HumbleLink:
                          source, self.container, self.hand_eye)],
                     30, 'hand-eye copy')
 
-    def segment(self, pulses, tag):
-        """Segment the cube at the current pose; return the JSON report."""
+    def segment(self, pulses, tag, extra_args=None):
+        """Segment the cube at the current pose; return the JSON report.
+
+        ``extra_args`` extends the segmenter command line (e.g. a wider
+        ``--x-range`` for a cube that is still too far to grasp).
+        """
         output = '/tmp/seg_{}.json'.format(tag)
         inner = (
             'source /opt/ros/humble/setup.bash; '
@@ -206,6 +223,9 @@ class HumbleLink:
             he=self.hand_eye,
             pulses=','.join(str(value) for value in pulses),
         )
+        if extra_args:
+            inner += ' ' + ' '.join(
+                str(shlex.quote(value)) for value in extra_args)
         # The segmenter exits 1 when it finds no acceptable target, which is a
         # valid measurement result (a held cube leaves the floor empty).
         completed = self.docker(
