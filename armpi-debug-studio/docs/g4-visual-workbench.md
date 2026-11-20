@@ -107,8 +107,9 @@ audit event. There is no motion/lease endpoint under `/api/visual`.
   gate or alter a command.
 - Camera references are metadata bookkeeping, not a calibration write and not a
   control input.
-- The model remains explicitly provisional: URDF limits and meshes are not
-  mechanically verified.
+- The URDF meshes and inertial values remain model estimates. Joint limits are
+  verified for the operating envelope since 2026-11-19 (`verified: true`);
+  earlier G4 captures that show provisional limits are historical.
 
 ## Verification (2026-11-18)
 
@@ -174,8 +175,9 @@ Evidence: [`evidence/studio_g5/20261118/`](../../evidence/studio_g5/20261118/REA
    state. In hardware mode that state is the vendor command echo, and the
    vendor's dynamic TF may also derive from commanded states rather than
    independent encoders.
-2. The URDF is provisional. Joint limits and meshes are not mechanically
-   measured; `verified=false` is returned.
+2. At the 2026-11-18 G4 build the URDF was provisional and `verified=false` was
+   returned. Joint limits are now verified for the operating envelope
+   (2026-11-19); meshes and inertial values remain model estimates.
 3. The view is an SVG isometric projection of link frames/axes, not a mesh or
    depth render. It is intended for structural checks, not collision or
    calibration truth.

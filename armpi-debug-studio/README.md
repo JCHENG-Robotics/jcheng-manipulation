@@ -2,10 +2,12 @@
 
 A safe, evidence-first debugging console for the ArmPi Ultra 5-DoF arm.
 
-**Current milestone: G1-Mock vertical slice (not PRD G1 acceptance).** The Mock path is runnable
-end-to-end. Hardware mode is a read-only placeholder and deliberately rejects
-all motion. The vendor SDK/Driver are referenced read-only and are **not**
-copied into this directory.
+**Current milestone: G6 supervised single-joint write path (hardware motion off by
+default).** G1–G6 are implemented: the Mock path, the read-only ROS 2 gateway,
+G2–G5 offline/analysis tooling and the G6 supervised write path. Hardware motion
+still requires `ARMPI_HARDWARE_MOTION=1` plus the fixed acknowledgement phrase,
+and remains a single-joint commissioning mode with no e-stop. The vendor
+SDK/Driver are referenced read-only and are **not** copied into this directory.
 
 > Status note (2026-11-15): this directory is the G1 **Mock** slice imported into
 > the main repository. It is **not** a PRD G1 pass: E7 (ROS 2 read-only gateway)
@@ -72,8 +74,9 @@ copied into this directory.
 > second supervised gateway instance was started on `8766` and a supervised
 > backend reached `safety.ready=true`; out-of-limit and over-step commands were
 > rejected and **the arm did not move** (measured delta 0.0 rad). No valid
-> dispatch was sent. Backend `pytest` reports **92 passed**, gateway **38
-> passed**, mock Playwright **10 passed**, hardware Playwright **3 passed**.
+> dispatch was sent. Backend `pytest` reports **93 passed**, gateway **47
+> passed** (counts refreshed 2026-11-20; 92/38 at the G6 verification), mock
+> Playwright **10 passed**, hardware Playwright **3 passed**.
 > See [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md),
 > [`ros2_gateway/deploy/supervised-motion.md`](ros2_gateway/deploy/supervised-motion.md)
 > and [`evidence/studio_g6/20261118/`](../evidence/studio_g6/20261118/README.md).
@@ -146,13 +149,13 @@ armpi-debug-studio/
 │   │   ├── config.py
 │   │   ├── service.py
 │   │   └── main.py
-│   └── tests/              76 unit/API tests
+│   └── tests/              93 unit/API tests
 ├── configs/
-│   └── joint_mapping.yaml  provisional vendor-derived mapping
-├── ros2_gateway/           read-only gateway (runs on the robot)
+│   └── joint_mapping.yaml  adopted EEPROM-bounded mapping (verified 2026-11-19)
+├── ros2_gateway/           read-only gateway by default (runs on the robot)
 │   ├── armpi_debug_gateway/  gateway, /tf cache, G5 recorder
 │   ├── deploy/             host systemd unit, runner, token rotation
-│   └── tests/              24 unit tests (no ROS needed)
+│   └── tests/              47 unit tests (no ROS needed)
 └── frontend/
     ├── e2e/                Playwright suite (mock mode)
     ├── src/api/            typed client + zod contract checks
@@ -187,7 +190,7 @@ Useful environment variables:
 | `ARMPI_JOINT_MAPPING` | `../configs/joint_mapping.yaml` | mapping file |
 | `BIND_HOST` | `127.0.0.1` | do not expose publicly |
 | `ARMPI_HARDWARE_MOTION` | `false` | supervised write path opt-in; requires a gateway URL and token |
-| `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required while `mapping_verified=false` |
+| `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required for any supervised hardware motion (`ARMPI_HARDWARE_MOTION=1`); the joint mapping itself is verified from 2026-11-19 |
 | `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only, direct Ethernet) or `:8766` (supervised); WiFi is not reachable after the 2026-11-18 lockdown |
 | `ARMPI_GATEWAY_TOKEN` | unset | shared token; never commit it |
 
@@ -505,7 +508,8 @@ safety:   read-only; camera references store metadata only; no motion events
 ```
 
 No robot, gateway, serial port or ROS node was involved in the G4 build. URDF
-limits remain provisional, the camera snapshot is synthetic in mock mode, and
+limits were provisional at that build; they are verified for the operating
+envelope since 2026-11-19. The camera snapshot is synthetic in mock mode, and
 the model view is a read-only projection (not a live TF window). Evidence:
 [`evidence/studio_g4/20261118/`](../evidence/studio_g4/20261118/). Contract and
 warnings: [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md).
@@ -534,19 +538,24 @@ limitations: [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md).
 
 ## Known limitations
 
-1. The read-only gateway now runs as an enabled host systemd service and
-   stop/start with clean SIGTERM is verified. A full reboot or vendor-container
-   restart is **not** tested because the vendor `startup_check` moves the arm.
-   Joint positions are still the vendor command echo, not encoder feedback.
-   Rotate the shared token with `deploy/rotate-token.sh` before sharing the
-   robot; the script is provided but was not exercised in this run.
-2. Hardware motion is disabled; there is no motion write path in the gateway.
-   The vendor driver defects (no ACK, blocking reads, `joint_states` command
-   echo) are not repaired.
-3. The joint mapping and limits are provisional (`configs/joint_mapping.yaml`).
-   Read-only bus-servo positions and torque states were captured on 2026-11-17,
-   but the mechanical-limit survey (torque off, hand movement) is pending. See
-   [`docs/phase2/JOINT_LIMITS.md`](../docs/phase2/JOINT_LIMITS.md).
+1. The read-only gateway runs as an enabled host systemd service and stop/start
+   with clean SIGTERM is verified. A full reboot test now **passes** (2026-11-20,
+   `NRestarts=0` for the gateway, D435i depth and aux-camera units); a
+   vendor-container restart still triggers the vendor `startup_check`, which
+   moves the arm. Joint positions are the vendor command echo, not encoder
+   feedback. Rotate the shared token with `deploy/rotate-token.sh` before
+   sharing the robot; the script is provided but was not exercised in this run.
+2. Hardware motion is **off by default**. G6 adds a supervised single-joint
+   write path behind `ARMPI_HARDWARE_MOTION=1` and the acknowledgement phrase;
+   there is no multi-joint or trajectory-streaming path. The vendor driver
+   defects (no ACK, blocking reads, `joint_states` command echo) are not
+   repaired.
+3. The joint mapping and limits are **verified** (`verified: true` from
+   2026-11-19, `mapping_verified=true` for the operating envelope). All five arm
+   joints were hand-surveyed with torque released; joint2's high bound was
+   tightened to 775 and the live stack was reloaded on 2026-11-20. The stops are
+   pose-dependent self-collision limits, so this is not a global mechanical-limit
+   claim. See [`docs/phase2/JOINT_LIMITS.md`](../docs/phase2/JOINT_LIMITS.md).
 4. Backend API is unauthenticated and bound to localhost by default. The
    gateway uses a shared token. Do not expose either on a LAN/public interface
    without a separate security review.
@@ -569,9 +578,10 @@ limitations: [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md).
 10. G4's gateway `/tf` path is now verified on the robot, including a
     `base_link→link5` comparison with `tf2_echo` below 0.4 mm. Without that
     endpoint, frames fall back to URDF forward kinematics from the current
-    joint truth (commanded in hardware mode); the URDF is provisional, the view
-    is an SVG projection rather than a mesh render, and saved camera references
-    contain metadata only.
+    joint truth (commanded in hardware mode); URDF meshes remain model
+    estimates (joint limits are verified for the operating envelope since
+    2026-11-19), the view is an SVG projection rather than a mesh render, and
+    saved camera references contain metadata only.
 11. G5 has one **small supervised moving capture** (`camera_forward`, 0.892 s),
     not a grasp, repeatability study or tracking benchmark. Its measured error
     is dominated by servo pulse quantization and a one-period start offset. The

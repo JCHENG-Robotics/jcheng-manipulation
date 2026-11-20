@@ -82,8 +82,10 @@ trail; the 2° rotation tolerance is still provisional because no direct
 rotation-tolerance experiment exists. The same day added a chassis-front
 RealSense D435i as an independent `base_link` observer (2.58 mm x/y agreement
 with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
-11.67 s to 8.94 s, and a pre-registered 24-site paired follow-up that has not
-yet been run.
+11.67 s to 8.94 s, and two later runs that extended the chain to a cube at
+0.464 m and reversed the base home while holding it (11.06 mm placement error
+against the fitted target; the return itself remains open-loop). A
+pre-registered 24-site paired follow-up has not yet been run.
 
 ## Objectives and contributions
 
@@ -151,7 +153,10 @@ yet been run.
     with bus-servo settle detection replaced single-point 6–9 s moves: the
     grasp+put-back cycle fell **11.67 s → 8.94 s** (−23 %), the no-cube cycle
     from ~37 s to 5.43 s, and the aligned duty-20 base run put the cube back
-    **2.22 mm** from its start.
+    **2.22 mm** from its start. Two later runs held the 4.0/20 envelope on a
+    far cube: a 294.7 + 32.4 mm closed-loop approach, a 2.50 s reverse pulse
+    with the cube still held, and an **11.06 mm** landing against the fitted
+    target.
 
 ## Key results (measured on hardware)
 
@@ -161,7 +166,8 @@ yet been run.
 | Table-down re-calibration, 15 poses | **2.7 mm / 0.42°** scatter; held-out **2.2 mm / 0.29°**; LOO **3.1 mm / 0.45°** | [`evidence/calibration/20261118/table_down/`](evidence/calibration/20261118/table_down/) |
 | Front-camera calibration, D435i | intrinsics **fx = fy 903.5 px**, cx/cy 644.9/363.7, RMS **0.371 px**; chassis extrinsic **[0.136, 0.027, 0.038] m**, pitch **31.6°**, yaw **−1.1°**; board flatness 0.8° | [`evidence/calibration/20261120/`](evidence/calibration/20261120/) |
 | Front-camera depth and services | 640×480 Z16, **61.5 % valid**, median 0.312 m; **10.6 Hz** depth-only, 4–9 Hz with colour; `armpi-rs-depth` + `armpi-ext-cam` boot with `NRestarts=0`; IMU unavailable | [`depth_unblock/`](evidence/calibration/20261120/depth_unblock/README.md), [`camera_mount.md`](docs/hardware/camera_mount.md) |
-| Fast motion, two real-cube runs | grasp+put-back motion **11.67 s → 8.94 s (−23 %)**; grasp 4.699–4.729 s, release 4.207–4.259 s; settle 0.14–0.16 s; cube held through both | [`throughput_v2/`](evidence/phase2/onsite_20261120/throughput_v2/) |
+| Fast motion, throughput v2 (two runs) | grasp+put-back motion **11.67 s → 8.94 s (−23 %)**; grasp 4.699–4.729 s, release 4.207–4.259 s; settle 0.14–0.16 s; cube held through both | [`throughput_v2/`](evidence/phase2/onsite_20261120/throughput_v2/) |
+| Fast motion, in-view and far return-home (two runs) | in view: grasp **4.77 s**, release **4.44 s**, landing **0.92 mm**; far cube at 0.464 m: grasp **4.76 s**, release **4.31 s**, one 2.50 s reverse pulse with the cube held, landing **11.06 mm** vs the fitted target; both at 4.0/20 | [`fast_motion/`](evidence/phase2/onsite_20261120/fast_motion/) |
 | Base duty 20 + auto-base | 1.786 s pulse **178.9 mm (100.2 mm/s)**; 0.484 s strafe **45.3 mm**; aligned cube (0.2316, −0.0025) m, joint1 0.0065, landing **2.22 mm** vs **6.72 mm** yawed | [`throughput_v2/`](evidence/phase2/onsite_20261120/throughput_v2/) |
 | Calibration pose selection | **24 poses** from 14,176 evaluated / 3,093 feasible; 33.5° view-angle spread; planned, not executed | [`evidence/calibration/20261117/pose_selection/`](evidence/calibration/20261117/pose_selection/) |
 | Independent tag scale | lateral **100.67 mm vs 100.0 mm (0.67 %)**; table-forward **104.87 mm vs 100.0 mm (4.87 %)**; angle **92.3°** | [`evidence/phase2/onsite_20261118/tag_displacement_validation/`](evidence/phase2/onsite_20261118/tag_displacement_validation/) |
@@ -288,7 +294,7 @@ separately.
 | Fiducial localization | **Validated (synthetic + real background + physical tag)** | 5/5 synthetic poses (max 1.82 mm / 1.49°); 15/15 semi-synthetic (max 1.69 mm / 0.53°); 0 false detections on 8 real frames; physical tag scale 0.67 % lateral |
 | Constrained grasp search | **Implemented; mock + real use** | 80 candidates → 40 IK → 26 collision-free → 3 plans (mock); real search used in every grasp pass |
 | Real visual grasping | **Validated: 3/5 first series; 24/24 with the correction; dual-camera PASS** | Passes 1, 2 and 5 established the pipeline; passes 3–4 exposed the low-configuration error; the 24-pair trial measured 12/24 (raw target) vs 24/24 (corrected); the D435i agreed to 2.58 mm x/y and verified one grip + put-back |
-| Fast motion | **Validated on hardware (two real-cube runs)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm |
+| Fast motion | **Validated on hardware (four real-cube runs at 4.0/20)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm; later in-view/far runs grasped in 4.77/4.76 s, and `--return-home` reversed a 245.3 mm approach while holding the cube (11.06 mm landing vs the fitted target) |
 | Joint limits | **Formally surveyed 2026-11-19; live stack reloaded 2026-11-20; `mapping_verified=true`** | all five joints hand-measured (torque released); stops are pose-dependent self-collision limits; joint2 high tightened 810→775 and active in move_group/safety/Studio |
 | Headless grasping tooling | **Validated** | `grasp_150mm` tooling; `moveit_execute`; `pulse_move`; `fast_motion`/`fast_motion_e2e`; safety veto on every arm plan |
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
@@ -329,7 +335,9 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 - [x] Independently calibrated chassis-front D435i, depth service, MoveIt
       collision box and dual-camera grasp verification (2026-11-20)
 - [x] Jerk-limited fast motion with measured bus-servo settles (2026-11-20):
-      grasp+put-back 11.67 s → 8.94 s, aligned auto-base landing 2.22 mm
+      grasp+put-back 11.67 s → 8.94 s, aligned auto-base landing 2.22 mm;
+      four real-cube runs at 4.0/20, including a far-cube return-home run
+      (grasp 4.76 s, 11.06 mm landing vs the fitted target)
 - [ ] 24-site paired follow-up — pre-registered 2026-11-20 (layout, seed-17
       plan, runner and 48-record dry run); hardware session not run
 
@@ -600,9 +608,14 @@ supervised runners.
   colour-only), the IMU is unavailable on this kernel, and its collision box
   protects MoveIt plans only. The 2.58 mm x/y agreement is not a metrology
   claim.
-- **Fast motion is validated on two runs.** 11.67 s → 8.94 s and the 2.22 mm
-  aligned landing come from two supervised runs at one floor position and one
-  battery state; other bearings and longer sessions are not yet measured.
+- **Fast motion is validated on four runs at the 4.0/20 envelope.** 11.67 s →
+  8.94 s and the 2.22 mm aligned landing come from two supervised runs at one
+  floor position and one battery state; two later runs added an in-view grasp
+  (0.92 mm landing) and a far-cube run (0.464 m, 11.06 mm landing against the
+  fitted target). The `--return-home` path is still open-loop: 2026-11-19
+  measured a 32.1 mm home error that needed one correction pulse to reach
+  9.4 mm, so the far-run landing is a base-frame placement error, not a home
+  error. An earlier 5.45 s run used the previous 3.0/12 default.
 - **The 24-site follow-up is pre-registered but not run.** Its capability and
   method outcomes are predictions, not results; the 2026-11-19 single-fixture
   trial remains the only paired hardware evidence.

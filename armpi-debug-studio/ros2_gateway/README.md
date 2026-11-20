@@ -1,16 +1,19 @@
-# ArmPi Debug Gateway (read-only)
+# ArmPi Debug Gateway (read-only by default)
 
 This process runs **on the robot**, normally inside the vendor ROS 2 container
 (`ArmPiUltra`), which owns the vendor stack. It exposes battery, camera,
 joint-command state and a TF edge snapshot to the Debug Studio backend over
-local HTTP. It has **no motion write path**.
+local HTTP. The persistent service is **read-only** and has no motion write
+path; the G6 supervised single-joint path exists only in a separately started
+instance launched with `--enable-motion` (see
+[`deploy/supervised-motion.md`](deploy/supervised-motion.md)).
 
 > Verified 2026-11-17 on the Pi 5 vendor container: `/health`, `/battery`,
 > `/camera/status`, `/camera/snapshot`, `/state`, token 401 and motion 501.
 > `/tf` was verified on the robot on 2026-11-18 (11 dynamic + 8 static edges,
 > `base_link→link5` within 0.4 mm of `tf2_echo`). It now runs as an enabled host
-> systemd service; stop/start and clean SIGTERM are verified (reboot test
-> deferred). See
+> systemd service; stop/start, clean SIGTERM and the 2026-11-20 reboot test
+> pass. See
 > [`docs/e7-gateway-verification.md`](../docs/e7-gateway-verification.md),
 > [`deploy/README.md`](deploy/README.md) and
 > [`evidence/studio_gateway/20261117/`](../../evidence/studio_gateway/20261117/).
@@ -144,7 +147,10 @@ Expected:
   latched and legitimately old; compare dynamic ages for liveness. Verified
   against the live robot TF graph on 2026-11-18 (11 dynamic + 8 static edges,
   `base_link→link5` within 0.4 mm of `tf2_echo`).
-- `/motion/dispatch` and `/motion/stop` return `501 NOT_IMPLEMENTED`.
+- `/motion/dispatch` and `/motion/stop` return `501 NOT_IMPLEMENTED` on the
+  persistent 8765 service. A manually started `--enable-motion` instance on
+  8766 exposes the supervised single-joint G6 path; see
+  [`deploy/supervised-motion.md`](deploy/supervised-motion.md).
 
 ## Trajectory recorder (G5)
 

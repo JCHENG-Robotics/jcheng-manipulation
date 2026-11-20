@@ -9,8 +9,8 @@ behind an explicit, fail-closed operator acknowledgement.
 G1–G5 built a read-only console plus offline analysis. The one PRD P0 gap was
 safe motion from the Studio itself: every earlier real motion came from the
 external MoveIt tool. G6 adds a single-joint, supervised path that the Studio
-can validate end-to-end, while keeping `mapping_verified=false` visible and
-keeping the physical e-stop gap explicit.
+can validate end-to-end, while keeping the then-unverified mapping state
+visible and keeping the physical e-stop gap explicit.
 
 ## Defense in depth
 
@@ -94,7 +94,7 @@ restarted after inspection. A normal stop does not clear the latch.
 
 ## Verified on hardware (2026-11-18, no motion)
 
-Raw files: [`evidence/studio_g6/20261118/`](../../../evidence/studio_g6/20261118/README.md).
+Raw files: [`evidence/studio_g6/20261118/`](../../evidence/studio_g6/20261118/README.md).
 
 ```text
 read-only gateway 8765 redeploy

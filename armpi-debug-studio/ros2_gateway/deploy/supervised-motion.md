@@ -6,7 +6,8 @@ uses a **second, manually started** gateway instance on port **8766** with
 suite and the read-only console untouched.
 
 > Read [`docs/g6-motion-write-path.md`](../../docs/g6-motion-write-path.md)
-> before running this. The limits are provisional; there is no e-stop or brake.
+> before running this. The limits are verified for the operating envelope
+> (`mapping_verified=true` from 2026-11-19); there is no e-stop or brake.
 >
 > The addresses below use the direct Ethernet link `10.42.0.218`, the only
 > inbound path since the 2026-11-18 lockdown

@@ -30,7 +30,7 @@ GET /health (no token) 401
 POST /motion/dispatch  501 NOT_IMPLEMENTED
 ```
 
-Raw responses: [`evidence/studio_gateway/20261117/`](../../../evidence/studio_gateway/20261117/).
+Raw responses: [`evidence/studio_gateway/20261117/`](../../evidence/studio_gateway/20261117/).
 
 ## 3. Backend hardware mode
 
@@ -110,7 +110,7 @@ The backend was re-checked against this service in `hardware` mode:
 `/api/peripherals` returned 7.424 V and 640×400, preview was valid, and execute
 returned **403 `GATE_REJECTED`** with blockers `mapping_verified` and
 `hardware_motion_enabled`. No motion was dispatched. Raw output:
-[`persistent/backend_hardware_20261117.txt`](../../../evidence/studio_gateway/20261117/persistent/backend_hardware_20261117.txt).
+[`persistent/backend_hardware_20261117.txt`](../../evidence/studio_gateway/20261117/persistent/backend_hardware_20261117.txt).
 
 Not verified: a full reboot or a vendor-container restart. Both trigger the
 vendor `startup_check`, which moves the arm, so the operator deferred them.
@@ -123,10 +123,13 @@ not hardware-tested. See
 
 - No hardware motion: execute is blocked, and the gateway has no write path.
 - No encoder feedback: `/controller_manager/joint_states` is a command echo.
-- No validated joint limits (`provisional`). A read-only bus-servo survey and
-  the torque-off measurement tool exist; the physical survey is pending. See
-  [`docs/phase2/JOINT_LIMITS.md`](../../../docs/phase2/JOINT_LIMITS.md).
-- No reboot/container-restart test (see section 5).
+- **Superseded 2026-11-19:** joint limits were provisional at the time of this
+  2026-11-17 verification; the physical torque-off survey has since completed
+  and `mapping_verified=true` for the operating envelope. See
+  [`docs/phase2/JOINT_LIMITS.md`](../../docs/phase2/JOINT_LIMITS.md).
+- No reboot/container-restart test at the time of this 2026-11-17 verification
+  (see section 5). **Superseded 2026-11-20:** the full reboot test passed with
+  `NRestarts=0`; a container restart still moves the arm via `startup_check`.
 - No hardware-mode Playwright run: the committed suite covers mock mode only;
   the hardware UI check above was a one-off browser session.
 - No authentication review: the gateway uses a shared token and was bound only
@@ -139,6 +142,6 @@ not hardware-tested. See
 ## 7. Reproduce
 
 See
-[`evidence/studio_gateway/20261117/README.md`](../../../evidence/studio_gateway/20261117/README.md)
+[`evidence/studio_gateway/20261117/README.md`](../../evidence/studio_gateway/20261117/README.md)
 for the copy/start commands and the full payload list. Rebuild the frontend
 (`npm run build`) before starting the backend if `frontend/dist` is stale.

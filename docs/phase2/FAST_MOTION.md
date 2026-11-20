@@ -8,6 +8,10 @@
 > auto-base) are hardware-verified on 2026-11-20: **11.67 s -> 8.94 s** of
 > motion for grasp + put-back, the cube held through both fast runs, and one
 > base pulse placed it at `(0.2316, -0.0025)` m with a 2.22 mm landing error.
+> Two later runs kept the v2 envelope: an in-view grasp (4.77 s / 4.44 s,
+> 0.92 mm landing) and a far-cube run with `--return-home` (4.76 s / 4.31 s,
+> 11.06 mm landing against the fitted target). The 5.45 s run above used the
+> earlier 3.0/12 default.
 
 ## Why the old motion was slow and why it shook
 
@@ -188,8 +192,9 @@ base-frame placement error, **not** a home error.
 
 * `--slow` was not re-run on hardware; it is a straight port of the old code.
 * The 4.0/20 envelope and the 1.4 rad/s release descent are validated on four
-  real-cube runs; the measured envelope table above still comes from the
-  unloaded arm. Fall back with `--vmax 3.0 --amax 12
+  real-cube runs (the two v2 runs plus the in-view and far return-home runs);
+  the earlier 5.45 s run used 3.0/12. The measured envelope table above still
+  comes from the unloaded arm. Fall back with `--vmax 3.0 --amax 12
   --release-descent-vmax 0.6` if a run drops the cube.
 * The auto-base was validated from two initial placements (0.28 m at -11 deg,
   0.46 m at -21 deg). Other bearings, a cube near the reach boundary and the

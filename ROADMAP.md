@@ -25,7 +25,7 @@ README, changelog and acceptance report on 2026-11-20.
 | 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
 | Hardware baseline | **Captured; all five joints formally surveyed; board probed; D435i added** | Pi/ROS/servo/TF/camera live baseline; joint1 58…957, joint2 186…873 upright / 327…795 low pose, joint3 100…923, joint4 130…882, joint5 122…869 pulse; D435i depth/colour services; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
 | Calibration and visual grasping | **Validated: 3/5 first series and 24/24 in the paired trial; dual-camera PASS; D435i calibrated** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 2.7 mm / 0.42°; front D435i 903.5 px / 0.371 px and 31.6° extrinsic; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; 24-pair trial 12/24 vs 24/24; D435i agreed to 2.58 mm x/y and verified one grip + put-back |
-| Fast motion | **Validated on hardware (two real-cube runs)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm |
+| Fast motion | **Validated on hardware (four real-cube runs at 4.0/20)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm; later in-view/far runs grasped in 4.77/4.76 s, and `--return-home` reversed a 245.3 mm approach while holding the cube (11.06 mm landing vs the fitted target) |
 | Error budget and tolerance envelope | **Framework implemented; budget complete, bound gates fail** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); all sources measured, including execution **5.386 mm / 1.495° max**, placement **11.514 mm max / 3.080 mm mean** and fixture **14.815 mm radial max**; translation **RSS 13.325 mm** (fail) / worst case **24.014 mm** (fail vs 6 mm); rotation **RSS 1.858°** (pass) / worst **3.322°** (fail vs the provisional 2° gate); dominant translation term is now `gripper_placement` (74.7 %), hand-eye is 6.1 %; empirical corrected placement mean **3.080 mm** (RMS 4.082 mm) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trial framework | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); four deviations documented; 24-site layout + seed-17 plan committed, not run |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
@@ -78,7 +78,11 @@ corrected placement mean (3.080 mm) is inside it. A pre-registered 24-pair
 hardware trial measured the intervention: baseline 12/24 vs corrected 24/24
 (McNemar p = 0.00049) and a 2.19 mm paired placement improvement
 (p = 0.0063). Fast jerk-limited motion then cut the grasp+put-back cycle from
-11.67 s to 8.94 s, and a 24-site paired follow-up was pre-registered (not run).
+11.67 s to 8.94 s. Two later runs extended the same chain to a cube at
+0.464 m, with two closed-loop base pulses to the grasp band and a reverse
+pulse home while the cube was still held (landing 11.06 mm against the fitted
+target; the return remains open-loop). A 24-site paired follow-up was
+pre-registered (not run).
 Detailed checklist:
 [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
@@ -245,6 +249,13 @@ showed that the constant correction is an execution offset rather than a
 measurement bias. The same day replaced single-point moves with a jerk-limited
 S-curve and measured settles: the grasp+put-back cycle fell **11.67 s →
 8.94 s** and the aligned duty-20 base run landed **2.22 mm** from the start.
+Two further runs then measured the v2 envelope on an in-view cube (grasp
+4.77 s, release 4.44 s, landing **0.92 mm**) and on a cube at 0.464 m: two
+closed-loop base pulses (294.7 + 32.4 mm) reached the grasp band, one 2.50 s
+reverse pulse undid 245.3 mm with the cube held, and the release landed
+**11.06 mm** from the fitted target. The return home is open-loop, so it is
+centimetre-level (32.1 mm on 2026-11-19, 9.4 mm after one correction), and
+the 11.06 mm figure is a base-frame placement error, not a home error.
 Evidence:
 [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/),
 [`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/) and

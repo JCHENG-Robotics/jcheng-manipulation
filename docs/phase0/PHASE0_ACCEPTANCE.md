@@ -22,7 +22,8 @@
 > the capstone as well as the Phase 0 mock scope. §1 is the current verdict;
 > §2 remains the original Phase 0 checklist. The README, ROADMAP and CHANGELOG
 > were synchronized to the same status on 2026-11-20, including the D435i front
-> camera, fast motion, completed error budget and pre-registered 24-site trial.
+> camera, fast motion (through the in-view and far return-home runs), completed
+> error budget and pre-registered 24-site trial.
 
 ## 1. Current acceptance summary (2026-11-20)
 
@@ -40,7 +41,7 @@ unmeasured; **Not accepted** = outside the demonstrated scope.
 | Front camera (D435i) | **Pass with limits** | Chassis-front USB 3.0; depth 640×480 Z16 ~62 % valid / 10.6 Hz depth-only; `armpi-rs-depth` + `armpi-ext-cam` boot with `NRestarts=0`; IMU unavailable; depth starts ~0.2 m (grasp band colour-only); collision box protects MoveIt plans only |
 | Fiducial localization | **Pass** | 5/5 synthetic (max 1.82 mm / 1.49°), 15/15 semi-synthetic on real frames, 0 false detections on 8 real frames; 4.87 % table-forward bias recorded |
 | Real visual grasping | **Pass** | First series 3/5 on the unmarked 39.4 mm cube; pass 5 with the in-configuration correction; pre-registered 24-pair trial 12/24 → 24/24 (McNemar p = 0.00049); dual-camera run PASS, D435i agreed to 2.58 mm x/y and verified grip + put-back |
-| Fast motion | **Pass on two real-cube runs** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm |
+| Fast motion | **Pass on four real-cube runs at 4.0/20** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm; later in-view/far runs grasped in 4.77/4.76 s and `--return-home` reversed a 245.3 mm approach while holding the cube (11.06 mm landing vs the fitted target, open-loop return) |
 | Low-configuration model | **Pass inside the measured envelope** | Fixed-tag constant (+11.6, +4.0, +8.5) mm, grasp-validated correction (+13.7, +3.9, +8.9) mm; joint-offset and `link4` models fitted and rejected; yaw extension measured to `j1 ≈ 0.5 rad` |
 | Reliability intervention | **Pass** | The constant correction is the intervention; paired trial: baseline 12/24 vs intervention 24/24, paired placement improvement 2.19 mm (p = 0.0063); four protocol deviations documented |
 | 24-site follow-up | **Pre-registered, not run** | 24 pairs / 48 trials, four radii × six bearings, seed-17 plan and layout committed before data; runner and 48-record dry run tested; hardware session pending |
@@ -150,7 +151,7 @@ Earlier model/planning evidence: `evidence/armpi_moveit/MOVEIT_SMOKE_20261115.md
 | Phase 2 grasp candidate search | **Implemented; mock-validated and used on hardware** | `docs/phase2/GRASP_CANDIDATE_SEARCH.md`; mock search fed all five real passes |
 | Phase 2 fiducial localization | **Implemented; synthetic + real-background validated; physical tag scale check** | `docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md`; physical tag scale 0.67 % lateral |
 | Phase 2 fiducial → grasp bridge | **Implemented, mock E2E validated** (2026-11-17) | `docs/phase2/FIDUCIAL_GRASP_BRIDGE.md`; real grasps used the planner directly, not this bridge |
-| Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 first series; 24/24 with the correction in the paired trial; dual-camera PASS; fast motion validated** | Yawed grasp test open; the cube must first be rotated to face the gripper; fast motion has two real-cube runs |
+| Phase 2 calibration + real visual grasp | **Calibration validated; 3/5 first series; 24/24 with the correction in the paired trial; dual-camera PASS; fast motion validated** | Yawed grasp test open; the cube must first be rotated to face the gripper; fast motion has four real-cube runs at 4.0/20, including a far-cube return-home run with an open-loop (centimetre-level) home return |
 | Phase 3 Error Budget v1 | **Framework + completed budget**; all sources measured 2026-11-20; bound gates fail (translation RSS 13.325 mm, rotation worst 3.322°) | The empirical placement mean (3.080 mm) is inside 6 mm; the 2° rotation gate is still provisional |
 | Phase 3 paired trial | **Complete (2026-11-19)**: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; paired placement improvement 2.19 mm (p = 0.0063) | 24-site follow-up pre-registered 2026-11-20, not run; then a second intervention on the dominant placement term |
 | Operations | **Clock sync, live limit reload and reboot test PASS (2026-11-20)** | Timer needs the laptop user manager (or linger); D435i services have strict ordering rules |

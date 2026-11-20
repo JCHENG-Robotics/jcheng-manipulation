@@ -3,27 +3,24 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-11-20 progress unification (documentation only)
+## [Unreleased] — 2026-11-20 documentation progress reconciliation
 
 ### Changed
 
-- **README, README.zh-CN, ROADMAP and the acceptance report now reflect the
-  full 2026-11-20 progress.** Added the chassis-front D435i (calibration,
-  depth service, collision box, dual-camera grasp), fast jerk-limited motion
-  (11.67 s → 8.94 s), the completed error budget (translation 13.325 mm RSS,
-  bound gates fail), the pre-registered 24-site follow-up, the clock-sync
-  timer and the live joint2-limit reload to the status tables, key results,
-  safety notes, evidence maps and next steps.
-- **Status counts corrected:** the Studio backend is now **93 passed** and the
-  gateway **47 passed** (previously documented as 92/38). Two backend
-  assertions that still expected a provisional mapping were updated to the
-  verified 2026-11-19 mapping; no runtime behaviour changed.
-- The README deliverables checklist now marks the error budget complete (with
-  its bound-gate failure), the D435i and fast motion complete, and the 24-site
-  follow-up explicitly unchecked (pre-registered only).
-- ROADMAP next steps no longer say to complete the error budget; they now start
-  with running the pre-registered 24-site trial and then address the dominant
-  `gripper_placement` term, the rotation/ruler runners and the yawed grasp.
+- The four status documents (README, README.zh-CN, ROADMAP and the acceptance
+  report) and the Phase 2 index now include the last two fast-motion runs
+  (in-view 4.77 s / 4.44 s, 0.92 mm landing; far return-home 4.76 s / 4.31 s,
+  11.06 mm landing) and state the validated count as **four real-cube runs at
+  4.0/20**; earlier text still said two runs.
+- The Studio README now states the current **G6** milestone, **93 backend + 47
+  gateway** tests, the passing 2026-11-20 reboot test and the verified joint
+  limits; the gateway README documents the opt-in `--enable-motion` instance
+  instead of claiming no write path exists.
+- Phase 2 measurement status, the calibration-pose envelope, and the G4/G5/E7
+  and gateway-deployment notes that still described provisional limits or an
+  untested reboot are marked current or superseded. Broken relative links in
+  the G6/E7 records were fixed.
+- The 2026-11-20 changelog sections are ordered newest-first.
 
 ## [Unreleased] — 2026-11-20 in-view and far-with-return fast runs
 
@@ -52,6 +49,28 @@ All notable changes to this project are documented here. Format based on
   32.1 mm home error that needed one correction pulse to reach 9.4 mm, so the
   home accuracy is centimetre-level and the landing figure is not a home
   error.
+
+## [Unreleased] — 2026-11-20 progress unification (documentation only)
+
+### Changed
+
+- **README, README.zh-CN, ROADMAP and the acceptance report now reflect the
+  full 2026-11-20 progress.** Added the chassis-front D435i (calibration,
+  depth service, collision box, dual-camera grasp), fast jerk-limited motion
+  (11.67 s → 8.94 s), the completed error budget (translation 13.325 mm RSS,
+  bound gates fail), the pre-registered 24-site follow-up, the clock-sync
+  timer and the live joint2-limit reload to the status tables, key results,
+  safety notes, evidence maps and next steps.
+- **Status counts corrected:** the Studio backend is now **93 passed** and the
+  gateway **47 passed** (previously documented as 92/38). Two backend
+  assertions that still expected a provisional mapping were updated to the
+  verified 2026-11-19 mapping; no runtime behaviour changed.
+- The README deliverables checklist now marks the error budget complete (with
+  its bound-gate failure), the D435i and fast motion complete, and the 24-site
+  follow-up explicitly unchecked (pre-registered only).
+- ROADMAP next steps no longer say to complete the error budget; they now start
+  with running the pre-registered 24-site trial and then address the dominant
+  `gripper_placement` term, the rotation/ruler runners and the yawed grasp.
 
 ## [Unreleased] — 2026-11-20 24-site paired trial (pre-registered)
 

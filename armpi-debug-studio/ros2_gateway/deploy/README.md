@@ -3,8 +3,9 @@
 > Deployed on the Pi 5 on 2026-11-17. Lifecycle evidence (enabled, health,
 > 401, clean SIGTERM stop, start, port/process checks):
 > [`evidence/studio_gateway/20261117/persistent/`](../../../evidence/studio_gateway/20261117/persistent/).
-> A reboot/container-restart test was deferred because the vendor startup check
-> moves the arm.
+> A full reboot test **passed on 2026-11-20** (`NRestarts=0` for the gateway,
+> D435i depth and aux-camera units); a vendor-container restart still triggers
+> the vendor startup check, which moves the arm.
 
 The read-only gateway runs **inside the vendor container** `ArmPiUltra`, whose
 ROS 2 stack owns the camera/battery/joint topics. A small host-side systemd unit

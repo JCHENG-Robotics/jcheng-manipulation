@@ -57,9 +57,10 @@ nominal; on-site detection decides whether a pose is usable.
    a duplicate-view score.
 
 The search envelope is deliberately conservative: `joint1` ±0.35,
-`joint2` ±0.18, `joint3` ±0.15, `joint4` ±0.35 rad. The mechanical limits are
-still provisional. Widen the ranges with `--joint1-range` etc. only after the
-joint-limit survey.
+`joint2` ±0.18, `joint3` ±0.15, `joint4` ±0.35 rad. The mechanical limits were
+formally surveyed on 2026-11-19; this pre-survey search envelope is kept as-is
+so the selected 24 poses stay reproducible. Widen the ranges with
+`--joint1-range` etc. only for a new selection, not to reinterpret this set.
 
 ## Selected set (24 poses)
 

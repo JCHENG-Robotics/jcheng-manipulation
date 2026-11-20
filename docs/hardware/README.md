@@ -46,14 +46,16 @@
 | Joint limits | **Formally surveyed 2026-11-19**: all five joints hand-measured with torque released (joint1 58…957, joint2 327…795 low pose / 186…873 upright, joint3 100…923, joint4 130…882, joint5 122…869); adopted EEPROM−20 with joint2 high tightened to 775; `mapping_verified=true` for the operating envelope |
 | Gripper | Stroke **2.22 rad** (open −2.22, closed 0.0), ~34 counts backlash; measured 2026-11-18 |
 | Controller board | Battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; **IMU, encoders, e-stop, onboard gamepad/SBUS absent** (probed 2026-11-19) |
-| Battery | **8365 mV** at the 2026-11-20 throughput start; 7812 mV latest (2026-11-19); 7.651 V at the 2026-11-17 baseline |
+| Battery | **8365 mV** at the 2026-11-20 throughput start; 7812 mV at the 2026-11-19 baseline; 7.651 V at the 2026-11-17 baseline |
 | Root disk | 84.7% used, ≈6.6 GiB free (2026-11-17 Session 4) |
 
 Rules:
 
 1. Vendor code is read-only reference, not copied into this repository.
 2. `[U]` cannot be promoted to `Verified` without a command/log/photo.
-3. Simulation limits are **provisional**; they are not mechanical limits.
+3. Simulation limits are model limits, not mechanical guarantees. The adopted
+   commandable limits are EEPROM-bounded and verified for the operating
+   envelope (2026-11-19).
 4. `joint_states` and `servo_states` are cached commands, not measured encoder
    feedback. The separate
    `/ros_robot_controller/bus_servo/get_state` service does read the servo

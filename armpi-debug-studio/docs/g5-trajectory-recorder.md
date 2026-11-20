@@ -193,8 +193,10 @@ composition, not the vendor kinematics.
    `time_from_start`.
 4. `rosbag2` import is still not implemented. A bag remains a metadata
    reference in G3; convert it externally before importing.
-5. Joint mapping and limits remain provisional. `r_joint` is excluded from the
-   arm stream.
+5. Joint mapping and limits are verified for the operating envelope
+   (`verified: true` from 2026-11-19); the stops are pose-dependent
+   self-collision limits, not a global mechanical claim. `r_joint` is excluded
+   from the arm stream.
 6. The feedback is bus-servo position, not an independent encoder. It is
    measured at the servo, but it still depends on the vendor controller's
    reporting path.

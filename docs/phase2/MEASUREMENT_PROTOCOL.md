@@ -42,7 +42,7 @@ three explicit modes:
 
 | Mode | Effect | ROS import? |
 |---|---|---|
-| `dry-run` (default) | writes the trial schedule and validates the target against provisional limits | no |
+| `dry-run` (default) | writes the trial schedule and validates the target against the adopted joint limits | no |
 | `simulate` | generates samples with known noise/bias, runs the same analyzers as hardware data | no |
 | `analyze` | reads a hardware measurement JSON and runs the analyzers | no |
 

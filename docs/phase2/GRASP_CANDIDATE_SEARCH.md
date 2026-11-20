@@ -283,7 +283,9 @@ Details:
   is published** (`tools/phase2/table_collision.py`). Without it the mock scene
   has no table, object or camera, and a grasp that is collision-free here can
   still collide with a real table or object.
-- The TCP offset and all joint limits are provisional.
+- At the time of these mock runs the TCP offset and joint limits were
+  provisional. The joint limits are now verified for the operating envelope
+  (2026-11-19); the TCP offset remains a model value measured on hardware.
 - IK is KDL. The vendor analytic IK is not available in this x86 workspace.
 - Planning uses Pilz `PTP` from the current mock state. `LIN` is known to fail
   on constrained 5-DoF goals; other planners were not evaluated here.
