@@ -104,18 +104,40 @@ median 0.312 m, range 154..25727 mm, frame_id camera_depth_optical_frame
 
 Aligned depth (`align_depth.enable:=true`, colour enabled) ran at 11.3 Hz.
 
-## Deployment notes
+## Deployment (`armpi-rs-depth.service`, 2026-11-20)
 
-- `realsense2_camera` must start **before** `armpi-ext-cam.service`; with the
-  colour node already streaming, `VIDIOC_S_FMT` on the depth node fails with
-  `EBUSY`. The reverse order works and both streams then run together
-  (depth 7-8.4 Hz, colour 6-11 Hz).
-- A depth interface that has never delivered a frame can return `EPROTO` (-71)
-  in the URB completion handler; bringing up `/dev/video2` (IR) once clears it
-  in-session, and `USBDEVFS_RESET` on `/dev/bus/usb/002/002` also
-  re-enumerates the device.
-- The depth node currently has no systemd unit; it is a hand-started
-  `ros2 launch` and does not survive a container restart.
+The depth node is now a systemd unit; files live in
+`armpi-debug-studio/ros2_gateway/deploy/` and the install/verify steps are in
+that README. Three ordering rules were each found by failing first:
+
+1. **After the vendor bringup.** `start_node.sh` runs `~/.stop_ros.sh`
+   (`kill -9` on every cmdline containing "ros") about 15 s after systemd marks
+   `start_node.service` started, so the runner waits for the
+   `bringup.launch.py` process. Before this the node died with status 137 on
+   every boot and `NRestarts` was 1.
+2. **Before `armpi-ext-cam.service`**, because the colour node claiming the UVC
+   device first makes librealsense fail `VIDIOC_S_FMT` with `EBUSY`. The drop-in
+   `armpi-ext-cam-after-depth.conf` adds `After=` plus an `ExecStartPre` that
+   waits up to 40 s for the depth topic.
+3. **IR wake-up first.** The runner streams `/dev/video2` for three frames,
+   retrying for up to 90 s, before starting the node; a cold stereo unit
+   otherwise stays at `Frames didn't arrived within 5 seconds`.
+
+Boot test (2026-11-20, fourth reboot of the session, both units enabled):
+`NRestarts=0`, wake-up on attempt 1, node up 45 s after boot, then depth 6.3 Hz
+and colour 8.5 Hz measured while the Aurora vision launch was still loading.
+
+Other operational facts:
+
+- A leftover node survives the unit (`docker exec` children are not killed with
+  the wrapper) and keeps `/dev/video0` open, so the next start fails with
+  `EBUSY`. `ExecStop` now kills the launch and the node and escalates to
+  `SIGKILL`.
+- Depth + IR + colour together drop to ~3 Hz with stalls; depth + colour is the
+  usable combination (depth 4-9 Hz, colour 6-11 Hz).
+- Repeated `USBDEVFS_RESET` on the device made it worse (`EPROTO` -71, then no
+  stream at all). Recover with a power cycle or by toggling
+  `/sys/bus/usb/devices/2-1/authorized`.
 - The SDK colour intrinsics at 640x480 (`fx=fy 606.5`) disagree by ~34% with the
   chessboard-refined 1280x720 model (`fx 903.5`); treat the 640x480 colour mode
   as cropped and re-solve the board at that size before using it for geometry.

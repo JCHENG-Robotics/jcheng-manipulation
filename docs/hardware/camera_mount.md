@@ -208,7 +208,7 @@ does not use `bringup vision.launch.py`.
 | Colour | UVC 1280x720 YUYV @ 30 fps |
 | Depth | 640x480 Z16 through librealsense 2.55.1 (patched, see below): ~62% valid, median 0.31 m, `/camera/camera/depth/image_rect_raw`; IMU unavailable because the kernel has no `CONFIG_HID_SENSOR_HUB` |
 | ROS path (colour) | **`armpi-ext-cam.service`** runs `tools/phase2/ext_cam_node.py`, the single owner of `/dev/video4`: `/ext_cam/color/image_raw` at 1280x720/15 fps plus latched `camera_info` and the `base_link -> ext_cam_optical` static TF. The studio gateway follows that topic (`ARMPI_GATEWAY_AUX_CAMERA_TOPIC`) instead of opening the device |
-| ROS path (depth) | `realsense2_camera` (`/home/ubuntu/rs_ws`) publishes `/camera/camera/depth/image_rect_raw` + `camera_info`; started by hand so far, no unit installed |
+| ROS path (depth) | **`armpi-rs-depth.service`** runs `realsense2_camera` (`/home/ubuntu/rs_ws`) inside the container: `/camera/camera/depth/image_rect_raw` + `camera_info` at 640x480 Z16 |
 
 Calibration (2026-11-20, [`evidence/calibration/20261120/`](../../evidence/calibration/20261120/)):
 
@@ -279,23 +279,46 @@ Verified (evidence: [`evidence/calibration/20261120/depth_unblock/`](../../evide
 | depth profile | 640x480 Z16, depth scale 1 mm |
 | depth content | 61.5% valid pixels, median 0.312 m, range 0.154-25.7 m |
 | depth intrinsics (SDK) | fx=fy 386.445, cx/cy 322.186/233.991 |
-| ROS | `/camera/camera/depth/image_rect_raw` (16UC1, `camera_depth_optical_frame`) |
-| rate | 10.6 Hz depth only; 7-8.4 Hz with the colour stream running |
+| ROS | `/camera/camera/depth/image_rect_raw` (16UC1, `camera_depth_optical_frame`), started by **`armpi-rs-depth.service`** |
+| rate | 10.6 Hz depth only; 4-8 Hz with the colour stream running (post-boot measurement: 5.0 Hz depth / 2.4 Hz colour while the Aurora vision launch was still loading, 4-9 Hz once it settled) |
 | aligned depth | `/camera/camera/aligned_depth_to_color/image_raw` at 11.3 Hz with colour enabled |
 
-Deployment constraints found while verifying:
+Deployment (`armpi-rs-depth.service`, see
+[`deploy/README.md`](../../armpi-debug-studio/ros2_gateway/deploy/README.md)).
+Three ordering rules, each of which failed first:
 
-- **Start order matters.** `realsense2_camera` must open the depth nodes
-  *before* `ext_cam_node` claims `/dev/video4`. With the colour node already
-  streaming, `VIDIOC_S_FMT` on the depth node fails with `EBUSY`; the reverse
-  order works and both streams then run together.
-- **No unit yet.** The depth node is a hand-started `ros2 launch`; it does not
-  survive a container restart. `armpi-ext-cam.service` is unchanged and was
-  restarted after the tests.
-- **Cold-start quirk.** A depth interface that has never delivered a frame can
-  report `EPROTO` (-71) in the URB completion handler. Bringing up the IR node
-  once (`/dev/video2`) cleared it during this session, and a
-  `USBDEVFS_RESET` of `/dev/bus/usb/002/002` also re-enumerates the device.
+- **After the vendor bringup.** `start_node.sh` runs `~/.stop_ros.sh`, which
+  `kill -9`s every process whose command line contains "ros", ~15 s after
+  systemd reports `start_node.service` as started. The runner therefore waits
+  for the `bringup.launch.py` process; otherwise the node dies with status 137
+  and systemd has to restart it (`NRestarts` goes to 1 on every boot).
+- **Before `armpi-ext-cam.service`.** If the colour node claims the UVC device
+  first, librealsense fails `VIDIOC_S_FMT` with `EBUSY`. The depth unit is
+  `Before=` the colour unit, the colour unit is `After=` the depth unit, and its
+  `ExecStartPre` waits (best effort, 40 s) for the depth topic - ordering alone
+  does not cover the node's ~5 s start-up.
+- **IR wake-up before the node.** A freshly powered D435i can stay silent until
+  its stereo unit is nudged; the runner streams the IR node (`/dev/video2`) for
+  three frames, retrying for up to 90 s, before starting the node. Without it a
+  cold boot ends at `Frames didn't arrived within 5 seconds` with no depth.
+
+Measured after a clean reboot: `NRestarts=0`, wake-up on attempt 1, node up 45 s
+after boot, depth and colour both streaming.
+
+Other facts worth keeping:
+
+- **A stale node wedges the next start.** `docker exec` children survive the
+  unit's death, so a leftover `realsense2_camera_node` keeps `/dev/video0` open
+  and everything afterwards reports `EBUSY` or no frames. The unit's `ExecStop`
+  kills the launch and the node and escalates to `SIGKILL`.
+- **IR and depth do not stream together with colour.** Depth + IR + colour drop
+  to ~3 Hz with stalls; depth + colour is the usable combination, so IR is used
+  only as the wake-up.
+- **EPROTO on a stalled depth interface.** The kernel logs
+  `Non-zero status (-71) in video completion handler` when the stereo unit is
+  not delivering; the IR wake-up clears it. Repeated `USBDEVFS_RESET` on the
+  device made things worse - recover with a power cycle, or by toggling
+  `/sys/bus/usb/devices/2-1/authorized`.
 - **SDK colour intrinsics caution.** At 640x480 the SDK reports
   fx=fy 606.5, cx/cy 325.0/249.2, a much narrower FOV than the
   chessboard-refined 1280x720 model (fx 903.5); the two disagree by ~34%, so the

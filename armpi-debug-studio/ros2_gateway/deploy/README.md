@@ -193,3 +193,66 @@ systemctl restart armpi-gateway.service
 Verify: `/aux-camera/status` must report
 `"source": "armpi_debug_gateway_ros"` and `"device": null`; `fuser /dev/video4`
 must show exactly one process.
+
+## Depth driver (`armpi-rs-depth.service`)
+
+The D435i depth stream comes from `realsense2_camera` inside the container,
+started by `armpi-rs-depth.service`. Depth only: colour stays with
+`armpi-ext-cam.service`. It publishes `/camera/camera/depth/image_rect_raw`
+(16UC1, `camera_depth_optical_frame`) at 640x480, measured 4-8 Hz with the
+colour stream running and ~10.5 Hz alone.
+
+librealsense inside the container carries a local patch
+(`tools/phase2/patches/librealsense-2.55.1-d400-hid-gate.patch`) because this
+kernel is built without `CONFIG_HID_SENSOR_HUB`; see
+[`docs/hardware/camera_mount.md`](../../../docs/hardware/camera_mount.md). The
+patch is already built and installed in the container - reinstall it there with
+`cd /home/ubuntu/lrs_build && gmake -j4 realsense2 && gmake install` if the
+container is ever recreated.
+
+Install:
+
+```bash
+install -d -m 755 /usr/local/lib/armpi-rs-depth
+install -m 755 deploy/rs-depth-run.sh /usr/local/lib/armpi-rs-depth/rs-depth-run.sh
+install -m 644 deploy/armpi-rs-depth.service /etc/systemd/system/
+
+# ordering: start colour only after the depth topic exists
+install -d -m 755 /etc/systemd/system/armpi-ext-cam.service.d
+install -m 755 deploy/wait-depth-topic.sh /usr/local/lib/armpi-ext-cam/wait-depth-topic.sh
+install -m 644 deploy/armpi-ext-cam-after-depth.conf \
+  /etc/systemd/system/armpi-ext-cam.service.d/20-after-depth.conf
+
+systemctl daemon-reload
+systemctl enable --now armpi-rs-depth.service
+```
+
+Three ordering rules make this work, and each one was a real failure first:
+
+- **After the vendor bringup.** `start_node.sh` runs `~/.stop_ros.sh`, which
+  `kill -9`s every process whose command line contains "ros". systemd reports
+  `start_node.service` as started ~15 s before that kill lands, so the runner
+  waits for the `bringup.launch.py` process itself; otherwise the node dies
+  with status 137 and has to restart.
+- **Before `armpi-ext-cam.service`.** If the colour node claims the UVC device
+  first, librealsense fails `VIDIOC_S_FMT` with `EBUSY`. The unit declares
+  `Before=armpi-ext-cam.service`, `armpi-ext-cam` declares
+  `After=armpi-rs-depth.service`, and its `ExecStartPre` waits (best effort,
+  40 s) for the depth topic, because ordering alone does not cover the node's
+  ~5 s start-up.
+- **IR wake-up before the node.** A freshly powered D435i can need a nudge
+  before its stereo unit answers: the runner streams the IR node for three
+  frames (retried for up to 90 s), and only then starts the node. Without it a
+  cold boot ends in `Frames didn't arrived within 5 seconds` and no depth.
+
+Verify after a reboot:
+
+```bash
+systemctl is-active armpi-rs-depth armpi-ext-cam
+journalctl -u armpi-rs-depth -b | grep -E "wake-up|Is Up|didn't arrived"
+systemctl show -p NRestarts --value armpi-rs-depth     # expect 0
+```
+
+Stopping the unit leaves no node behind (the unit kills the launch and the
+node, escalating to `SIGKILL`, and a leftover node keeps `/dev/video0` open so
+the next start fails with `EBUSY`).
