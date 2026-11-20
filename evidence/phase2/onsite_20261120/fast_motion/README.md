@@ -4,9 +4,11 @@
 > grasp / put-back sequence went from **~37 s to 5.43 s** of motion (6.8x) with
 > every step ending on a **measured** bus-servo settle instead of a fixed
 > sleep, and the motion is a jerk-limited S-curve instead of one
-> constant-velocity move with a hard start and stop. The real-cube run gripped
-> the cube (0 clusters left in the cube box) and put it back **1.23 mm** from
-> the measured start.
+> constant-velocity move with a hard start and stop. The first real-cube run
+> gripped the cube (0 clusters left in the cube box) and put it back
+> **1.23 mm** from the measured start. The same bundle also holds the later
+> in-view (**0.92 mm**) and far return-home (**11.06 mm** against the fitted
+> target) runs.
 
 ## 1. What was slow, and what shook
 
@@ -96,9 +98,10 @@ Files: `path_*.json`.
 
 Settle time does **not** grow with speed and the post-stop tail jitter stays at
 1-3 counts on joint2, so the servos are not saturating in this range: the 9 s
-return is 11× slower than the arm allows. The production default is
-`vmax = 3.0 rad/s, amax = 12 rad/s^2` (the 4.0/20 rows are the tested ceiling,
-not the default).
+return is 11× slower than the arm allows. This early run used
+`vmax = 3.0 rad/s, amax = 12 rad/s^2`; the later throughput v2 default is
+**4.0/20** (see `docs/phase2/FAST_MOTION.md`), and the 4.0/20 rows above are
+the tested ceiling on the unloaded arm.
 
 ## 5. The full cycle (no cube)
 
@@ -143,9 +146,28 @@ duty 10, 1.0 s then 0.58 s) brought it to **(0.2305, 0.0016) m** — the
 The 9.9 s / 10.7 s wall time of each grasp/release *command* includes ~4.5 s of
 SSH plus container startup; the arm motion itself is the 5.4 / 6.2 s above.
 
-## 7. Open items
+## 7. Later runs: in-view and far return-home
+
+Two further runs on the same driver use the **4.0/20** default and the v2
+release profile:
+
+| Run | Cube start | Base | Grasp | Release | Landing |
+|---|---|---|---:|---:|---|
+| In view (no base move) | (0.2369, 0.0003) m | none | 4.77 s | 4.44 s | **0.92 mm** (vs the cube's own start) |
+| Far + return home | (0.4325, -0.1674) m, 0.464 m at -21 deg | 2 pulses, 294.7 + 32.4 mm | 4.76 s | 4.31 s | **11.06 mm** (vs the fitted target) |
+
+Files: `e2e_cube_run2.json` and `e2e_far_return_home.json`. The far run's
+`--return-home` reverses the commanded approach while the cube is still held
+(one 2.50 s pulse, 245.3 mm measured net travel); it is open-loop, so the
+11.06 mm landing is a base-frame placement error, not a home error. Both runs
+used `joint1 <= 0.017 rad`, a close register of 422 / 421 against 535 on an
+empty grip, and 0 clusters in the cube box before and after the return.
+
+## 8. Open items
 
 * `--slow` (the previous single-point path, now on the same client) was not
   re-run on hardware in this session; it is a straight port of the old code.
-* The 4.0 rad/s / 20 rad/s^2 rows are a tested upper bound on an unloaded arm;
-  the holding-cube return was run at the 3.0 rad/s default, not above it.
+* The 4.0/20 envelope was validated on four real-cube runs (this bundle's two
+  later runs plus the two throughput v2 runs); the earlier 5.45 s run used
+  3.0/12, and the holding-cube return now uses 1.4 rad/s. The 4.0/20 rows
+  above are still a tested upper bound on an unloaded arm.

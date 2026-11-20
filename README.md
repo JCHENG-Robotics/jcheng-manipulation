@@ -82,10 +82,11 @@ trail; the 2° rotation tolerance is still provisional because no direct
 rotation-tolerance experiment exists. The same day added a chassis-front
 RealSense D435i as an independent `base_link` observer (2.58 mm x/y agreement
 with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
-11.67 s to 8.94 s, and two later runs that extended the chain to a cube at
-0.464 m and reversed the base home while holding it (11.06 mm placement error
-against the fitted target; the return itself remains open-loop). A
-pre-registered 24-site paired follow-up has not yet been run.
+11.67 s to 8.94 s, and two later runs that added an in-view grasp (4.77 s /
+4.44 s, 0.92 mm landing) and a far-cube run at 0.464 m which reversed the base
+home while holding the cube (11.06 mm placement error against the fitted
+target; the return itself remains open-loop). A pre-registered 24-site paired
+follow-up has not yet been run.
 
 ## Objectives and contributions
 
@@ -153,10 +154,10 @@ pre-registered 24-site paired follow-up has not yet been run.
     with bus-servo settle detection replaced single-point 6–9 s moves: the
     grasp+put-back cycle fell **11.67 s → 8.94 s** (−23 %), the no-cube cycle
     from ~37 s to 5.43 s, and the aligned duty-20 base run put the cube back
-    **2.22 mm** from its start. Two later runs held the 4.0/20 envelope on a
-    far cube: a 294.7 + 32.4 mm closed-loop approach, a 2.50 s reverse pulse
-    with the cube still held, and an **11.06 mm** landing against the fitted
-    target.
+    **2.22 mm** from its start. Two later runs kept the 4.0/20 envelope: an
+    in-view grasp (4.77 s / 4.44 s, **0.92 mm** landing) and a far-cube run
+    with a 294.7 + 32.4 mm closed-loop approach, a 2.50 s reverse pulse with
+    the cube still held, and an **11.06 mm** landing against the fitted target.
 
 ## Key results (measured on hardware)
 
@@ -189,11 +190,11 @@ pre-registered 24-site paired follow-up has not yet been run.
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Dual-camera grasp, first attempt (2026-11-20) | chassis D435i measured the cube in `base_link` within **2.58 mm** (x/y) of the wrist at the view pose; the validated target `C_view + e` was kept because `e` is a low-config execution correction, not a measurement bias; **grip + put-back** verified by both cameras, **3.65 mm** planar return (front-camera estimate) | [`evidence/phase2/onsite_20261120/dual_grasp/`](evidence/phase2/onsite_20261120/dual_grasp/README.md) |
 | Lowest reach | physical lowest point **10 mm**; nominal TCP **15 mm** above the floor; mechanical max at joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
-| Adopted joint limits | servo EEPROM **−20 pulses**, joint2 high tightened to **775** after the formal survey; all five joints hand-measured 2026-11-19; `mapping_verified=true` (operating envelope) | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
+| Adopted joint limits | servo EEPROM **−20 pulses** (joint2 low from the measured 322 stop → 342), joint2 high tightened to **775** after the formal survey; all five joints hand-measured 2026-11-19; `mapping_verified=true` (operating envelope) | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
-| Studio G5 tracking | **712 commanded / 711 measured** samples; max **0.008321 rad**, RMSE **0.003962 rad** | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
-| Error budget (2026-11-19) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
+| Studio G5 stream check | **712 commanded / 711 measured** samples; same-index max **0.008321 rad**, RMSE **0.003962 rad**, dominated by a one-period start offset and pulse quantization | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
+| Error budget (2026-11-19, partial: 4/7 translation sources) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS; execution, placement and fixture were still unmeasured | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## System architecture
 
@@ -300,7 +301,7 @@ separately.
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
 | Measurement protocols | **Implemented; error-budget sources measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; rotation-tolerance and visual-displacement runners added, hardware runs pending |
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trials | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; 2.19 mm paired placement improvement (p = 0.0063); 24-site layout + seed-17 plan committed, not run |
+| Paired trials | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); 24-site layout + seed-17 plan committed, not run |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
@@ -425,8 +426,9 @@ The 2026-11-19 grasp runs used `tools/phase2/real_moveit_execute.py`,
 the Studio G5/G6 paths; see
 [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/).
 The 2026-11-20 runs added `tools/phase2/fast_motion.py`,
-`tools/phase3/fast_motion_e2e.py` (throughput v2, aligned auto-base) and the
-`ext_cam_*` front-camera chain; see
+`tools/phase3/fast_motion_e2e.py` (throughput v2, aligned auto-base, and
+`--return-home` for a far-cube return) and the `ext_cam_*` front-camera chain;
+see
 [`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/).
 
 ### Offline analysis (no motion)
@@ -570,9 +572,11 @@ supervised runners.
 - **MoveIt execute needs a clock lead.** A laptop systemd user timer now
   pushes the Pi clock every 60 s and holds it ~2 s ahead through a restricted
   forced-command key; verify the timer before a cross-host execute.
-- **`/joint_states` is a command echo.** The measured truth is
-  `/controller_manager/servo_states`; the register read is the `get_state`
-  service.
+- **`/joint_states` is a command echo.** The closest vendor feedback is
+  `/controller_manager/servo_states`; the independent hardware read is the
+  `get_state` service. The 2026-11-18 G5 capture shows `servo_states` can match
+  the command echo exactly, so treat it as servo-reported, not independent
+  metrology.
 - **The low pose is depth-blind.** The wrist near cutoff is 0.176 m; the front
   D435i depth starts at ~0.2 m and its grasp band is colour-only, so neither
   camera supports a low-pose depth grasp.
@@ -718,8 +722,9 @@ it for a grasp. A fixed-tag survey then showed the error is a constant inside
 the measured envelope, and joint-offset and `link4` models were rejected
 against four passing grasps. The pre-registered 24-pair trial completed the
 argument: **12/24 → 24/24** (McNemar p = 0.00049) and a **2.19 mm** paired
-placement improvement. The same day added a second, independently calibrated
-camera, a 23 % faster measured motion path and a completed error budget. The
+placement improvement. The next day (2026-11-20) added a second, independently
+calibrated camera, a 23 % faster measured motion path and a completed error
+budget. The
 same evidence also shows what is not yet solved: the error is corrected, not
 modelled outside the measured envelope; the completed bound budget
 (13.325 mm RSS) fails the 6 mm tolerance even though the empirical placement

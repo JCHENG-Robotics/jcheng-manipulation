@@ -219,10 +219,10 @@ If `frontend/dist/index.html` exists, the FastAPI app serves it at `/`.
 ```bash
 cd backend
 . .venv/bin/activate
-pytest                       # 76 passed
+pytest                       # 93 passed
 
 cd ../ros2_gateway
-../backend/.venv/bin/python -m pytest   # 24 passed (no ROS needed)
+../backend/.venv/bin/python -m pytest   # 47 passed (no ROS needed)
 
 cd ../frontend
 npm run test:e2e             # builds, then 10 mock Playwright tests
