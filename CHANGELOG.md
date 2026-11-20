@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 24-site paired trial (pre-registered)
+
+### Added
+
+- `tools/phase3/site_layout.py`: the pre-registered 24-site fan (radii 0.30,
+  0.35, 0.40, 0.45 m x bearings -10, -4, +2, +8, +14, +20 deg), the envelope
+  checks and the operator markdown table.
+- `tools/phase3/site_diversity_session.py`: a `paired_trial_session.Session`
+  subclass that adds, per pair, the wide view-pose measurement, a `joint1`
+  yaw-search fallback, the closed-loop base approach to the 0.226-0.234 m
+  band, the prior-24/24 envelope guard, and the reverse-model home return.
+  The grasp, grip check, landing gates and recorder are unchanged.
+- `docs/phase3/SITE_DIVERSITY_DESIGN.md`: the pre-registered questions,
+  procedure, capability and paired outcomes, safety, envelope rationale,
+  threats, pre-session checks and analysis; no pooling with the 2026-11-19
+  single-fixture trial.
+- `evidence/phase3/onsite_20261120_sites/`: the layout JSON, operator table,
+  seeded plan (seed 17) and hashes, written before data.
+- Tests: `test_site_layout.py` and `test_site_diversity_session.py`,
+  including the plan-to-site assignment, the base-return model cancellation
+  and a 48-record dry run.
+- `tools/phase3/site_report.py`: joins the approach sidecar and the trial
+  records into the capability/outcome table (retries, locate, approach, pulse
+  count, final envelope, abort reason); `test_site_report.py` covers the
+  last-attempt rule and the retry count.
+
+### Changed
+
+- `paired_trial_session.Session.trial` takes `prompt=True` and merges an
+  optional `extra_notes` hook into the record notes; the defaults preserve the
+  2026-11-19 runner behavior.
+
+### Status
+
+- **Pre-registered, not yet run.** No 24-site trial or robot motion has been
+  performed for this experiment. The dry run writes 48 synthetic records to a
+  temporary directory only.
+
 ## [Unreleased] — 2026-11-20 throughput v2 (arm envelope default, faster base)
 
 ### Changed

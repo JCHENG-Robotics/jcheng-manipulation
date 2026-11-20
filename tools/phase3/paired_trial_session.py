@@ -395,8 +395,13 @@ class Session:
                 pulses = self.robot.pulses()
         return None, report
 
-    def trial(self, entry):
-        """Run one trial and append its record."""
+    def trial(self, entry, prompt=True):
+        """Run one trial and append its record.
+
+        ``prompt=False`` is used by the site-diversity runner: the cube is
+        already placed on the site and the arm is already aligned, so the
+        per-trial placement prompt would be a no-op.
+        """
         method = entry['method']
         tag = '{}_s{:02d}'.format(entry['pair_id'], entry['sequence'])
         self.counter += 1
@@ -405,7 +410,8 @@ class Session:
             entry['object_pose_fixture']))
         if self.args.dry_run:
             return self._dry_trial(entry, tag)
-        input('  place the cube at the fixture and press Enter ... ')
+        if prompt:
+            input('  place the cube at the fixture and press Enter ... ')
         pulses = self.robot.pulses()
         point, report = self.measure(pulses, tag + '_pre')
         if point is None:
@@ -442,6 +448,8 @@ class Session:
         }
         notes['grip_rejection'] = grip_report.get('rejection')
         notes['grip_selected'] = bool(grip_report.get('selected'))
+        # The site-diversity runner attaches its locate/approach record here.
+        notes.update(getattr(self, 'extra_notes', None) or {})
         if not held:
             code = 'MISS'
             if clusters > 0:
@@ -517,6 +525,7 @@ class Session:
             'xy_error_mm': fit['xy_error_mm'],
             'residual_mm': fit['residual_mm'],
         }
+        notes.update(getattr(self, 'extra_notes', None) or {})
         if entry['method'] == 'baseline':
             self._record(entry, success=False, error_mm=None,
                          failure_code='MISS', notes=notes)

@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-20T09:42:45.498261+00:00",
+  "fixture_prefix": "s",
+  "n_sites": 24,
+  "radii_m": [
+    0.3,
+    0.35,
+    0.4,
+    0.45
+  ],
+  "bearings_deg": [
+    -10.0,
+    -4.0,
+    2.0,
+    8.0,
+    14.0,
+    20.0
+  ],
+  "envelope": {
+    "min_radius_m": 0.25,
+    "max_radius_m": 0.47,
+    "min_bearing_deg": -15.0,
+    "max_bearing_deg": 25.0,
+    "min_site_separation_m": 0.025,
+    "note": "The nominally placed top-face squares project inside the view-pose wrist image (640x400) and the front D435i colour image (1280x720); the layout is centred on the front camera, whose optical axis is at base y = +0.027 m and yaw -1.1 deg."
+  },
+  "sites": [
+    {
+      "site_id": "s01",
+      "radius_m": 0.3,
+      "bearing_deg": -10.0,
+      "x_m": 0.295442,
+      "y_m": -0.052094
+    },
+    {
+      "site_id": "s02",
+      "radius_m": 0.3,
+      "bearing_deg": -4.0,
+      "x_m": 0.299269,
+      "y_m": -0.020927
+    },
+    {
+      "site_id": "s03",
+      "radius_m": 0.3,
+      "bearing_deg": 2.0,
+      "x_m": 0.299817,
+      "y_m": 0.01047
+    },
+    {
+      "site_id": "s04",
+      "radius_m": 0.3,
+      "bearing_deg": 8.0,
+      "x_m": 0.29708,
+      "y_m": 0.041752
+    },
+    {
+      "site_id": "s05",
+      "radius_m": 0.3,
+      "bearing_deg": 14.0,
+      "x_m": 0.291089,
+      "y_m": 0.072577
+    },
+    {
+      "site_id": "s06",
+      "radius_m": 0.3,
+      "bearing_deg": 20.0,
+      "x_m": 0.281908,
+      "y_m": 0.102606
+    },
+    {
+      "site_id": "s07",
+      "radius_m": 0.35,
+      "bearing_deg": -10.0,
+      "x_m": 0.344683,
+      "y_m": -0.060777
+    },
+    {
+      "site_id": "s08",
+      "radius_m": 0.35,
+      "bearing_deg": -4.0,
+      "x_m": 0.349147,
+      "y_m": -0.024415
+    },
+    {
+      "site_id": "s09",
+      "radius_m": 0.35,
+      "bearing_deg": 2.0,
+      "x_m": 0.349787,
+      "y_m": 0.012215
+    },
+    {
+      "site_id": "s10",
+      "radius_m": 0.35,
+      "bearing_deg": 8.0,
+      "x_m": 0.346594,
+      "y_m": 0.048711
+    },
+    {
+      "site_id": "s11",
+      "radius_m": 0.35,
+      "bearing_deg": 14.0,
+      "x_m": 0.339604,
+      "y_m": 0.084673
+    },
+    {
+      "site_id": "s12",
+      "radius_m": 0.35,
+      "bearing_deg": 20.0,
+      "x_m": 0.328892,
+      "y_m": 0.119707
+    },
+    {
+      "site_id": "s13",
+      "radius_m": 0.4,
+      "bearing_deg": -10.0,
+      "x_m": 0.393923,
+      "y_m": -0.069459
+    },
+    {
+      "site_id": "s14",
+      "radius_m": 0.4,
+      "bearing_deg": -4.0,
+      "x_m": 0.399026,
+      "y_m": -0.027903
+    },
+    {
+      "site_id": "s15",
+      "radius_m": 0.4,
+      "bearing_deg": 2.0,
+      "x_m": 0.399756,
+      "y_m": 0.01396
+    },
+    {
+      "site_id": "s16",
+      "radius_m": 0.4,
+      "bearing_deg": 8.0,
+      "x_m": 0.396107,
+      "y_m": 0.055669
+    },
+    {
+      "site_id": "s17",
+      "radius_m": 0.4,
+      "bearing_deg": 14.0,
+      "x_m": 0.388118,
+      "y_m": 0.096769
+    },
+    {
+      "site_id": "s18",
+      "radius_m": 0.4,
+      "bearing_deg": 20.0,
+      "x_m": 0.375877,
+      "y_m": 0.136808
+    },
+    {
+      "site_id": "s19",
+      "radius_m": 0.45,
+      "bearing_deg": -10.0,
+      "x_m": 0.443163,
+      "y_m": -0.078142
+    },
+    {
+      "site_id": "s20",
+      "radius_m": 0.45,
+      "bearing_deg": -4.0,
+      "x_m": 0.448904,
+      "y_m": -0.03139
+    },
+    {
+      "site_id": "s21",
+      "radius_m": 0.45,
+      "bearing_deg": 2.0,
+      "x_m": 0.449726,
+      "y_m": 0.015705
+    },
+    {
+      "site_id": "s22",
+      "radius_m": 0.45,
+      "bearing_deg": 8.0,
+      "x_m": 0.445621,
+      "y_m": 0.062628
+    },
+    {
+      "site_id": "s23",
+      "radius_m": 0.45,
+      "bearing_deg": 14.0,
+      "x_m": 0.436633,
+      "y_m": 0.108865
+    },
+    {
+      "site_id": "s24",
+      "radius_m": 0.45,
+      "bearing_deg": 20.0,
+      "x_m": 0.422862,
+      "y_m": 0.153909
+    }
+  ]
+}

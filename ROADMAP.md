@@ -321,6 +321,15 @@ reduces the placement error by 2.19 mm among dual-success pairs. The earlier
 five unpaired grasps (3/5) remain feasibility evidence. Because a baseline miss
 has no release landing, the binary outcome is the primary test.
 
+**Pre-registered follow-up (2026-11-20):** the 24-site paired trial tests
+whether the same effect and the locate/approach chain survive site diversity.
+Each pair gets its own pre-registered floor site (four radii x six bearings,
+0.30-0.45 m), the base is driven closed-loop into the 0.226-0.234 m band, and
+the runner returns home between pairs. The design, 24-site layout and seeded
+plan (seed 17) are written before data
+([`docs/phase3/SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md));
+the hardware session is pending.
+
 ## 11. Safety
 
 Automated experiments require:
