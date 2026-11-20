@@ -237,3 +237,36 @@ Two constraints drive how this camera may be used:
   that region is colour-only. The far half of the table (0.25-0.45 m) has depth
   and is the camera's real contribution: far-object measurement, base-drive
   feedback and post-release verification.
+
+## Depth status (2026-11-20)
+
+The UVC depth stream works at the kernel level (640x480 Z16, ~50-60% valid
+pixels, IR shows the projector pattern), but the supported path is
+librealsense and that is **blocked inside the vendor container**:
+
+- librealsense 2.55.1 (Release, C++ only) and realsense-ros 4.55.1 were built
+  and installed inside the container from staged sources (the robot has no
+  package-manager network; GitHub is only reachable from the laptop).
+- `rs2::context` enumerates the six UVC nodes and then reports
+  **`Found 0 RealSense devices`**. In the same container `libusb` lists
+  `8086:0b3a`, opens it and reads its product string, and `libudev`
+  enumerates all 25 video4linux devices. The host udev rule
+  `SUBSYSTEM=="usb", ATTR{idVendor}=="8086", ATTR{idProduct}=="0b3a", MODE="0666"`
+  is installed and the node is world-writable, so it is not permissions.
+- The container has **no `/run/udev` runtime**; copying the host database in
+  did not change the result. The next attempt should recreate the vendor
+  container with `-v /run/udev:/run/udev:ro` (a deployment change, not done
+  here) and re-run the enumeration before anything else.
+
+Until then the depth stream is **not calibrated and not published**; the
+colour path (UVC, `ext_cam_node`) is unaffected.
+
+## Reboot test (2026-11-20, PASS)
+
+`sudo systemctl reboot` with the table clear. SSH answered 25 s after the
+reboot; the container came up, `armpi-ext-cam` and `armpi-gateway` each
+restarted once while waiting for it, and the vendor `armpi-vision` (Aurora)
+finished ~2.5 min after boot. After the boot `/health` reports
+`camera_ready` and `aux_camera_ready` true, both snapshots return 200,
+`base_link -> ext_cam_optical` is `[0.136, 0.027, 0.038]`, and the Pi clock
+sits 0.9 s ahead of the laptop.
