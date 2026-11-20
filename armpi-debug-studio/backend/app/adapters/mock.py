@@ -95,6 +95,8 @@ class MockRobotAdapter(RobotAdapter):
         self._driver_online = True
         self._camera_started = self._clock()
         self._camera_frames = 0
+        self._aux_camera_started = self._clock()
+        self._aux_camera_frames = 0
         self._last_tick = self._clock()
 
     # ------------------------------------------------------------------ faults
@@ -159,6 +161,8 @@ class MockRobotAdapter(RobotAdapter):
         self._last_command_id = None
         self._camera_started = self._clock()
         self._camera_frames = 0
+        self._aux_camera_started = self._clock()
+        self._aux_camera_frames = 0
         self._last_tick = self._clock()
 
     def active_faults(self) -> list[dict[str, Any]]:
@@ -563,6 +567,71 @@ class MockRobotAdapter(RobotAdapter):
   <text x="24" y="352" fill="#b6c3d4" font-family="monospace" font-size="14">{status.width}×{status.height} · {status.fps:.0f} fps · {status.encoding}</text>
   <text x="24" y="374" fill="#8192a8" font-family="monospace" font-size="12">frame {status.frame_count} · {battery_text}</text>
   <text x="616" y="42" fill="#8192a8" font-family="monospace" font-size="12" text-anchor="end">{utc_now_iso()}</text>
+</svg>"""
+        return svg.encode("utf-8"), "image/svg+xml"
+
+    def aux_camera_status(self) -> CameraStatus:
+        now = self._clock()
+        unavailable = (
+            "disconnect" in self._fault_kinds
+            or "driver_exit" in self._fault_kinds
+            or "camera_offline" in self._fault_kinds
+        )
+        if unavailable:
+            return CameraStatus(
+                available=False,
+                truth=Truth.UNKNOWN,
+                validity=Validity.UNAVAILABLE,
+                source="mock_adapter",
+                topic="uvc:/dev/video4",
+                width=None,
+                height=None,
+                encoding=None,
+                fps=0.0,
+                last_frame_at=None,
+                sample_age_ms=None,
+                frame_count=self._aux_camera_frames,
+                notes=["SIMULATION: aux camera unavailable due to an injected mock fault."],
+            )
+
+        elapsed = max(0.0, now - self._aux_camera_started)
+        self._aux_camera_frames = max(self._aux_camera_frames, int(elapsed * 10.0) + 1)
+        return CameraStatus(
+            available=True,
+            truth=Truth.SIMULATED,
+            validity=Validity.VALID,
+            source="mock_adapter",
+            topic="uvc:/dev/video4",
+            width=640,
+            height=480,
+            encoding="yuyv",
+            fps=10.0,
+            last_frame_at=utc_now_iso(),
+            sample_age_ms=0,
+            frame_count=self._aux_camera_frames,
+            notes=[
+                "SIMULATION: generated aux placeholder; no UVC device was opened."
+            ],
+        )
+
+    def aux_camera_snapshot(self) -> tuple[bytes, str] | None:
+        status = self.aux_camera_status()
+        if not status.available:
+            return None
+        svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#060c10"/>
+  <g stroke="#1d2a38" stroke-width="1">
+    <path d="M0 120 H640 M0 240 H640 M0 360 H640 M160 0 V480 M320 0 V480 M480 0 V480"/>
+  </g>
+  <g stroke="#f3b34c" stroke-width="1.5" fill="none" opacity="0.8">
+    <path d="M320 200 V280 M280 240 H360"/>
+    <rect x="250" y="170" width="140" height="140" stroke-dasharray="4 6"/>
+  </g>
+  <text x="24" y="46" fill="#e8eef6" font-family="monospace" font-size="24" font-weight="700">MOCK AUX CAMERA</text>
+  <text x="24" y="70" fill="#f3b34c" font-family="monospace" font-size="13">SIMULATION — UVC /dev/video4, no device accessed</text>
+  <text x="24" y="420" fill="#b6c3d4" font-family="monospace" font-size="14">{status.width}×{status.height} · {status.fps:.0f} fps · {status.encoding}</text>
+  <text x="24" y="444" fill="#8192a8" font-family="monospace" font-size="12">frame {status.frame_count} · D435i color stream</text>
+  <text x="616" y="46" fill="#8192a8" font-family="monospace" font-size="12" text-anchor="end">{utc_now_iso()}</text>
 </svg>"""
         return svg.encode("utf-8"), "image/svg+xml"
 

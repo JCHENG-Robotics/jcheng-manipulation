@@ -71,6 +71,28 @@ class RobotAdapter(ABC):
     def camera_snapshot(self) -> tuple[bytes, str] | None:
         """Return (image bytes, media type), or None when no frame is available."""
 
+    def aux_camera_status(self) -> CameraStatus:
+        """Return the off-arm UVC camera health; unavailable by default."""
+        return CameraStatus(
+            available=False,
+            truth=Truth.UNKNOWN,
+            validity=Validity.UNAVAILABLE,
+            source="adapter",
+            topic="uvc:disabled",
+            width=None,
+            height=None,
+            encoding=None,
+            fps=None,
+            last_frame_at=None,
+            sample_age_ms=None,
+            frame_count=0,
+            notes=["aux camera is not supported by this adapter"],
+        )
+
+    def aux_camera_snapshot(self) -> tuple[bytes, str] | None:
+        """Return the off-arm UVC frame, or None when unavailable."""
+        return None
+
     def tf_snapshot(self) -> dict[str, Any] | None:
         """Return a read-only TF snapshot when the adapter supports one."""
         return None

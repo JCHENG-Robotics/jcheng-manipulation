@@ -15,6 +15,7 @@ def test_mock_peripherals_are_simulated_and_available(client: TestClient) -> Non
     payload = response.json()
     battery = payload["battery"]
     camera = payload["camera"]
+    aux_camera = payload["aux_camera"]
 
     assert battery["available"] is True
     assert battery["truth"] == "simulated"
@@ -29,6 +30,14 @@ def test_mock_peripherals_are_simulated_and_available(client: TestClient) -> Non
     assert camera["encoding"] == "bgr8"
     assert camera["fps"] == 8.0
 
+    assert aux_camera["available"] is True
+    assert aux_camera["truth"] == "simulated"
+    assert aux_camera["topic"] == "uvc:/dev/video4"
+    assert aux_camera["width"] == 640
+    assert aux_camera["height"] == 480
+    assert aux_camera["encoding"] == "yuyv"
+    assert aux_camera["fps"] == 10.0
+
 
 def test_mock_camera_snapshot_is_labelled_svg(client: TestClient) -> None:
     response = client.get("/api/peripherals/camera/snapshot")
@@ -36,6 +45,15 @@ def test_mock_camera_snapshot_is_labelled_svg(client: TestClient) -> None:
     assert "image/svg+xml" in response.headers["content-type"]
     assert b"MOCK CAMERA" in response.content
     assert b"SIMULATION" in response.content
+
+
+def test_mock_aux_camera_snapshot_is_labelled_svg(client: TestClient) -> None:
+    response = client.get("/api/peripherals/aux-camera/snapshot")
+    assert response.status_code == 200, response.text
+    assert "image/svg+xml" in response.headers["content-type"]
+    assert b"MOCK AUX CAMERA" in response.content
+    assert b"SIMULATION" in response.content
+    assert b"UVC /dev/video4" in response.content
 
 
 def test_battery_low_fault_changes_status(client: TestClient) -> None:
@@ -53,13 +71,21 @@ def test_camera_offline_fault_makes_snapshot_unavailable(client: TestClient) -> 
     camera = client.get("/api/peripherals").json()["camera"]
     assert camera["available"] is False
     assert camera["validity"] == "unavailable"
+    aux_camera = client.get("/api/peripherals").json()["aux_camera"]
+    assert aux_camera["available"] is False
+    assert aux_camera["validity"] == "unavailable"
 
     snapshot = client.get("/api/peripherals/camera/snapshot")
     assert snapshot.status_code == 503
     assert snapshot.json()["error"]["code"] == "NOT_IMPLEMENTED"
 
+    aux_snapshot = client.get("/api/peripherals/aux-camera/snapshot")
+    assert aux_snapshot.status_code == 503
+    assert aux_snapshot.json()["error"]["code"] == "NOT_IMPLEMENTED"
+
     assert client.post("/api/mock/reset").status_code == 200
     assert client.get("/api/peripherals").json()["camera"]["available"] is True
+    assert client.get("/api/peripherals").json()["aux_camera"]["available"] is True
 
 
 def test_hardware_without_gateway_is_explicitly_unavailable(settings: Settings, clock) -> None:
@@ -75,7 +101,13 @@ def test_hardware_without_gateway_is_explicitly_unavailable(settings: Settings, 
         assert payload["battery"]["validity"] == "unavailable"
         assert payload["camera"]["available"] is False
         assert payload["camera"]["validity"] == "unavailable"
+        assert payload["aux_camera"]["available"] is False
+        assert payload["aux_camera"]["validity"] == "unavailable"
 
         snapshot = client.get("/api/peripherals/camera/snapshot")
         assert snapshot.status_code == 503
         assert snapshot.json()["error"]["code"] == "NOT_IMPLEMENTED"
+
+        aux_snapshot = client.get("/api/peripherals/aux-camera/snapshot")
+        assert aux_snapshot.status_code == 503
+        assert aux_snapshot.json()["error"]["code"] == "NOT_IMPLEMENTED"

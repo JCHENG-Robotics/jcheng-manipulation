@@ -401,11 +401,21 @@ class RobotService:
         return jsonable(self.adapter.camera_status())
 
     def camera_snapshot(self) -> tuple[bytes, str]:
-        snapshot = self.adapter.camera_snapshot()
+        return self._snapshot(self.adapter.camera_snapshot(), "camera")
+
+    def aux_camera_status(self) -> dict[str, Any]:
+        return jsonable(self.adapter.aux_camera_status())
+
+    def aux_camera_snapshot(self) -> tuple[bytes, str]:
+        return self._snapshot(self.adapter.aux_camera_snapshot(), "aux camera")
+
+    def _snapshot(
+        self, snapshot: tuple[bytes, str] | None, label: str
+    ) -> tuple[bytes, str]:
         if snapshot is None:
             raise ServiceError(
                 ErrorCode.NOT_IMPLEMENTED.value,
-                "camera snapshot is unavailable",
+                f"{label} snapshot is unavailable",
                 status_code=503,
                 details={
                     "mode": self.settings.mode.value,
@@ -418,6 +428,7 @@ class RobotService:
         return {
             "battery": self.battery(),
             "camera": self.camera_status(),
+            "aux_camera": self.aux_camera_status(),
         }
 
     # ------------------------------------------------------------- visual (G4)

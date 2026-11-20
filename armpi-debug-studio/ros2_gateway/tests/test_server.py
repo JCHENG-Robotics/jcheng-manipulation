@@ -28,6 +28,18 @@ class FakeNode:
     def camera_snapshot(self) -> bytes | None:
         return b"\xff\xd8fake-jpeg"
 
+    def aux_camera_status_payload(self) -> dict[str, object]:
+        return {
+            "available": True,
+            "topic": "uvc:/dev/video4",
+            "width": 640,
+            "height": 480,
+            "encoding": "yuyv",
+        }
+
+    def aux_camera_snapshot(self) -> bytes | None:
+        return b"\xff\xd8fake-aux-jpeg"
+
     def tf_payload(self) -> dict[str, object]:
         return {
             "available": True,
@@ -145,7 +157,14 @@ def test_token_is_required(gateway: tuple[GatewayHTTPServer, threading.Event, th
 
 def test_read_only_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:
     server, _, _ = gateway
-    for path in ("/health", "/state", "/battery", "/camera/status", "/tf"):
+    for path in (
+        "/health",
+        "/state",
+        "/battery",
+        "/camera/status",
+        "/aux-camera/status",
+        "/tf",
+    ):
         status, body, content_type = _request(server, path, token="secret-token")
         assert status == 200, path
         assert content_type.startswith("application/json")
@@ -158,6 +177,27 @@ def test_read_only_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, 
     assert status == 200
     assert content_type == "image/jpeg"
     assert body == b"\xff\xd8fake-jpeg"
+
+    status, body, content_type = _request(server, "/aux-camera/snapshot", token="secret-token")
+    assert status == 200
+    assert content_type == "image/jpeg"
+    assert body == b"\xff\xd8fake-aux-jpeg"
+
+
+class FakeNodeWithoutAuxFrame(FakeNode):
+    def aux_camera_snapshot(self) -> bytes | None:
+        return None
+
+
+def test_aux_camera_snapshot_reports_unavailable() -> None:
+    server, stop_event, thread = _start("secret-token", FakeNodeWithoutAuxFrame())
+    try:
+        status, body, _ = _request(server, "/aux-camera/snapshot", token="secret-token")
+        assert status == 503
+        assert json.loads(body)["error"]["code"] == "AUX_CAMERA_UNAVAILABLE"
+    finally:
+        stop_event.set()
+        thread.join(timeout=5)
 
 
 def test_motion_paths_stay_disabled(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:

@@ -283,6 +283,7 @@ export interface CameraStatus {
 export interface Peripherals {
   battery: BatteryState;
   camera: CameraStatus;
+  aux_camera: CameraStatus;
 }
 
 export interface TargetPayload {

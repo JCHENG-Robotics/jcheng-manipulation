@@ -28,6 +28,7 @@ from rclpy.qos import (
 from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import UInt16
 
+from .aux_camera import UvcCamera
 from .imaging import cv2, image_to_bgr, np
 from .motion import SERVO_IDS, MotionConfig, MotionGuard, MotionRejected
 from .trajectory_capture import pulse_to_rad
@@ -68,6 +69,7 @@ class GatewayNode(Node):
         tf_topic: str = "/tf",
         tf_static_topic: str = "/tf_static",
         jpeg_quality: int = 80,
+        aux_camera: UvcCamera | None = None,
         motion_enabled: bool = False,
         motion_config: MotionConfig | None = None,
     ) -> None:
@@ -75,6 +77,7 @@ class GatewayNode(Node):
         self._lock = threading.Lock()
         self._battery_topic = battery_topic
         self._camera_topic = camera_topic
+        self._aux_camera = aux_camera
         self._joint_state_topic = joint_state_topic
         self._servo_state_topic = servo_state_topic
         self._tf_topic = tf_topic
@@ -491,6 +494,32 @@ class GatewayNode(Node):
         with self._lock:
             return self._frame_jpeg
 
+    def aux_camera_status_payload(self) -> dict[str, Any]:
+        """UVC color stream of the off-arm D435i (not a ROS topic)."""
+        if self._aux_camera is None:
+            return {
+                "available": False,
+                "truth": "unknown",
+                "validity": "unavailable",
+                "source": "armpi_debug_gateway_uvc",
+                "topic": "uvc:disabled",
+                "device": None,
+                "width": None,
+                "height": None,
+                "encoding": None,
+                "fps": 0.0,
+                "last_frame_at": None,
+                "sample_age_ms": None,
+                "frame_count": 0,
+                "notes": ["aux camera is disabled (--no-aux-camera)."],
+            }
+        return self._aux_camera.status_payload()
+
+    def aux_camera_snapshot(self) -> bytes | None:
+        if self._aux_camera is None:
+            return None
+        return self._aux_camera.snapshot()
+
     def state_payload(self) -> dict[str, Any]:
         with self._lock:
             joints = {name: dict(item) for name, item in self._joints.items()}
@@ -582,6 +611,7 @@ class GatewayNode(Node):
     def health_payload(self) -> dict[str, Any]:
         battery = self.battery_payload()
         camera = self.camera_status_payload()
+        aux_camera = self.aux_camera_status_payload()
         state = self.state_payload()
         tf = self.tf_payload()
         joints_ready = any(
@@ -592,6 +622,7 @@ class GatewayNode(Node):
             "ros_ready": bool(rclpy.ok()),
             "battery_ready": bool(battery["available"]),
             "camera_ready": bool(camera["available"]),
+            "aux_camera_ready": bool(aux_camera["available"]),
             "joints_ready": joints_ready,
             "measured_ready": bool(state.get("measured_ready")),
             "tf_ready": bool(tf["available"]),
@@ -603,6 +634,7 @@ class GatewayNode(Node):
             "topics": {
                 "battery": self._battery_topic,
                 "camera": self._camera_topic,
+                "aux_camera": aux_camera["topic"],
                 "joint_state": self._joint_state_topic,
                 "measured": self._servo_state_topic,
                 "motion": MOTION_TOPIC if self.motion_enabled else None,

@@ -25,6 +25,7 @@ import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
 from .auth import TokenError, resolve_token as resolve_shared_token
+from .aux_camera import UvcCamera
 from .motion import MotionConfigError, load_motion_config
 from .node import GatewayNode
 from .server import GatewayHTTPServer
@@ -45,6 +46,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--tf-topic", default="/tf")
     parser.add_argument("--tf-static-topic", default="/tf_static")
     parser.add_argument("--jpeg-quality", type=int, default=80)
+    parser.add_argument(
+        "--aux-camera-device",
+        default="/dev/video4",
+        help="UVC color device of the off-arm D435i (it has no ROS driver)",
+    )
+    parser.add_argument("--aux-camera-width", type=int, default=640)
+    parser.add_argument("--aux-camera-height", type=int, default=480)
+    parser.add_argument("--aux-camera-fps", type=float, default=10.0)
+    parser.add_argument(
+        "--no-aux-camera",
+        action="store_true",
+        help="do not open the UVC aux camera; /aux-camera/* then reports unavailable",
+    )
     parser.add_argument(
         "--enable-motion",
         action="store_true",
@@ -119,6 +133,17 @@ def main(argv: list[str] | None = None) -> None:
     stop_event = threading.Event()
     _install_signal_handlers(stop_event)
 
+    aux_camera = None
+    if not args.no_aux_camera:
+        aux_camera = UvcCamera(
+            args.aux_camera_device,
+            width=args.aux_camera_width,
+            height=args.aux_camera_height,
+            fps=args.aux_camera_fps,
+            quality=args.jpeg_quality,
+            log=lambda message: print(f"  aux:     {message}", flush=True),
+        )
+
     rclpy.init()
     try:
         node = GatewayNode(
@@ -129,6 +154,7 @@ def main(argv: list[str] | None = None) -> None:
             tf_topic=args.tf_topic,
             tf_static_topic=args.tf_static_topic,
             jpeg_quality=args.jpeg_quality,
+            aux_camera=aux_camera,
             motion_enabled=bool(args.enable_motion),
             motion_config=motion_config,
         )
@@ -136,6 +162,8 @@ def main(argv: list[str] | None = None) -> None:
         rclpy.shutdown()
         print(f"ERROR: {exc}", file=sys.stderr)
         raise SystemExit(2) from exc
+    if aux_camera is not None:
+        aux_camera.start()
     executor = MultiThreadedExecutor(num_threads=2)
     executor.add_node(node)
     spin_thread = threading.Thread(target=executor.spin, name="gateway-spin", daemon=True)
@@ -147,6 +175,14 @@ def main(argv: list[str] | None = None) -> None:
         print(f"armpi_debug_gateway listening on http://{args.host}:{args.port}", flush=True)
         print(f"  battery: {args.battery_topic}")
         print(f"  camera:  {args.camera_topic}")
+        if args.no_aux_camera:
+            print("  aux:     DISABLED")
+        else:
+            print(
+                f"  aux:     {args.aux_camera_device} "
+                f"({args.aux_camera_width}x{args.aux_camera_height} "
+                f"@ {args.aux_camera_fps:g} fps UVC)"
+            )
         print(f"  joints:  {args.joint_state_topic}")
         print(f"  measured:{args.servo_state_topic}")
         print(f"  tf:      {args.tf_topic} + {args.tf_static_topic}")
@@ -163,6 +199,8 @@ def main(argv: list[str] | None = None) -> None:
     finally:
         if server is not None:
             server.server_close()
+        if aux_camera is not None:
+            aux_camera.stop()
         executor.shutdown()
         node.destroy_node()
         rclpy.shutdown()

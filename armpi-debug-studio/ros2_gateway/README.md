@@ -118,18 +118,26 @@ curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/health
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/battery
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/camera/status
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/camera/snapshot -o /tmp/frame.jpg
+curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/aux-camera/status
+curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/aux-camera/snapshot -o /tmp/aux.jpg
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/state
 curl -H "X-Armpi-Token: $TOKEN" http://127.0.0.1:8765/tf
 ```
 
 Expected:
 
-- `/health` has `ros_ready`, `battery_ready`, `camera_ready`, `joints_ready`,
-  and `motion_enabled: false`.
+- `/health` has `ros_ready`, `battery_ready`, `camera_ready`,
+  `aux_camera_ready`, `joints_ready`, and `motion_enabled: false`.
 - `/battery` returns `voltage_mv`, `voltage_v`, `percent_estimate`,
   `status` (`ok`/`low`/`critical`), `truth: measured`.
 - `/camera/status` reports `640×400`, `fps` around 8, `truth: measured`.
 - `/camera/snapshot` is a JPEG.
+- `/aux-camera/status` reports the off-arm RealSense D435i color stream read
+  directly over UVC (`uvc:/dev/video4`, default `640×480` YUYV, `truth:
+  measured`). It needs no ROS driver; `--no-aux-camera` disables it and the
+  endpoints then report `available: false`. Depth/IR are not captured.
+- `/aux-camera/snapshot` is a JPEG (503 `AUX_CAMERA_UNAVAILABLE` before the
+  first frame).
 - `/tf` reports `available`, `status` (`ok`/`static_only`/`stale`/`unavailable`),
   edge counts, `freshest_age_ms`, `max_dynamic_age_ms`, `max_static_age_ms` and
   `transforms[]` with parent/child/translation/quaternion/age. Static edges are

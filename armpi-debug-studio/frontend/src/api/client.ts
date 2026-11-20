@@ -175,6 +175,9 @@ export const api = {
   cameraSnapshotUrl(tick: number): string {
     return `${API_BASE}/api/peripherals/camera/snapshot?t=${tick}`;
   },
+  auxCameraSnapshotUrl(tick: number): string {
+    return `${API_BASE}/api/peripherals/aux-camera/snapshot?t=${tick}`;
+  },
   async probe(): Promise<ProbeResult> {
     return request<ProbeResult>("/api/diagnostics/probe", { method: "POST" });
   },

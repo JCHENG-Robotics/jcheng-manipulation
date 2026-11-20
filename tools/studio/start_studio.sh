@@ -175,7 +175,7 @@ import json, sys
 
 with open(sys.argv[1]) as handle:
     per = json.load(handle)
-for name in ("battery", "camera"):
+for name in ("battery", "camera", "aux_camera"):
     data = per.get(name, {})
     if not data.get("available"):
         print("  %-8s UNAVAILABLE" % name)

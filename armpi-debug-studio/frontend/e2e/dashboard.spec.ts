@@ -18,6 +18,15 @@ test.describe("Dashboard (mock mode)", () => {
     await expect(camera).toContainText("640×400");
     await expect(camera).toContainText("simulated");
 
+    const auxCamera = page.locator("section", {
+      has: page.getByRole("heading", { name: "Camera · Aux" }),
+    });
+    await expect(auxCamera).toBeVisible();
+    await expect(auxCamera.locator('img[alt="ArmPi aux camera"]')).toBeVisible();
+    await expect(auxCamera).toContainText("uvc:/dev/video4");
+    await expect(auxCamera).toContainText("640×480");
+    await expect(auxCamera).toContainText("simulated");
+
     const battery = page.locator("section", {
       has: page.getByRole("heading", { name: "Battery · 2S" }),
     });

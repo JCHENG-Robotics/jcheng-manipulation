@@ -6,6 +6,8 @@ Endpoints:
     GET /battery
     GET /camera/status
     GET /camera/snapshot
+    GET /aux-camera/status
+    GET /aux-camera/snapshot
     GET /tf
     GET /motion/status
     POST /motion/dispatch   (supervised instance only)
@@ -123,6 +125,16 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
             frame = self.server.node.camera_snapshot()
             if frame is None:
                 self._error(503, "CAMERA_UNAVAILABLE", "no camera frame received yet")
+                return
+            self._bytes(200, frame, "image/jpeg")
+            return
+        if path == "/aux-camera/status":
+            self._json(200, self.server.node.aux_camera_status_payload())
+            return
+        if path == "/aux-camera/snapshot":
+            frame = self.server.node.aux_camera_snapshot()
+            if frame is None:
+                self._error(503, "AUX_CAMERA_UNAVAILABLE", "no aux camera frame available")
                 return
             self._bytes(200, frame, "image/jpeg")
             return

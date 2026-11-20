@@ -1067,7 +1067,11 @@ select:focus-visible {
 
 /* --------------------------------------------------------- camera/battery */
 .grid-camera {
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(280px, 0.9fr);
+}
+
+.grid-camera > .battery-card {
+  align-self: start;
 }
 
 .camera-frame {
@@ -1178,9 +1182,70 @@ select:focus-visible {
   font-size: 12px;
 }
 
+@media (max-width: 1500px) {
+  .grid-camera {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-camera > .battery-card {
+    grid-column: 1 / -1;
+  }
+
+  .grid-camera > .battery-card .card-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 24px;
+  }
+
+  .grid-camera > .battery-card .battery-readout {
+    flex: 1 1 320px;
+    margin: 0;
+  }
+
+  .grid-camera > .battery-card .kv-list {
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+
+  .grid-camera > .battery-card .kv-list .key-value {
+    min-width: 110px;
+    gap: 8px;
+    border-bottom: 0;
+  }
+
+  .grid-camera > .battery-card .battery-warning,
+  .grid-camera > .battery-card .footnote {
+    flex-basis: 100%;
+    margin: 0;
+  }
+}
+
 @media (max-width: 980px) {
   .grid-camera {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid-camera > .battery-card {
+    grid-column: auto;
+  }
+
+  .grid-camera > .battery-card .card-body {
+    display: block;
+  }
+
+  .grid-camera > .battery-card .battery-readout {
+    margin: 8px 0 12px;
+  }
+
+  .grid-camera > .battery-card .kv-list {
+    flex-direction: column;
+  }
+
+  .grid-camera > .battery-card .kv-list .key-value {
+    border-bottom: 1px dashed rgba(38, 52, 69, 0.7);
   }
 }
 

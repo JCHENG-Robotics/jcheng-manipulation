@@ -361,8 +361,9 @@ still requires mapping/limit verification and Board approval.
 | GET | `/api/health` | mode, source label, capabilities |
 | GET | `/api/state` | latest `RobotState` |
 | GET | `/api/connection` | four-segment connection evidence |
-| GET | `/api/peripherals` | battery + camera status |
-| GET | `/api/peripherals/camera/snapshot` | latest camera frame (JPEG or Mock SVG) |
+| GET | `/api/peripherals` | battery + main camera + aux (D435i UVC) status |
+| GET | `/api/peripherals/camera/snapshot` | latest main camera frame (JPEG or Mock SVG) |
+| GET | `/api/peripherals/aux-camera/snapshot` | latest D435i UVC color frame (JPEG or Mock SVG) |
 | GET | `/api/safety` | safety gate checks |
 | GET | `/api/diagnostics` | mapping, defects, environment, probe availability |
 | POST | `/api/diagnostics/probe` | simulated single-shot probe (Mock only) |

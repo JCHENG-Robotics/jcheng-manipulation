@@ -170,13 +170,15 @@ class HardwareAdapter(RobotAdapter):
             notes=[note],
         )
 
-    def _camera_unavailable(self, note: str) -> CameraStatus:
+    def _camera_unavailable(
+        self, note: str, *, topic: str = "/depth_cam/rgb/image_raw"
+    ) -> CameraStatus:
         return CameraStatus(
             available=False,
             truth=Truth.UNKNOWN,
             validity=Validity.UNAVAILABLE,
             source="hardware_gateway",
-            topic="/depth_cam/rgb/image_raw",
+            topic=topic,
             width=None,
             height=None,
             encoding=None,
@@ -221,13 +223,17 @@ class HardwareAdapter(RobotAdapter):
         except (TypeError, ValueError, KeyError) as exc:
             return self._battery_unavailable(f"invalid gateway battery payload: {exc}")
 
-    def camera_status(self) -> CameraStatus:
+    def _camera_from_gateway(
+        self, path: str, *, default_topic: str, label: str
+    ) -> CameraStatus:
         if self._gateway is None:
-            return self._camera_unavailable("ARMPI_GATEWAY_URL is not configured")
+            return self._camera_unavailable(
+                "ARMPI_GATEWAY_URL is not configured", topic=default_topic
+            )
         try:
-            data = self._gateway.get_json("/camera/status")
+            data = self._gateway.get_json(path)
         except GatewayError as exc:
-            return self._camera_unavailable(str(exc))
+            return self._camera_unavailable(str(exc), topic=default_topic)
         try:
             available = bool(data.get("available", False))
             return CameraStatus(
@@ -235,7 +241,7 @@ class HardwareAdapter(RobotAdapter):
                 truth=Truth(data.get("truth", "measured" if available else "unknown")),
                 validity=Validity(data.get("validity", "valid" if available else "unavailable")),
                 source=str(data.get("source", "armpi_debug_gateway")),
-                topic=str(data.get("topic", "/depth_cam/rgb/image_raw")),
+                topic=str(data.get("topic", default_topic)),
                 width=self._optional_int(data.get("width")),
                 height=self._optional_int(data.get("height")),
                 encoding=str(data["encoding"]) if data.get("encoding") is not None else None,
@@ -246,13 +252,35 @@ class HardwareAdapter(RobotAdapter):
                 notes=[str(item) for item in data.get("notes", [])],
             )
         except (TypeError, ValueError, KeyError) as exc:
-            return self._camera_unavailable(f"invalid gateway camera payload: {exc}")
+            return self._camera_unavailable(
+                f"invalid gateway {label} payload: {exc}", topic=default_topic
+            )
+
+    def camera_status(self) -> CameraStatus:
+        return self._camera_from_gateway(
+            "/camera/status",
+            default_topic="/depth_cam/rgb/image_raw",
+            label="camera",
+        )
 
     def camera_snapshot(self) -> tuple[bytes, str] | None:
         if self._gateway is None:
             return None
         try:
             return self._gateway.get_bytes("/camera/snapshot")
+        except GatewayError:
+            return None
+
+    def aux_camera_status(self) -> CameraStatus:
+        return self._camera_from_gateway(
+            "/aux-camera/status", default_topic="uvc:/dev/video4", label="aux camera"
+        )
+
+    def aux_camera_snapshot(self) -> tuple[bytes, str] | None:
+        if self._gateway is None:
+            return None
+        try:
+            return self._gateway.get_bytes("/aux-camera/snapshot")
         except GatewayError:
             return None
 

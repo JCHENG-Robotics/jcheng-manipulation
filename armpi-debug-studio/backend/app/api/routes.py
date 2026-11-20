@@ -117,6 +117,16 @@ def camera_snapshot(request: Request) -> Response:
     )
 
 
+@router.get("/peripherals/aux-camera/snapshot")
+def aux_camera_snapshot(request: Request) -> Response:
+    content, media_type = _service(request).aux_camera_snapshot()
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
+
 @router.get("/safety")
 def safety(
     request: Request,

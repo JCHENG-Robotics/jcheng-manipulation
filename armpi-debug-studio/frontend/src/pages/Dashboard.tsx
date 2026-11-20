@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
-import type { Peripherals } from "../api/types";
+import type { CameraStatus, Peripherals } from "../api/types";
 import {
   Button,
   Card,
@@ -18,6 +18,77 @@ import { formatAge, formatAngle, formatClock, formatNumber, maxFeedbackAge } fro
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
+function CameraPanel({
+  title,
+  subtitle,
+  camera,
+  snapshotUrl,
+  alt,
+  overlay,
+  loading,
+  failed,
+  onLoad,
+  onError,
+}: {
+  title: string;
+  subtitle: string;
+  camera: CameraStatus | null;
+  snapshotUrl: string;
+  alt: string;
+  overlay: string;
+  loading: boolean;
+  failed: boolean;
+  onLoad: () => void;
+  onError: () => void;
+}) {
+  return (
+    <Card
+      title={title}
+      subtitle={subtitle}
+      actions={
+        <>
+          {camera && <TruthBadge truth={camera.truth} />}
+          <StatusChip
+            tone={camera && camera.available ? (camera.validity === "valid" ? "ok" : "warning") : "neutral"}
+            label={camera && camera.available ? camera.validity : "unavailable"}
+          />
+        </>
+      }
+    >
+      {loading ? (
+        <EmptyState title="正在读取相机…">等待 /api/peripherals 返回相机状态。</EmptyState>
+      ) : camera && camera.available ? (
+        <>
+          <div className="camera-frame">
+            {failed ? (
+              <div className="camera-fallback">Snapshot unavailable</div>
+            ) : (
+              <img src={snapshotUrl} alt={alt} onLoad={onLoad} onError={onError} />
+            )}
+            <span className="camera-overlay">{overlay}</span>
+          </div>
+          <div className="camera-meta">
+            <span>
+              {camera.width ?? "—"}×{camera.height ?? "—"}
+            </span>
+            <span>{camera.fps !== null ? `${camera.fps.toFixed(1)} fps` : "—"}</span>
+            <span>{camera.encoding ?? "—"}</span>
+            <span>age {formatAge(camera.sample_age_ms)}</span>
+            <span>frames {camera.frame_count}</span>
+          </div>
+          {camera.notes.length > 0 && <p className="footnote">{camera.notes.join(" ")}</p>}
+        </>
+      ) : (
+        <EmptyState title="Camera Unavailable">
+          {camera?.notes?.length
+            ? camera.notes.join(" ")
+            : "尚未收到相机帧，或网关未配置。"}
+        </EmptyState>
+      )}
+    </Card>
+  );
+}
+
 export function Dashboard() {
   const robot = useRobotStore((store) => store.state);
   const diagnostics = useRobotStore((store) => store.diagnostics);
@@ -32,6 +103,7 @@ export function Dashboard() {
   const [peripheralError, setPeripheralError] = useState<string | null>(null);
   const [cameraTick, setCameraTick] = useState(0);
   const [cameraFailed, setCameraFailed] = useState(false);
+  const [auxCameraFailed, setAuxCameraFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +134,7 @@ export function Dashboard() {
     const timer = window.setInterval(() => {
       setCameraTick((tick) => tick + 1);
       setCameraFailed(false);
+      setAuxCameraFailed(false);
     }, 300);
     return () => window.clearInterval(timer);
   }, []);
@@ -87,6 +160,7 @@ export function Dashboard() {
   const latestEvents = events.slice(0, 8);
   const battery = peripherals?.battery ?? null;
   const camera = peripherals?.camera ?? null;
+  const auxCamera = peripherals?.aux_camera ?? null;
   const batteryTone =
     battery?.status === "ok"
       ? "ok"
@@ -189,57 +263,34 @@ export function Dashboard() {
       )}
 
       <div className="grid grid-camera">
-        <Card
+        <CameraPanel
           title="Camera · RGB"
           subtitle={camera?.topic ?? "/depth_cam/rgb/image_raw"}
-          actions={
-            <>
-              {camera && <TruthBadge truth={camera.truth} />}
-              <StatusChip
-                tone={camera && camera.available ? (camera.validity === "valid" ? "ok" : "warning") : "neutral"}
-                label={camera && camera.available ? camera.validity : "unavailable"}
-              />
-            </>
-          }
-        >
-          {!peripherals ? (
-            <EmptyState title="正在读取相机…">等待 /api/peripherals 返回相机状态。</EmptyState>
-          ) : camera && camera.available ? (
-            <>
-              <div className="camera-frame">
-                {cameraFailed ? (
-                  <div className="camera-fallback">Snapshot unavailable</div>
-                ) : (
-                  <img
-                    src={api.cameraSnapshotUrl(cameraTick)}
-                    alt="ArmPi camera"
-                    onLoad={() => setCameraFailed(false)}
-                    onError={() => setCameraFailed(true)}
-                  />
-                )}
-                <span className="camera-overlay">{robot.source_label}</span>
-              </div>
-              <div className="camera-meta">
-                <span>
-                  {camera.width ?? "—"}×{camera.height ?? "—"}
-                </span>
-                <span>{camera.fps !== null ? `${camera.fps.toFixed(1)} fps` : "—"}</span>
-                <span>{camera.encoding ?? "—"}</span>
-                <span>age {formatAge(camera.sample_age_ms)}</span>
-                <span>frames {camera.frame_count}</span>
-              </div>
-              {camera.notes.length > 0 && <p className="footnote">{camera.notes.join(" ")}</p>}
-            </>
-          ) : (
-            <EmptyState title="Camera Unavailable">
-              {camera?.notes?.length
-                ? camera.notes.join(" ")
-                : "尚未收到相机帧，或网关未配置。"}
-            </EmptyState>
-          )}
-        </Card>
+          camera={camera}
+          snapshotUrl={api.cameraSnapshotUrl(cameraTick)}
+          alt="ArmPi camera"
+          overlay={robot.source_label}
+          loading={!peripherals}
+          failed={cameraFailed}
+          onLoad={() => setCameraFailed(false)}
+          onError={() => setCameraFailed(true)}
+        />
+
+        <CameraPanel
+          title="Camera · Aux"
+          subtitle={auxCamera?.topic ?? "uvc:/dev/video4"}
+          camera={auxCamera}
+          snapshotUrl={api.auxCameraSnapshotUrl(cameraTick)}
+          alt="ArmPi aux camera"
+          overlay={auxCamera?.truth === "simulated" ? "AUX · SIMULATION" : "D435i · UVC"}
+          loading={!peripherals}
+          failed={auxCameraFailed}
+          onLoad={() => setAuxCameraFailed(false)}
+          onError={() => setAuxCameraFailed(true)}
+        />
 
         <Card
+          className="battery-card"
           title="Battery · 2S"
           subtitle={battery?.topic ?? "/ros_robot_controller/battery"}
           actions={

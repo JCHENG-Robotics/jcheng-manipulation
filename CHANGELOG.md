@@ -3,6 +3,20 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 Studio auxiliary camera
+
+### Added
+
+- **The Studio Dashboard shows the off-arm RealSense D435i beside the main
+  Aurora camera.** The read-only gateway captures the D435i color stream
+  directly over UVC (`/dev/video4`, 640×480 YUYV, ~9 fps) without a RealSense
+  ROS driver, and serves `/aux-camera/status` + `/aux-camera/snapshot`. The
+  backend adds `aux_camera` to `/api/peripherals` and proxies
+  `/api/peripherals/aux-camera/snapshot`; the Dashboard lays the two feeds side
+  by side with the battery card below them on narrower windows. Mock mode
+  renders a labelled SVG placeholder. Depth and IR are not captured. Both feeds
+  verified live on the robot 2026-11-20 (aux `measured`, 640×480, ~9 fps).
+
 ## [Unreleased] — 2026-11-20 execution, placement and fixture measurements
 
 ### Added
