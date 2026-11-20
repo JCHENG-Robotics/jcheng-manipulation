@@ -3,6 +3,52 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 fast, measured arm motion
+
+### Added
+
+- `tools/phase2/motion_profile.py`: jerk-limited joint-space S-curve (trapezoid
+  with half-cosine ramps), synchronised over all joints, with exact endpoints
+  and a 25 ms minimum segment (the vendor clamps shorter segments to 20 ms).
+- `tools/phase2/vendor_servo_map.py`: single source for the pulse<->radian
+  mapping, the flipped joint3, the EEPROM/measured hard bounds, the adopted
+  bounds and the measured gripper values.
+- `tools/phase2/fast_motion.py`: dense-waypoint trajectory client with a
+  **measured** bus-servo settle (3 counts over 0.12 s), raw gripper commands, a
+  zero-motion per-segment bench, a speed sweep and a post-move hold trace.
+- `docs/phase2/FAST_MOTION.md` and
+  `evidence/phase2/onsite_20261120/fast_motion/`: design, measured speed
+  envelope and the raw hardware reports.
+- 13 profile / bounds unit tests in
+  `tools/phase2/tests/test_motion_profile.py`.
+
+### Changed
+
+- `low_config_grasp_validate.py` and `move_to_pose.py` now default to the
+  S-curve path with measured settles, a fast pre-grasp descent and a slow final
+  0.15 rad; the gripper opens in parallel with the approach. `--slow` restores
+  the previous single-point 6-9 s moves.
+- `paired_trial_session.py` deploys the three new modules with the other robot
+  tools.
+
+### Measured
+
+- Vendor trajectory path overhead: 0.27/0.10/0.07/0.01 ms per segment at
+  20/40/80/200 points over 2 s (100 Hz waypoints are free).
+- Real view<->approach path: return 9 s -> **0.92 s** at the default
+  `vmax = 3.0 rad/s`, `amax = 12 rad/s^2`; settle 0.05 s at every speed up to
+  4.0 rad/s / 20 rad/s^2, with 1-3 counts of post-stop tail jitter (no servo
+  saturation in the tested range).
+- Full no-cube grasp cycle **5.43 s** vs ~37 s (6.8x): approach 1.01,
+  pre-grasp 0.39, final 0.56, close 0.57 + 0.89, return 0.92, all settled.
+- Gripper: ~420-460 counts/s travel, 0.1 s command queueing delay, 13-19 count
+  load error (register 535 for the 550 grip command).
+
+### Open
+
+- A real-cube grasp with the fast timing has not been re-run (targets and close
+  values unchanged; only the finger impact speed changed).
+
 ## [Unreleased] — 2026-11-20 dual-camera supervised grasp
 
 ### Added

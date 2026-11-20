@@ -53,7 +53,8 @@ ARM_JOINTS = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
 DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
 DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
 ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
-               'low_config_grasp_validate.py')
+               'low_config_grasp_validate.py', 'fast_motion.py',
+               'motion_profile.py', 'vendor_servo_map.py')
 
 
 def now_iso():

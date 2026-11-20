@@ -46,6 +46,7 @@
 | [FIDUCIAL_GRASP_BRIDGE.md](FIDUCIAL_GRASP_BRIDGE.md) | `target_pose` → TF → grasp search → safety veto; mock E2E result and limitations |
 | [SAFETY_LAYER.md](SAFETY_LAYER.md) | state watchdog, joint/rate/workspace checks, validation service, mock evidence |
 | [MEASUREMENT_PROTOCOL.md](MEASUREMENT_PROTOCOL.md) | repeatability, backlash, visual-displacement and gripper-envelope schedules and analyzers |
+| [FAST_MOTION.md](FAST_MOTION.md) | jerk-limited S-curve profiles, measured settles, gripper raw path and the measured speed envelope |
 | [CALIBRATION.md](CALIBRATION.md) | Chessboard camera/hand-eye procedure, tools, validated result and open-loop limitations |
 | [CALIBRATION_POSES.md](CALIBRATION_POSES.md) | Offline selection of 24 diverse calibration poses, diversity/coplanarity checks and on-site command |
 | [../hardware/camera_frames.md](../hardware/camera_frames.md) | Body/optical frame contract and `camera_optical_calibrated` |
