@@ -194,3 +194,37 @@ state this limitation explicitly.
    project `camera_frame_publisher` / `camera_optical_calibrated` frame.
 3. If higher frame rate/resolution is needed, check whether the camera can be
    moved to a USB 3 port/cable.
+
+## Off-board front camera (RealSense D435i, 2026-11-20)
+
+A second camera is mounted on the chassis front, below the arm base, looking
+down at the table. It is a plain UVC depth camera, not a vendor device, so it
+does not use `bringup vision.launch.py`.
+
+| Item | Value |
+|---|---|
+| Model | Intel RealSense D435i, USB ID `8086:0b3a`, serial `308243060489` |
+| Bus | **USB 3.0 (5000 Mbps)**; the USB 2.0 bus it started on shared 480 Mbps with the Aurora and dropped to 15 fps colour with 0.4% valid depth |
+| Colour | UVC 1280x720 YUYV @ 30 fps |
+| Depth | raw v4l2 640x480 Z16, ~50-60% valid; needs librealsense for aligned depth, projector control and real intrinsics |
+| ROS path | none by default: the studio gateway owns `/dev/video4` for the aux-camera preview (`036fe15`). `tools/phase2/ext_cam_frames.py` publishes only the static TF and `camera_info`; choose one owner before adding a ROS image topic |
+
+Calibration (2026-11-20, [`evidence/calibration/20261120/`](../../evidence/calibration/20261120/)):
+
+```text
+base_link -> ext_cam_optical
+translation = [0.139, 0.027, 0.037] m
+pitch = 32.6 deg below horizontal, yaw = -1.3 deg
+fx = fy = 892.1 px, cx/cy = 648.0/380.2, RMS 0.51 px (provisional)
+```
+
+Two constraints drive how this camera may be used:
+
+- **It is not in the collision model.** The lens sits 115 mm above the table
+  and the `link2` joint origin is at z = 0.087 m at the low poses, i.e. within
+  ~20 mm. Any low arm pose needs a visual check, or the mount needs a static
+  collision box before it can be trusted.
+- **Depth starts at ~0.2 m.** The grasp band is ~0.13 m in front of the lens, so
+  that region is colour-only. The far half of the table (0.25-0.45 m) has depth
+  and is the camera's real contribution: far-object measurement, base-drive
+  feedback and post-release verification.
