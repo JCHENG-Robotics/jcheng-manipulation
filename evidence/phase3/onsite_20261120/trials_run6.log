@@ -1,0 +1,11 @@
+moving to the view pose ...
+arm at the view pose.
+
+=== trial 20 / 20 ===
+  cube  (+0.2316, -0.0085, -0.0482) m
+  target(+0.2453, -0.0046, -0.0393) m
+  joints -0.0274,-0.6618,-1.8012,-0.2956  xy error 0.00 mm
+  execution 3.634 mm / 0.842 deg, placement 4.776 mm
+wrote evidence/phase3/onsite_20261120/trial_report.json
+wrote evidence/phase3/onsite_20261120/trial_report.md
+execution: 4.220 mm mean / 1.069 deg mean; placement: 3.080 mm mean over 20 successes

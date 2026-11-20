@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "name": "fiducial_grasp_onsite_20261120_pipeline",
+  "task": "fiducial_grasp",
+  "tolerance": {
+    "translation_mm": 6.0,
+    "rotation_deg": 2.0
+  },
+  "tolerance_basis": "Measured 46-grasp tolerance envelope, conservative worst side 6 mm; the 2 deg rotation gate is still provisional.",
+  "sources": [
+    {
+      "id": "hand_eye_translation",
+      "category": "calibration",
+      "metric": "translation_mm",
+      "value": 3.29,
+      "kind": "bounded",
+      "basis": "held_out_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/calibration/20261117/",
+      "notes": "Held-out final base error from the 14-pose bus-servo hand-eye dataset (3.29 mm); the same dataset reports 3.41 mm leave-one-out std. Treated as a bound, not a Gaussian sigma."
+    },
+    {
+      "id": "hand_eye_rotation",
+      "category": "calibration",
+      "metric": "rotation_deg",
+      "value": 0.43,
+      "kind": "bounded",
+      "basis": "held_out_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/calibration/20261117/",
+      "notes": "Held-out final base rotation error (0.43 deg); treated as a bound."
+    },
+    {
+      "id": "fiducial_translation",
+      "category": "perception",
+      "metric": "translation_mm",
+      "value": 1.69,
+      "kind": "bounded",
+      "basis": "semi_synthetic_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/phase2/real_background_20261117/",
+      "notes": "Worst of 15/15 semi-synthetic poses on real camera frames; the marker was composited, not physically present. This is a relative-pose detection error."
+    },
+    {
+      "id": "fiducial_rotation",
+      "category": "perception",
+      "metric": "rotation_deg",
+      "value": 0.53,
+      "kind": "bounded",
+      "basis": "semi_synthetic_max",
+      "status": "measured",
+      "distribution": null,
+      "required": true,
+      "evidence": "evidence/phase2/real_background_20261117/",
+      "notes": "Worst semi-synthetic rotation error (0.53 deg); treated as a bound."
+    },
+    {
+      "id": "arm_repeatability",
+      "category": "repeatability",
+      "metric": "translation_mm",
+      "value": 1.017,
+      "kind": "bounded",
+      "basis": "hardware_max_30_visits",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+      "notes": "30 visits to the grasp pose [0, -0.6618, -1.8012, -0.3917, 0], AprilTag-observed. Radial RMS 0.449 mm, radial max 1.017 mm; the measured joints repeat to 0-1 pulse."
+    },
+    {
+      "id": "arm_repeatability_rotation",
+      "category": "repeatability",
+      "metric": "rotation_deg",
+      "value": 0.867,
+      "kind": "bounded",
+      "basis": "hardware_max_30_visits",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/repeatability/",
+      "notes": "Max geodesic deviation of the tag frame from the mean over the same 30 visits; mean 0.446 deg."
+    },
+    {
+      "id": "arm_backlash",
+      "category": "backlash",
+      "metric": "translation_mm",
+      "value": 1.117,
+      "kind": "bounded",
+      "basis": "hardware_hysteresis",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261119/backlash/",
+      "notes": "15 forward + 15 reverse visits to the same pose from joint4 +/-0.1 rad. Hysteresis vector (-0.971, -0.064, -0.549) mm, magnitude 1.117 mm; joint4 settles 10 pulses apart."
+    },
+    {
+      "id": "grasp_execution",
+      "category": "execution",
+      "metric": "translation_mm",
+      "value": 5.386,
+      "kind": "bounded",
+      "basis": "hardware_max_20_grasps",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261120/trial_report.json",
+      "notes": "Commanded joint vector vs bus-servo registers at the grasp pose, mapped through the same KDL model. Mean 4.220 mm, SD 0.628 mm, max 5.386 mm over 20 grasps. The offset is systematic (joint1/joint2 settle 4 pulses from the command); the constant correction was fitted with it present.",
+      "distribution": null
+    },
+    {
+      "id": "grasp_execution_rotation",
+      "category": "execution",
+      "metric": "rotation_deg",
+      "value": 1.495,
+      "kind": "bounded",
+      "basis": "hardware_max_20_grasps",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261120/trial_report.json",
+      "notes": "Geodesic rotation between the commanded and the measured grasp frame. Mean 1.069 deg, SD 0.207 deg, max 1.495 deg over the same 20 grasps.",
+      "distribution": null
+    },
+    {
+      "id": "gripper_placement",
+      "category": "gripper",
+      "metric": "translation_mm",
+      "value": 11.514,
+      "kind": "bounded",
+      "basis": "hardware_max_20_placements",
+      "status": "measured",
+      "required": true,
+      "evidence": "evidence/phase3/onsite_20261120/trial_report.json",
+      "notes": "Landing minus pre-grasp measurement over 20 successful put-backs. Mean 3.080 mm, SD 2.748 mm, RMS 4.082 mm, max 11.514 mm; mean xy bias (-0.987, +1.634) mm. This is a task-level release/placement outcome and overlaps the execution term; the max is used as a conservative bound.",
+      "distribution": null
+    }
+  ],
+  "limitations": [
+    "The execution offset is systematic and the constant correction was fitted with it present; the component RSS and the corrected task outcome answer different questions.",
+    "Gripper placement is a task-level landing displacement, not a pure release term; it overlaps execution and the residual correction.",
+    "The object-fixture term is a nuisance in this pipeline because every trial re-measures the cube at the view pose; the fixture-inclusive report shows it separately.",
+    "The measured values are maxima over one session, treated as bounds like the calibration terms.",
+    "The 2 deg rotation tolerance is a provisional protocol gate, not a measured physical tolerance.",
+    "The object-fixture pose source is measured but omitted from this pipeline aggregate because the cube is re-measured every trial; see error_budget_fixture_20261120.json for the fixture-inclusive view."
+  ]
+}

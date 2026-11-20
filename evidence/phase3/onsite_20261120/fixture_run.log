@@ -1,0 +1,58 @@
+moving to the view pose ...
+arm at the view pose.
+  placement 1: (+0.2278, -0.0133, -0.0494) m
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 610, in <module>
+    main()
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 604, in main
+    run_fixture(args)
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 431, in run_fixture
+    point, report = session.wait_for_placement(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 292, in wait_for_placement
+    raise TimeoutError('no stable cube placement within {:.0f} s'.format(
+TimeoutError: no stable cube placement within 240 s

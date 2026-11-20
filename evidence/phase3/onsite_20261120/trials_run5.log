@@ -1,0 +1,45 @@
+moving to the view pose ...
+arm at the view pose.
+
+=== trial 15 / 20 ===
+  cube  (+0.2188, -0.0077, -0.0482) m
+  target(+0.2325, -0.0038, -0.0393) m
+  joints -0.0247,-0.6618,-1.8012,-0.3946  xy error 0.00 mm
+  execution 4.509 mm / 1.144 deg, placement 4.629 mm
+
+=== trial 16 / 20 ===
+  cube  (+0.2196, -0.0033, -0.0476) m
+  target(+0.2333, +0.0006, -0.0387) m
+  joints 0.0018,-0.6618,-1.8012,-0.3894  xy error 0.00 mm
+  execution 3.734 mm / 0.962 deg, placement 1.636 mm
+
+=== trial 17 / 20 ===
+  cube  (+0.2184, -0.0021, -0.0477) m
+  target(+0.2321, +0.0018, -0.0388) m
+  joints 0.0089,-0.6618,-1.8012,-0.3987  xy error 0.00 mm
+  execution 4.605 mm / 1.191 deg, placement 1.581 mm
+
+=== trial 18 / 20 ===
+  cube  (+0.2184, -0.0006, -0.0474) m
+  target(+0.2321, +0.0033, -0.0385) m
+  joints 0.0182,-0.6618,-1.8012,-0.3983  xy error 0.00 mm
+  execution 3.014 mm / 0.837 deg, placement 1.775 mm
+
+=== trial 19 / 20 ===
+  cube  (+0.2178, +0.0010, -0.0473) m
+  target(+0.2315, +0.0049, -0.0384) m
+  joints 0.0279,-0.6618,-1.8012,-0.4027  xy error 0.00 mm
+  execution 3.315 mm / 0.988 deg, placement 0.702 mm
+
+=== trial 20 / 20 ===
+  cube  (+0.2168, +0.0010, -0.0473) m
+  target(+0.2305, +0.0049, -0.0384) m
+  joints 0.0280,-0.6618,-1.8012,-0.4104  xy error 0.00 mm
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 621, in <module>
+    main()
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 617, in main
+    run_trials(args)
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/execution_fixture_run.py", line 529, in run_trials
+    raise RuntimeError(
+RuntimeError: landing measurement rejected (ok); re-place the cube and re-run the trial

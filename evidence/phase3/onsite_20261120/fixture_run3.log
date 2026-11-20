@@ -1,0 +1,38 @@
+moving to the view pose ...
+arm at the view pose.
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  placement rejected: y extent 59.1 mm outside 30-50
+  waiting: cube removed
+  placement 16: (+0.2341, -0.0147, -0.0503) m
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: cube removed
+  placement 17: (+0.2345, -0.0147, -0.0503) m
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: cube removed
+  placement 18: (+0.2293, -0.0144, -0.0501) m
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: cube removed
+  placement 19: (+0.2344, -0.0149, -0.0504) m
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: lift or move the cube for the next sample
+  waiting: cube removed
+  placement 20: (+0.2326, -0.0148, -0.0502) m
+wrote evidence/phase3/onsite_20261120/fixture_report.json
+wrote evidence/phase3/onsite_20261120/fixture_report.md
+radial RMS 5.057 mm, radial max 14.815 mm over 20 placements

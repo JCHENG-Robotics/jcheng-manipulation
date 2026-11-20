@@ -1,0 +1,36 @@
+moving to the view pose ...
+arm at the view pose.
+
+=== trial 5 / 20 ===
+  cube  (+0.2274, -0.0035, -0.0476) m
+  target(+0.2411, +0.0004, -0.0387) m
+  joints 0.0009,-0.6618,-1.8012,-0.3292  xy error 0.00 mm
+  execution 4.432 mm / 1.061 deg, placement 0.504 mm
+
+=== trial 6 / 20 ===
+  cube  (+0.2268, -0.0032, -0.0476) m
+  target(+0.2405, +0.0007, -0.0387) m
+  joints 0.0027,-0.6618,-1.8012,-0.3334  xy error 0.00 mm
+  execution 4.743 mm / 1.200 deg, placement 2.824 mm
+
+=== trial 7 / 20 ===
+  cube  (+0.2244, -0.0030, -0.0479) m
+  target(+0.2381, +0.0009, -0.0390) m
+  joints 0.0034,-0.6618,-1.8012,-0.3523  xy error 0.00 mm
+  execution 5.386 mm / 1.495 deg, placement 0.283 mm
+
+=== trial 8 / 20 ===
+  cube  (+0.2241, -0.0032, -0.0482) m
+  target(+0.2378, +0.0007, -0.0393) m
+  joints 0.0022,-0.6618,-1.8012,-0.3549  xy error 0.00 mm
+  execution 5.014 mm / 1.335 deg, placement 3.135 mm
+
+=== trial 9 / 20 ===
+  cube  (+0.2231, -0.0032, -0.0479) m
+  target(+0.2368, +0.0007, -0.0390) m
+  joints 0.0023,-0.6618,-1.8012,-0.3626  xy error 0.00 mm
+  execution 4.294 mm / 1.039 deg, placement 3.269 mm
+
+=== trial 10 / 20 ===
+  cube  (+0.2192, -0.0031, -0.0490) m
+cube x 0.2192 m is outside the validated fixture window 0.222-0.238 m; re-place it before grasping
