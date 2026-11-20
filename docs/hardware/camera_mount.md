@@ -220,10 +220,19 @@ fx = fy = 892.1 px, cx/cy = 648.0/380.2, RMS 0.51 px (provisional)
 
 Two constraints drive how this camera may be used:
 
-- **It is not in the collision model.** The lens sits 115 mm above the table
-  and the `link2` joint origin is at z = 0.087 m at the low poses, i.e. within
-  ~20 mm. Any low arm pose needs a visual check, or the mount needs a static
-  collision box before it can be trusted.
+- **It is a planning-scene object, not a URDF link.** The live robot runs the
+  vendor description, so the camera is published the same way as the measured
+  table: `tools/phase2/ext_cam_collision.py` adds a 90 x 25 x 26 mm box at
+  `base_link` (0.148, 0.027, 0.031) with the calibrated orientation. With that
+  box in the scene the five validated operating poses (upright, table-down,
+  adopted-low, deep-low, 150 mm lift) stay collision-free; a control run with
+  the box padded by 0.3 m reported contacts against `link1`-`link3`, so the box
+  really is in the checker.
+  The box protects **MoveIt plans only**. It has to be republished after a
+  MoveIt restart (run it like `table_collision.py`), and direct joint moves -
+  including `move_to_pose.py` - bypass it; `armpi_safety` does not see scene
+  objects either. Keep a visual check for unplanned/low motions until the
+  geometry is added to the safety node.
 - **Depth starts at ~0.2 m.** The grasp band is ~0.13 m in front of the lens, so
   that region is colour-only. The far half of the table (0.25-0.45 m) has depth
   and is the camera's real contribution: far-object measurement, base-drive
