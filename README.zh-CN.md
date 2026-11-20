@@ -87,6 +87,7 @@
 | 完整误差预算（2026-11-20） | 平移 **RSS 13.325 mm / 最坏 24.014 mm** vs 6 mm；旋转 **RSS 1.858° / 最坏 3.322°** vs 暂定 2°；夹具纳入版 **19.926 mm**；实测放置均值 **3.080 mm** 在 6 mm 内 | [`error_budget.md`](evidence/phase3/onsite_20261120/error_budget.md) |
 | 抓取工作半径 | 指垫半径 **205–210 mm**；`joint1` 偏航范围 **±103.2°（206°）** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | 视野外搜索 + 底盘往返 | **+16° `joint1` 偏航**找到 **0.469 m** 处木块；闭环底盘移动 **0.325 m**；抓取并抬升 150 mm；回位残差 **9.4 mm**（地标校验）；放置相对机器人 **1.1 mm** | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
+| 双相机合作抓取，首次（2026-11-20） | 底盘前视 D435i 在 `base_link` 中测得木块，与腕部观察位测量 x/y 相差 **2.58 mm**；仍采用已验证目标 `C_view + e`，因为 `e` 是低构型执行补偿而非测量偏差；双相机确认**夹持成功 + 放回**，前视估计放回平面位移 **3.65 mm** | [`evidence/phase2/onsite_20261120/dual_grasp/`](evidence/phase2/onsite_20261120/dual_grasp/README.md) |
 | 最低可达位置 | 物理最低点离地 **10 mm**；名义 TCP 离地 **15 mm**；机械极限为 joint2 322 / joint3 939 | [`evidence/phase2/onsite_20261119/lowest_reach/`](evidence/phase2/onsite_20261119/lowest_reach/) |
 | 采纳关节限位 | 舵机 EEPROM **减 20 脉冲**，普查后 joint2 上限收紧到 **775**；五个关节 2026-11-19 全部手推实测；`mapping_verified=true`（作业包络） | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | 夹爪行程 | **2.22 rad**（张开 −2.22，闭合 0.0）；回差 **约 34 counts**；39.4 mm 木块在 −0.63 夹住 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |

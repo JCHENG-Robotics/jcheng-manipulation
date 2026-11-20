@@ -69,6 +69,28 @@ The pass gates are initial analysis thresholds, not yet the master-plan task
 tolerance. They will be replaced by the measured task tolerance after the
 gripper/object tests.
 
+### Front-camera top-face measurement (2026-11-20)
+
+The chassis-rigid D435i adds one measurement that the wrist camera cannot make:
+a pose-independent top-face point in `base_link`. The chain is implemented in
+`tools/phase2/ext_cam_capture.py` (colour 1280x720 + depth 640x480 Z16 plus
+camera_info, container-side) and `tools/phase2/ext_cam_measure.py` (laptop,
+OpenCV):
+
+1. RANSAC the support plane from the depth frame and map it to `base_link`
+   with the SDK depth→colour extrinsic and `T_base_front`;
+2. lift the plane by the cube edge to the top-face plane;
+3. rectify the undistorted colour image onto that plane at 0.5 mm/px;
+4. segment the saturated, top-face-bright blob and report its centroid.
+
+Gates: plane RMS ≤ 3 mm and inliers ≥ 30%, top-face x in 0.15–0.32 m,
+|y| ≤ 0.09 m, rectified short side 30–55 mm. The 2026-11-20 hardware run
+returned 0.75–0.79 mm plane RMS, 85–90% inliers and 0.09–0.62 mm repeatability
+across an arm move, with the point 2.58 mm from the wrist camera in x/y at the
+view pose and 5.7–7.5 mm below it in z (the documented 116 vs 121 mm
+depth/board height ambiguity). This measurement is not part of the pure-Python
+analyzer; it is a supervised hardware tool.
+
 ## Joint limits (separate physical tool)
 
 Joint-limit measurement is not part of this analyzer because it is a

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "source": "tools/phase2/rs_extrinsics_probe.cpp",
+  "device": {
+    "model": "Intel RealSense D435i",
+    "serial": "308243060489"
+  },
+  "streams": {
+    "from": "depth idx=0 (640x480 Z16)",
+    "to": "color idx=0 (1280x720)"
+  },
+  "convention": "p_color = R @ p_depth + t, both in the OpenCV optical frame",
+  "R": [
+    [0.999944389, -0.009844513, 0.003789137],
+    [0.009840806, 0.999951065, 0.000995616],
+    [-0.003798753, -0.000958272, 0.999992311]
+  ],
+  "t_m": [0.014792875, -0.000052700, 0.000423113],
+  "inverse": {
+    "R": [
+      [0.999944389, 0.009840806, -0.003798753],
+      [-0.009844513, 0.999951065, -0.000958272],
+      [0.003789137, 0.000995616, 0.999992311]
+    ],
+    "t_m": [-0.014794175, -0.000093297, -0.000366966]
+  },
+  "notes": [
+    "Queried 2026-11-20 with the depth node running; no stream was opened.",
+    "The 14.8 mm depth-to-colour baseline is the factory calibration and is not represented in TF.",
+    "Used to map depth-plane points into the calibrated ext_cam_optical colour frame."
+  ]
+}

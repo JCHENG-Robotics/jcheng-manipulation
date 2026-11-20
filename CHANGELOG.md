@@ -3,6 +3,39 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-20 dual-camera supervised grasp
+
+### Added
+
+- `tools/phase2/ext_cam_capture.py`: container-side capture of one D435i
+  colour frame, one depth frame and both `camera_info` messages, with a
+  skew/age gate (the colour stream can deliver stale frames under load).
+- `tools/phase2/ext_cam_measure.py`: laptop-side, pose-independent top-face
+  measurement — depth plane → top plane → rectified colour → saturated blob —
+  with gate checks, a JSON report and an overlay image.
+- `tools/phase2/rs_extrinsics_probe.cpp` and
+  `evidence/calibration/20261120/depth_to_color_extrinsics.json`: the D435i
+  depth→colour extrinsic (14.8 mm baseline) used to map depth planes into the
+  calibrated `ext_cam_optical` frame.
+- `evidence/phase2/onsite_20261120/dual_grasp/`: the full session — before,
+  view, after-grasp and release frames, front-camera measurements, wrist
+  segments, grasp/release logs and a session report.
+
+### Measured
+
+- Front-camera top-face measurement at the view pose: (0.230924, −0.008485,
+  −0.053333) m, **2.58 mm** (x/y) from the wrist measurement and repeatable to
+  0.09–0.62 mm across an arm move; its z is 5.7–7.5 mm below the wrist's
+  (the documented 116 vs 121 mm depth/board height ambiguity).
+- **`e = (+13.7, +3.9, +8.9) mm` is a low-configuration execution correction,
+  not a view-pose measurement bias.** The two cameras agree on the cube at the
+  view pose while `e` is +13.7 mm in x, so the validated target
+  `C_view + e` was kept; the front camera acted as a pre-grasp veto and as the
+  post-grasp/post-release verifier.
+- Dual-camera grasp **PASS**: wrist floor check 0 clusters, no cube-sized blob
+  in the front view, and the put-back returned the cube **3.65 mm** planar
+  (front estimate; wrist estimate 5.22 mm).
+
 ## [Unreleased] — 2026-11-20 Studio auxiliary camera
 
 ### Added

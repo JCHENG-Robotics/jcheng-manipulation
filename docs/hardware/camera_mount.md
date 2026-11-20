@@ -334,3 +334,48 @@ finished ~2.5 min after boot. After the boot `/health` reports
 `camera_ready` and `aux_camera_ready` true, both snapshots return 200,
 `base_link -> ext_cam_optical` is `[0.136, 0.027, 0.038]`, and the Pi clock
 sits 0.9 s ahead of the laptop.
+
+## Dual-camera grasp (2026-11-20, PASS)
+
+The first dual-camera supervised grasp used the D435i as an independent
+`base_link` measurement and verifier while the wrist camera kept the validated
+grasp target. Full evidence:
+[`evidence/phase2/onsite_20261120/dual_grasp/`](../../evidence/phase2/onsite_20261120/dual_grasp/README.md).
+
+Front-camera chain (`tools/phase2/ext_cam_capture.py` +
+`ext_cam_measure.py`): RANSAC the support plane from the depth frame, map it to
+`base_link` with the SDK depth→colour extrinsic (14.8 mm baseline) and
+`T_base_front`, lift it by the 39.4 mm cube edge, rectify the undistorted colour
+image onto that plane, and take the centroid of the saturated top-face blob.
+The 2026-11-20 run measured 0.75–0.79 mm plane RMS with 85–90% inliers at a
+3 mm threshold, and repeated the top-face point to 0.09–0.62 mm across an arm
+move.
+
+Measured comparison at the validated view pose (wrist
+`[0, 0.2574, -1.18773, -1.70, -0.01676]`):
+
+| Camera | Top-face point (m) |
+|---|---|
+| wrist (measured registers, table-down hand-eye) | (0.228505, −0.007597, −0.047638) |
+| front D435i | (0.230924, −0.008485, −0.053333) |
+| difference | (+2.42, −0.89, −5.70) mm |
+
+The x/y agreement is **2.58 mm**. The z difference is the known 5 mm
+depth-vs-board height ambiguity (the same camera was measured at 116 mm above
+the board by depth and 121 mm by the board-based extrinsic), so only the
+front camera's x/y is used quantitatively.
+
+The attempt kept the validated wrist target `C_view + e`: at the view pose the
+two cameras agree while `e` is +13.7 mm in x, so `e` is a **low-configuration
+execution correction**, not a view-pose measurement bias, and a second camera
+cannot replace it. The front camera served as a pre-grasp veto
+(|`C_front` − `C_view`| ≤ 8 mm; measured 2.58 mm) and as the post-grasp and
+post-release verifier. The cube was gripped, the wrist segmenter found zero
+clusters above the floor, the front view contained no cube-sized blob, and the
+put-back returned the cube **3.65 mm** from its pre-grasp position (front
+estimate; the wrist estimate was 5.22 mm, the difference being the wrist's
+pose-dependent measurement).
+
+Limitation: the front colour stream can deliver 10–12 s stale frames under
+load; the capture tool's `--max-skew`/`--max-age` gates rejected two attempts
+and the successful captures were re-taken at 0.07–0.35 s skew.
