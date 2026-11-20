@@ -1,8 +1,8 @@
 # Fast, smooth arm motion
 
 > Status: implemented and hardware-verified for the grasp / put-back sequence on
-> 2026-11-20 (no-cube cycle, **5.43 s** vs ~37 s). A real-cube re-grip with the
-> new timing is still open. Evidence:
+> 2026-11-20, including a real-cube run (**5.45 s** grasp, **6.22 s** release,
+> **1.23 mm** landing) and a no-cube cycle (**5.43 s** vs ~37 s). Evidence:
 > [`evidence/phase2/onsite_20261120/fast_motion/`](../../evidence/phase2/onsite_20261120/fast_motion/).
 
 ## Why the old motion was slow and why it shook
@@ -92,10 +92,21 @@ All of them run inside the robot container with the vendor environment and need
 points at the current commanded pose — no motion — and reports the per-segment
 overhead.
 
+## Real-cube run and base placement
+
+`tools/phase3/fast_motion_e2e.py` runs the validated chain (wrist measurement,
+`C_view + e = (+13.7, +3.9, +8.9) mm`, deep-family joint fit, grip check,
+landing measurement) with the fast profile. On 2026-11-20 the cube sat at
+0.2824 / -0.0552 m from the base, outside the validated band, so two
+closed-loop base pulses (`base_pulse_vector.py`, duty 10, 1.0 s + 0.58 s)
+brought it to 0.2305 / 0.0016 m. The run then measured the cube at
+(0.2305, 0.0016, -0.0484) m, fitted joints
+(0.0294, -0.6618, -1.8012, -0.3041), grasped in 5.45 s (close register 414,
+0 clusters left in the cube box), released in 6.22 s and landed **1.23 mm**
+from the measured start.
+
 ## Remaining work
 
-* Re-run a real-cube grasp with the fast timing (targets, close values and the
-  two-step close are unchanged; only the finger impact speed changes, 24 mm/s
-  vs 6 mm/s).
 * `--slow` was not re-run on hardware; it is a straight port of the old code.
-* The 4.0 rad/s / 20 rad/s^2 ceiling is untested while holding the cube.
+* The 4.0 rad/s / 20 rad/s^2 ceiling is tested on the unloaded arm only; the
+  holding-cube return ran at the 3.0 rad/s default.

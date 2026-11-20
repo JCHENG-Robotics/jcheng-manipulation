@@ -32,7 +32,7 @@ from control_msgs.action import FollowJointTrajectory
 from rclpy.action import ActionClient
 
 import fast_motion
-from vendor_servo_map import ARM_JOINTS, gripper_pulse
+from vendor_servo_map import ARM_JOINTS, SERVO_IDS, gripper_pulse
 
 READ_NAMES = ['gripper'] + ARM_JOINTS
 
@@ -95,8 +95,14 @@ class GraspRunner(fast_motion.FastMover):
                 'duration_s': duration, 'mode': 'raw-async'}
 
     def pulses(self):
-        """Read the gripper and the five arm registers."""
-        return self.read_pulses(READ_NAMES)
+        """Read the gripper and the five arm registers, keyed by servo id.
+
+        The phase-3 runners index this report by servo id string
+        (``pulses_at_verify['6']``), so the JSON keeps the previous key
+        format even though the client works with joint names.
+        """
+        values = self.read_pulses(READ_NAMES)
+        return {str(SERVO_IDS[name]): value for name, value in values.items()}
 
     # ------------------------------------------------------------- sequence
     def grasp(self, grasp, verify, open_rad=-2.22, preclose_rad=-1.6,

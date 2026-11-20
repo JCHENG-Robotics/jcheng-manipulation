@@ -19,6 +19,9 @@ All notable changes to this project are documented here. Format based on
 - `docs/phase2/FAST_MOTION.md` and
   `evidence/phase2/onsite_20261120/fast_motion/`: design, measured speed
   envelope and the raw hardware reports.
+- `tools/phase3/fast_motion_e2e.py`: one supervised fast grasp + put-back
+  through the validated chain (wrist measurement, `C_view + e`, deep-family
+  joint fit, grip verification, landing displacement).
 - 13 profile / bounds unit tests in
   `tools/phase2/tests/test_motion_profile.py`.
 
@@ -43,11 +46,18 @@ All notable changes to this project are documented here. Format based on
   pre-grasp 0.39, final 0.56, close 0.57 + 0.89, return 0.92, all settled.
 - Gripper: ~420-460 counts/s travel, 0.1 s command queueing delay, 13-19 count
   load error (register 535 for the 550 grip command).
+- Real-cube end-to-end: the cube was 0.2824 / -0.0552 m from the base, so two
+  closed-loop base pulses (duty 10, 1.0 s + 0.58 s) brought it to
+  0.2305 / 0.0016 m; measurement (0.2305, 0.0016, -0.0484) m, joints
+  (0.0294, -0.6618, -1.8012, -0.3041), grasp **5.45 s**, close register 414
+  with **0 clusters** left in the cube box, release **6.22 s**, landing error
+  **1.23 mm** planar (previous dual-camera run 3.65 mm).
 
 ### Open
 
-- A real-cube grasp with the fast timing has not been re-run (targets and close
-  values unchanged; only the finger impact speed changed).
+- `--slow` was not re-run on hardware; it is a straight port of the old code.
+- The holding-cube return ran at the 3.0 rad/s default, not at the tested
+  4.0 rad/s ceiling.
 
 ## [Unreleased] — 2026-11-20 dual-camera supervised grasp
 

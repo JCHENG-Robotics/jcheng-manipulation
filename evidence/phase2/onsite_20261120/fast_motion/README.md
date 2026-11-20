@@ -1,11 +1,12 @@
 # Fast, measured arm motion — 2026-11-20
 
-> Status: **PASS on hardware (no-cube cycle).** The grasp / put-back sequence
-> went from **~37 s to 5.43 s** of motion (6.8×) with every step ending on a
-> **measured** bus-servo settle instead of a fixed sleep, and the motion is a
-> jerk-limited S-curve instead of one constant-velocity move with a hard start
-> and stop. A real-cube re-grip with the fast timing has **not** been run yet;
-> the grip targets and close values are unchanged.
+> Status: **PASS on hardware, including a real-cube grasp and put-back.** The
+> grasp / put-back sequence went from **~37 s to 5.43 s** of motion (6.8x) with
+> every step ending on a **measured** bus-servo settle instead of a fixed
+> sleep, and the motion is a jerk-limited S-curve instead of one
+> constant-velocity move with a hard start and stop. The real-cube run gripped
+> the cube (0 clusters left in the cube box) and put it back **1.23 mm** from
+> the measured start.
 
 ## 1. What was slow, and what shook
 
@@ -120,12 +121,31 @@ Old sequence on the same poses: ~37 s. The gripper closed to register 535
 against the 550 command (load error), matching the isolated close trace (537),
 and the fingers stop at the 39 mm gap of an empty grip.
 
-## 6. Open items
+## 6. Real-cube grasp and put-back
 
-* **Real-cube re-grip with the fast timing** — the grip targets, close values
-  and the two-step close are unchanged, so only the finger impact speed
-  differs (24 mm/s vs 6 mm/s at the fingers), but it has not been re-run.
+File: `e2e_cube.json` (driver `tools/phase3/fast_motion_e2e.py`).
+
+The cube sat at (0.2824, -0.0552) m from the base, outside the validated band
+(x 0.226-0.234 m, y ~ 0). Two closed-loop base pulses (`base_pulse_vector.py`,
+duty 10, 1.0 s then 0.58 s) brought it to **(0.2305, 0.0016) m** — the
+2026-11-19 procedure, but driven by the measured point rather than by a search.
+
+| Step | Result |
+|---|---|
+| Wrist measurement at the view pose | (0.2305, 0.0016, -0.0484) m, height 39.7 mm, 37.8 x 42.0 mm — placement gates pass |
+| Target `C_view + e` | (0.2442, 0.0055, -0.0395) m |
+| Joint fit | (0.0294, -0.6618, -1.8012, -0.3041), xy error 0.00 mm |
+| Grasp motion | **5.447 s** (approach 1.021, descend 0.362, final 0.563, close 0.564 + 0.856, return 0.924) |
+| Grip | close register **414** (535 on an empty grip), **0 clusters** in the cube box |
+| Release motion | **6.216 s** (descent 2.677 at 0.6 rad/s, final 0.476, open 1.336, return 0.931) |
+| Landing | (0.2293, 0.0013, -0.0499) m, **1.23 mm** planar (previous dual-camera run 3.65 mm) |
+
+The 9.9 s / 10.7 s wall time of each grasp/release *command* includes ~4.5 s of
+SSH plus container startup; the arm motion itself is the 5.4 / 6.2 s above.
+
+## 7. Open items
+
 * `--slow` (the previous single-point path, now on the same client) was not
   re-run on hardware in this session; it is a straight port of the old code.
 * The 4.0 rad/s / 20 rad/s^2 rows are a tested upper bound on an unloaded arm;
-  the holding-cube return is untested above 3.0 rad/s.
+  the holding-cube return was run at the 3.0 rad/s default, not above it.
