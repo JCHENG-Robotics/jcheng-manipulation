@@ -1,0 +1,149 @@
+{
+  "tool": "uvc_chessboard_intrinsics",
+  "board": {
+    "cols": 11,
+    "rows": 8,
+    "square_m": 0.02
+  },
+  "image_size": [
+    1280,
+    720
+  ],
+  "model": "plumb_bob",
+  "frame_count": 1800,
+  "detected_views": 353,
+  "selected_views": 9,
+  "refined_views": 9,
+  "detection_stride": 5,
+  "rejected": [
+    {
+      "frame": "f_0001.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_0006.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_1201.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_1206.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_1211.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_1266.jpg",
+      "reason": "no board"
+    },
+    {
+      "frame": "f_1271.jpg",
+      "reason": "no board"
+    }
+  ],
+  "rms_px": 0.5070873862245094,
+  "camera_matrix": [
+    [
+      892.1014568378095,
+      0.0,
+      648.0281250804702
+    ],
+    [
+      0.0,
+      892.1014568378095,
+      380.1575036209251
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "dist_coeffs": [
+    0.14971375015723185,
+    -0.44610982176402497,
+    6.162088294137897e-06,
+    -0.00012207241044489517,
+    0.34121030114110457
+  ],
+  "focal_px": {
+    "fx": 892.1014568378095,
+    "fy": 892.1014568378095
+  },
+  "principal_point_px": {
+    "cx": 648.0281250804702,
+    "cy": 380.1575036209251
+  },
+  "fov_deg": {
+    "horizontal": 71.31185807858299,
+    "vertical": 43.95224559060039
+  },
+  "per_view": [
+    {
+      "frame": "f_1196.jpg",
+      "rms_px": 0.7427874910765203,
+      "max_px": 4.455809216297694
+    },
+    {
+      "frame": "f_0696.jpg",
+      "rms_px": 0.603489408801048,
+      "max_px": 2.915737407746795
+    },
+    {
+      "frame": "f_1356.jpg",
+      "rms_px": 0.2829750237458463,
+      "max_px": 1.031436166883481
+    },
+    {
+      "frame": "f_1276.jpg",
+      "rms_px": 0.8013335299236171,
+      "max_px": 4.304563200453263
+    },
+    {
+      "frame": "f_1251.jpg",
+      "rms_px": 0.4314062581074072,
+      "max_px": 2.062824082922117
+    },
+    {
+      "frame": "f_0896.jpg",
+      "rms_px": 0.4260588676441314,
+      "max_px": 1.859045115627021
+    },
+    {
+      "frame": "f_1351.jpg",
+      "rms_px": 0.3529667347957963,
+      "max_px": 1.2104962467907892
+    },
+    {
+      "frame": "f_1141.jpg",
+      "rms_px": 0.35948739096194093,
+      "max_px": 1.4804455625107207
+    },
+    {
+      "frame": "f_1731.jpg",
+      "rms_px": 0.2337394525627367,
+      "max_px": 0.668177171309269
+    }
+  ],
+  "fix_aspect": true,
+  "fx_fy_relative_error": 0.0,
+  "warnings": [],
+  "cross_check": {
+    "fx_spread_px": 8.083706753978618,
+    "fy_spread_px": 8.083706753978618,
+    "cx_spread_px": 0.888800575309574,
+    "cy_spread_px": 15.993962493482286,
+    "half_rms_px": [
+      0.3829603517998283,
+      0.5276450712789976
+    ]
+  },
+  "notes": [
+    "Frames are captured with ffmpeg on the Pi (UVC), not in ROS.",
+    "Distortion is the 5-parameter plumb-bob model reported by the driver for the on-board camera."
+  ]
+}
