@@ -1,0 +1,1040 @@
+{
+  "schema_version": 1,
+  "kind": "g8_task_run",
+  "generated_at": "2026-11-21T09:58:31.852841Z",
+  "execute": false,
+  "plan": {
+    "schema_version": 1,
+    "valid": true,
+    "errors": [],
+    "warnings": [
+      {
+        "label": "locate",
+        "code": "TOP_CLIPPED_RECOVERED",
+        "message": "the min-range sphere clipped the near top edge; the cube centre was rebuilt from the far edge with the measured 39.4 mm cube size (centroid bias 8.6 mm, clipped side a_min)"
+      }
+    ],
+    "simulated": false,
+    "point": [
+      0.221429,
+      0.002443,
+      -0.049312
+    ],
+    "target": [
+      0.235129,
+      0.006343,
+      -0.040412
+    ],
+    "correction_mm": [
+      13.7,
+      3.9,
+      8.9
+    ],
+    "fit": {
+      "joints": [
+        0.03605709841905418,
+        -0.6618,
+        -1.80117,
+        -0.3745491206770055,
+        0.0
+      ],
+      "tcp": [
+        0.235129361,
+        0.006342943,
+        -0.038645361
+      ],
+      "target": [
+        0.23512936103508963,
+        0.006342942639936269,
+        -0.040412013796595946
+      ],
+      "residual_mm": [
+        -3.508962564957585e-08,
+        3.6006373143465664e-07,
+        1.7666527965959424
+      ],
+      "xy_error_mm": 3.61769501924742e-07,
+      "reach_limited": false
+    },
+    "grasp_joints": {
+      "joint1": 0.036057,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.374549,
+      "joint5": 0.0
+    },
+    "approach_joints": {
+      "joint1": 0.03605709841905418,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": 0.0,
+      "joint5": 0.0
+    },
+    "pre_grasp_joints": {
+      "joint1": 0.03605709841905418,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.22454912067700553,
+      "joint5": 0.0
+    },
+    "view_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "lift_joints": {
+      "joint1": 0.05,
+      "joint2": 0.205,
+      "joint3": -1.42,
+      "joint4": -1.26,
+      "joint5": 0.0
+    },
+    "view_preset": "view_table",
+    "lift_preset": "lift_150",
+    "start_joints": {
+      "joint1": 0.012566,
+      "joint2": 0.230383,
+      "joint3": -1.223127,
+      "joint4": -1.583363,
+      "joint5": -0.012566
+    },
+    "start_gripper_rad": -2.220059,
+    "source": "measured_on_demand",
+    "locate": {
+      "cloud": {
+        "points_total": 211305,
+        "points_in_range": 179155,
+        "frame_id": "depth_camera_link",
+        "topic": "/depth_cam/depth_registered/points",
+        "sample_age_ms": 0,
+        "layout": "opencv_optical_xyz"
+      },
+      "floor": {
+        "normal_base": [
+          0.028865030012000137,
+          0.004764301769298465,
+          0.9995719640979821
+        ],
+        "offset_base": 0.08206797575252922,
+        "rms_m": 0.0006706419270872185,
+        "inliers": 159222,
+        "z_at_0p24": -0.08903369257231943,
+        "angle_to_z_deg": 1.676460098960118
+      },
+      "segmentation": {
+        "voxel_m": 0.005,
+        "points_above_floor": 4503,
+        "clusters": 3,
+        "cluster_details": [
+          {
+            "label": 0,
+            "bounds": {
+              "points": 2435,
+              "min": [
+                0.2209468649884223,
+                -0.018034181061271227,
+                -0.050651697751201874
+              ],
+              "max": [
+                0.24112936103508964,
+                0.022920066341143765,
+                -0.04763999283804382
+              ],
+              "size": [
+                0.02018249604666733,
+                0.04095424740241499,
+                0.003011704913158053
+              ],
+              "centroid": [
+                0.22999996812568843,
+                0.0022835024893333358,
+                -0.049244107948798216
+              ]
+            },
+            "height_m": 0.041393699734275605,
+            "ok": true,
+            "why": []
+          },
+          {
+            "label": 1,
+            "bounds": {
+              "points": 1967,
+              "min": [
+                0.3380305324418278,
+                -0.2172763840782318,
+                -0.08593918565483177
+              ],
+              "max": [
+                0.40672791930330965,
+                -0.19464544459747085,
+                -0.060064883707137806
+              ],
+              "size": [
+                0.06869738686148186,
+                0.022630939480760948,
+                0.025874301947693967
+              ],
+              "centroid": [
+                0.37584521527043613,
+                -0.202597613199119,
+                -0.07135498819930433
+              ]
+            },
+            "height_m": 0.02896880886518162,
+            "ok": false,
+            "why": [
+              "y_out_of_region"
+            ]
+          },
+          {
+            "label": 2,
+            "bounds": {
+              "points": 101,
+              "min": [
+                0.5920474128911392,
+                -0.1167047397100812,
+                -0.09287370544118817
+              ],
+              "max": [
+                0.5978498579108013,
+                -0.08035227560566331,
+                -0.0902717501097196
+              ],
+              "size": [
+                0.005802445019662095,
+                0.03635246410441789,
+                0.002601955331468564
+              ],
+              "centroid": [
+                0.5944195530035823,
+                -0.09735305485638258,
+                -0.09193823442372119
+              ]
+            },
+            "height_m": -0.0012380575374001807,
+            "ok": false,
+            "why": [
+              "height_-0.001",
+              "x_out_of_region",
+              "y_out_of_region"
+            ]
+          }
+        ]
+      },
+      "selected": {
+        "points": 2435,
+        "bounds": {
+          "points": 2435,
+          "min": [
+            0.2209468649884223,
+            -0.018034181061271227,
+            -0.050651697751201874
+          ],
+          "max": [
+            0.24112936103508964,
+            0.022920066341143765,
+            -0.04763999283804382
+          ],
+          "size": [
+            0.02018249604666733,
+            0.04095424740241499,
+            0.003011704913158053
+          ],
+          "centroid": [
+            0.22999996812568843,
+            0.0022835024893333358,
+            -0.049244107948798216
+          ]
+        },
+        "top": {
+          "slab_points": 2435,
+          "slab_thickness_m": 0.005,
+          "centroid": [
+            0.22999996812568843,
+            0.0022835024893333358,
+            -0.049244107948798216
+          ],
+          "normal": [
+            0.02925524104109645,
+            0.022968641301548742,
+            0.9993080467945746
+          ],
+          "tilt_deg": 2.1315770652550596,
+          "yaw_rad": 0.0,
+          "extent_m": [
+            0.02018249604666733,
+            0.04095424740241499
+          ],
+          "area_m2": 0.0008265589362934764,
+          "z_max": -0.04763999283804382
+        },
+        "height_above_floor_m": 0.03978958462352121,
+        "grasp_point_base": [
+          0.22142936103508964,
+          0.002442942639936269,
+          -0.049312013796595944
+        ],
+        "top_recovered": {
+          "reason": "min_range_clip",
+          "clipped_side": "a_min",
+          "cube_size_m": 0.0394,
+          "visible_extent_m": 0.02018249604666733,
+          "intact_extent_m": 0.04095424740241499,
+          "edge_range_mean_m": 0.25249940835568935,
+          "edge_range_std_m": 0.0005193781028734389,
+          "min_valid_range_m": 0.2512644639205941,
+          "centroid_bias_mm": 8.572358967472816,
+          "top_centroid": [
+            0.22999996812568843,
+            0.0022835024893333358,
+            -0.049244107948798216
+          ],
+          "sides": {
+            "a_min": {
+              "mean_m": 0.2525,
+              "std_m": 0.00052,
+              "alignment": 0.956,
+              "clipped": true
+            },
+            "a_max": {
+              "mean_m": 0.25504,
+              "std_m": 0.00034,
+              "alignment": 0.996,
+              "clipped": false
+            },
+            "b_min": {
+              "mean_m": 0.2546,
+              "std_m": 0.00092,
+              "alignment": 0.614,
+              "clipped": false
+            },
+            "b_max": {
+              "mean_m": 0.25308,
+              "std_m": 0.00043,
+              "alignment": 0.272,
+              "clipped": false
+            }
+          },
+          "centroid": [
+            0.22142936103508964,
+            0.002442942639936269,
+            -0.049312013796595944
+          ]
+        }
+      },
+      "success": true,
+      "previous": {
+        "joint1": {
+          "rad": 0.012566,
+          "raw": 503
+        },
+        "joint2": {
+          "rad": 0.230383,
+          "raw": 555
+        },
+        "joint3": {
+          "rad": -1.223127,
+          "raw": 792
+        },
+        "joint4": {
+          "rad": -1.583363,
+          "raw": 122
+        },
+        "joint5": {
+          "rad": -0.012566,
+          "raw": 497
+        }
+      }
+    },
+    "hand_eye": {
+      "method": "TSAI",
+      "path": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/calibration/20261118/table_down/calibration_table_down_20261118.json",
+      "frame": "link4 -> camera optical (depth_camera_link layout)"
+    },
+    "steps": [
+      {
+        "kind": "grip",
+        "label": "open_gripper",
+        "target_rad": -2.220059,
+        "from_rad": -2.220059,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "target_rad": -2.220058808536787,
+            "duration_s": 1.0
+          }
+        ],
+        "duration_s": 1.0,
+        "target_raw": 170,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "approach",
+        "joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": 0.0,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.012566,
+          "joint2": 0.230383,
+          "joint3": -1.223127,
+          "joint4": -1.583363,
+          "joint5": -0.012566
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.03605709841905418,
+            "duration_s": 3.2
+          },
+          {
+            "joint": "joint2",
+            "target_rad": -0.6618,
+            "duration_s": 3.2
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.80117,
+            "duration_s": 3.2
+          },
+          {
+            "joint": "joint4",
+            "target_rad": 0.0,
+            "duration_s": 3.2
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 3.2
+          }
+        ],
+        "duration_s": 3.2,
+        "target_raw": {
+          "joint1": 509,
+          "joint2": 342,
+          "joint3": 930,
+          "joint4": 500,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.279976,
+            0.007907,
+            -0.015087
+          ],
+          "table_clearance_m": 0.064614,
+          "samples": 21,
+          "start_tcp_m": [
+            0.205349,
+            0.001875,
+            0.119431
+          ],
+          "start_table_clearance_m": 0.198468,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "pre_grasp",
+        "joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.224549,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": 0.0,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.03605709841905418,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint2",
+            "target_rad": -0.6618,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.80117,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -0.22454912067700553,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 1.0
+          }
+        ],
+        "duration_s": 1.0,
+        "target_raw": {
+          "joint1": 509,
+          "joint2": 342,
+          "joint3": 930,
+          "joint4": 446,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.254126,
+            0.00701,
+            -0.031247
+          ],
+          "table_clearance_m": 0.048276,
+          "samples": 21,
+          "start_tcp_m": [
+            0.279976,
+            0.007907,
+            -0.015087
+          ],
+          "start_table_clearance_m": 0.064614,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "grasp",
+        "joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.374549,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.224549,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.03605709841905418,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint2",
+            "target_rad": -0.6618,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.80117,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -0.3745491206770055,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 1.0
+          }
+        ],
+        "duration_s": 1.0,
+        "target_raw": {
+          "joint1": 509,
+          "joint2": 342,
+          "joint3": 930,
+          "joint4": 411,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.235129,
+            0.006343,
+            -0.038645
+          ],
+          "table_clearance_m": 0.04074,
+          "samples": 21,
+          "start_tcp_m": [
+            0.254126,
+            0.00701,
+            -0.031247
+          ],
+          "start_table_clearance_m": 0.048276,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "grip",
+        "label": "close_pre",
+        "target_rad": -1.6,
+        "from_rad": -2.220059,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "target_rad": -1.6,
+            "duration_s": 1.5
+          }
+        ],
+        "duration_s": 1.5,
+        "target_raw": 318,
+        "status": "pending"
+      },
+      {
+        "kind": "grip",
+        "label": "close_grip",
+        "target_rad": -0.63,
+        "from_rad": -1.6,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "target_rad": -0.63,
+            "duration_s": 2.6
+          }
+        ],
+        "duration_s": 2.6,
+        "target_raw": 550,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "lift",
+        "joints": {
+          "joint1": 0.05,
+          "joint2": 0.205,
+          "joint3": -1.42,
+          "joint4": -1.26,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.374549,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.05,
+            "duration_s": 1.8
+          },
+          {
+            "joint": "joint2",
+            "target_rad": 0.205,
+            "duration_s": 1.8
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.42,
+            "duration_s": 1.8
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -1.26,
+            "duration_s": 1.8
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 1.8
+          }
+        ],
+        "duration_s": 1.8,
+        "target_raw": {
+          "joint1": 512,
+          "joint2": 549,
+          "joint3": 839,
+          "joint4": 199,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.227965,
+            0.008228,
+            0.108925
+          ],
+          "table_clearance_m": 0.047836,
+          "samples": 21,
+          "start_tcp_m": [
+            0.235129,
+            0.006343,
+            -0.038645
+          ],
+          "start_table_clearance_m": 0.04074,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "view_verify",
+        "joints": {
+          "joint1": 0.0,
+          "joint2": 0.2574,
+          "joint3": -1.18773,
+          "joint4": -1.5917,
+          "joint5": -0.01676
+        },
+        "from_joints": {
+          "joint1": 0.05,
+          "joint2": 0.205,
+          "joint3": -1.42,
+          "joint4": -1.26,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.0,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint2",
+            "target_rad": 0.2574,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.18773,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -1.5917,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint5",
+            "target_rad": -0.01676,
+            "duration_s": 1.0
+          }
+        ],
+        "duration_s": 1.0,
+        "target_raw": {
+          "joint1": 500,
+          "joint2": 561,
+          "joint3": 784,
+          "joint4": 120,
+          "joint5": 496
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.205596,
+            0.000132,
+            0.127738
+          ],
+          "table_clearance_m": 0.188851,
+          "samples": 21,
+          "start_tcp_m": [
+            0.227965,
+            0.008228,
+            0.108925
+          ],
+          "start_table_clearance_m": 0.187817,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "verify",
+        "label": "grip_verify",
+        "status": "pending",
+        "detail": "fetch a cloud at the view and check the cube box"
+      },
+      {
+        "kind": "pose",
+        "label": "putback_pre_grasp",
+        "joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.224549,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.0,
+          "joint2": 0.2574,
+          "joint3": -1.18773,
+          "joint4": -1.5917,
+          "joint5": -0.01676
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.03605709841905418,
+            "duration_s": 2.8
+          },
+          {
+            "joint": "joint2",
+            "target_rad": -0.6618,
+            "duration_s": 2.8
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.80117,
+            "duration_s": 2.8
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -0.22454912067700553,
+            "duration_s": 2.8
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 2.8
+          }
+        ],
+        "duration_s": 2.8,
+        "target_raw": {
+          "joint1": 509,
+          "joint2": 342,
+          "joint3": 930,
+          "joint4": 446,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.254126,
+            0.00701,
+            -0.031247
+          ],
+          "table_clearance_m": 0.048276,
+          "samples": 21,
+          "start_tcp_m": [
+            0.205596,
+            0.000132,
+            0.127738
+          ],
+          "start_table_clearance_m": 0.206871,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "putback_grasp",
+        "joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.374549,
+          "joint5": 0.0
+        },
+        "from_joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.224549,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.03605709841905418,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint2",
+            "target_rad": -0.6618,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.80117,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -0.3745491206770055,
+            "duration_s": 1.0
+          },
+          {
+            "joint": "joint5",
+            "target_rad": 0.0,
+            "duration_s": 1.0
+          }
+        ],
+        "duration_s": 1.0,
+        "target_raw": {
+          "joint1": 509,
+          "joint2": 342,
+          "joint3": 930,
+          "joint4": 411,
+          "joint5": 500
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.235129,
+            0.006343,
+            -0.038645
+          ],
+          "table_clearance_m": 0.04074,
+          "samples": 21,
+          "start_tcp_m": [
+            0.254126,
+            0.00701,
+            -0.031247
+          ],
+          "start_table_clearance_m": 0.048276,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      },
+      {
+        "kind": "grip",
+        "label": "release_open",
+        "target_rad": -2.220059,
+        "from_rad": -0.63,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "target_rad": -2.220058808536787,
+            "duration_s": 4.0
+          }
+        ],
+        "duration_s": 4.0,
+        "target_raw": 170,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "return_view",
+        "joints": {
+          "joint1": 0.0,
+          "joint2": 0.2574,
+          "joint3": -1.18773,
+          "joint4": -1.5917,
+          "joint5": -0.01676
+        },
+        "from_joints": {
+          "joint1": 0.036057,
+          "joint2": -0.6618,
+          "joint3": -1.80117,
+          "joint4": -0.374549,
+          "joint5": 0.0
+        },
+        "targets": [
+          {
+            "joint": "joint1",
+            "target_rad": 0.0,
+            "duration_s": 2.5
+          },
+          {
+            "joint": "joint2",
+            "target_rad": 0.2574,
+            "duration_s": 2.5
+          },
+          {
+            "joint": "joint3",
+            "target_rad": -1.18773,
+            "duration_s": 2.5
+          },
+          {
+            "joint": "joint4",
+            "target_rad": -1.5917,
+            "duration_s": 2.5
+          },
+          {
+            "joint": "joint5",
+            "target_rad": -0.01676,
+            "duration_s": 2.5
+          }
+        ],
+        "duration_s": 2.5,
+        "target_raw": {
+          "joint1": 500,
+          "joint2": 561,
+          "joint3": 784,
+          "joint4": 120,
+          "joint5": 496
+        },
+        "pose_check": {
+          "ok": true,
+          "tcp_m": [
+            0.205596,
+            0.000132,
+            0.127738
+          ],
+          "table_clearance_m": 0.048811,
+          "samples": 21,
+          "start_tcp_m": [
+            0.235129,
+            0.006343,
+            -0.038645
+          ],
+          "start_table_clearance_m": 0.04074,
+          "start_compliant": true,
+          "violations": []
+        },
+        "status": "pending"
+      }
+    ],
+    "plan_id": "task_582a85013ecd47b8",
+    "generated_at": "2026-11-21T09:58:33.154313Z",
+    "cloud": {
+      "available": true,
+      "frame_id": "depth_camera_link",
+      "width": 211305,
+      "height": 1,
+      "point_step": 16,
+      "count": 211305,
+      "is_bigendian": false,
+      "stamp_ns": 1795255113778000000,
+      "fields": {
+        "x": {
+          "offset": 0,
+          "datatype": 7
+        },
+        "y": {
+          "offset": 4,
+          "datatype": 7
+        },
+        "z": {
+          "offset": 8,
+          "datatype": 7
+        }
+      },
+      "layout": "opencv_optical_xyz",
+      "captured_at": 1795255113.8201551,
+      "topic": "/depth_cam/depth_registered/points",
+      "wall_time": "2026-11-21T09:58:34.128894Z",
+      "sample_age_ms": 0
+    }
+  },
+  "steps": [],
+  "verify": null,
+  "ok": true,
+  "error": null
+}

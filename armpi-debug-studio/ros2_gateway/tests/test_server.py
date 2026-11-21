@@ -388,3 +388,56 @@ def test_serve_until_stops_and_releases_the_socket() -> None:
 
     with pytest.raises((urllib.error.URLError, ConnectionError)):
         urllib.request.urlopen(f"http://127.0.0.1:{server.server_port}/health", timeout=1)
+
+
+class FakeChassisNode(FakeMotionNode):
+    chassis_enabled = True
+
+    def dispatch_chassis(self, body: dict) -> dict[str, object]:
+        from armpi_debug_gateway.chassis import ChassisRejected
+
+        if body.get("duty") == 99:
+            raise ChassisRejected("CHASSIS_DUTY", "duty outside", http_status=400)
+        return {"status": "completed", "verification": "open_loop",
+                "duty": body.get("duty"), "duration_s": body.get("duration_s")}
+
+
+def test_chassis_endpoint_requires_the_flag() -> None:
+    server, stop_event, thread = _start("secret-token", FakeMotionNode())
+    try:
+        status, body, _ = _request(
+            server, "/chassis/pulse", method="POST", token="secret-token",
+            body={"vx": 1, "vy": 0, "duty": 10, "duration_s": 0.5},
+        )
+        assert status == 403
+        assert json.loads(body)["error"]["code"] == "CHASSIS_DISABLED"
+    finally:
+        stop_event.set()
+        thread.join(timeout=5)
+
+
+def test_chassis_endpoint_dispatches_and_maps_rejections() -> None:
+    server, stop_event, thread = _start("secret-token", FakeChassisNode())
+    try:
+        status, body, _ = _request(
+            server, "/chassis/pulse", method="POST", token="secret-token",
+            body={"vx": 1, "vy": 0, "duty": 10, "duration_s": 0.5},
+        )
+        assert status == 200
+        payload = json.loads(body)
+        assert payload["verification"] == "open_loop"
+        assert payload["duty"] == 10
+
+        status, body, _ = _request(
+            server, "/chassis/pulse", method="POST", token="secret-token",
+            body={"vx": 1, "vy": 0, "duty": 99, "duration_s": 0.5},
+        )
+        assert status == 400
+        assert json.loads(body)["error"]["code"] == "CHASSIS_DUTY"
+
+        status, _, _ = _request(server, "/chassis/pulse", method="GET",
+                                token="secret-token")
+        assert status == 405
+    finally:
+        stop_event.set()
+        thread.join(timeout=5)

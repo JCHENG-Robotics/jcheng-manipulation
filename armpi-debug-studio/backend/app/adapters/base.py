@@ -97,6 +97,10 @@ class RobotAdapter(ABC):
         """Return a read-only TF snapshot when the adapter supports one."""
         return None
 
+    def chassis_pulse(self, body: dict[str, Any]) -> dict[str, Any] | None:
+        """Send one bounded chassis pulse; hardware only."""
+        return None
+
     def pointcloud(self) -> dict[str, Any] | None:
         """Return the latest registered point cloud, or None when unavailable.
 

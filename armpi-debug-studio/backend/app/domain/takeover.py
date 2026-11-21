@@ -225,6 +225,34 @@ class PosePreset:
 
 
 @dataclass(frozen=True)
+class ApproachConfig:
+    """G8.1 chassis approach: open-loop pulses closed by a re-measurement."""
+
+    enabled: bool
+    target_point_m: tuple[float, float] = (0.230, 0.0)
+    tolerance_m: float = 0.008
+    duty: float = 10.0
+    speed_mm_s_per_duty: float = 4.9
+    min_duration_s: float = 0.25
+    max_duration_s: float = 2.0
+    max_pulses: int = 3
+    settle_s: float = 0.5
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "target_point_m": list(self.target_point_m),
+            "tolerance_m": self.tolerance_m,
+            "duty": self.duty,
+            "speed_mm_s_per_duty": self.speed_mm_s_per_duty,
+            "min_duration_s": self.min_duration_s,
+            "max_duration_s": self.max_duration_s,
+            "max_pulses": self.max_pulses,
+            "settle_s": self.settle_s,
+        }
+
+
+@dataclass(frozen=True)
 class TaskConfig:
     """G8 task contract: locate + the validated deep grasp family."""
 
@@ -247,6 +275,7 @@ class TaskConfig:
     max_reach_m: float
     max_xy_error_mm: float
     locate: LocateParams
+    approach: ApproachConfig | None = None
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -272,6 +301,9 @@ class TaskConfig:
                 self.locate.to_public_dict()
                 if hasattr(self.locate, "to_public_dict")
                 else self.locate
+            ),
+            "approach": (
+                self.approach.to_public_dict() if self.approach else None
             ),
         }
 
@@ -554,7 +586,52 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             recovery_range_std_m=float(
                 locate_raw.get("recovery_range_std_m", 0.0015)
             ),
+            recovery_radial_min=float(
+                locate_raw.get("recovery_radial_min", 0.85)
+            ),
         )
+        approach_raw = task_raw.get("approach") or {}
+        _require(isinstance(approach_raw, dict), "task.approach must be a mapping")
+        approach = None
+        if approach_raw:
+            approach_enabled = bool(approach_raw.get("enabled", False))
+            target_raw = approach_raw.get("target_point_m", [0.230, 0.0])
+            _require(
+                isinstance(target_raw, (list, tuple)) and len(target_raw) == 2,
+                "task.approach.target_point_m must have 2 values",
+            )
+            target_point = (float(target_raw[0]), float(target_raw[1]))
+            _require(
+                target_point[0] > 0.0,
+                "task.approach.target_point_m x must be positive",
+            )
+            duty = float(approach_raw.get("duty", 10.0))
+            _require(0.0 < duty <= 20.0, "task.approach.duty must be in (0, 20]")
+            approach_min_duration = float(
+                approach_raw.get("min_duration_s", 0.25)
+            )
+            approach_max_duration = float(
+                approach_raw.get("max_duration_s", 2.0)
+            )
+            _require(
+                0.0 < approach_min_duration < approach_max_duration <= 3.0,
+                "task.approach durations must satisfy 0 < min < max <= 3.0 s",
+            )
+            max_pulses = int(approach_raw.get("max_pulses", 3))
+            _require(max_pulses >= 1, "task.approach.max_pulses must be >= 1")
+            approach = ApproachConfig(
+                enabled=approach_enabled,
+                target_point_m=target_point,
+                tolerance_m=float(approach_raw.get("tolerance_m", 0.008)),
+                duty=duty,
+                speed_mm_s_per_duty=float(
+                    approach_raw.get("speed_mm_s_per_duty", 4.9)
+                ),
+                min_duration_s=approach_min_duration,
+                max_duration_s=approach_max_duration,
+                max_pulses=max_pulses,
+                settle_s=float(approach_raw.get("settle_s", 0.5)),
+            )
         _require(locate.min_range_m > 0, "task.locate.min_range_m must be positive")
         _require(
             locate.min_range_m < locate.max_range_m,
@@ -625,6 +702,7 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             max_reach_m=max_reach,
             max_xy_error_mm=max_xy,
             locate=locate,
+            approach=approach,
         )
 
     canonical = {

@@ -260,6 +260,13 @@ class MockRobotAdapter(RobotAdapter):
             {"emit_events": True},
         )
 
+    def chassis_pulse(self, body: dict[str, Any]) -> dict[str, Any] | None:
+        return {
+            "status": "simulated",
+            "verification": "simulated",
+            "pulse": dict(body),
+        }
+
     def stop(self, command_id: str) -> StopResult:
         now = self._clock()
         if "disconnect" in self._fault_kinds or "driver_exit" in self._fault_kinds:

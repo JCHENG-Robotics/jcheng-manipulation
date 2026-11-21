@@ -214,6 +214,26 @@ export const api = {
   async taskPlan(): Promise<TaskPlan> {
     return request<TaskPlan>("/api/task/plan", { method: "POST" });
   },
+  async chassisPulse(input: {
+    sessionId: string;
+    leaseId: string;
+    vx: number;
+    vy: number;
+    duty: number;
+    durationS: number;
+  }): Promise<{ status: string; verification?: string }> {
+    return request("/api/chassis/pulse", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: input.sessionId,
+        lease_id: input.leaseId,
+        vx: input.vx,
+        vy: input.vy,
+        duty: input.duty,
+        duration_s: input.durationS,
+      }),
+    });
+  },
   async taskVerify(planId?: string | null): Promise<TaskVerify> {
     return request<TaskVerify>("/api/task/verify", {
       method: "POST",

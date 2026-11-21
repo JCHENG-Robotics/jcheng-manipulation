@@ -46,7 +46,7 @@ from ..domain.models import (
     StopResult,
     utc_now_iso,
 )
-from .base import DispatchResult, HardwareMotionDisabled, RobotAdapter
+from .base import AdapterError, DispatchResult, HardwareMotionDisabled, RobotAdapter
 from .gateway import GatewayClient, GatewayError
 
 
@@ -342,6 +342,25 @@ class HardwareAdapter(RobotAdapter):
             }
         except (GatewayError, ValueError) as exc:
             return {"meta": {**meta, "available": False, "error": str(exc)}, "points": None}
+
+    def chassis_pulse(self, body: dict[str, Any]) -> dict[str, Any]:
+        """Forward one bounded chassis pulse to the gateway (no retry)."""
+        if not self.motion_enabled:
+            raise HardwareMotionDisabled(
+                "hardware motion is disabled on this adapter"
+            )
+        if self._gateway is None:
+            raise HardwareMotionDisabled("no gateway client configured")
+        try:
+            return self._gateway.post_json(
+                "/chassis/pulse", body, timeout_s=20.0
+            )
+        except GatewayError as exc:
+            raise AdapterError(
+                exc.code or ErrorCode.GATEWAY_UNAVAILABLE.value,
+                f"chassis pulse was rejected: {exc}",
+                {"gateway_status": exc.status, "gateway_code": exc.code},
+            ) from exc
 
     def last_actual(self) -> dict[str, Any] | None:
         """Return the gateway's last bus-servo read, regardless of age."""

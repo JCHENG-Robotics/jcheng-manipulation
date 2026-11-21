@@ -59,6 +59,7 @@ class LocateParams:
     recovery_edge_tol_m: float = 0.002
     recovery_range_band_m: float = 0.0025
     recovery_range_std_m: float = 0.0015
+    recovery_radial_min: float = 0.85
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -84,6 +85,7 @@ class LocateParams:
             "recovery_edge_tol_m": self.recovery_edge_tol_m,
             "recovery_range_band_m": self.recovery_range_band_m,
             "recovery_range_std_m": self.recovery_range_std_m,
+            "recovery_radial_min": self.recovery_radial_min,
         }
 
 
@@ -355,24 +357,38 @@ def recover_clipped_top(
     camera = (slab - translation) @ rotation
     ranges = np.linalg.norm(camera, axis=1)
     tol = params.recovery_edge_tol_m
+    camera_xy = translation[:2]
 
     sides: dict[str, dict[str, Any]] = {}
-    for name, values, high in (
-        ("a_min", a, False),
-        ("a_max", a, True),
-        ("b_min", b, False),
-        ("b_max", b, True),
+    for name, values, high, normal in (
+        ("a_min", a, False, axis_a),
+        ("a_max", a, True, -axis_a),
+        ("b_min", b, False, axis_b),
+        ("b_max", b, True, -axis_b),
     ):
         edge = (
             values >= values.max() - tol if high else values <= values.min() + tol
         )
         mean = float(ranges[edge].mean())
         std = float(ranges[edge].std())
+        # The min-range cut is a sphere around the camera, so its boundary in
+        # the horizontal top plane is perpendicular to the camera->edge
+        # direction. A cube edge at an arbitrary yaw is not.
+        edge_xy = slab[edge][:, :2].mean(axis=0)
+        radial = edge_xy - camera_xy
+        radial_norm = float(np.linalg.norm(radial))
+        alignment = (
+            abs(float(radial @ normal)) / radial_norm
+            if radial_norm > 1e-9
+            else 0.0
+        )
         sides[name] = {
             "mean_m": mean,
             "std_m": std,
+            "alignment": alignment,
             "clipped": std <= params.recovery_range_std_m
-            and mean <= min_valid_range_m + params.recovery_range_band_m,
+            and mean <= min_valid_range_m + params.recovery_range_band_m
+            and alignment >= params.recovery_radial_min,
         }
     clipped = [name for name, info in sides.items() if info["clipped"]]
     if len(clipped) != 1:
@@ -420,6 +436,7 @@ def recover_clipped_top(
             name: {
                 "mean_m": round(info["mean_m"], 5),
                 "std_m": round(info["std_m"], 5),
+                "alignment": round(info["alignment"], 3),
                 "clipped": bool(info["clipped"]),
             }
             for name, info in sides.items()

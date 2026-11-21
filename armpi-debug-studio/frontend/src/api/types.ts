@@ -310,6 +310,20 @@ export interface TaskFit {
   reach_limited: boolean;
 }
 
+export interface TaskApproach {
+  kind: string;
+  vx: number;
+  vy: number;
+  duty: number;
+  duration_s: number;
+  nominal_travel_mm: number;
+  travel_m: number;
+  forward_mm: number;
+  left_mm: number;
+  point_m: number[];
+  target_point_m: number[];
+}
+
 export interface TaskPlan {
   schema_version: number;
   valid: boolean;
@@ -337,6 +351,7 @@ export interface TaskPlan {
   generated_at?: string;
   cloud?: Record<string, unknown>;
   current_joints?: Record<string, number>;
+  approach?: TaskApproach | null;
 }
 
 export interface TaskVerify {

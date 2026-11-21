@@ -99,6 +99,29 @@ face and the centre was rebuilt from the intact far edge with the measured
 event and never retries. Evidence:
 [`evidence/studio_g8/20261121/`](../../evidence/studio_g8/20261121/README.md).
 
+### Out-of-band cube (G8.1)
+
+If "定位并规划" answers `APPROACH_REQUIRED`, the page shows a
+"底盘接近（前进/后退 N mm / 左移/右移 N mm）" button. One confirmation runs up
+to three bounded base pulses, each followed by a fresh cloud and a new plan;
+when the target is back inside the 0.220-0.255 m band the task can run. The
+same loop from a terminal:
+
+```bash
+# plan only (no motion): reports whether an approach is needed
+python3 tools/studio/g8_approach.py --backend http://127.0.0.1:8000 \
+  --out /tmp/g8_approach.json
+
+# pulse until aligned (operator beside the robot, arm at the view)
+python3 tools/studio/g8_approach.py --backend http://127.0.0.1:8000 \
+  --session operator-g81 --out /tmp/g8_approach.json --execute \
+  --i-have-clear-workspace
+```
+
+The base is open-loop: the pulse response is `verification: open_loop` and the
+camera re-measurement is the only confirmation. Evidence:
+[`evidence/studio_g81/20261121/`](../../evidence/studio_g81/20261121/README.md).
+
 ## What it does
 
 1. **Port** — if `:8000` is busy it kills the holder only when its command line

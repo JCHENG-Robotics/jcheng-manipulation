@@ -12,6 +12,7 @@ Endpoints:
     GET /motion/status
     POST /motion/dispatch   (supervised instance only)
     POST /motion/stop       (supervised instance only)
+    POST /chassis/pulse     (supervised instance with an enabled chassis block)
 
 All endpoints require `X-Armpi-Token` when a token is configured. The motion
 endpoints answer ``MOTION_DISABLED`` unless the gateway was started with
@@ -27,6 +28,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
+from .chassis import ChassisRejected
 from .motion import MotionRejected
 
 if TYPE_CHECKING:
@@ -182,7 +184,7 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
                     },
                 )
             return
-        if path in ("/motion/dispatch", "/motion/stop"):
+        if path in ("/motion/dispatch", "/motion/stop", "/chassis/pulse"):
             self._error(405, "METHOD_NOT_ALLOWED", "use POST for motion endpoints")
             return
 
@@ -255,6 +257,33 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
             try:
                 response = self.server.node.stop_motion(body)
             except MotionRejected as exc:
+                self._json(
+                    exc.http_status,
+                    {
+                        "error": {
+                            "code": exc.code,
+                            "message": str(exc),
+                            "details": exc.details,
+                        }
+                    },
+                )
+                return
+            self._json(200, response)
+            return
+        if path == "/chassis/pulse":
+            if not getattr(self.server.node, "chassis_enabled", False):
+                self._error(
+                    403,
+                    "CHASSIS_DISABLED",
+                    "the chassis write path is disabled on this gateway instance",
+                )
+                return
+            body = self._read_json_body()
+            if body is None:
+                return
+            try:
+                response = self.server.node.dispatch_chassis(body)
+            except ChassisRejected as exc:
                 self._json(
                     exc.http_status,
                     {

@@ -3,6 +3,40 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 Studio G8.1 chassis approach
+
+### Added
+
+- **G8.1 bounded chassis approach (Studio):** a cube that is visible but
+  outside the 0.220-0.255 m direct-grasp band now produces an
+  `APPROACH_REQUIRED` plan with a pulse vector instead of `FIT_REJECTED`; one
+  operator confirmation runs up to three bounded open-loop base pulses
+  (`POST /api/chassis/pulse` -> `MotorsSpeedControl` at 20 Hz + zeros), each
+  followed by a fresh cloud and a new plan. The aim point is `(0.230, 0)`, the
+  middle of the verified band on the tool-down axis, so the constant
+  correction's `joint1 ~ 0` envelope still holds.
+- Gateway `chassis` contract (duty <= 10, wheel <= 30, 0.2-2.0 s, 4.9 mm/s per
+  duty), `POST /chassis/pulse`, `verification: open_loop`, a matched-subscriber
+  wait, and `chassis_enabled`/`chassis` in `/health`; the exporter copies the
+  block from `configs/takeover.yaml`.
+- Locate region widened to `x 0.15-0.55 m` (the whole visible floor); the
+  direct-grasp band and the approach gate the reach.
+- `tools/studio/g8_approach.py` (plan-only or pulse-until-aligned) and the
+  Task Takeover page's approach button + confirmation modal.
+- Evidence `evidence/studio_g81/20261121/`: a cube at x 0.357 m -> two pulses
+  (94 mm + ~42 mm) -> target radius 0.2351 m -> 13-step task, `close_grip` raw
+  412, `held: true`, landing +0.5 mm x.
+
+### Fixed
+
+- The adapter's `/chassis/pulse` POST timeout is 20 s (the gateway handler can
+  take ~5 s: discovery + pulse + zeros) and the missing `AdapterError` import
+  in the hardware adapter.
+- The min-range clip recovery no longer accepts two edges: a clipped boundary
+  must also be perpendicular to the camera->edge direction
+  (`recovery_radial_min: 0.85`), which rejects a cube edge that happens to sit
+  in the same range band.
+
 ## [Unreleased] — 2026-11-21 Studio G8 task takeover
 
 ### Added

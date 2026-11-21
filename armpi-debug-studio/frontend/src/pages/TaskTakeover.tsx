@@ -6,6 +6,7 @@ import type {
   MotionPresetList,
   PreviewResult,
   TargetPayload,
+  TaskApproach,
   TaskPlan,
   TaskVerify,
 } from "../api/types";
@@ -40,6 +41,25 @@ function pulsesText(value: unknown): string {
     .join(" · ");
 }
 
+function approachText(approach: TaskApproach): string {
+  const parts: string[] = [];
+  if (Math.abs(approach.forward_mm) >= 0.5) {
+    parts.push(
+      `${approach.forward_mm > 0 ? "前进" : "后退"} ${Math.abs(
+        approach.forward_mm,
+      ).toFixed(0)} mm`,
+    );
+  }
+  if (Math.abs(approach.left_mm) >= 0.5) {
+    parts.push(
+      `${approach.left_mm > 0 ? "左移" : "右移"} ${Math.abs(
+        approach.left_mm,
+      ).toFixed(0)} mm`,
+    );
+  }
+  return parts.join(" / ") || "微调";
+}
+
 function deviationsText(value: unknown): string {
   if (!value || typeof value !== "object") return "";
   return Object.entries(value as Record<string, number>)
@@ -65,6 +85,7 @@ export function TaskTakeover() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [approachOpen, setApproachOpen] = useState(false);
   const cancelled = useRef(false);
 
   useEffect(() => {
@@ -207,6 +228,24 @@ export function TaskTakeover() {
     }
   };
 
+  const requestPlan = async (): Promise<TaskPlan> => {
+    const result = await api.taskPlan();
+    setPlan(result);
+    if (!result.valid) {
+      const codes = result.errors.map((item) => item.code);
+      if (codes.includes("APPROACH_REQUIRED")) {
+        setError(null);
+      } else {
+        setError(
+          result.errors
+            .map((item) => `${item.code}: ${item.message}`)
+            .join("; "),
+        );
+      }
+    }
+    return result;
+  };
+
   const planTask = async () => {
     setBusy(true);
     setError(null);
@@ -216,14 +255,64 @@ export function TaskTakeover() {
     setStepActual({});
     setStepDeviations({});
     try {
-      const result = await api.taskPlan();
-      setPlan(result);
-      if (!result.valid) {
-        setError(
-          result.errors
-            .map((item) => `${item.code}: ${item.message}`)
-            .join("; "),
+      await requestPlan();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runApproach = async () => {
+    setApproachOpen(false);
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      await ensureLease();
+      const approachContract = taskContract?.approach as
+        | Record<string, unknown>
+        | undefined;
+      const maxPulses = Number(approachContract?.max_pulses ?? 3);
+      const settle = Math.max(
+        0.6,
+        Number(approachContract?.settle_s ?? 0.5),
+      );
+      let current = plan;
+      if (!current?.approach) return;
+      for (let index = 0; index < maxPulses; index += 1) {
+        const approach = current.approach;
+        if (!approach) break;
+        setNote(
+          `底盘接近 ${index + 1}/${maxPulses}：${approachText(approach)}…`,
         );
+        const leaseNow = await ensureLease();
+        const response = await api.chassisPulse({
+          sessionId,
+          leaseId: leaseNow,
+          vx: approach.vx,
+          vy: approach.vy,
+          duty: approach.duty,
+          durationS: approach.duration_s,
+        });
+        if (response.status !== "Completed") {
+          throw new Error(`底盘接近返回 ${response.status}`);
+        }
+        await delay(Math.round(settle * 1000));
+        current = await requestPlan();
+        if (current.valid) {
+          setNote(
+            `已进入抓取带：目标半径 ${(
+              Math.hypot(
+                (current.target ?? [0])[0],
+                (current.target ?? [0, 0])[1] ?? 0,
+              )
+            ).toFixed(3)} m，可以运行任务。`,
+          );
+          break;
+        }
+        const codes = current.errors.map((item) => item.code);
+        if (!codes.includes("APPROACH_REQUIRED") || !current.approach) break;
       }
     } catch (caught) {
       setError(errorText(caught));
@@ -300,6 +389,12 @@ export function TaskTakeover() {
     }
   };
 
+  const requiredApproach =
+    plan && !plan.valid && plan.approach
+      ? plan.errors.some((item) => item.code === "APPROACH_REQUIRED")
+        ? plan.approach
+        : null
+      : null;
   const planPoint = plan?.point;
   const planTarget = plan?.target;
   const fit = plan?.fit;
@@ -351,7 +446,28 @@ export function TaskTakeover() {
         <Card
           title="准备与定位"
           subtitle="先在 view 位测一次点云；定位/规划本身不发运动命令"
-          actions={<StatusChip tone={plan?.valid ? "ok" : plan ? "fault" : "neutral"} label={plan ? (plan.valid ? "PLAN VALID" : "PLAN REJECTED") : "NO PLAN"} />}
+          actions={
+            <StatusChip
+              tone={
+                plan?.valid
+                  ? "ok"
+                  : requiredApproach
+                    ? "warning"
+                    : plan
+                      ? "fault"
+                      : "neutral"
+              }
+              label={
+                plan
+                  ? plan.valid
+                    ? "PLAN VALID"
+                    : requiredApproach
+                      ? "APPROACH REQUIRED"
+                      : "PLAN REJECTED"
+                  : "NO PLAN"
+              }
+            />
+          }
         >
           <div className="joint-readout">
             <KeyValue label="View preset">
@@ -371,6 +487,16 @@ export function TaskTakeover() {
             <Button variant="primary" onClick={() => void planTask()} disabled={busy || running || !viewPreset}>
               {busy ? "定位中…" : "定位并规划"}
             </Button>
+            {requiredApproach && (
+              <Button
+                variant="primary"
+                onClick={() => setApproachOpen(true)}
+                disabled={busy || running || hardwareBlocked || !safetyReady}
+                title="底盘会慢速脉冲，然后重新拍点云并规划"
+              >
+                底盘接近（{approachText(requiredApproach)}）
+              </Button>
+            )}
             <Button
               variant="danger"
               onClick={() => setConfirmOpen(true)}
@@ -383,7 +509,14 @@ export function TaskTakeover() {
               停止请求
             </Button>
           </div>
-          {plan && !plan.valid && plan.errors.length > 0 && (
+          {requiredApproach && (
+            <p className="muted">
+              木块在抓取带外：需要底盘{approachText(requiredApproach)}（duty{" "}
+              {requiredApproach.duty}，{requiredApproach.duration_s} s，约{" "}
+              {requiredApproach.nominal_travel_mm.toFixed(0)} mm），接近后自动重新定位。
+            </p>
+          )}
+          {plan && !plan.valid && plan.errors.length > 0 && !requiredApproach && (
             <ul className="error-list">
               {plan.errors.map((issue, index) => (
                 <li key={`${issue.code}-${index}`}>
@@ -544,6 +677,52 @@ export function TaskTakeover() {
           </>
         )}
       </Card>
+
+      <Modal
+        open={approachOpen}
+        title="确认底盘接近"
+        onClose={() => setApproachOpen(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setApproachOpen(false)}>
+              取消
+            </Button>
+            <Button variant="primary" onClick={() => void runApproach()}>
+              确认接近
+            </Button>
+          </>
+        }
+      >
+        {requiredApproach && (
+          <>
+            <p>
+              底盘会慢速脉冲 <strong>{approachText(requiredApproach)}</strong>
+              ，机械臂保持在 view；每次脉冲后重新拍点云定位，最多 3 次。底盘没有编码器，
+              位置由相机闭环确认。
+            </p>
+            <KeyValue label="Pulse">
+              <span className="mono">
+                vx {formatNumber(requiredApproach.vx, 3)} · vy{" "}
+                {formatNumber(requiredApproach.vy, 3)} · duty{" "}
+                {requiredApproach.duty} · {requiredApproach.duration_s} s
+              </span>
+            </KeyValue>
+            <KeyValue label="Nominal travel">
+              <span className="mono">
+                {requiredApproach.nominal_travel_mm.toFixed(0)} mm
+              </span>
+            </KeyValue>
+            <KeyValue label="Aim point">
+              <span className="mono">
+                {requiredApproach.target_point_m
+                  .map((value) => formatNumber(value, 3))
+                  .join(", ")}{" "}
+                m
+              </span>
+            </KeyValue>
+          </>
+        )}
+      </Modal>
 
       <Modal
         open={confirmOpen}

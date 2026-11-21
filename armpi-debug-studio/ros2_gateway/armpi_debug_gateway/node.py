@@ -29,6 +29,14 @@ from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import UInt16
 
 from .aux_camera import UvcCamera
+from .chassis import (
+    CHASSIS_TOPIC,
+    DISCOVERY_TIMEOUT_S,
+    MOTOR_IDS,
+    PUBLISH_HZ,
+    ChassisRejected,
+    plan_chassis_pulse,
+)
 from .imaging import cv2, image_to_bgr, np
 from .motion import (
     GRIPPER_INIT_PULSE,
@@ -57,6 +65,12 @@ try:
 except ImportError:  # pragma: no cover - depends on the robot image
     GetBusServoCmd = None
     GetBusServoState = None
+
+try:  # the chassis duty message lives in the same vendor package
+    from ros_robot_controller_msgs.msg import MotorSpeedControl, MotorsSpeedControl
+except ImportError:  # pragma: no cover - depends on the robot image
+    MotorSpeedControl = None
+    MotorsSpeedControl = None
 
 BUS_SERVO_SERVICE = "/ros_robot_controller/bus_servo/get_state"
 
@@ -113,6 +127,9 @@ class GatewayNode(Node):
         self._motion_pub = None
         self._guard = MotionGuard(motion_config) if self._motion_config else None
         self._bus_client = None
+        self._chassis_pub = None
+        self._chassis_lock = threading.Lock()
+        self._chassis_busy = False
         if motion_enabled:
             if ServosPosition is None or ServoPosition is None:
                 raise RuntimeError(
@@ -136,6 +153,15 @@ class GatewayNode(Node):
                         "bus verification requires " + BUS_SERVO_SERVICE +
                         "; start the gateway with the vendor CycloneDDS environment"
                     )
+            chassis = self._motion_config.chassis
+            if chassis is not None and chassis.enabled:
+                if MotorsSpeedControl is None or MotorSpeedControl is None:
+                    raise RuntimeError(
+                        "chassis enabled but ros_robot_controller_msgs is unavailable"
+                    )
+                self._chassis_pub = self.create_publisher(
+                    MotorsSpeedControl, CHASSIS_TOPIC, 10
+                )
 
         self._battery_mv: int | None = None
         self._battery_at: float | None = None
@@ -770,6 +796,13 @@ class GatewayNode(Node):
             "pointcloud_last_capture": self.pointcloud_status_payload(),
             "motion_enabled": self.motion_enabled,
             "motion_state": self._motion_state(),
+            "chassis_enabled": self.chassis_enabled,
+            "chassis": (
+                self._motion_config.chassis.to_public_dict()
+                if self._motion_config is not None
+                and self._motion_config.chassis is not None
+                else None
+            ),
             "motion_mode": (
                 self._motion_config.safety.mode
                 if self.motion_enabled and self._motion_config is not None
@@ -785,6 +818,7 @@ class GatewayNode(Node):
                 "measured": self._servo_state_topic,
                 "pointcloud": self._pointcloud_topic or None,
                 "motion": MOTION_TOPIC if self.motion_enabled else None,
+                "chassis": CHASSIS_TOPIC if self.chassis_enabled else None,
                 "tf": self._tf_topic,
                 "tf_static": self._tf_static_topic,
             },
@@ -877,6 +911,95 @@ class GatewayNode(Node):
             "measured": measured,
             "published_at": utc_now_iso(),
         }
+
+    # --------------------------------------------------------------- chassis
+    @property
+    def chassis_enabled(self) -> bool:
+        return self._chassis_pub is not None
+
+    def dispatch_chassis(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Publish one bounded open-loop chassis pulse, then zeros.
+
+        There is no odometry: the caller re-measures the scene after the coast.
+        The pulse is serialised with a lock and requires a matched subscriber
+        (the vendor watchdog drops a command with no consumer).
+        """
+        if self._chassis_pub is None or self._motion_config is None:
+            raise ChassisRejected(
+                "CHASSIS_DISABLED",
+                "the chassis write path is disabled on this gateway instance",
+                http_status=403,
+            )
+        plan = plan_chassis_pulse(payload, self._motion_config.chassis)
+        with self._chassis_lock:
+            if self._chassis_busy:
+                raise ChassisRejected(
+                    "CHASSIS_BUSY",
+                    "another chassis pulse is still running",
+                    http_status=409,
+                )
+            self._chassis_busy = True
+        started = time.monotonic()
+        started_wall = utc_now_iso()
+        try:
+            deadline = started + DISCOVERY_TIMEOUT_S
+            while (
+                self._chassis_pub.get_subscription_count() < 1
+                and time.monotonic() < deadline
+            ):
+                time.sleep(0.02)
+            matched = int(self._chassis_pub.get_subscription_count())
+            if matched < 1:
+                raise ChassisRejected(
+                    "CHASSIS_UNMATCHED",
+                    "no subscriber on " + CHASSIS_TOPIC +
+                    "; the vendor controller is not running",
+                    http_status=503,
+                )
+            message = MotorsSpeedControl()
+            for motor_id in MOTOR_IDS:
+                message.data.append(
+                    MotorSpeedControl(
+                        id=motor_id, speed=float(plan.wheels[motor_id])
+                    )
+                )
+            period = 1.0 / PUBLISH_HZ
+            sent = 0
+            while time.monotonic() - started < plan.duration_s:
+                self._chassis_pub.publish(message)
+                sent += 1
+                time.sleep(period)
+            zero = MotorsSpeedControl()
+            for motor_id in MOTOR_IDS:
+                zero.data.append(MotorSpeedControl(id=motor_id, speed=0.0))
+            for _ in range(4):
+                self._chassis_pub.publish(zero)
+                sent += 1
+                time.sleep(period)
+            elapsed = time.monotonic() - started
+            self.get_logger().info(
+                "chassis pulse vx=%.3f vy=%.3f duty=%.1f %.2fs "
+                "(%.1f mm nominal, %d messages)"
+                % (
+                    plan.vx, plan.vy, plan.duty, plan.duration_s,
+                    plan.nominal_travel_mm, sent,
+                )
+            )
+            return {
+                "status": "completed",
+                "verification": "open_loop",
+                "topic": CHASSIS_TOPIC,
+                "mode": "pulse",
+                **plan.to_public_dict(),
+                "subscribers_matched": matched,
+                "messages": sent,
+                "elapsed_s": round(elapsed, 3),
+                "started_wall": started_wall,
+                "ended_wall": utc_now_iso(),
+            }
+        finally:
+            with self._chassis_lock:
+                self._chassis_busy = False
 
     # ------------------------------------------------------- bus verification
     def _verify_bus(self, plan: Any) -> None:

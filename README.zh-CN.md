@@ -61,7 +61,7 @@
    2026-11-21 的**随机落点 24 对**跟进试验（操作员随手放点、底盘先接近）重复了该效应：**9/24 vs 24/24**（McNemar p = 6.1×10⁻⁵）；其回程释放误差的锚点是被修正后的目标，因此只作描述性指标。
 6. **完整实测误差预算。** 30 次重复性 **0.449 mm RMS / 1.017 mm max**，回差 **1.117 mm**，46 次抓取容差网格给出 **±9 mm**（保守值 6 mm）；2026-11-20 又测得抓取执行 **5.386 mm / 1.495° max**（20 次）、夹爪放置 **11.514 mm max / 3.080 mm mean**（20 次放回）、夹具位姿 **14.815 mm 径向 max**（20 次摆放）。完整边界预算为平移 **RSS 13.325 mm / 最坏 24.014 mm**、旋转 **RSS 1.858° / 最坏 3.322°**，主导项为放置（74.7%）与执行旋转（64.7%）；实测修正后放置均值 **3.080 mm** 仍在 6 mm 容差内，2° 旋转门限仍为暂定。
 7. **安全的关节限位普查。** 以 EEPROM 为界的采纳限位、通电探测到机械止挡，以及规避厂商节点负寄存器崩溃的工具链。
-8. **可靠性工具。** 误差预算框架、配对试验记录器与运行器、测量运行器、只读主机/DDS 基准，以及 G1–G8 调试台（后端 117 + 网关 65 个测试）。
+8. **可靠性工具。** 误差预算框架、配对试验记录器与运行器、测量运行器、只读主机/DDS 基准，以及 G1–G8.1 调试台（后端 125 + 网关 72 个测试）。
 9. **证据优先的文档。** 每条量化结论都链接到带时间戳的证据包；Mock、仿真与实机结果严格区分。
 10. **独立标定的前视相机。** 底盘前视 RealSense D435i：精化内参（fx = fy 903.5 px，RMS 0.371 px）、实测底盘外参（`[0.136, 0.027, 0.038] m`，俯仰 31.6°）、可跨重启的深度服务、MoveIt 碰撞盒与 Studio 辅助画面。它与腕部相机 x/y 一致到 **2.58 mm**，并证明常数修正是执行补偿而非测量偏差。
 11. **更快、更平滑的实测运动。** 用带总线舵机稳定判据的 jerk-limited S 曲线替代单点 6–9 s 运动：抓取+放回从 **11.67 s 降到 8.94 s**（−23%），无木块循环从约 37 s 降到 5.43 s，duty-20 对齐底盘把木块放回原位 **2.22 mm** 内。随后两次运行保持 4.0/20 包络：一次视野内抓取（4.77 s / 4.44 s，落点 **0.92 mm**），一次远端木块运行（294.7 + 32.4 mm 闭环接近、夹持状态下 2.50 s 反向脉冲、相对拟合目标 **11.06 mm** 落点）。
@@ -102,6 +102,7 @@
 | 相机 / DDS | 跨主机 RGB **约 12 Hz**（容器内订阅低估到约 8 Hz）；深度 **8.2 Hz**；ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
 | Studio G5 流对齐检查 | **712 命令 / 711 缓存**样本；同索引最大 **0.008321 rad**，RMSE **0.003962 rad** —— 这是“计划 vs 命令”，**不是**舵机跟踪（反馈流是厂商命令缓存；2026-11-21 更正） | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
 | Studio G7 姿态接管（2026-11-21） | 五轴姿态 + 夹爪写路径；**真实序列** `view_table → grasp_low → view_table` + 夹爪，每个机械臂完成都由 **`GetBusServoState`** 读取；低位实际 `502/339/928/336/499`（与目标最大 **4 pulse**），夹爪稳定值 **184 / 645**；厂商 `/servo_states` 是命令缓存（缓存 700 vs 实际 645），仅缓存的完成被判为 `Unknown` | [`evidence/studio_g7/20261121/`](evidence/studio_g7/20261121/README.md) |
+| Studio G8.1 底盘接近（2026-11-21） | 木块放在 **x 0.357 m**（超出臂展和原定位区域）时，用**两次有界底盘脉冲**（2.0 s / 98 mm 名义 → **实测 94 mm**；0.68 s / 33 mm → 约 42 mm）把它送进抓取带，再跑 13 步任务（`close_grip` raw **412**、`held: true`、放回落点 **+0.5 mm x**）；底盘开环（`verification: open_loop`），相机闭环；网关限制 duty ≤10、≤2 s | [`evidence/studio_g81/20261121/`](evidence/studio_g81/20261121/README.md) |
 | Studio G8 任务接管（2026-11-21） | 一条命令从**实时点云规划 13 步任务**（定位 → 抓取 → 抬升 → 夹持验证 → 放回 → 回观察位）并逐步总线校验执行；测得点 `(0.2247, 0.0019, −0.0489) m`、目标半径 **0.2384 m**（直接抓取带内）、拟合 j4 **−0.350**、抓取实际 `504/339/930/421/499`；`close_grip` 在 **raw 416** 被木块顶住，夹持验证 `held: true`，放回落点 **+3.6 mm x / +0.2 mm y / +0.4 mm z**；Aurora **最小量程球（约 0.251 m）** 会裁掉顶面近端（仅见 23 mm），故用完整远端边缘 + 实测 39.4 mm 木块尺寸重建中心（`TOP_CLIPPED_RECOVERED`） | [`evidence/studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
 | 误差预算（2026-11-19，部分：平移 4/7 来源） | 平移 **RSS 3.995 mm**（通过）/ 最坏 **7.114 mm**（未通过）vs 实测容差 **6 mm**；旋转 **RSS 1.103° / 最坏 1.827°** vs 暂定 2°（均通过）；手眼项占平移 RSS 68%；执行、放置与夹具项当时尚未测量 | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
@@ -208,7 +209,7 @@ tools/
 | 误差预算 | **已完成；边界门限未通过** | 全部误差源已测；平移 RSS 13.325 mm / 最坏 24.014 mm vs 6 mm；旋转 RSS 1.858°（通过）/ 最坏 3.322°（未通过）vs 暂定 2°；实测修正后放置均值 3.080 mm 在 6 mm 内；夹具纳入版 RSS 19.926 mm |
 | 配对试验 | **两次实机试验完成（2026-11-19 固定点、2026-11-21 随机落点）** | 2026-11-19：24 对，baseline 12/24 vs intervention 24/24，McNemar p = 0.00049；12 个双成功对子中干预放置误差低 2.19 mm（95% CI −3.96…−0.83，p = 0.0063）。2026-11-21 随机落点：自由摆放 + 底盘接近，baseline **9/24** vs intervention **24/24**，McNemar **p = 6.1×10⁻⁵**；回程释放误差（锚点=修正目标，+2.12 mm）只作描述；baseline MISS 14 + NO_GRIP 1（回程中掉落）；D1/D2 丢弃已记录；到达后到抓取的 gap 修复为采集后工具变更 |
 | 主机/DDS 基准 | **已实现；只读实机快照** | 笔记本 + Pi 指标；状态 20 Hz；相机约 12 Hz；ping 0.24 ms |
-| Debug Studio | **G1–G8 已实现；测试通过** | 后端 117 + 网关 65；Mock 10 + 硬件 3 + 姿态/任务 3 个 Playwright；G5 运动采集；G6 受监督路径无运动验证；**G7 姿态接管** **已完成真机运动验证**并由总线舵机读数判定完成；**G8 任务接管**（定位 + 深位姿族拟合 + 13 步任务 + 夹持验证）**已完成真机验证**；最小量程裁剪恢复用远端边缘重建顶面中心；Dashboard 增加 D435i 辅助画面；无急停、无自碰撞模型；`/servo_states` 是命令缓存，不是实测 |
+| Debug Studio | **G1–G8.1 已实现；测试通过** | 后端 125 + 网关 72；Mock 10 + 硬件 3 + 姿态/任务 3 个 Playwright；G5 运动采集；G6 受监督路径无运动验证；**G7 姿态接管** **已完成真机运动验证**并由总线舵机读数判定完成；**G8 任务接管**（定位 + 深位姿族拟合 + 13 步任务 + 夹持验证）**已完成真机验证**；**G8.1 有界底盘接近**（开环脉冲、相机闭环）**已用远端木块验证**；最小量程裁剪恢复用远端边缘重建顶面中心；Dashboard 增加 D435i 辅助画面；无急停、无自碰撞模型；`/servo_states` 是命令缓存，不是实测 |
 | 时钟同步 | **已实现并验证** | 笔记本 systemd user timer 每 60 s 推送；受限 forced-command 密钥；Pi 保持约 2 s 领先；强制落后 301 s 后恢复；重启测试 PASS |
 | 控制板 | **已探测（2026-11-19）** — 电池、6 路总线舵机、4 路开环电机占空比、蜂鸣器与 LED1/2 为真实功能；IMU、编码器、急停、板载手柄/SBUS 不存在；KEY1/2 已拆除 | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
 | 移动底盘 | **仅开环；duty-20 自动接近已验证** | 4 路电机占空比，无编码器/IMU/里程计；0.5 s 看门狗；任何底盘运动都会使桌面标定失效；一次对齐自动对位落在 (0.2316, −0.0025) m |
@@ -266,7 +267,7 @@ python -m pytest -q \
   tools/phase3/tests \
   tools/phase4/tests
 
-# 调试台：后端 117、网关 65、Mock Playwright 10、姿态/任务 Playwright 3
+# 调试台：后端 125、网关 72、Mock Playwright 10、姿态/任务 Playwright 3
 cd armpi-debug-studio/backend && pytest
 cd ../ros2_gateway && pytest
 cd ../frontend && npm run test:e2e
@@ -428,7 +429,7 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 | 可靠性分析 | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md)（配对试验、重复性、回差、容差网格、偏航包络、误差预算）；[`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md)（执行、放置、夹具、完整预算）；[`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md)（随机落点 24 对试验，9/24 vs 24/24；固定扇形 [`onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) 已在采集数据前被取代）；框架基线 [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
 | 关节限位 | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | 时钟 / 网络 | [`docs/hardware/ros_environment.md`](docs/hardware/ros_environment.md)、[`docs/hardware/network_access.md`](docs/hardware/network_access.md) |
-| Studio G1–G8 | [`evidence/studio_gateway/`](evidence/studio_gateway/)、[`studio_g2/`](evidence/studio_g2/)、[`studio_g3/`](evidence/studio_g3/)、[`studio_g4/`](evidence/studio_g4/)、[`studio_g5/`](evidence/studio_g5/)、[`studio_g6/`](evidence/studio_g6/)、[`studio_g7/20261121/`](evidence/studio_g7/20261121/README.md)、[`studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
+| Studio G1–G8.1 | [`evidence/studio_gateway/`](evidence/studio_gateway/)、[`studio_g2/`](evidence/studio_g2/)、[`studio_g3/`](evidence/studio_g3/)、[`studio_g4/`](evidence/studio_g4/)、[`studio_g5/`](evidence/studio_g5/)、[`studio_g6/`](evidence/studio_g6/)、[`studio_g7/20261121/`](evidence/studio_g7/20261121/README.md)、[`studio_g8/20261121/`](evidence/studio_g8/20261121/README.md)、[`studio_g81/20261121/`](evidence/studio_g81/20261121/README.md) |
 | 安全加固 | [`evidence/security/20261118/`](evidence/security/20261118/) |
 
 仓库保留原始日志与机器可读 JSON；当图像是主要证据时也会保留。`*.mcap` bag 已 gitignore，需单独备份。`evidence/README.md` 说明了跟踪范围。

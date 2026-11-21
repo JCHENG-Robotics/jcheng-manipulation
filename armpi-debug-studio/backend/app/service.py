@@ -19,7 +19,7 @@ from typing import Any, Callable
 
 import numpy as np
 
-from .adapters.base import HardwareMotionDisabled, RobotAdapter
+from .adapters.base import AdapterError, HardwareMotionDisabled, RobotAdapter
 from .config import Settings
 from .domain.enums import (
     CommandStage,
@@ -45,6 +45,7 @@ from .domain.experiments import (
 )
 from .domain.mapping import MappingConfig
 from .domain.motion import effective_motion_limits
+from .domain.approach import plan_approach
 from .domain.grasp_fit import fit as grasp_fit, validate_target as validate_grasp_target
 from .domain.locate import cube_box_present, cube_point, segment_floor_cube
 from .domain.task import build_task_plan
@@ -1616,6 +1617,132 @@ class RobotService:
                 "storage_error": storage_error,
             }
 
+    # ------------------------------------------------------------ chassis
+    def chassis_pulse(
+        self,
+        *,
+        session_id: str,
+        lease_id: str,
+        vx: float,
+        vy: float,
+        duty: float,
+        duration_s: float,
+    ) -> dict[str, Any]:
+        """Pulse the open-loop chassis toward the cube, then re-measure.
+
+        Only allowed with the arm at the task view: the pulse is computed from
+        that view's measurement, and the next locate must see the same scene.
+        The gateway caps each pulse; the caller is responsible for the loop.
+        """
+        takeover = self.takeover
+        task = takeover.task if takeover is not None else None
+        approach = task.approach if task is not None else None
+        if approach is None or not approach.enabled:
+            raise ServiceError(
+                ErrorCode.NOT_IMPLEMENTED.value,
+                "the chassis approach is disabled in the takeover contract",
+                status_code=503,
+            )
+        if not (0.0 < float(duty) <= approach.duty):
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                f"duty must be in (0, {approach.duty}]",
+                status_code=400,
+            )
+        if not (
+            approach.min_duration_s
+            <= float(duration_s)
+            <= approach.max_duration_s
+        ):
+            raise ServiceError(
+                ErrorCode.BAD_REQUEST.value,
+                f"duration must be in "
+                f"[{approach.min_duration_s}, {approach.max_duration_s}] s",
+                status_code=400,
+            )
+        if self.settings.mode is Mode.MOCK:
+            return {
+                "status": "Completed",
+                "verification": "simulated",
+                "session_id": session_id,
+                "pulse": {
+                    "vx": float(vx),
+                    "vy": float(vy),
+                    "duty": float(duty),
+                    "duration_s": float(duration_s),
+                },
+            }
+        if (
+            self.settings.mode is not Mode.HARDWARE
+            or not self.settings.hardware_motion_enabled
+        ):
+            raise ServiceError(
+                ErrorCode.HARDWARE_MOTION_DISABLED.value,
+                "chassis motion requires hardware mode and ARMPI_HARDWARE_MOTION=1",
+                status_code=403,
+            )
+        with self._lock:
+            lease = self.leases.check(lease_id, session_id)
+            if not lease.ok:
+                raise ServiceError(
+                    lease.code or ErrorCode.NO_LEASE.value,
+                    lease.detail,
+                    status_code=403,
+                )
+            state = self._state()
+            view = takeover.preset(task.view_preset) if task is not None else None
+            if view is None:
+                raise ServiceError(
+                    ErrorCode.NOT_IMPLEMENTED.value,
+                    f"task view preset {task.view_preset!r} is missing",
+                    status_code=503,
+                )
+            current = {
+                joint.name: joint.position_rad
+                for joint in state.joints
+                if joint.position_rad is not None
+            }
+            if set(current) != set(ARM_JOINTS):
+                raise ServiceError(
+                    "TASK_STATE_UNAVAILABLE",
+                    "not all five arm joints have a position",
+                    status_code=409,
+                )
+            deviation = max(
+                abs(float(current[name]) - float(view.joints[name]))
+                for name in ARM_JOINTS
+            )
+            if deviation > 0.12:
+                raise ServiceError(
+                    "TASK_NOT_AT_VIEW",
+                    "the arm is not at the task view pose; prepare the view first",
+                    status_code=409,
+                )
+            payload = {
+                "vx": float(vx),
+                "vy": float(vy),
+                "duty": float(duty),
+                "duration_s": float(duration_s),
+            }
+            try:
+                response = self.adapter.chassis_pulse(payload)
+            except AdapterError as exc:
+                raise ServiceError(
+                    exc.code,
+                    str(exc),
+                    status_code=502,
+                    details=exc.details,
+                ) from exc
+            return {
+                "status": "Completed",
+                "verification": (response or {}).get(
+                    "verification", "open_loop"
+                ),
+                "session_id": session_id,
+                "pulse": payload,
+                "gateway": response,
+            }
+
     # ------------------------------------------------------------ pose preset
     def motion_presets(self) -> dict[str, Any]:
         """Return the takeover contract and the hardware-validated poses.
@@ -1784,6 +1911,7 @@ class RobotService:
         current: dict[str, float] | None = None,
         simulated: bool = False,
         extra_errors: list[dict[str, Any]] | None = None,
+        approach: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         errors = [
             {"label": "task", "code": code, "message": message, "joint": None}
@@ -1800,6 +1928,7 @@ class RobotService:
             "current_joints": current or {},
             "locate": locate or {},
             "fit": fit,
+            "approach": approach,
             "plan_id": None,
         }
 
@@ -2022,6 +2151,20 @@ class RobotService:
             (task.min_reach_m, task.max_reach_m),
         )
         if reasons:
+            approach = plan_approach(point, task.approach)
+            if approach is not None:
+                return self._task_invalid(
+                    "APPROACH_REQUIRED",
+                    "the cube is outside the direct-grasp band ("
+                    + "; ".join(reasons)
+                    + "); pulse the chassis and re-locate",
+                    view_joints=view.joints,
+                    locate=report,
+                    fit=fit_result,
+                    current=current,
+                    simulated=simulated,
+                    approach=approach,
+                )
             return self._task_invalid(
                 "FIT_REJECTED",
                 "; ".join(reasons),

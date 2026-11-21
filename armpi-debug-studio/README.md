@@ -2,10 +2,11 @@
 
 A safe, evidence-first debugging console for the ArmPi Ultra 5-DoF arm.
 
-**Current milestone: G8 task takeover (hardware motion off by default).**
-G1–G8 are implemented: the Mock path, the read-only ROS 2 gateway, G2–G5
+**Current milestone: G8.1 chassis approach (hardware motion off by default).**
+G1–G8.1 are implemented: the Mock path, the read-only ROS 2 gateway, G2–G5
 offline/analysis tooling, the G6 supervised write path, the G7 five-joint
-pose + gripper takeover and the G8 camera-to-task takeover. Hardware motion
+pose + gripper takeover, the G8 camera-to-task takeover and the G8.1 bounded
+chassis approach. Hardware motion
 still requires `ARMPI_HARDWARE_MOTION=1`; G6 adds the fixed single-joint
 acknowledgement and G7/G8 use a separate pose acknowledgement plus a pose-mode
 gateway with a velocity cap and an FK workspace/table gate. There is no e-stop.
@@ -129,7 +130,8 @@ directory.
 | G6 supervised motion write path | **Implemented; verified without motion (2026-11-18); completion corrected 2026-11-21** | [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md); single joint, 0.096342 rad cap, **bus-read completion ±8 pulses**, latched `Unknown`; the old cache-based completion is no longer accepted |
 | G7 pose takeover | **Implemented; verified with real motion and bus-servo completion (2026-11-21)** | [`docs/g7-pose-takeover.md`](docs/g7-pose-takeover.md); 5-joint pose or gripper, 0.5 rad/s cap, FK workspace/table/low-yaw gate, 5 presets; view→grasp→view + gripper actual registers 502/339/928/336/499 and 184/645 |
 | G8 task takeover | **Implemented; verified with a real 13-step task (2026-11-21)** | [`docs/g8-task-takeover.md`](docs/g8-task-takeover.md); live point cloud → locate → deep-family fit → 13 steps → grip verify → put-back; target radius 0.2384 m, grasp actual 504/339/930/421/499, `close_grip` stalled at raw 416, landing +3.6 mm x; min-range clip recovery for the Aurora's ~0.25 m cutoff (`TOP_CLIPPED_RECOVERED`) |
-| Hardware motion | **Off by default; G6 step or G7/G8 pose opt-in only** | `ARMPI_HARDWARE_MOTION=1` + `ARMPI_SUPERVISED_MOTION_ACK` (step) or `ARMPI_MOTION_SCOPE=pose` + `ARMPI_TAKEOVER_ACK` (pose); otherwise `capabilities.hardware_motion=false` |
+| G8.1 chassis approach | **Implemented; verified with a real far-cube run (2026-11-21)** | cube at x 0.357 m → two bounded base pulses (94 mm + ~42 mm) → target radius 0.2351 m → 13-step task `close_grip` raw 412, `held: true`, landing +0.5 mm x; gateway `POST /chassis/pulse` (duty ≤10, ≤2 s), `verification: open_loop`, camera-closed loop; locate region widened to 0.15–0.55 m; `APPROACH_REQUIRED` plan |
+| Hardware motion | **Off by default; G6 step or G7/G8 pose opt-in only; the G8.1 base pulse needs `--enable-motion` + the `chassis` block** | `ARMPI_HARDWARE_MOTION=1` + `ARMPI_SUPERVISED_MOTION_ACK` (step) or `ARMPI_MOTION_SCOPE=pose` + `ARMPI_TAKEOVER_ACK` (pose); otherwise `capabilities.hardware_motion=false` |
 | Gripper (`r_joint`) | **G7/G8 pose scope only; excluded from G1/step** | `configs/takeover.yaml`; measured command range 170…700 raw, timed completion, 100 raw/s validation cap |
 | 3D / depth-cloud workbench | **Not implemented** | Settings → Roadmap |
 

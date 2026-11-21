@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .chassis import ChassisConfig, chassis_config_from_dict
+
 MOTION_SCHEMA_VERSION = 1
 ARM_JOINTS = ("joint1", "joint2", "joint3", "joint4", "joint5")
 SERVO_IDS = {
@@ -174,6 +176,7 @@ class MotionConfig:
     joints: dict[str, JointMotionLimit]
     safety: MotionSafety
     gripper: GripperLimit | None = None
+    chassis: ChassisConfig | None = None
 
 
 @dataclass
@@ -359,6 +362,7 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
         joints=joints,
         safety=safety,
         gripper=gripper,
+        chassis=chassis_config_from_dict(raw.get("chassis")),
     )
 
 

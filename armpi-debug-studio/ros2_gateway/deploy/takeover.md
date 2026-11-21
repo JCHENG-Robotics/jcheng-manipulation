@@ -76,6 +76,13 @@ ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
 
 The gateway fails at startup if the bus service is not visible. Its log must
 contain `verification=True bus=/ros_robot_controller/bus_servo/get_state`.
+With the G8.1 approach, `configs/takeover.yaml` also carries a `chassis` block;
+regenerate the JSON (the exporter copies it) and check `/health` reports
+`"chassis_enabled": true` and the duty/duration caps. The chassis endpoint is
+`POST /chassis/pulse` (token + `--enable-motion` + an enabled `chassis` block);
+it publishes `MotorsSpeedControl` at 20 Hz for one pulse, waits for a matched
+subscriber and then publishes four zero messages. A pulse can take up to
+~5 s, so backend clients need a POST timeout above 8 s (the Studio uses 20 s).
 
 `--no-aux-camera --camera-topic /armpi_pose_camera_off` keeps the motion
 instance from decoding frames it does not need; the 8765 instance still serves

@@ -37,6 +37,18 @@ completion_tolerance_pulses: 3
 completion_settle_samples: 3
 timeout_margin_s: 3.0
 
+# ---------------------------------------------------------------------------
+# G8.1 chassis approach. The base is open-loop (duty, no odometry), so the
+# gateway caps one pulse and the backend re-measures the scene after each one.
+# duty 10 is the measured 48-51 mm/s point of the 2026-11-19 approaches.
+chassis:
+  enabled: true
+  max_duty: 10.0
+  wheel_max_duty: 30.0
+  speed_mm_s_per_duty: 4.9
+  min_duration_s: 0.20
+  max_duration_s: 2.00
+
 gripper:
   joint: r_joint
   servo_id: 1
@@ -140,6 +152,19 @@ task:
   release_open_duration_s: 4.0
   verify_radius_m: 0.04
   verify_min_height_m: 0.01
+  # G8.1: when the target falls outside the band, pulse the open-loop base
+  # toward the aim point and re-measure (closed loop by camera, max 3 pulses).
+  # The aim point is the middle of the verified band on the tool-down axis.
+  approach:
+    enabled: true
+    target_point_m: [0.230, 0.0]
+    tolerance_m: 0.008
+    duty: 10.0
+    speed_mm_s_per_duty: 4.9
+    min_duration_s: 0.25
+    max_duration_s: 2.0
+    max_pulses: 3
+    settle_s: 0.5
   # Direct-grasp band: the 24-site trial kept the by-eye cube at x 0.226-0.234
   # and the corrected target at ~0.240-0.248. A farther cube needs the chassis
   # approach (not part of G8 v1), so the task refuses it instead of planning a
@@ -158,7 +183,8 @@ task:
     min_top_extent_m: 0.035
     ransac_iterations: 800
     ransac_points: 40000
-    x_range_m: [0.15, 0.32]
+    x_range_m: [0.15, 0.55]   # whole visible floor, not just the reach band;
+                              # the target band + chassis approach gate the grasp
     y_range_m: 0.09
     max_xy_m: 0.09
     min_height_m: 0.020
@@ -173,3 +199,4 @@ task:
     recovery_edge_tol_m: 0.002      # geometric band used to pick an edge
     recovery_range_band_m: 0.0025   # mean range minus the cloud's min range
     recovery_range_std_m: 0.0015    # range spread along the clipped edge
+    recovery_radial_min: 0.85       # cut boundary faces the camera; cube edges do not

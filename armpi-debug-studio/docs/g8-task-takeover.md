@@ -9,7 +9,8 @@ lift → grip verify → put-back → return to view — with every arm completi
 G8 is the first Studio scope that acts on **what the camera sees** instead of a
 pose the operator typed. It is deliberately narrow: one cube on the floor in
 front of the robot, the validated deep grasp family, and a put-back to the
-grasp pose. It is not a planner and it does not drive the chassis.
+grasp pose. It is not a planner. Since 2026-11-21 it also drives the chassis
+toward a cube that is visible but out of arm reach (G8.1).
 
 ## Flow
 
@@ -62,6 +63,38 @@ The 13 steps: `open_gripper`, `approach` (j4 = 0), `pre_grasp` (j4 offset
   farther cube is rejected, not reached for; the chassis approach is a G8.1
   decision.
 
+## G8.1 chassis approach
+
+The view covers about 0.15-0.55 m of floor, while the validated tool-down
+grasp pose reaches a 0.220-0.255 m target radius. A cube outside that band
+used to be rejected (`FIT_REJECTED`). With the approach enabled, the planner
+returns `APPROACH_REQUIRED` plus a pulse vector computed from the measured
+point and the aim point `(0.230, 0.0)` (the middle of the band, on the tool-down
+axis, so the constant correction's `joint1 ~ 0` envelope still holds). The
+operator confirms, `POST /api/chassis/pulse` publishes one bounded
+`MotorsSpeedControl` pulse (duty <= 10, 0.2-2.0 s, ~4.9 mm/s per duty) and
+zeros, the page waits for the coast, re-plans from a fresh cloud and repeats,
+at most 3 pulses.
+
+The base has **no odometry** (four duty motors, write-only): the pulse response
+is labelled `verification: open_loop` and the camera re-measurement is the only
+confirmation. The gateway caps every pulse; the page caps the loop; the arm
+stays at the view during the pulse. The approach is a translation (the mecanum
+strafe handles a lateral offset); a base yaw is not implemented, so a cube
+outside the lateral window is rejected rather than driven to.
+
+Live evidence (2026-11-21): cube at `x = 0.357 m` -> two pulses (2.0 s / 98 mm
+nominal -> 94 mm actual; 0.68 s / 33 mm -> ~42 mm) -> recovered point
+`(0.2214, 0.0024)` -> plan valid -> 13 steps, `close_grip` raw 412,
+`held: true`, put-back landing +0.5 mm x / -0.7 mm y / +0.2 mm z. See
+[`evidence/studio_g81/20261121/`](../../evidence/studio_g81/20261121/README.md).
+
+Two live defects were fixed in the same run: the adapter's 8 s POST timeout was
+below the gateway's pulse handler time (now 20 s for `/chassis/pulse`), and a
+top face clipped by the min-range sphere could flag *two* edges as clipped
+(the recovery now also requires the cut boundary to be perpendicular to the
+camera direction, `recovery_radial_min: 0.85`).
+
 ## Safety
 
 - Every planned pose step is validated twice: at plan time from the planned
@@ -88,6 +121,7 @@ The 13 steps: `open_gripper`, `approach` (j4 = 0), `pre_grasp` (j4 offset
 |---|---|---|
 | POST | `/api/task/plan` | locate + fit + 13 steps; `valid`, `point`, `target`, `fit`, `warnings`, `plan_id` |
 | POST | `/api/task/verify` | `{plan_id}`; cube box at the view after the lift |
+| POST | `/api/chassis/pulse` | one bounded base pulse; lease + arm at the view |
 | GET | `/api/motion/presets` | `view_table`, `lift_150`, ... from the contract |
 
 `tools/studio/g8_task_run.py` is the operator runner: plan-only by default;
@@ -98,7 +132,9 @@ The 13 steps: `open_gripper`, `approach` (j4 = 0), `pre_grasp` (j4 offset
 
 - One cube, one position, one put-back target (the grasp pose); the landing
   scatter measured after the run is +3.6 mm x, +0.2 mm y, +0.4 mm z.
-- No chassis approach; the cube must be inside the direct-grasp band.
+- The chassis approach is open-loop and translation-only; the cube must be
+  visible in the cloud region (0.15-0.55 m, |y| <= 0.09) and inside the lateral
+  pulse window. No base yaw.
 - No collision model: the FK gate is TCP-only and nominal.
 - The clip recovery is one-sided and uses the measured cube size; a two-sided
   clip, a different object or a different view pose needs new evidence.

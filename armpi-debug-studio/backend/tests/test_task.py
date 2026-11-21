@@ -311,3 +311,93 @@ def test_takeover_task_enables_the_clip_recovery(takeover) -> None:
     assert takeover.task is not None
     assert takeover.task.locate.cube_size_m == pytest.approx(0.0394)
     assert takeover.task.locate.recovery_intact_extent_m == pytest.approx(0.030)
+
+
+def test_task_plan_requests_a_chassis_approach_out_of_band(
+    mapping, clock, takeover, tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        RobotService, "MOCK_TASK_POINT", (0.300, 0.000, -0.050)
+    )
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        _prepare_view(service, takeover, clock)
+        plan = service.task_plan()
+        assert plan["valid"] is False
+        assert plan["errors"][0]["code"] == "APPROACH_REQUIRED"
+        approach = plan["approach"]
+        assert approach is not None
+        assert approach["vx"] == pytest.approx(1.0)
+        assert approach["vy"] == pytest.approx(0.0)
+        assert approach["forward_mm"] == pytest.approx(70.0, abs=0.1)
+        assert approach["duty"] == 10.0
+        assert approach["duration_s"] == pytest.approx(1.429, abs=0.002)
+        assert approach["target_point_m"] == [0.230, 0.0]
+        assert plan["steps"] == []
+    finally:
+        service.close()
+
+
+def test_task_plan_keeps_fit_rejected_when_aligned(
+    mapping, clock, takeover, tmp_path, monkeypatch
+) -> None:
+    # A point at the aim point but a fit that cannot reach it keeps the plain
+    # FIT_REJECTED path: no pulse would help.
+    monkeypatch.setattr(
+        RobotService, "MOCK_TASK_POINT", (0.230, 0.000, -0.050)
+    )
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        _prepare_view(service, takeover, clock)
+        plan = service.task_plan()
+        assert plan["valid"], plan
+        assert plan.get("approach") is None
+    finally:
+        service.close()
+
+
+def test_chassis_pulse_api_in_mock(tmp_path, mapping, clock, takeover) -> None:
+    settings = _pose_settings(tmp_path)
+    app = create_app(settings=settings, clock=clock)
+    with TestClient(app) as client:
+        ok = client.post(
+            "/api/chassis/pulse",
+            json={
+                "session_id": "api-approach",
+                "lease_id": "mock-lease",
+                "vx": 1.0,
+                "vy": 0.0,
+                "duty": 10.0,
+                "duration_s": 0.5,
+            },
+        )
+        assert ok.status_code == 200
+        payload = ok.json()
+        assert payload["status"] == "Completed"
+        assert payload["verification"] == "simulated"
+
+        too_much = client.post(
+            "/api/chassis/pulse",
+            json={
+                "session_id": "api-approach",
+                "lease_id": "mock-lease",
+                "vx": 1.0,
+                "vy": 0.0,
+                "duty": 11.0,
+                "duration_s": 0.5,
+            },
+        )
+        assert too_much.status_code == 400
+
+        too_short = client.post(
+            "/api/chassis/pulse",
+            json={
+                "session_id": "api-approach",
+                "lease_id": "mock-lease",
+                "vx": 1.0,
+                "vy": 0.0,
+                "duty": 10.0,
+                "duration_s": 0.1,
+            },
+        )
+        assert too_short.status_code == 400

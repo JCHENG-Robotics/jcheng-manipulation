@@ -111,10 +111,15 @@ class GatewayClient:
             self._open(path, "application/json", timeout_s), path
         )
 
-    def post_json(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    def post_json(
+        self,
+        path: str,
+        body: dict[str, Any],
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
         """POST a JSON object; only the supervised motion endpoints use this."""
         return self._decode_json(
-            self._request("POST", path, "application/json", body),
+            self._request("POST", path, "application/json", body, timeout_s),
             path,
         )
 

@@ -214,6 +214,27 @@ def execute(
     )
 
 
+class ChassisPulseIn(BaseModel):
+    session_id: str = Field(min_length=1, max_length=128)
+    lease_id: str = Field(min_length=1, max_length=128)
+    vx: float
+    vy: float
+    duty: float
+    duration_s: float
+
+
+@router.post("/chassis/pulse")
+def chassis_pulse(request: Request, body: ChassisPulseIn) -> dict[str, Any]:
+    return _service(request).chassis_pulse(
+        session_id=body.session_id,
+        lease_id=body.lease_id,
+        vx=body.vx,
+        vy=body.vy,
+        duty=body.duty,
+        duration_s=body.duration_s,
+    )
+
+
 @router.post("/motion/stop")
 def stop(request: Request, body: StopIn) -> dict[str, Any]:
     return _service(request).stop(

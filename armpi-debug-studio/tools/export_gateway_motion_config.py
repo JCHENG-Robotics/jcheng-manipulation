@@ -187,6 +187,26 @@ def build_config(
             "max_duration_s": float(gripper_raw.get("max_duration_s", 6.0)),
             "completion": str(gripper_raw.get("completion", "timed")),
         }
+        chassis_raw = takeover_raw.get("chassis")
+        if chassis_raw is not None:
+            if not isinstance(chassis_raw, dict):
+                raise SystemExit("takeover chassis block must be a mapping")
+            config["chassis"] = {
+                "enabled": bool(chassis_raw.get("enabled", False)),
+                "max_duty": float(chassis_raw.get("max_duty", 20.0)),
+                "wheel_max_duty": float(
+                    chassis_raw.get("wheel_max_duty", 30.0)
+                ),
+                "speed_mm_s_per_duty": float(
+                    chassis_raw.get("speed_mm_s_per_duty", 4.9)
+                ),
+                "min_duration_s": float(
+                    chassis_raw.get("min_duration_s", 0.20)
+                ),
+                "max_duration_s": float(
+                    chassis_raw.get("max_duration_s", 3.0)
+                ),
+            }
     return config
 
 
@@ -227,6 +247,14 @@ def main(argv: list[str] | None = None) -> int:
         f"duration>={parsed.safety.min_duration_s} s "
         f"single_joint={parsed.safety.single_joint_only}"
     )
+    if parsed.chassis is not None and parsed.chassis.enabled:
+        chassis = parsed.chassis
+        print(
+            f"  chassis enabled: duty<={chassis.max_duty} "
+            f"wheel<={chassis.wheel_max_duty} "
+            f"duration {chassis.min_duration_s}-{chassis.max_duration_s} s "
+            f"({chassis.speed_mm_s_per_duty} mm/s per duty)"
+        )
     if parsed.gripper is not None:
         print(
             f"  gripper={parsed.gripper.joint} "
