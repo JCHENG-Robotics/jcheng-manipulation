@@ -3,6 +3,7 @@
 import math
 
 import motion_profile as profile
+import pytest
 import vendor_servo_map as servos
 
 VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
@@ -116,6 +117,23 @@ def test_a_pose_past_the_servo_limit_is_refused():
         assert 'joint4' in str(error)
     else:  # pragma: no cover
         raise AssertionError('an out-of-range pose was accepted')
+
+
+def test_joint2_high_bound_matches_the_2026_11_19_survey():
+    """The adopted joint2 high bound is 775, not the older 810."""
+    assert servos.HARD_BOUNDS['joint2'] == (322, 795)
+    assert servos.ADOPTED_BOUNDS['joint2'] == (342, 775)
+
+
+def test_strict_joint2_rejects_above_the_adopted_bound():
+    """Fast motion treats a joint2 adopted-bound violation as an error."""
+    pose = list(GRASP)
+    pose[1] = 1.21  # 789 pulses: inside hard+margin, outside adopted+margin
+    warnings = servos.check_waypoints([pose])
+    assert any('joint2' in warning for warning in warnings)
+    with pytest.raises(ValueError) as caught:
+        servos.check_waypoints([pose], strict_adopted=('joint2',))
+    assert 'joint2' in str(caught.value)
 
 
 def test_gripper_pulses_match_the_measured_stops():

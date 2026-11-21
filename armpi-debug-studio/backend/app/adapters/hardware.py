@@ -13,6 +13,8 @@ the gateway independently re-validates the command against measured pulses.
 
 from __future__ import annotations
 
+import functools
+import threading
 import time
 from dataclasses import replace
 from typing import Any, Callable
@@ -73,6 +75,17 @@ def _localize_gateway_note(note: str) -> str:
     return _GATEWAY_NOTE_LABELS.get(note, note)
 
 
+def _locked(method):
+    """Serialize gateway state mutations across the ticker and HTTP threads."""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
+
+
 class HardwareAdapter(RobotAdapter):
     mode = Mode.HARDWARE
     source_label = SourceLabel.LIVE
@@ -93,6 +106,7 @@ class HardwareAdapter(RobotAdapter):
     ) -> None:
         self.mapping = mapping
         self._clock = clock or time.monotonic
+        self._lock = threading.RLock()
         self._gateway = (
             GatewayClient(gateway_url, token=gateway_token) if gateway_url else None
         )
@@ -661,6 +675,7 @@ class HardwareAdapter(RobotAdapter):
             ),
         )
 
+    @_locked
     def snapshot(self) -> RobotState:
         now_monotonic = self._clock()
         self._poll_motion(now_monotonic)
@@ -756,6 +771,7 @@ class HardwareAdapter(RobotAdapter):
             ),
         )
 
+    @_locked
     def connection_report(self) -> ConnectionReport:
         health = self._health()
         if self._gateway is None:
@@ -1132,6 +1148,7 @@ class HardwareAdapter(RobotAdapter):
             )
         return None
 
+    @_locked
     def dispatch(
         self,
         targets: list[dict[str, Any]],
@@ -1187,6 +1204,7 @@ class HardwareAdapter(RobotAdapter):
             payload, command_id, joints, duration
         )
 
+    @_locked
     def dispatch_profile(
         self,
         targets: list[dict[str, Any]],
@@ -1290,6 +1308,7 @@ class HardwareAdapter(RobotAdapter):
             {"gateway": response},
         )
 
+    @_locked
     def stop(self, command_id: str) -> StopResult:
         if not self.motion_enabled:
             return StopResult(
@@ -1336,10 +1355,12 @@ class HardwareAdapter(RobotAdapter):
             requested_at=utc_now_iso(),
         )
 
+    @_locked
     def drain_events(self) -> list[dict[str, Any]]:
         events, self._events = self._events, []
         return events
 
+    @_locked
     def reset(self) -> None:
         # Never perform a hardware side effect from a mock reset endpoint.
         return None

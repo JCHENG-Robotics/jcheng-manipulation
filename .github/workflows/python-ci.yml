@@ -68,3 +68,12 @@ jobs:
             tools/phase3/tests \
             tools/phase4/tests \
             tools/tests
+
+      - name: Run safety and grasp-planner unit tests
+        env:
+          PYTHONPATH: ros2_ws/src/armpi_safety:ros2_ws/src/armpi_grasp_planner
+        run: |
+          python -m pytest -q \
+            ros2_ws/src/armpi_safety/test/test_policy.py \
+            ros2_ws/src/armpi_grasp_planner/test/test_joint_limits.py \
+            ros2_ws/src/armpi_grasp_planner/test/test_candidates.py

@@ -8,9 +8,9 @@ fast-motion and grasp tools share. Values are the measured ones:
   ``joint_position_controller.py``);
 * ``joint1..joint5`` are servo IDs 6,5,4,3,2 and ``joint3`` is flipped;
 * hard bounds are the servo EEPROM position limits, tightened by the measured
-  mechanical stops where those are lower (joint2 low 322 from the 2026-11-19
-  hand survey);
-* adopted bounds are the EEPROM limit minus the 20-pulse margin used by the
+  mechanical stops where those are lower (joint2 low 322 and high 795 from the
+  2026-11-19 hand survey);
+* adopted bounds are the hard bound minus the 20-pulse margin used by the
   URDF and the MoveIt ``joint_limits.yaml`` (safety envelope, not a mechanic
   stop -- the validated view pose sits below the adopted joint4 minimum).
 
@@ -28,10 +28,10 @@ FLIPPED = {'joint1': False, 'joint2': False, 'joint3': True,
 RAD_PER_TICK = 240.0 / 360.0 * (2.0 * math.pi) / 1000.0
 TICKS_PER_RAD = 1.0 / RAD_PER_TICK
 
-HARD_BOUNDS = {'joint1': (50, 950), 'joint2': (322, 830),
+HARD_BOUNDS = {'joint1': (50, 950), 'joint2': (322, 795),
                'joint3': (500, 950), 'joint4': (100, 900),
                'joint5': (100, 890)}
-ADOPTED_BOUNDS = {'joint1': (70, 930), 'joint2': (342, 810),
+ADOPTED_BOUNDS = {'joint1': (70, 930), 'joint2': (342, 775),
                   'joint3': (500, 930), 'joint4': (120, 880),
                   'joint5': (120, 870)}
 
@@ -74,8 +74,15 @@ def waypoint_pulses(waypoints):
             for index, name in enumerate(ARM_JOINTS)}
 
 
-def check_waypoints(waypoints):
-    """Refuse a waypoint outside the servo limits; warn outside adopted."""
+def check_waypoints(waypoints, *, strict_adopted=()):
+    """Refuse a waypoint outside the servo limits; warn outside adopted.
+
+    ``strict_adopted`` names joints for which an adopted-bound violation is an
+    error instead of a warning.  The default stays warning-only because the
+    validated view pose intentionally sits below the adopted joint4 minimum;
+    joint2 is passed by the fast-motion path, where the 2026-11-19 stop survey
+    tightened the high adopted bound from 810 to 775 pulses.
+    """
     errors = []
     warnings = []
     margin = COMMAND_MARGIN_PULSES
@@ -86,8 +93,12 @@ def check_waypoints(waypoints):
                 name, min(pulses), max(pulses), (low, high)))
         low, high = ADOPTED_BOUNDS[name]
         if min(pulses) < low - margin or max(pulses) > high + margin:
-            warnings.append('{} pulse [{}, {}] outside adopted {}'.format(
-                name, min(pulses), max(pulses), (low, high)))
+            message = '{} pulse [{}, {}] outside adopted {}'.format(
+                name, min(pulses), max(pulses), (low, high))
+            if name in strict_adopted:
+                errors.append(message)
+            else:
+                warnings.append(message)
     if errors:
         raise ValueError('; '.join(errors))
     return warnings

@@ -107,6 +107,22 @@ def test_valid_command_is_quantized_and_tracked() -> None:
     assert status["measured"]["joint1"]["raw_position"] == 520
 
 
+def test_safety_stop_latches_and_clears() -> None:
+    guard = MotionGuard(_config())
+    guard.set_safety_stop(True)
+    assert guard.status()["safety_stop"] is True
+    with pytest.raises(MotionRejected) as caught:
+        guard.validate(_payload("cmd_safety"), _measured(), 0.0)
+    assert caught.value.code == "SAFETY_STOP"
+    assert caught.value.http_status == 409
+
+    guard.set_safety_stop(False)
+    assert guard.status()["safety_stop"] is False
+    assert guard.validate(_payload("cmd_cleared"), _measured(), 0.0).command_id == (
+        "cmd_cleared"
+    )
+
+
 def test_out_of_limit_pulse_is_rejected() -> None:
     guard = MotionGuard(_config())
     with pytest.raises(MotionRejected) as caught:

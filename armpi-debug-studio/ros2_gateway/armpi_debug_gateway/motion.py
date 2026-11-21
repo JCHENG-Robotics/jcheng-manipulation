@@ -530,6 +530,9 @@ class MotionGuard:
         self._last_measured: dict[str, dict[str, Any]] = {}
         self._finished_at: str | None = None
         self._last_stop: dict[str, Any] | None = None
+        # External /safety_stop latch. Once set, no new command is accepted
+        # until armpi_safety clears it.
+        self._safety_stop = False
         # Bus-verification state. ``None`` until a command needs it.
         self._verification: str | None = None
         self._verification_reason: str | None = None
@@ -546,6 +549,12 @@ class MotionGuard:
     ) -> MotionPlan:
         if not isinstance(payload, dict):
             raise MotionRejected("MOTION_BAD_REQUEST", "request body must be an object")
+        if self._safety_stop:
+            raise MotionRejected(
+                "SAFETY_STOP",
+                "the safety supervisor has latched a stop; reset it before motion",
+                http_status=409,
+            )
         command_id = payload.get("command_id")
         if not isinstance(command_id, str) or not command_id.strip():
             raise MotionRejected("MOTION_BAD_REQUEST", "command_id is required")
@@ -1279,6 +1288,11 @@ class MotionGuard:
         return self.status()
 
     @_guarded
+    def set_safety_stop(self, active: bool) -> None:
+        """Latch or clear the external ``/safety_stop`` input."""
+        self._safety_stop = bool(active)
+
+    @_guarded
     def status(self) -> dict[str, Any]:
         active = self._active
         state = self._state
@@ -1289,6 +1303,7 @@ class MotionGuard:
         payload: dict[str, Any] = {
             "state": state,
             "mode": self.config.safety.mode,
+            "safety_stop": self._safety_stop,
             "max_velocity_rad_s": self.config.safety.max_velocity_rad_s,
             "command_id": (
                 active.command_id if active else self._last_command_id
