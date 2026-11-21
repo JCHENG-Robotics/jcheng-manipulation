@@ -120,6 +120,19 @@ found no cube and the trial aborted. The runner now records that case as
 session. No trial record came from the attempt; its approach/error is in
 `approaches.jsonl`.
 
+**Home-return runs (2026-11-21).** The repaired session ran **10 trials = 5
+complete pairs** with the per-trial home return: the robot carried the held
+cube back to the start, released it there, and the operator re-placed it at
+the same spot for the second method. The p013 intervention release error was
+14.82 mm (start release). The sixth pair (`p011`) aborted at its first trial
+when the cube's top face was clipped at the image border after the start
+release; the placement gates passed but the code required a full top view.
+The trial was not recorded, the cube was at the start, and the session
+stopped. The runner now accepts a clipped-but-cube-sized home landing as a
+success with `landing_partial` (biased release error) and prints the real
+segmenter reason. The 10 trial records and their approach records are kept;
+the resume starts at `p011`.
+
 ## After the session
 
 ```bash

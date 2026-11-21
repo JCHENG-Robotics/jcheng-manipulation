@@ -527,6 +527,9 @@ class Session:
             extra_args=LANDING_WIDE_REGION if moved_home else None)
         landing, valid = cube_point(land_report)
         land_ok, land_reason = placement_quality(land_report)
+        rejection_reason = (land_report.get('rejection') or {}).get('reason')
+        partial_home = (moved_home and landing is not None and land_ok
+                        and not valid)
         if moved_home and landing is None:
             # A held claim whose cube is absent from the start means the grip
             # did not actually hold (the cube was pushed out of the check box)
@@ -538,18 +541,30 @@ class Session:
             self._record(entry, success=False, error_mm=None,
                          failure_code='NO_GRIP', notes=notes)
             return False
-        if landing is None or not valid or not land_ok:
+        if partial_home:
+            # The start release often clips the top face at the image border.
+            # The cluster is still cube-sized and cube-height (land_ok), so
+            # the cube is at the start; accept the success with the clipped
+            # centroid. The release error is a biased secondary value.
+            notes['landing_partial'] = True
+            notes['landing_rejection'] = rejection_reason
+            self._operator_note(
+                '起点顶面被裁切；按成功记录（释放误差为近似值）')
+        elif landing is None or not valid or not land_ok:
             # p003 on 2026-11-19 landed near a 22 mm object and the segmenter
             # selected it; a landing must pass the same cube gates as a
             # pre-trial placement or the continuous error is meaningless.
+            # Always print the segmenter's real rejection reason.
+            reason = (rejection_reason or land_reason
+                      if landing is not None else 'no point')
             raise RuntimeError(
                 'landing measurement rejected ({}); the trial is not '
-                'recorded, re-place the cube and re-run it'.format(
-                    land_reason if landing is not None else 'no point'))
+                'recorded, re-place the cube and re-run it'.format(reason))
         anchor = release_anchor(point, fit, moved_home)
         error_mm = float(np.linalg.norm((landing - anchor)[:2]) * 1000.0)
         notes['landing'] = [float(v) for v in landing]
-        notes['landing_measured'] = bool(valid)
+        notes['landing_measured'] = True
+        notes['landing_valid'] = bool(valid)
         notes['release_frame'] = 'home' if moved_home else 'site'
         notes['release_target'] = [float(v) for v in anchor]
         notes['landing_height_mm'] = float(

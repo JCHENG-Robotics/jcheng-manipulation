@@ -166,8 +166,11 @@ For each of a pair's two methods, back to back at the same realized spot:
    must pass the cube gates and lie within **60 mm** of the fitted release
    target (the 2026-11-20 release was 11.06 mm). A missing cube or a farther
    landing means the grip claim was false — the cube stayed at the spot — and
-   the trial is recorded as **NO_GRIP**, not a crash. The operator re-checks
-   the cube at the spot for Trial B.
+   the trial is recorded as **NO_GRIP**, not a crash. A **clipped top face**
+   at the image border is accepted as a success when the cluster still passes
+   the cube height/size gates; the release error is then a biased secondary
+   value, recorded as `landing_partial` with the segmenter's real rejection
+   reason. The operator re-checks the cube at the spot for Trial B.
 8. **Trial B.** The operator takes the cube from the start (held case) or
    adjusts it at the spot (miss case) and places it at the **same spot**; the
    base approach is repeated from the start. The second trial has the same
@@ -314,6 +317,12 @@ and writes the front-camera measurement JSONs to `front/`.
   landing found no cube; the trial was not recorded. The runner now records
   that case as `NO_GRIP` instead of aborting the session, and retries the
   landing with the wide region. No valid new-flow trial preceded the fix.
+- **The start top view can be clipped.** The release places the cube near the
+  image border at the start; the top-view extent gate may reject it while the
+  height/size gates pass. The success is accepted with `landing_partial`; the
+  release error is biased and must not be read as a millimetre-grade placement
+  value. A rejected landing always prints the segmenter's real reason (the
+  p003 lesson).
 - **One cube, one operator, one session, one battery state.** The cube is the
   same 39.4 mm wooden cube; the lighting and operator are fixed.
 - **Site count vs power.** The 24 placements are for coverage, not a power

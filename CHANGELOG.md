@@ -30,6 +30,12 @@ All notable changes to this project are documented here. Format based on
   with a wide region first. The first new-flow attempt (before this fix)
   aborted on a missing home landing; its approach/error is in
   `approaches.jsonl` and no trial was recorded.
+- A **clipped top face** at the start (the cube at the image border) is
+  accepted when the height/size gates pass; the release error is a biased
+  secondary value recorded as `landing_partial`, and a rejected landing now
+  prints the segmenter's real reason (the p003 lesson). This fixed the
+  `p011` abort after 10 new-flow trials (5 complete pairs) had been recorded;
+  the resume starts at `p011`.
 
 ### Data
 

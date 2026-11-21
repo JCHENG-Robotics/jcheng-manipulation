@@ -1,0 +1,72 @@
+{
+  "capture": "/tmp/armpi_random_front/p003_loc_front_1",
+  "cube_edge_m": 0.0394,
+  "depth_cluster": {
+    "cluster_points": 704,
+    "height_max_m": 0.0446536410673363,
+    "height_mean_m": 0.0371344526108417,
+    "height_min_m": 0.03000359483300552,
+    "point_base": [
+      0.5123099584767329,
+      -0.07605466729536732,
+      -0.049780633074605236
+    ],
+    "slab_points": 704
+  },
+  "depth_plane": {
+    "inlier_fraction": 0.9065569280133564,
+    "normal_base": [
+      -0.021186978374205967,
+      -0.002278471918354983,
+      0.9997729181100868
+    ],
+    "point_base": [
+      0.1391032084615071,
+      0.01264721897698163,
+      -0.09463028881473798
+    ],
+    "rms_m": 0.0008057700929471107
+  },
+  "gates": {
+    "cluster_points": {
+      "ok": true,
+      "value": 704
+    },
+    "height_mean_m": {
+      "ok": true,
+      "value": 0.0371344526108417
+    },
+    "plane_inlier_fraction": {
+      "ok": true,
+      "value": 0.9065569280133564
+    },
+    "plane_rms_m": {
+      "ok": true,
+      "value": 0.0008057700929471107
+    },
+    "x_in_range": {
+      "ok": true,
+      "value": 0.5123099584767329
+    },
+    "y_in_range": {
+      "ok": true,
+      "value": -0.07605466729536732
+    }
+  },
+  "mode": "front_camera_depth_top_face",
+  "point_base": [
+    0.5123099584767329,
+    -0.07605466729536732,
+    -0.049780633074605236
+  ],
+  "schema_version": 1,
+  "success": true,
+  "top_plane": {
+    "height_m": -0.05523028881473798,
+    "normal_base": [
+      -0.021186978374205967,
+      -0.002278471918354983,
+      0.9997729181100868
+    ]
+  }
+}
