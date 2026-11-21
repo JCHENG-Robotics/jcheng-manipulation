@@ -866,19 +866,29 @@ class GatewayNode(Node):
         now = time.monotonic()
         measured = self._measured_with_age(now)
         plan = self._guard.validate(payload, measured, now)
-        self._publish_positions(
-            plan.duration_s,
-            [(target.joint, target.target_pulse) for target in plan.targets],
-        )
-        self._guard.start(plan, measured)
+        if plan.points is not None:
+            # Dense profile: one ServosPosition per segment, published at the
+            # segment cadence by a worker (the HTTP handler must return so the
+            # backend can keep polling /motion/status).
+            self._guard.start(plan, measured)
+            worker = threading.Thread(
+                target=self._publish_profile,
+                args=(plan,),
+                name=f"profile-{plan.command_id}",
+                daemon=True,
+            )
+            worker.start()
+        else:
+            self._publish_positions(
+                plan.duration_s,
+                [(target.joint, target.target_pulse) for target in plan.targets],
+            )
+            self._guard.start(plan, measured)
         if self._motion_config is not None and self._motion_config.safety.verification:
-            settle = self._motion_config.safety.verification_settle_s
-            if any(target.completion == "timed" for target in plan.targets):
-                # The linkage relaxes after the commanded close; wait longer
-                # so the recorded register is the settled one, not the
-                # transient at the end of the interpolation.
-                settle = max(settle, 1.2)
-            delay = plan.duration_s + settle
+            settle = plan.settle_s
+            if settle <= 0.0:
+                settle = self._motion_config.safety.verification_settle_s
+            delay = plan.duration_s + settle + 0.05
             if self._verification_timer is not None:
                 self._verification_timer.cancel()
             timer = threading.Timer(delay, self._verify_bus, args=(plan,))
@@ -898,6 +908,16 @@ class GatewayNode(Node):
                 and self._motion_config.safety.verification
                 else "cache"
             ),
+            "profile": (
+                {
+                    "points": len(plan.points),
+                    "max_velocity_rad_s": plan.profile.max_velocity_rad_s,
+                    "max_accel_rad_s2": plan.profile.max_accel_rad_s2,
+                }
+                if plan.points is not None and plan.profile is not None
+                else None
+            ),
+            "fast": plan.fast,
             "joints": [
                 {
                     "joint": target.joint,
@@ -911,6 +931,35 @@ class GatewayNode(Node):
             "measured": measured,
             "published_at": utc_now_iso(),
         }
+
+    def _publish_profile(self, plan: Any) -> None:
+        """Publish one message per segment, then hold.
+
+        The vendor controller forwards one bus-servo command per trajectory
+        point, so this is the same S-curve the 2026-11-20 fast runs used. The
+        stop path sets the guard state; the worker stops at the next segment
+        boundary and the hold command published by ``/motion/stop`` wins.
+        """
+        assert self._guard is not None
+        try:
+            for index, point in enumerate(plan.points or []):
+                status = self._guard.status()
+                if (
+                    status.get("state") != "executing"
+                    or status.get("command_id") != plan.command_id
+                ):
+                    return
+                self._publish_positions(
+                    point.duration_s,
+                    [(target.joint, target.target_pulse) for target in point.targets],
+                )
+                time.sleep(point.duration_s)
+                if index == len(plan.points or []) - 1:
+                    break
+        except Exception as exc:  # noqa: BLE001 - the deadline latches unknown
+            self.get_logger().error(
+                f"profile {plan.command_id} publish failed: {exc}"
+            )
 
     # --------------------------------------------------------------- chassis
     @property

@@ -34,7 +34,7 @@ from .motion import MotionRejected
 if TYPE_CHECKING:
     from .node import GatewayNode
 
-MAX_MOTION_BODY_BYTES = 64 * 1024
+MAX_MOTION_BODY_BYTES = 256 * 1024
 
 
 class GatewayHTTPServer(ThreadingHTTPServer):

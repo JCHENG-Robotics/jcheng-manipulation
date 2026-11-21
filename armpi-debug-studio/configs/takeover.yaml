@@ -150,6 +150,38 @@ task:
   grip_preclose_duration_s: 1.5
   grip_duration_s: 2.6
   release_open_duration_s: 4.0
+  # -------------------------------------------------------------------------
+  # Fast task path. One S-curve per pose (dense waypoints, all joints start and
+  # stop together) instead of one long constant-velocity point, plus the
+  # hardware-verified 2026-11-20 gripper timings. `docs/phase2/FAST_MOTION.md`
+  # measured 4.0 rad/s / 20 rad/s^2 and 8.94 s grasp + put-back. The slow
+  # single-point values above remain the documented fallback; `fast.enabled`
+  # selects the dense profile for the task run.
+  fast:
+    enabled: true
+    vmax_rad_s: 4.0
+    amax_rad_s2: 20.0
+    dt_s: 0.05
+    descent_vmax_rad_s: 0.6      # pre-grasp descent (free moves are 4.0)
+    final_vmax_rad_s: 0.35       # final 0.15 rad descent to the grasp
+    release_descent_vmax_rad_s: 1.4
+    release_final_vmax_rad_s: 0.8
+    gripper_open_duration_s: 0.8
+    gripper_preclose_duration_s: 0.35
+    gripper_grip_duration_s: 0.5
+    gripper_release_open_duration_s: 0.45
+    # The fast path commands the gripper through the raw bus-servo duration,
+    # exactly as the 2026-11-20 runs did: the duration is an interpolation
+    # target and the servo saturates near its measured 420-460 raw/s. The cap
+    # below is a sanity ceiling for the commanded interpolation rate (release
+    # open from the 550 raw grip command over 0.45 s is 844 raw/s); it is not
+    # a claim that the fingers travel that fast.
+    gripper_speed_raw_per_s: 900
+    gripper_min_duration_s: 0.25
+    gripper_settle_s: 0.6
+    verify_settle_s: 0.35
+    max_total_duration_s: 6.0
+    max_points: 400
   verify_radius_m: 0.04
   verify_min_height_m: 0.01
   # G8.1: when the target falls outside the band, pulse the open-loop base

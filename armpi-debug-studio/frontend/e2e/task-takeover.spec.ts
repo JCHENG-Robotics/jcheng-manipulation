@@ -27,9 +27,11 @@ test.describe("Task Takeover (mock pose scope)", () => {
     const steps = page.locator("section", {
       has: page.getByRole("heading", { name: "Steps" }),
     });
-    await expect(steps).toContainText("open_gripper");
+    await expect(steps).toContainText("approach");
     await expect(steps).toContainText("grasp");
+    await expect(steps).toContainText("close");
     await expect(steps).toContainText("grip_verify");
+    await expect(steps).toContainText("release");
     await expect(steps).toContainText("return_view");
 
     await page.getByRole("button", { name: "运行任务（需确认）" }).click();
@@ -50,7 +52,7 @@ test.describe("Task Takeover (mock pose scope)", () => {
       timeout: 60_000,
     });
     const statuses = await steps.getByText("completed", { exact: true }).count();
-    expect(statuses).toBeGreaterThan(8);
+    expect(statuses).toBeGreaterThanOrEqual(6);
 
     await page.getByRole("link", { name: "Dashboard" }).click();
     await page.getByRole("button", { name: "释放控制权" }).click();

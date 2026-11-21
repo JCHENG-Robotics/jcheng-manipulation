@@ -169,6 +169,28 @@ class MotionSafety:
 
 
 @dataclass(frozen=True)
+class ProfileSafety:
+    """Bounds for one dense S-curve command (G8 fast task path).
+
+    The backend builds the waypoints; the gateway checks every segment again,
+    so a backend bug still cannot publish a segment outside the measured
+    envelope. The velocity is the peak joint velocity of the profile, not a
+    per-command average.
+    """
+
+    max_velocity_rad_s: float = 4.0
+    max_accel_rad_s2: float = 20.0
+    min_segment_s: float = 0.025
+    max_segment_s: float = 0.5
+    max_points: int = 400
+    max_total_duration_s: float = 6.0
+    start_tolerance_pulses: int = 20
+    gripper_speed_raw_per_s: float = 900.0
+    gripper_min_duration_s: float = 0.25
+    gripper_settle_s: float = 0.6
+
+
+@dataclass(frozen=True)
 class MotionConfig:
     schema_version: int
     mapping_version: str
@@ -177,6 +199,7 @@ class MotionConfig:
     safety: MotionSafety
     gripper: GripperLimit | None = None
     chassis: ChassisConfig | None = None
+    profile: ProfileSafety | None = None
 
 
 @dataclass
@@ -189,6 +212,14 @@ class MotionTarget:
 
 
 @dataclass
+class ProfilePoint:
+    """One segment: publish these targets with ``duration_s``, then wait."""
+
+    duration_s: float
+    targets: list[MotionTarget]
+
+
+@dataclass
 class MotionPlan:
     command_id: str
     duration_s: float
@@ -197,6 +228,10 @@ class MotionPlan:
     deadline: float
     started_wall: str
     mode: str = "step"
+    points: list[ProfilePoint] | None = None
+    profile: ProfileSafety | None = None
+    fast: bool = False
+    settle_s: float = 0.0
 
 
 def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
@@ -355,6 +390,70 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
             radians_per_tick=tick,
             _step_limit_rad=safety.max_step_rad,
         )
+    profile: ProfileSafety | None = None
+    profile_raw = safety_raw.get("profile")
+    if profile_raw is not None:
+        _require(isinstance(profile_raw, dict), "safety.profile must be an object")
+        _require(mode == "pose", "safety.profile requires pose mode")
+        profile = ProfileSafety(
+            max_velocity_rad_s=float(
+                profile_raw.get("max_velocity_rad_s", 4.0)
+            ),
+            max_accel_rad_s2=float(profile_raw.get("max_accel_rad_s2", 20.0)),
+            min_segment_s=float(profile_raw.get("min_segment_s", 0.025)),
+            max_segment_s=float(profile_raw.get("max_segment_s", 0.5)),
+            max_points=int(profile_raw.get("max_points", 400)),
+            max_total_duration_s=float(
+                profile_raw.get("max_total_duration_s", 6.0)
+            ),
+            start_tolerance_pulses=int(
+                profile_raw.get("start_tolerance_pulses", 20)
+            ),
+            gripper_speed_raw_per_s=float(
+                profile_raw.get("gripper_speed_raw_per_s", 900.0)
+            ),
+            gripper_min_duration_s=float(
+                profile_raw.get("gripper_min_duration_s", 0.25)
+            ),
+            gripper_settle_s=float(profile_raw.get("gripper_settle_s", 0.6)),
+        )
+        _require(
+            0.0 < profile.max_velocity_rad_s <= 4.0,
+            "safety.profile.max_velocity_rad_s must be in (0, 4.0]",
+        )
+        _require(
+            0.0 < profile.max_accel_rad_s2 <= 20.0,
+            "safety.profile.max_accel_rad_s2 must be in (0, 20.0]",
+        )
+        _require(
+            0.02 <= profile.min_segment_s < profile.max_segment_s <= 1.0,
+            "safety.profile segment range is invalid",
+        )
+        _require(
+            1 <= profile.max_points <= 1000,
+            "safety.profile.max_points must be in [1, 1000]",
+        )
+        _require(
+            0.0 < profile.max_total_duration_s
+            <= safety.max_duration_s + 1e-9,
+            "safety.profile.max_total_duration_s exceeds the pose ceiling",
+        )
+        _require(
+            0 <= profile.start_tolerance_pulses <= 50,
+            "safety.profile.start_tolerance_pulses must be in [0, 50]",
+        )
+        _require(
+            100.0 <= profile.gripper_speed_raw_per_s <= 1000.0,
+            "safety.profile.gripper_speed_raw_per_s must be in [100, 1000]",
+        )
+        _require(
+            0.1 <= profile.gripper_min_duration_s <= 1.0,
+            "safety.profile.gripper_min_duration_s must be in [0.1, 1.0]",
+        )
+        _require(
+            0.1 <= profile.gripper_settle_s <= 2.0,
+            "safety.profile.gripper_settle_s must be in [0.1, 2.0]",
+        )
     return MotionConfig(
         schema_version=MOTION_SCHEMA_VERSION,
         mapping_version=mapping_version,
@@ -363,6 +462,7 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
         safety=safety,
         gripper=gripper,
         chassis=chassis_config_from_dict(raw.get("chassis")),
+        profile=profile,
     )
 
 
@@ -459,15 +559,42 @@ class MotionGuard:
                 http_status=409,
             )
 
+        profile_raw = payload.get("profile")
+        fast = bool(payload.get("fast", False))
+        profile_config = self.config.profile
+        if profile_raw is not None and not isinstance(profile_raw, dict):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", "profile must be an object"
+            )
+        if profile_raw is not None and profile_config is None:
+            raise MotionRejected(
+                "MOTION_PROFILE_DISABLED",
+                "this gateway has no safety.profile block",
+                http_status=403,
+            )
+        if fast and profile_config is None:
+            raise MotionRejected(
+                "MOTION_FAST_DISABLED",
+                "this gateway has no safety.profile block",
+                http_status=403,
+            )
+
         duration = payload.get("duration_s")
         if not _is_number(duration):
             raise MotionRejected("MOTION_BAD_REQUEST", "duration_s must be finite")
         duration = float(duration)
         safety = self.config.safety
-        if not safety.min_duration_s <= duration <= safety.max_duration_s:
+        floor = safety.min_duration_s
+        if profile_raw is not None:
+            # A profile is validated segment by segment below; its total can
+            # be shorter than the single-command duration floor.
+            floor = 0.0
+        elif fast and profile_config is not None:
+            floor = profile_config.gripper_min_duration_s
+        if not floor <= duration <= safety.max_duration_s:
             raise MotionRejected(
                 "MOTION_BAD_REQUEST",
-                f"duration_s must be within [{safety.min_duration_s}, "
+                f"duration_s must be within [{floor}, "
                 f"{safety.max_duration_s}]",
             )
 
@@ -502,6 +629,22 @@ class MotionGuard:
                     "MOTION_BAD_REQUEST",
                     "a gripper command cannot be mixed with arm joints",
                 )
+        if profile_raw is not None and safety.mode != "pose":
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", "profiles require pose mode"
+            )
+        if profile_raw is not None and (
+            gripper is not None
+            and any(
+                str(item.get("joint") or "").strip() == gripper.joint
+                for item in raw_joints
+                if isinstance(item, dict)
+            )
+        ):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                "a profile cannot carry a gripper target",
+            )
 
         measured = measured if isinstance(measured, dict) else {}
         targets: list[MotionTarget] = []
@@ -519,7 +662,9 @@ class MotionGuard:
                         "a gripper command must be the only target",
                     )
                 targets.append(
-                    self._validate_gripper(raw, measured, now, duration)
+                    self._validate_gripper(
+                        raw, measured, now, duration, fast=fast
+                    )
                 )
                 continue
             if joint not in self.config.joints:
@@ -529,23 +674,49 @@ class MotionGuard:
             if joint in seen:
                 raise MotionRejected("MOTION_BAD_REQUEST", f"duplicate joint: {joint}")
             seen.add(joint)
-            targets.append(
-                self._validate_arm(joint, raw, measured, now, duration)
+            if profile_raw is not None:
+                targets.append(
+                    self._validate_endpoint(joint, raw, measured, now)
+                )
+            else:
+                targets.append(
+                    self._validate_arm(joint, raw, measured, now, duration)
+                )
+
+        points: list[ProfilePoint] | None = None
+        if profile_raw is not None:
+            points, duration = self._validate_profile(
+                profile_raw, targets, measured, now
             )
 
+        settle_s = 0.0
+        if safety.verification:
+            settle_s = safety.verification_settle_s
+            if (
+                fast
+                and profile_config is not None
+                and any(target.completion == "timed" for target in targets)
+            ):
+                # The fast task uses raw bus-servo gripper durations; the
+                # measured queue delay is ~0.1 s, so 0.6 s records the settled
+                # register instead of the slow path's 1.2 s.
+                settle_s = max(settle_s, profile_config.gripper_settle_s)
+            elif any(target.completion == "timed" for target in targets):
+                settle_s = max(settle_s, 1.2)
         return MotionPlan(
             command_id=command_id,
             duration_s=duration,
             targets=targets,
             started_at=now,
             deadline=(
-                now
-                + duration
-                + (safety.verification_settle_s if safety.verification else 0.0)
-                + safety.timeout_margin_s
+                now + duration + settle_s + safety.timeout_margin_s
             ),
             started_wall=utc_now_iso(),
             mode=safety.mode,
+            points=points,
+            profile=profile_config if points is not None else None,
+            fast=fast,
+            settle_s=settle_s,
         )
 
     # --------------------------------------------------------- target checks
@@ -631,16 +802,24 @@ class MotionGuard:
         measured: dict[str, Any],
         now: float,
         duration: float,
+        *,
+        fast: bool = False,
     ) -> MotionTarget:
         gripper = self.config.gripper
         safety = self.config.safety
+        profile = self.config.profile
         if gripper is None:  # guarded by the caller
             raise MotionRejected("MOTION_BAD_REQUEST", "no gripper contract")
-        if not gripper.min_duration_s <= duration <= gripper.max_duration_s:
+        floor = gripper.min_duration_s
+        speed = gripper.speed_raw_per_s
+        if fast and profile is not None:
+            floor = profile.gripper_min_duration_s
+            speed = max(speed, profile.gripper_speed_raw_per_s)
+        if not floor <= duration <= gripper.max_duration_s:
             raise MotionRejected(
                 "MOTION_BAD_REQUEST",
                 f"{gripper.joint}: duration must be within "
-                f"[{gripper.min_duration_s}, {gripper.max_duration_s}] s",
+                f"[{floor}, {gripper.max_duration_s}] s",
             )
         servo_id = raw.get("servo_id", gripper.servo_id)
         if int(servo_id) != gripper.servo_id:
@@ -685,11 +864,11 @@ class MotionGuard:
             )
         delta = abs(target_pulse - measured_pulse)
         velocity = delta / duration
-        if velocity > gripper.speed_raw_per_s + 1e-9:
+        if velocity > speed + 1e-9:
             raise MotionRejected(
                 "MOTION_VELOCITY_EXCEEDED",
                 f"{gripper.joint}: {velocity:.1f} raw/s exceeds the measured "
-                f"{gripper.speed_raw_per_s:.0f} raw/s tracking speed",
+                f"{speed:.0f} raw/s tracking speed",
                 http_status=409,
             )
         return MotionTarget(
@@ -699,6 +878,224 @@ class MotionGuard:
             target_rad=float(target_rad),
             completion=gripper.completion,
         )
+
+    def _validate_endpoint(
+        self,
+        joint: str,
+        raw: dict[str, Any],
+        measured: dict[str, Any],
+        now: float,
+    ) -> MotionTarget:
+        """Validate one profile endpoint without a step/velocity check.
+
+        Every segment of the profile is checked separately; the endpoint only
+        has to be inside the joint limits, be pulse-consistent, and have a
+        usable measured baseline for the profile's first segment.
+        """
+        limit = self.config.joints[joint]
+        servo_id = raw.get("servo_id", limit.servo_id)
+        if int(servo_id) != limit.servo_id:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{joint}: servo_id must be {limit.servo_id}",
+            )
+        pulse = raw.get("target_pulse")
+        if isinstance(pulse, bool) or not isinstance(pulse, (int, float)):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_pulse is required"
+            )
+        if int(pulse) != float(pulse):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_pulse must be an integer"
+            )
+        target_pulse = int(pulse)
+        if not limit.min_pulse <= target_pulse <= limit.max_pulse:
+            raise MotionRejected(
+                "MOTION_OUT_OF_LIMIT",
+                f"{joint}: pulse {target_pulse} outside "
+                f"[{limit.min_pulse}, {limit.max_pulse}]",
+            )
+        target_rad = raw.get("target_rad")
+        if not _is_number(target_rad):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_rad is required"
+            )
+        if abs(limit.rad_to_pulse(float(target_rad)) - target_pulse) > 1.5:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{joint}: target_rad disagrees with target_pulse",
+            )
+        _measured_pulse, age_ms = _measured_item(measured, joint, now)
+        if age_ms > self.config.safety.feedback_max_age_ms:
+            raise MotionRejected(
+                "MOTION_STALE_FEEDBACK",
+                f"{joint}: measured sample is {age_ms:.0f} ms old "
+                f"(limit {self.config.safety.feedback_max_age_ms} ms)",
+                http_status=409,
+            )
+        return MotionTarget(
+            joint=joint,
+            servo_id=limit.servo_id,
+            target_pulse=target_pulse,
+            target_rad=float(target_rad),
+        )
+
+    def _validate_profile(
+        self,
+        raw: dict[str, Any],
+        endpoint: list[MotionTarget],
+        measured: dict[str, Any],
+        now: float,
+    ) -> tuple[list[ProfilePoint], float]:
+        """Validate every dense waypoint; return the segments and total time."""
+        config = self.config.profile
+        if config is None:  # guarded by the caller
+            raise MotionRejected("MOTION_PROFILE_DISABLED", "no profile contract")
+        points_raw = raw.get("points")
+        if not isinstance(points_raw, list) or not points_raw:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", "profile.points must be a non-empty list"
+            )
+        if len(points_raw) > config.max_points:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"profile has {len(points_raw)} points; the cap is "
+                f"{config.max_points}",
+            )
+        measured_snapshot = _measured_snapshot(measured)
+        previous: dict[str, int] | None = None
+        previous_velocity: dict[str, float] | None = None
+        previous_duration = 0.0
+        total = 0.0
+        points: list[ProfilePoint] = []
+        for index, item in enumerate(points_raw):
+            if not isinstance(item, dict):
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST", f"profile.points[{index}] must be an object"
+                )
+            segment = item.get("duration_s")
+            if not _is_number(segment):
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    f"profile.points[{index}].duration_s must be finite",
+                )
+            segment = float(segment)
+            if not config.min_segment_s <= segment <= config.max_segment_s:
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    f"profile.points[{index}].duration_s must be within "
+                    f"[{config.min_segment_s}, {config.max_segment_s}] s",
+                )
+            raw_joints = item.get("joints")
+            if not isinstance(raw_joints, list) or not raw_joints:
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    f"profile.points[{index}].joints must be a non-empty list",
+                )
+            names = [
+                str(entry.get("joint") or "").strip()
+                for entry in raw_joints
+                if isinstance(entry, dict)
+            ]
+            if set(names) != set(ARM_JOINTS) or len(names) != len(ARM_JOINTS):
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    f"profile.points[{index}] must carry exactly the five arm "
+                    f"joints; got {sorted(set(names))}",
+                )
+            targets: list[MotionTarget] = []
+            for entry in raw_joints:
+                if not isinstance(entry, dict):
+                    raise MotionRejected(
+                        "MOTION_BAD_REQUEST",
+                        f"profile.points[{index}] joints must be objects",
+                    )
+                joint = str(entry.get("joint") or "").strip()
+                targets.append(
+                    self._validate_endpoint(joint, entry, measured, now)
+                )
+            total += segment
+            if total > config.max_total_duration_s + 1e-9:
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    f"profile total {total:.3f} s exceeds "
+                    f"{config.max_total_duration_s:.3f} s",
+                )
+            current = {target.joint: target.target_pulse for target in targets}
+            velocity: dict[str, float] = {}
+            for target in targets:
+                limit = self.config.joints[target.joint]
+                baseline = (
+                    previous[target.joint]
+                    if previous is not None
+                    else measured_snapshot.get(target.joint, {}).get(
+                        "raw_position"
+                    )
+                )
+                if baseline is None:
+                    raise MotionRejected(
+                        "MOTION_STALE_FEEDBACK",
+                        f"{target.joint}: no measured servo position",
+                        http_status=409,
+                    )
+                step = abs(target.target_pulse - int(baseline))
+                velocity[target.joint] = (
+                    step * limit.radians_per_tick / segment
+                )
+                # The first segment starts from the command cache; a fresh
+                # bus actual can differ by a few pulses, so give that segment
+                # the same pulse tolerance as the start check.
+                velocity_cap = config.max_velocity_rad_s
+                velocity_cap += (
+                    config.start_tolerance_pulses
+                    * limit.radians_per_tick
+                    / segment
+                    if previous is None
+                    else 0.15
+                )
+                if velocity[target.joint] > velocity_cap:
+                    raise MotionRejected(
+                        "MOTION_PROFILE_VELOCITY",
+                        f"{target.joint}: segment {index} is "
+                        f"{velocity[target.joint]:.3f} rad/s (cap "
+                        f"{velocity_cap:.3f})",
+                        http_status=409,
+                    )
+                if previous is None and step > (
+                    config.max_velocity_rad_s * segment / limit.radians_per_tick
+                    + config.start_tolerance_pulses
+                ):
+                    raise MotionRejected(
+                        "MOTION_PROFILE_START",
+                        f"{target.joint}: the first segment starts {step} pulses "
+                        "from the measured cache; the profile must start at the "
+                        "current pose",
+                        http_status=409,
+                    )
+                if previous_velocity is not None and index >= 2:
+                    accel = abs(
+                        velocity[target.joint] - previous_velocity[target.joint]
+                    ) / ((segment + previous_duration) / 2.0)
+                    if accel > config.max_accel_rad_s2 * 1.25 + 0.5:
+                        raise MotionRejected(
+                            "MOTION_PROFILE_ACCEL",
+                            f"{target.joint}: segment {index} changes velocity at "
+                            f"{accel:.1f} rad/s^2 (cap "
+                            f"{config.max_accel_rad_s2:.1f})",
+                            http_status=409,
+                        )
+            previous = current
+            previous_velocity = velocity
+            previous_duration = segment
+            points.append(ProfilePoint(duration_s=segment, targets=targets))
+
+        endpoint_map = {target.joint: target.target_pulse for target in endpoint}
+        if previous != endpoint_map:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                "the profile's last point must equal the requested endpoint",
+            )
+        return points, total
 
     # ------------------------------------------------------------------- state
     @_guarded
@@ -913,6 +1310,18 @@ class MotionGuard:
             "measured_truth": "commanded",
             "actual": self._actual,
             "actual_at": self._actual_at,
+            "profile": (
+                {
+                    "points": len(active.points),
+                    "max_velocity_rad_s": active.profile.max_velocity_rad_s,
+                    "max_accel_rad_s2": active.profile.max_accel_rad_s2,
+                }
+                if active is not None
+                and active.points is not None
+                and active.profile is not None
+                else None
+            ),
+            "fast": bool(active.fast) if active is not None else False,
             "verification": self._verification,
             "verification_reason": self._verification_reason,
             "verification_tolerance_pulses": (

@@ -1,0 +1,2901 @@
+{
+  "schema_version": 1,
+  "kind": "g8_task_run",
+  "generated_at": "2026-11-21T10:35:52.069530Z",
+  "execute": true,
+  "plan": {
+    "schema_version": 1,
+    "valid": true,
+    "errors": [],
+    "warnings": [
+      {
+        "label": "task",
+        "code": "START_ECHO",
+        "message": "the locate used the command cache (up to ~8 pulses from the actual); each move is bus-verified"
+      },
+      {
+        "label": "locate",
+        "code": "TOP_CLIPPED_RECOVERED",
+        "message": "the min-range sphere clipped the near top edge; the cube centre was rebuilt from the far edge with the measured 39.4 mm cube size (centroid bias 9.3 mm, clipped side a_min)"
+      }
+    ],
+    "simulated": false,
+    "point": [
+      0.228692,
+      -0.000141,
+      -0.038744
+    ],
+    "target": [
+      0.242392,
+      0.003759,
+      -0.029844
+    ],
+    "correction_mm": [
+      13.7,
+      3.9,
+      8.9
+    ],
+    "fit": {
+      "joints": [
+        0.01988429155971162,
+        -0.6618,
+        -1.80117,
+        -0.31878000081796953,
+        0.0
+      ],
+      "tcp": [
+        0.242392491,
+        0.003759478,
+        -0.036248525
+      ],
+      "target": [
+        0.2423924909234666,
+        0.003759478047730855,
+        -0.029843733102473284
+      ],
+      "residual_mm": [
+        7.653339073598886e-08,
+        -4.773085485881845e-08,
+        -6.404791897526713
+      ],
+      "xy_error_mm": 9.019752991685048e-08,
+      "reach_limited": false
+    },
+    "grasp_joints": {
+      "joint1": 0.019884,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.31878,
+      "joint5": 0.0
+    },
+    "approach_joints": {
+      "joint1": 0.01988429155971162,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": 0.0,
+      "joint5": 0.0
+    },
+    "pre_grasp_joints": {
+      "joint1": 0.01988429155971162,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.16878000081796954,
+      "joint5": 0.0
+    },
+    "view_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "lift_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "view_preset": "view_table",
+    "lift_preset": "view_table",
+    "start_joints": {
+      "joint1": 0.0,
+      "joint2": 0.255516,
+      "joint3": -1.189616,
+      "joint4": -1.59174,
+      "joint5": -0.016755
+    },
+    "start_gripper_rad": -2.220059,
+    "source": "commanded",
+    "locate": {
+      "cloud": {
+        "points_total": 217351,
+        "points_in_range": 217351,
+        "frame_id": "depth_camera_link",
+        "topic": "/depth_cam/depth_registered/points",
+        "sample_age_ms": 0,
+        "layout": "opencv_optical_xyz"
+      },
+      "floor": {
+        "normal_base": [
+          -0.037033652207428214,
+          0.010348715506806109,
+          0.9992604331657031
+        ],
+        "offset_base": 0.08731300555752211,
+        "rms_m": 0.0006706730447162159,
+        "inliers": 214972,
+        "z_at_0p24": -0.0784829724312065,
+        "angle_to_z_deg": 2.203703255457548
+      },
+      "segmentation": {
+        "voxel_m": 0.005,
+        "points_above_floor": 2372,
+        "clusters": 1,
+        "cluster_details": [
+          {
+            "label": 0,
+            "bounds": {
+              "points": 2372,
+              "min": [
+                0.22953262922399761,
+                -0.0206912265100377,
+                -0.040122284950799864
+              ],
+              "max": [
+                0.2483924909234666,
+                0.02041018260549941,
+                -0.03681777702163075
+              ],
+              "size": [
+                0.01885986169946899,
+                0.04110140911553711,
+                0.003304507929169115
+              ],
+              "centroid": [
+                0.23799806177898664,
+                0.00013047579425511994,
+                -0.03873187388808408
+              ]
+            },
+            "height_m": 0.04166519540957575,
+            "ok": true,
+            "why": []
+          }
+        ]
+      },
+      "selected": {
+        "points": 2372,
+        "bounds": {
+          "points": 2372,
+          "min": [
+            0.22953262922399761,
+            -0.0206912265100377,
+            -0.040122284950799864
+          ],
+          "max": [
+            0.2483924909234666,
+            0.02041018260549941,
+            -0.03681777702163075
+          ],
+          "size": [
+            0.01885986169946899,
+            0.04110140911553711,
+            0.003304507929169115
+          ],
+          "centroid": [
+            0.23799806177898664,
+            0.00013047579425511994,
+            -0.03873187388808408
+          ]
+        },
+        "top": {
+          "slab_points": 2372,
+          "slab_thickness_m": 0.005,
+          "centroid": [
+            0.23799806177898664,
+            0.00013047579425511994,
+            -0.03873187388808408
+          ],
+          "normal": [
+            -0.024056812188553732,
+            0.02922815315418331,
+            0.9992832355496213
+          ],
+          "tilt_deg": 2.1694607781187636,
+          "yaw_rad": 0.0,
+          "extent_m": [
+            0.01885986169946899,
+            0.04110140911553711
+          ],
+          "area_m2": 0.000775166891572324,
+          "z_max": -0.03681777702163075
+        },
+        "height_above_floor_m": 0.03975109854312242,
+        "grasp_point_base": [
+          0.2286924909234666,
+          -0.00014052195226914484,
+          -0.03874373310247328
+        ],
+        "top_recovered": {
+          "reason": "min_range_clip",
+          "clipped_side": "a_min",
+          "cube_size_m": 0.0394,
+          "visible_extent_m": 0.01885986169946899,
+          "intact_extent_m": 0.04110140911553711,
+          "edge_range_mean_m": 0.2511964604127267,
+          "edge_range_std_m": 0.000545748020098829,
+          "min_valid_range_m": 0.24996191930164982,
+          "centroid_bias_mm": 9.309523584302848,
+          "top_centroid": [
+            0.23799806177898664,
+            0.00013047579425511994,
+            -0.03873187388808408
+          ],
+          "sides": {
+            "a_min": {
+              "mean_m": 0.2512,
+              "std_m": 0.00055,
+              "alignment": 0.972,
+              "clipped": true
+            },
+            "a_max": {
+              "mean_m": 0.25354,
+              "std_m": 0.00055,
+              "alignment": 0.995,
+              "clipped": false
+            },
+            "b_min": {
+              "mean_m": 0.25291,
+              "std_m": 0.00076,
+              "alignment": 0.53,
+              "clipped": false
+            },
+            "b_max": {
+              "mean_m": 0.25225,
+              "std_m": 0.0006,
+              "alignment": 0.176,
+              "clipped": false
+            }
+          },
+          "centroid": [
+            0.2286924909234666,
+            -0.00014052195226914484,
+            -0.03874373310247328
+          ]
+        }
+      },
+      "success": true,
+      "previous": {
+        "joint1": {
+          "rad": 0.0,
+          "raw": 500
+        },
+        "joint2": {
+          "rad": 0.255516,
+          "raw": 561
+        },
+        "joint3": {
+          "rad": -1.189616,
+          "raw": 784
+        },
+        "joint4": {
+          "rad": -1.59174,
+          "raw": 120
+        },
+        "joint5": {
+          "rad": -0.016755,
+          "raw": 496
+        }
+      }
+    },
+    "hand_eye": {
+      "method": "TSAI",
+      "path": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/calibration/20261118/table_down/calibration_table_down_20261118.json",
+      "frame": "link4 -> camera optical (depth_camera_link layout)"
+    },
+    "fast": {
+      "enabled": true,
+      "vmax_rad_s": 4.0,
+      "amax_rad_s2": 20.0,
+      "dt_s": 0.05,
+      "descent_vmax_rad_s": 0.6,
+      "final_vmax_rad_s": 0.35,
+      "release_descent_vmax_rad_s": 1.4,
+      "release_final_vmax_rad_s": 0.8,
+      "gripper_open_duration_s": 0.8,
+      "gripper_preclose_duration_s": 0.35,
+      "gripper_grip_duration_s": 0.5,
+      "gripper_release_open_duration_s": 0.45,
+      "gripper_speed_raw_per_s": 900.0,
+      "gripper_min_duration_s": 0.25,
+      "gripper_settle_s": 0.6,
+      "verify_settle_s": 0.35,
+      "max_total_duration_s": 6.0,
+      "max_points": 400,
+      "mode": "s_curve"
+    },
+    "steps": [
+      {
+        "kind": "pose",
+        "label": "approach",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "approach",
+            "joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": 0.0,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.0,
+              "joint2": 0.255516,
+              "joint3": -1.189616,
+              "joint4": -1.59174,
+              "joint5": -0.016755
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.01988429155971162,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint4",
+                "target_rad": 0.0,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.7120943348136866
+              }
+            ],
+            "duration_s": 0.7120943348136866,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 15,
+              "total_s": 0.712094
+            },
+            "target_raw": {
+              "joint1": 505,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 500,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.280067,
+                0.004461,
+                -0.015111
+              ],
+              "table_clearance_m": 0.064808,
+              "samples": 21,
+              "start_tcp_m": [
+                0.20556,
+                0.000132,
+                0.127198
+              ],
+              "start_table_clearance_m": 0.206331,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.712094,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "grasp",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "descend",
+            "joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.16878,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": 0.0,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.01988429155971162,
+                "duration_s": 0.32842389116712944
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.32842389116712944
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.32842389116712944
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.16878000081796954,
+                "duration_s": 0.32842389116712944
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.32842389116712944
+              }
+            ],
+            "duration_s": 0.32842389116712944,
+            "profile": {
+              "vmax_rad_s": 0.6,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 7,
+              "total_s": 0.328424
+            },
+            "target_raw": {
+              "joint1": 505,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 460,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.260956,
+                0.004109,
+                -0.027804
+              ],
+              "table_clearance_m": 0.051965,
+              "samples": 21,
+              "start_tcp_m": [
+                0.280067,
+                0.004461,
+                -0.015111
+              ],
+              "start_table_clearance_m": 0.064808,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "pose",
+            "label": "grasp",
+            "joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.31878,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.16878,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.01988429155971162,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.31878000081796953,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.45606036429033925
+              }
+            ],
+            "duration_s": 0.45606036429033925,
+            "profile": {
+              "vmax_rad_s": 0.35,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 10,
+              "total_s": 0.45606
+            },
+            "target_raw": {
+              "joint1": 505,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 424,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.242392,
+                0.003759,
+                -0.036249
+              ],
+              "table_clearance_m": 0.043369,
+              "samples": 21,
+              "start_tcp_m": [
+                0.260956,
+                0.004109,
+                -0.027804
+              ],
+              "start_table_clearance_m": 0.051965,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.784484,
+        "status": "pending"
+      },
+      {
+        "kind": "grip",
+        "label": "close",
+        "commands": [
+          {
+            "kind": "grip",
+            "label": "close_pre",
+            "target_rad": -1.6,
+            "from_rad": -2.220059,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -1.6,
+                "duration_s": 0.35
+              }
+            ],
+            "duration_s": 0.35,
+            "target_raw": 318,
+            "fast": true
+          },
+          {
+            "kind": "grip",
+            "label": "close_grip",
+            "target_rad": -0.63,
+            "from_rad": -1.6,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -0.63,
+                "duration_s": 0.5
+              }
+            ],
+            "duration_s": 0.5,
+            "target_raw": 550,
+            "fast": true
+          }
+        ],
+        "duration_s": 0.85,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "lift",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "lift",
+            "joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "from_joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.31878,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.0,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint2",
+                "target_rad": 0.2574,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.18773,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -1.5917,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint5",
+                "target_rad": -0.01676,
+                "duration_s": 0.6323892651544869
+              }
+            ],
+            "duration_s": 0.6323892651544869,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 13,
+              "total_s": 0.632389
+            },
+            "target_raw": {
+              "joint1": 500,
+              "joint2": 561,
+              "joint3": 784,
+              "joint4": 120,
+              "joint5": 496
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "table_clearance_m": 0.051411,
+              "samples": 21,
+              "start_tcp_m": [
+                0.242392,
+                0.003759,
+                -0.036249
+              ],
+              "start_table_clearance_m": 0.043369,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.632389,
+        "status": "pending"
+      },
+      {
+        "kind": "verify",
+        "label": "grip_verify",
+        "commands": [],
+        "duration_s": 0,
+        "status": "pending",
+        "detail": "fetch a cloud at the view and check the cube box"
+      },
+      {
+        "kind": "mixed",
+        "label": "release",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "release_descend",
+            "joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.16878,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.01988429155971162,
+                "duration_s": 1.1263271708628073
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 1.1263271708628073
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 1.1263271708628073
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.16878000081796954,
+                "duration_s": 1.1263271708628073
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 1.1263271708628073
+              }
+            ],
+            "duration_s": 1.1263271708628073,
+            "profile": {
+              "vmax_rad_s": 1.4,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 23,
+              "total_s": 1.126327
+            },
+            "target_raw": {
+              "joint1": 505,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 460,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.260956,
+                0.004109,
+                -0.027804
+              ],
+              "table_clearance_m": 0.051965,
+              "samples": 21,
+              "start_tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "start_table_clearance_m": 0.206871,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "pose",
+            "label": "release_final",
+            "joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.31878,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.16878,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.01988429155971162,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.31878000081796953,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.25033185307179584
+              }
+            ],
+            "duration_s": 0.25033185307179584,
+            "profile": {
+              "vmax_rad_s": 0.8,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 6,
+              "total_s": 0.250332
+            },
+            "target_raw": {
+              "joint1": 505,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 424,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.242392,
+                0.003759,
+                -0.036249
+              ],
+              "table_clearance_m": 0.043369,
+              "samples": 21,
+              "start_tcp_m": [
+                0.260956,
+                0.004109,
+                -0.027804
+              ],
+              "start_table_clearance_m": 0.051965,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "grip",
+            "label": "release_open",
+            "target_rad": -2.220059,
+            "from_rad": -0.63,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -2.220058808536787,
+                "duration_s": 0.45
+              }
+            ],
+            "duration_s": 0.45,
+            "target_raw": 170,
+            "fast": true
+          }
+        ],
+        "duration_s": 1.826659,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "return_view",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "return_view",
+            "joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "from_joints": {
+              "joint1": 0.019884,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.31878,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.0,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint2",
+                "target_rad": 0.2574,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.18773,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -1.5917,
+                "duration_s": 0.6323892651544869
+              },
+              {
+                "joint": "joint5",
+                "target_rad": -0.01676,
+                "duration_s": 0.6323892651544869
+              }
+            ],
+            "duration_s": 0.6323892651544869,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 13,
+              "total_s": 0.632389
+            },
+            "target_raw": {
+              "joint1": 500,
+              "joint2": 561,
+              "joint3": 784,
+              "joint4": 120,
+              "joint5": 496
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "table_clearance_m": 0.051411,
+              "samples": 21,
+              "start_tcp_m": [
+                0.242392,
+                0.003759,
+                -0.036249
+              ],
+              "start_table_clearance_m": 0.043369,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.632389,
+        "status": "pending"
+      }
+    ],
+    "plan_id": "task_fec0cada0c044e60",
+    "generated_at": "2026-11-21T10:35:55.449531Z",
+    "cloud": {
+      "available": true,
+      "frame_id": "depth_camera_link",
+      "width": 217351,
+      "height": 1,
+      "point_step": 16,
+      "count": 217351,
+      "is_bigendian": false,
+      "stamp_ns": 1795257356038000000,
+      "fields": {
+        "x": {
+          "offset": 0,
+          "datatype": 7
+        },
+        "y": {
+          "offset": 4,
+          "datatype": 7
+        },
+        "z": {
+          "offset": 8,
+          "datatype": 7
+        }
+      },
+      "layout": "opencv_optical_xyz",
+      "captured_at": 1795257356.1159763,
+      "topic": "/depth_cam/depth_registered/points",
+      "wall_time": "2026-11-21T10:35:56.421993Z",
+      "sample_age_ms": 0
+    }
+  },
+  "steps": [
+    {
+      "index": 0,
+      "label": "approach",
+      "kind": "pose",
+      "commands": [
+        {
+          "label": "approach",
+          "profile": {
+            "vmax_rad_s": 4.0,
+            "amax_rad_s2": 20.0,
+            "dt_s": 0.05,
+            "segments": 15,
+            "total_s": 0.712094
+          },
+          "preview": {
+            "command_id": "cmd_4ddbdd20cd924e98",
+            "session_id": "operator-g8-fast",
+            "valid": true,
+            "targets": [
+              {
+                "joint": "joint1",
+                "servo_id": 6,
+                "from_rad": 0.0,
+                "target_rad": 0.01988429155971162,
+                "delta_rad": 0.01988429155971162,
+                "duration_s": 0.7120943348136863,
+                "target_raw": 505,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 1.8011797880581484,
+                "limit_verified": true,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint2",
+                "servo_id": 5,
+                "from_rad": 0.2555162024919698,
+                "target_rad": -0.6618,
+                "delta_rad": -0.9173162024919699,
+                "duration_s": 0.7120943348136863,
+                "target_raw": 342,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_max_rad": 1.1519173063162575,
+                "limit_verified": true,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "completion": "position"
+              },
+              {
+                "joint": "joint3",
+                "servo_id": 4,
+                "from_rad": -1.189616418159335,
+                "target_rad": -1.80117,
+                "delta_rad": -0.611553581840665,
+                "duration_s": 0.7120943348136863,
+                "target_raw": 930,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 0.0,
+                "limit_verified": true,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint4",
+                "servo_id": 3,
+                "from_rad": -1.5917402778188283,
+                "target_rad": 0.0,
+                "delta_rad": 1.5917402778188283,
+                "duration_s": 0.7120943348136863,
+                "target_raw": 500,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5917402778188288,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint5",
+                "servo_id": 2,
+                "from_rad": -0.016755160819145562,
+                "target_rad": 0.0,
+                "delta_rad": 0.016755160819145562,
+                "duration_s": 0.7120943348136863,
+                "target_raw": 500,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5498523757709648,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              }
+            ],
+            "errors": [],
+            "warnings": [
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint2: target is within 0.02 rad of a limit",
+                "joint": "joint2",
+                "details": {}
+              },
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint3: target is within 0.02 rad of a limit",
+                "joint": "joint3",
+                "details": {}
+              },
+              {
+                "code": "START_ECHO",
+                "message": "the start pose is the vendor command cache (the actual registers can differ by ~8 pulses / 0.03 rad); the move is bus-verified after completion",
+                "joint": null,
+                "details": {}
+              }
+            ],
+            "preview_token": "CrGWpi3VKjlsKkBFz362OZ78uvcjc_dX",
+            "expires_at": "2026-11-21T10:36:25.464369Z",
+            "mapping_version": "measured-2026-11-19",
+            "evaluated_at": "2026-11-21T10:35:55.464892Z",
+            "pose": {
+              "ok": true,
+              "tcp_m": [
+                0.280067,
+                0.004461,
+                -0.015111
+              ],
+              "table_clearance_m": 0.064808,
+              "samples": 21,
+              "start_tcp_m": [
+                0.20556,
+                0.000132,
+                0.127198
+              ],
+              "start_table_clearance_m": 0.206331,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          "execute": {
+            "command_id": "cmd_4ddbdd20cd924e98",
+            "session_id": "operator-g8-fast",
+            "status": "Dispatched",
+            "targets": [
+              {
+                "completion": "position",
+                "delta_rad": 0.01988429155971162,
+                "duration_s": 0.7120943348136863,
+                "from_rad": 0.0,
+                "joint": "joint1",
+                "limit_max_rad": 1.8011797880581484,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 6,
+                "target_rad": 0.01988429155971162,
+                "target_raw": 505
+              },
+              {
+                "completion": "position",
+                "delta_rad": -0.9173162024919699,
+                "duration_s": 0.7120943348136863,
+                "from_rad": 0.2555162024919698,
+                "joint": "joint2",
+                "limit_max_rad": 1.1519173063162575,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "limit_verified": true,
+                "servo_id": 5,
+                "target_rad": -0.6618,
+                "target_raw": 342
+              },
+              {
+                "completion": "position",
+                "delta_rad": -0.611553581840665,
+                "duration_s": 0.7120943348136863,
+                "from_rad": -1.189616418159335,
+                "joint": "joint3",
+                "limit_max_rad": 0.0,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 4,
+                "target_rad": -1.80117,
+                "target_raw": 930
+              },
+              {
+                "completion": "position",
+                "delta_rad": 1.5917402778188283,
+                "duration_s": 0.7120943348136863,
+                "from_rad": -1.5917402778188283,
+                "joint": "joint4",
+                "limit_max_rad": 1.5917402778188288,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 3,
+                "target_rad": 0.0,
+                "target_raw": 500
+              },
+              {
+                "completion": "position",
+                "delta_rad": 0.016755160819145562,
+                "duration_s": 0.7120943348136863,
+                "from_rad": -0.016755160819145562,
+                "joint": "joint5",
+                "limit_max_rad": 1.5498523757709648,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 2,
+                "target_rad": 0.0,
+                "target_raw": 500
+              }
+            ],
+            "created_at": "2026-11-21T10:35:55.464380Z",
+            "updated_at": "2026-11-21T10:35:55.487055Z",
+            "error_code": null,
+            "details": {
+              "pose": {
+                "ok": true,
+                "tcp_m": [
+                  0.280067,
+                  0.004461,
+                  -0.015111
+                ],
+                "table_clearance_m": 0.064808,
+                "samples": 21,
+                "start_tcp_m": [
+                  0.20556,
+                  0.000132,
+                  0.127198
+                ],
+                "start_table_clearance_m": 0.206331,
+                "start_compliant": true,
+                "violations": []
+              },
+              "warnings": [
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint2",
+                  "message": "joint2: target is within 0.02 rad of a limit"
+                },
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint3",
+                  "message": "joint3: target is within 0.02 rad of a limit"
+                },
+                {
+                  "code": "START_ECHO",
+                  "details": {},
+                  "joint": null,
+                  "message": "the start pose is the vendor command cache (the actual registers can differ by ~8 pulses / 0.03 rad); the move is bus-verified after completion"
+                }
+              ],
+              "safety": {
+                "ready": true,
+                "warnings": []
+              },
+              "adapter": {
+                "gateway": {
+                  "status": "dispatched",
+                  "command_id": "cmd_4ddbdd20cd924e98",
+                  "mode": "pose",
+                  "duration_s": 0.7120943348136863,
+                  "position_unit": "pulse",
+                  "topic": "servo_controller",
+                  "verification": "pending",
+                  "profile": {
+                    "points": 15,
+                    "max_velocity_rad_s": 4.0,
+                    "max_accel_rad_s2": 20.0
+                  },
+                  "fast": true,
+                  "joints": [
+                    {
+                      "joint": "joint1",
+                      "servo_id": 6,
+                      "target_pulse": 505,
+                      "target_rad": 0.01988429155971162,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint2",
+                      "servo_id": 5,
+                      "target_pulse": 342,
+                      "target_rad": -0.6618,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint3",
+                      "servo_id": 4,
+                      "target_pulse": 930,
+                      "target_rad": -1.80117,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint4",
+                      "servo_id": 3,
+                      "target_pulse": 500,
+                      "target_rad": 0.0,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint5",
+                      "servo_id": 2,
+                      "target_pulse": 500,
+                      "target_rad": 0.0,
+                      "completion": "position"
+                    }
+                  ],
+                  "measured": {
+                    "joint1": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    },
+                    "joint2": {
+                      "position_rad": 0.2555162024919699,
+                      "raw_position": 561,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    },
+                    "joint3": {
+                      "position_rad": -1.1896164181593352,
+                      "raw_position": 784,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    },
+                    "joint4": {
+                      "position_rad": -1.5917402778188288,
+                      "raw_position": 120,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    },
+                    "joint5": {
+                      "position_rad": -0.016755160819145565,
+                      "raw_position": 496,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    },
+                    "r_joint": {
+                      "position_rad": -2.2200588085367876,
+                      "raw_position": 170,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 7,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:56.787541Z"
+                    }
+                  },
+                  "published_at": "2026-11-21T10:35:56.798141Z"
+                }
+              }
+            },
+            "stage_history": [
+              {
+                "at": "2026-11-21T10:35:55.464418Z",
+                "stage": "Requested"
+              },
+              {
+                "at": "2026-11-21T10:35:55.464422Z",
+                "stage": "Validated"
+              },
+              {
+                "stage": "Dispatched",
+                "at": "2026-11-21T10:35:55.487055Z",
+                "error_code": null,
+                "details": {
+                  "safety": {
+                    "ready": true,
+                    "warnings": []
+                  },
+                  "adapter": {
+                    "gateway": {
+                      "status": "dispatched",
+                      "command_id": "cmd_4ddbdd20cd924e98",
+                      "mode": "pose",
+                      "duration_s": 0.7120943348136863,
+                      "position_unit": "pulse",
+                      "topic": "servo_controller",
+                      "verification": "pending",
+                      "profile": {
+                        "points": 15,
+                        "max_velocity_rad_s": 4.0,
+                        "max_accel_rad_s2": 20.0
+                      },
+                      "fast": true,
+                      "joints": [
+                        {
+                          "joint": "joint1",
+                          "servo_id": 6,
+                          "target_pulse": 505,
+                          "target_rad": 0.01988429155971162,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint2",
+                          "servo_id": 5,
+                          "target_pulse": 342,
+                          "target_rad": -0.6618,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint3",
+                          "servo_id": 4,
+                          "target_pulse": 930,
+                          "target_rad": -1.80117,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint4",
+                          "servo_id": 3,
+                          "target_pulse": 500,
+                          "target_rad": 0.0,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint5",
+                          "servo_id": 2,
+                          "target_pulse": 500,
+                          "target_rad": 0.0,
+                          "completion": "position"
+                        }
+                      ],
+                      "measured": {
+                        "joint1": {
+                          "position_rad": 0.0,
+                          "raw_position": 500,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        },
+                        "joint2": {
+                          "position_rad": 0.2555162024919699,
+                          "raw_position": 561,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        },
+                        "joint3": {
+                          "position_rad": -1.1896164181593352,
+                          "raw_position": 784,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        },
+                        "joint4": {
+                          "position_rad": -1.5917402778188288,
+                          "raw_position": 120,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        },
+                        "joint5": {
+                          "position_rad": -0.016755160819145565,
+                          "raw_position": 496,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        },
+                        "r_joint": {
+                          "position_rad": -2.2200588085367876,
+                          "raw_position": 170,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 7,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:56.787541Z"
+                        }
+                      },
+                      "published_at": "2026-11-21T10:35:56.798141Z"
+                    }
+                  },
+                  "pose": {
+                    "ok": true,
+                    "tcp_m": [
+                      0.280067,
+                      0.004461,
+                      -0.015111
+                    ],
+                    "table_clearance_m": 0.064808,
+                    "samples": 21,
+                    "start_tcp_m": [
+                      0.20556,
+                      0.000132,
+                      0.127198
+                    ],
+                    "start_table_clearance_m": 0.206331,
+                    "start_compliant": true,
+                    "violations": []
+                  }
+                }
+              }
+            ]
+          },
+          "terminal": {
+            "seq": 727,
+            "event_id": "evt_7dc9ea8b924c409f8a4b00fa4d3c1994",
+            "command_id": "cmd_4ddbdd20cd924e98",
+            "stage": "Completed",
+            "wall_time": "2026-11-21T10:35:56.703960Z",
+            "monotonic_ms": 26735928.602982,
+            "source": "hardware_adapter",
+            "result": "gateway confirmed actual bus registers within +/-12 pulses",
+            "error_code": null,
+            "schema_version": 1,
+            "details": {
+              "actual": {
+                "joint1": {
+                  "raw_position": 501,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 339,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 929,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 495,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                }
+              },
+              "commanded_cache": {
+                "joint1": {
+                  "raw_position": 505,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 342,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 930,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                },
+                "r_joint": {
+                  "raw_position": 170,
+                  "received_at": "2026-11-21T10:35:58.007517Z",
+                  "sample_age_ms": 0
+                }
+              },
+              "completion": "position",
+              "deviations_pulses": {
+                "joint1": -4,
+                "joint2": -3,
+                "joint3": -1,
+                "joint4": -5,
+                "joint5": 0
+              },
+              "duration_s": 0.7120943348136863,
+              "tolerance_pulses": 3,
+              "verification": "bus",
+              "verification_tolerance_pulses": 12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "label": "grasp",
+      "kind": "pose",
+      "commands": [
+        {
+          "label": "descend",
+          "profile": {
+            "vmax_rad_s": 0.6,
+            "amax_rad_s2": 20.0,
+            "dt_s": 0.05,
+            "segments": 7,
+            "total_s": 0.328424
+          },
+          "preview": {
+            "command_id": "cmd_20f796ef86614d81",
+            "session_id": "operator-g8-fast",
+            "valid": true,
+            "targets": [
+              {
+                "joint": "joint1",
+                "servo_id": 6,
+                "from_rad": 0.020943951023931952,
+                "target_rad": 0.01988429155971162,
+                "delta_rad": -0.0010596594642203333,
+                "duration_s": 0.32842389116712944,
+                "target_raw": 505,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 1.8011797880581484,
+                "limit_verified": true,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint2",
+                "servo_id": 5,
+                "from_rad": -0.6618288523562497,
+                "target_rad": -0.6618,
+                "delta_rad": 2.8852356249609024e-05,
+                "duration_s": 0.32842389116712944,
+                "target_raw": 342,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_max_rad": 1.1519173063162575,
+                "limit_verified": true,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "completion": "position"
+              },
+              {
+                "joint": "joint3",
+                "servo_id": 4,
+                "from_rad": -1.801179788058148,
+                "target_rad": -1.80117,
+                "delta_rad": 9.788058147996992e-06,
+                "duration_s": 0.32842389116712944,
+                "target_raw": 930,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 0.0,
+                "limit_verified": true,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint4",
+                "servo_id": 3,
+                "from_rad": 0.0,
+                "target_rad": -0.16878000081796954,
+                "delta_rad": -0.16878000081796954,
+                "duration_s": 0.32842389116712944,
+                "target_raw": 460,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5917402778188288,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint5",
+                "servo_id": 2,
+                "from_rad": 0.0,
+                "target_rad": 0.0,
+                "delta_rad": 0.0,
+                "duration_s": 0.32842389116712944,
+                "target_raw": 500,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5498523757709648,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              }
+            ],
+            "errors": [],
+            "warnings": [
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint2: target is within 0.02 rad of a limit",
+                "joint": "joint2",
+                "details": {}
+              },
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint3: target is within 0.02 rad of a limit",
+                "joint": "joint3",
+                "details": {}
+              }
+            ],
+            "preview_token": "3TdHEBbXqzToCR6k3-twTI0J0frKS3Fy",
+            "expires_at": "2026-11-21T10:36:26.721720Z",
+            "mapping_version": "measured-2026-11-19",
+            "evaluated_at": "2026-11-21T10:35:56.722661Z",
+            "pose": {
+              "ok": true,
+              "tcp_m": [
+                0.260956,
+                0.004109,
+                -0.027804
+              ],
+              "table_clearance_m": 0.051965,
+              "samples": 21,
+              "start_tcp_m": [
+                0.280058,
+                0.004687,
+                -0.015117
+              ],
+              "start_table_clearance_m": 0.064788,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          "execute": {
+            "command_id": "cmd_20f796ef86614d81",
+            "session_id": "operator-g8-fast",
+            "status": "Dispatched",
+            "targets": [
+              {
+                "completion": "position",
+                "delta_rad": -0.0010596594642203333,
+                "duration_s": 0.32842389116712944,
+                "from_rad": 0.020943951023931952,
+                "joint": "joint1",
+                "limit_max_rad": 1.8011797880581484,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 6,
+                "target_rad": 0.01988429155971162,
+                "target_raw": 505
+              },
+              {
+                "completion": "position",
+                "delta_rad": 2.8852356249609024e-05,
+                "duration_s": 0.32842389116712944,
+                "from_rad": -0.6618288523562497,
+                "joint": "joint2",
+                "limit_max_rad": 1.1519173063162575,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "limit_verified": true,
+                "servo_id": 5,
+                "target_rad": -0.6618,
+                "target_raw": 342
+              },
+              {
+                "completion": "position",
+                "delta_rad": 9.788058147996992e-06,
+                "duration_s": 0.32842389116712944,
+                "from_rad": -1.801179788058148,
+                "joint": "joint3",
+                "limit_max_rad": 0.0,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 4,
+                "target_rad": -1.80117,
+                "target_raw": 930
+              },
+              {
+                "completion": "position",
+                "delta_rad": -0.16878000081796954,
+                "duration_s": 0.32842389116712944,
+                "from_rad": 0.0,
+                "joint": "joint4",
+                "limit_max_rad": 1.5917402778188288,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 3,
+                "target_rad": -0.16878000081796954,
+                "target_raw": 460
+              },
+              {
+                "completion": "position",
+                "delta_rad": 0.0,
+                "duration_s": 0.32842389116712944,
+                "from_rad": 0.0,
+                "joint": "joint5",
+                "limit_max_rad": 1.5498523757709648,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 2,
+                "target_rad": 0.0,
+                "target_raw": 500
+              }
+            ],
+            "created_at": "2026-11-21T10:35:56.721732Z",
+            "updated_at": "2026-11-21T10:35:56.738112Z",
+            "error_code": null,
+            "details": {
+              "pose": {
+                "ok": true,
+                "tcp_m": [
+                  0.260956,
+                  0.004109,
+                  -0.027804
+                ],
+                "table_clearance_m": 0.051965,
+                "samples": 21,
+                "start_tcp_m": [
+                  0.280058,
+                  0.004687,
+                  -0.015117
+                ],
+                "start_table_clearance_m": 0.064788,
+                "start_compliant": true,
+                "violations": []
+              },
+              "warnings": [
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint2",
+                  "message": "joint2: target is within 0.02 rad of a limit"
+                },
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint3",
+                  "message": "joint3: target is within 0.02 rad of a limit"
+                }
+              ],
+              "safety": {
+                "ready": true,
+                "warnings": []
+              },
+              "adapter": {
+                "gateway": {
+                  "status": "dispatched",
+                  "command_id": "cmd_20f796ef86614d81",
+                  "mode": "pose",
+                  "duration_s": 0.32842389116712944,
+                  "position_unit": "pulse",
+                  "topic": "servo_controller",
+                  "verification": "pending",
+                  "profile": {
+                    "points": 7,
+                    "max_velocity_rad_s": 4.0,
+                    "max_accel_rad_s2": 20.0
+                  },
+                  "fast": true,
+                  "joints": [
+                    {
+                      "joint": "joint1",
+                      "servo_id": 6,
+                      "target_pulse": 505,
+                      "target_rad": 0.01988429155971162,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint2",
+                      "servo_id": 5,
+                      "target_pulse": 342,
+                      "target_rad": -0.6618,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint3",
+                      "servo_id": 4,
+                      "target_pulse": 930,
+                      "target_rad": -1.80117,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint4",
+                      "servo_id": 3,
+                      "target_pulse": 460,
+                      "target_rad": -0.16878000081796954,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint5",
+                      "servo_id": 2,
+                      "target_pulse": 500,
+                      "target_rad": 0.0,
+                      "completion": "position"
+                    }
+                  ],
+                  "measured": {
+                    "joint1": {
+                      "position_rad": 0.020943951023931956,
+                      "raw_position": 505,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    },
+                    "joint2": {
+                      "position_rad": -0.6618288523562499,
+                      "raw_position": 342,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    },
+                    "joint3": {
+                      "position_rad": -1.8011797880581484,
+                      "raw_position": 930,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    },
+                    "joint4": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    },
+                    "joint5": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    },
+                    "r_joint": {
+                      "position_rad": -2.2200588085367876,
+                      "raw_position": 170,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 1,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.047721Z"
+                    }
+                  },
+                  "published_at": "2026-11-21T10:35:58.049828Z"
+                }
+              }
+            },
+            "stage_history": [
+              {
+                "at": "2026-11-21T10:35:56.721764Z",
+                "stage": "Requested"
+              },
+              {
+                "at": "2026-11-21T10:35:56.721769Z",
+                "stage": "Validated"
+              },
+              {
+                "stage": "Dispatched",
+                "at": "2026-11-21T10:35:56.738112Z",
+                "error_code": null,
+                "details": {
+                  "safety": {
+                    "ready": true,
+                    "warnings": []
+                  },
+                  "adapter": {
+                    "gateway": {
+                      "status": "dispatched",
+                      "command_id": "cmd_20f796ef86614d81",
+                      "mode": "pose",
+                      "duration_s": 0.32842389116712944,
+                      "position_unit": "pulse",
+                      "topic": "servo_controller",
+                      "verification": "pending",
+                      "profile": {
+                        "points": 7,
+                        "max_velocity_rad_s": 4.0,
+                        "max_accel_rad_s2": 20.0
+                      },
+                      "fast": true,
+                      "joints": [
+                        {
+                          "joint": "joint1",
+                          "servo_id": 6,
+                          "target_pulse": 505,
+                          "target_rad": 0.01988429155971162,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint2",
+                          "servo_id": 5,
+                          "target_pulse": 342,
+                          "target_rad": -0.6618,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint3",
+                          "servo_id": 4,
+                          "target_pulse": 930,
+                          "target_rad": -1.80117,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint4",
+                          "servo_id": 3,
+                          "target_pulse": 460,
+                          "target_rad": -0.16878000081796954,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint5",
+                          "servo_id": 2,
+                          "target_pulse": 500,
+                          "target_rad": 0.0,
+                          "completion": "position"
+                        }
+                      ],
+                      "measured": {
+                        "joint1": {
+                          "position_rad": 0.020943951023931956,
+                          "raw_position": 505,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        },
+                        "joint2": {
+                          "position_rad": -0.6618288523562499,
+                          "raw_position": 342,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        },
+                        "joint3": {
+                          "position_rad": -1.8011797880581484,
+                          "raw_position": 930,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        },
+                        "joint4": {
+                          "position_rad": 0.0,
+                          "raw_position": 500,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        },
+                        "joint5": {
+                          "position_rad": 0.0,
+                          "raw_position": 500,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        },
+                        "r_joint": {
+                          "position_rad": -2.2200588085367876,
+                          "raw_position": 170,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 1,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.047721Z"
+                        }
+                      },
+                      "published_at": "2026-11-21T10:35:58.049828Z"
+                    }
+                  },
+                  "pose": {
+                    "ok": true,
+                    "tcp_m": [
+                      0.260956,
+                      0.004109,
+                      -0.027804
+                    ],
+                    "table_clearance_m": 0.051965,
+                    "samples": 21,
+                    "start_tcp_m": [
+                      0.280058,
+                      0.004687,
+                      -0.015117
+                    ],
+                    "start_table_clearance_m": 0.064788,
+                    "start_compliant": true,
+                    "violations": []
+                  }
+                }
+              }
+            ]
+          },
+          "terminal": {
+            "seq": 733,
+            "event_id": "evt_cc835a805bfe478d994f7a746d0ae574",
+            "command_id": "cmd_20f796ef86614d81",
+            "stage": "Completed",
+            "wall_time": "2026-11-21T10:35:57.535516Z",
+            "monotonic_ms": 26736764.151114,
+            "source": "hardware_adapter",
+            "result": "gateway confirmed actual bus registers within +/-12 pulses",
+            "error_code": null,
+            "schema_version": 1,
+            "details": {
+              "actual": {
+                "joint1": {
+                  "raw_position": 502,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 339,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 930,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 463,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                }
+              },
+              "commanded_cache": {
+                "joint1": {
+                  "raw_position": 505,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 342,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 930,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 460,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                },
+                "r_joint": {
+                  "raw_position": 170,
+                  "received_at": "2026-11-21T10:35:58.844174Z",
+                  "sample_age_ms": 0
+                }
+              },
+              "completion": "position",
+              "deviations_pulses": {
+                "joint1": -3,
+                "joint2": -3,
+                "joint3": 0,
+                "joint4": 3,
+                "joint5": 0
+              },
+              "duration_s": 0.32842389116712944,
+              "tolerance_pulses": 3,
+              "verification": "bus",
+              "verification_tolerance_pulses": 12
+            }
+          }
+        },
+        {
+          "label": "grasp",
+          "profile": {
+            "vmax_rad_s": 0.35,
+            "amax_rad_s2": 20.0,
+            "dt_s": 0.05,
+            "segments": 10,
+            "total_s": 0.45606
+          },
+          "preview": {
+            "command_id": "cmd_b3dfe1e7bd97479b",
+            "session_id": "operator-g8-fast",
+            "valid": true,
+            "targets": [
+              {
+                "joint": "joint1",
+                "servo_id": 6,
+                "from_rad": 0.020943951023931952,
+                "target_rad": 0.01988429155971162,
+                "delta_rad": -0.0010596594642203333,
+                "duration_s": 0.45957005750895047,
+                "target_raw": 505,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 1.8011797880581484,
+                "limit_verified": true,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint2",
+                "servo_id": 5,
+                "from_rad": -0.6618288523562497,
+                "target_rad": -0.6618,
+                "delta_rad": 2.8852356249609024e-05,
+                "duration_s": 0.45957005750895047,
+                "target_raw": 342,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_max_rad": 1.1519173063162575,
+                "limit_verified": true,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "completion": "position"
+              },
+              {
+                "joint": "joint3",
+                "servo_id": 4,
+                "from_rad": -1.801179788058148,
+                "target_rad": -1.80117,
+                "delta_rad": 9.788058147996992e-06,
+                "duration_s": 0.45957005750895047,
+                "target_raw": 930,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_max_rad": 0.0,
+                "limit_verified": true,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint4",
+                "servo_id": 3,
+                "from_rad": -0.16755160819145562,
+                "target_rad": -0.31878000081796953,
+                "delta_rad": -0.1512283926265139,
+                "duration_s": 0.45957005750895047,
+                "target_raw": 424,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5917402778188288,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              },
+              {
+                "joint": "joint5",
+                "servo_id": 2,
+                "from_rad": 0.0,
+                "target_rad": 0.0,
+                "delta_rad": 0.0,
+                "duration_s": 0.45957005750895047,
+                "target_raw": 500,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_max_rad": 1.5498523757709648,
+                "limit_verified": true,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "completion": "position"
+              }
+            ],
+            "errors": [],
+            "warnings": [
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint2: target is within 0.02 rad of a limit",
+                "joint": "joint2",
+                "details": {}
+              },
+              {
+                "code": "NEAR_LIMIT",
+                "message": "joint3: target is within 0.02 rad of a limit",
+                "joint": "joint3",
+                "details": {}
+              }
+            ],
+            "preview_token": "Jeb78ehSbuWoEUTA1KEQRoCeyH4wrtgT",
+            "expires_at": "2026-11-21T10:36:27.659257Z",
+            "mapping_version": "measured-2026-11-19",
+            "evaluated_at": "2026-11-21T10:35:57.659707Z",
+            "pose": {
+              "ok": true,
+              "tcp_m": [
+                0.242392,
+                0.003759,
+                -0.036249
+              ],
+              "table_clearance_m": 0.043369,
+              "samples": 21,
+              "start_tcp_m": [
+                0.261094,
+                0.004317,
+                -0.027729
+              ],
+              "start_table_clearance_m": 0.052029,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          "execute": {
+            "command_id": "cmd_b3dfe1e7bd97479b",
+            "session_id": "operator-g8-fast",
+            "status": "Dispatched",
+            "targets": [
+              {
+                "completion": "position",
+                "delta_rad": -0.0010596594642203333,
+                "duration_s": 0.45957005750895047,
+                "from_rad": 0.020943951023931952,
+                "joint": "joint1",
+                "limit_max_rad": 1.8011797880581484,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "measured_stops_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 6,
+                "target_rad": 0.01988429155971162,
+                "target_raw": 505
+              },
+              {
+                "completion": "position",
+                "delta_rad": 2.8852356249609024e-05,
+                "duration_s": 0.45957005750895047,
+                "from_rad": -0.6618288523562497,
+                "joint": "joint2",
+                "limit_max_rad": 1.1519173063162575,
+                "limit_min_rad": -0.6618288523562499,
+                "limit_source": "measured_low_2026_11_18+measured_high_2026_11_19",
+                "limit_verified": true,
+                "servo_id": 5,
+                "target_rad": -0.6618,
+                "target_raw": 342
+              },
+              {
+                "completion": "position",
+                "delta_rad": 9.788058147996992e-06,
+                "duration_s": 0.45957005750895047,
+                "from_rad": -1.801179788058148,
+                "joint": "joint3",
+                "limit_max_rad": 0.0,
+                "limit_min_rad": -1.8011797880581484,
+                "limit_source": "eeprom_low_one_sided_2026_11_19+margin",
+                "limit_verified": true,
+                "servo_id": 4,
+                "target_rad": -1.80117,
+                "target_raw": 930
+              },
+              {
+                "completion": "position",
+                "delta_rad": -0.1512283926265139,
+                "duration_s": 0.45957005750895047,
+                "from_rad": -0.16755160819145562,
+                "joint": "joint4",
+                "limit_max_rad": 1.5917402778188288,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 3,
+                "target_rad": -0.31878000081796953,
+                "target_raw": 424
+              },
+              {
+                "completion": "position",
+                "delta_rad": 0.0,
+                "duration_s": 0.45957005750895047,
+                "from_rad": 0.0,
+                "joint": "joint5",
+                "limit_max_rad": 1.5498523757709648,
+                "limit_min_rad": -1.5917402778188288,
+                "limit_source": "guard_bounded_2026_11_19+eeprom_margin",
+                "limit_verified": true,
+                "servo_id": 2,
+                "target_rad": 0.0,
+                "target_raw": 500
+              }
+            ],
+            "created_at": "2026-11-21T10:35:57.659271Z",
+            "updated_at": "2026-11-21T10:35:57.674975Z",
+            "error_code": null,
+            "details": {
+              "pose": {
+                "ok": true,
+                "tcp_m": [
+                  0.242392,
+                  0.003759,
+                  -0.036249
+                ],
+                "table_clearance_m": 0.043369,
+                "samples": 21,
+                "start_tcp_m": [
+                  0.261094,
+                  0.004317,
+                  -0.027729
+                ],
+                "start_table_clearance_m": 0.052029,
+                "start_compliant": true,
+                "violations": []
+              },
+              "warnings": [
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint2",
+                  "message": "joint2: target is within 0.02 rad of a limit"
+                },
+                {
+                  "code": "NEAR_LIMIT",
+                  "details": {},
+                  "joint": "joint3",
+                  "message": "joint3: target is within 0.02 rad of a limit"
+                }
+              ],
+              "safety": {
+                "ready": true,
+                "warnings": []
+              },
+              "adapter": {
+                "gateway": {
+                  "status": "dispatched",
+                  "command_id": "cmd_b3dfe1e7bd97479b",
+                  "mode": "pose",
+                  "duration_s": 0.45957005750895047,
+                  "position_unit": "pulse",
+                  "topic": "servo_controller",
+                  "verification": "pending",
+                  "profile": {
+                    "points": 10,
+                    "max_velocity_rad_s": 4.0,
+                    "max_accel_rad_s2": 20.0
+                  },
+                  "fast": true,
+                  "joints": [
+                    {
+                      "joint": "joint1",
+                      "servo_id": 6,
+                      "target_pulse": 505,
+                      "target_rad": 0.01988429155971162,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint2",
+                      "servo_id": 5,
+                      "target_pulse": 342,
+                      "target_rad": -0.6618,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint3",
+                      "servo_id": 4,
+                      "target_pulse": 930,
+                      "target_rad": -1.80117,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint4",
+                      "servo_id": 3,
+                      "target_pulse": 424,
+                      "target_rad": -0.31878000081796953,
+                      "completion": "position"
+                    },
+                    {
+                      "joint": "joint5",
+                      "servo_id": 2,
+                      "target_pulse": 500,
+                      "target_rad": 0.0,
+                      "completion": "position"
+                    }
+                  ],
+                  "measured": {
+                    "joint1": {
+                      "position_rad": 0.020943951023931956,
+                      "raw_position": 505,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    },
+                    "joint2": {
+                      "position_rad": -0.6618288523562499,
+                      "raw_position": 342,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    },
+                    "joint3": {
+                      "position_rad": -1.8011797880581484,
+                      "raw_position": 930,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    },
+                    "joint4": {
+                      "position_rad": -0.16755160819145565,
+                      "raw_position": 460,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    },
+                    "joint5": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    },
+                    "r_joint": {
+                      "position_rad": -2.2200588085367876,
+                      "raw_position": 170,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 9,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T10:35:58.976449Z"
+                    }
+                  },
+                  "published_at": "2026-11-21T10:35:58.986667Z"
+                }
+              }
+            },
+            "stage_history": [
+              {
+                "at": "2026-11-21T10:35:57.659299Z",
+                "stage": "Requested"
+              },
+              {
+                "at": "2026-11-21T10:35:57.659303Z",
+                "stage": "Validated"
+              },
+              {
+                "stage": "Dispatched",
+                "at": "2026-11-21T10:35:57.674975Z",
+                "error_code": null,
+                "details": {
+                  "safety": {
+                    "ready": true,
+                    "warnings": []
+                  },
+                  "adapter": {
+                    "gateway": {
+                      "status": "dispatched",
+                      "command_id": "cmd_b3dfe1e7bd97479b",
+                      "mode": "pose",
+                      "duration_s": 0.45957005750895047,
+                      "position_unit": "pulse",
+                      "topic": "servo_controller",
+                      "verification": "pending",
+                      "profile": {
+                        "points": 10,
+                        "max_velocity_rad_s": 4.0,
+                        "max_accel_rad_s2": 20.0
+                      },
+                      "fast": true,
+                      "joints": [
+                        {
+                          "joint": "joint1",
+                          "servo_id": 6,
+                          "target_pulse": 505,
+                          "target_rad": 0.01988429155971162,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint2",
+                          "servo_id": 5,
+                          "target_pulse": 342,
+                          "target_rad": -0.6618,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint3",
+                          "servo_id": 4,
+                          "target_pulse": 930,
+                          "target_rad": -1.80117,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint4",
+                          "servo_id": 3,
+                          "target_pulse": 424,
+                          "target_rad": -0.31878000081796953,
+                          "completion": "position"
+                        },
+                        {
+                          "joint": "joint5",
+                          "servo_id": 2,
+                          "target_pulse": 500,
+                          "target_rad": 0.0,
+                          "completion": "position"
+                        }
+                      ],
+                      "measured": {
+                        "joint1": {
+                          "position_rad": 0.020943951023931956,
+                          "raw_position": 505,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        },
+                        "joint2": {
+                          "position_rad": -0.6618288523562499,
+                          "raw_position": 342,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        },
+                        "joint3": {
+                          "position_rad": -1.8011797880581484,
+                          "raw_position": 930,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        },
+                        "joint4": {
+                          "position_rad": -0.16755160819145565,
+                          "raw_position": 460,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        },
+                        "joint5": {
+                          "position_rad": 0.0,
+                          "raw_position": 500,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        },
+                        "r_joint": {
+                          "position_rad": -2.2200588085367876,
+                          "raw_position": 170,
+                          "truth": "commanded",
+                          "validity": "valid",
+                          "sample_age_ms": 9,
+                          "source": "/controller_manager/servo_states (command cache)",
+                          "received_at": "2026-11-21T10:35:58.976449Z"
+                        }
+                      },
+                      "published_at": "2026-11-21T10:35:58.986667Z"
+                    }
+                  },
+                  "pose": {
+                    "ok": true,
+                    "tcp_m": [
+                      0.242392,
+                      0.003759,
+                      -0.036249
+                    ],
+                    "table_clearance_m": 0.043369,
+                    "samples": 21,
+                    "start_tcp_m": [
+                      0.261094,
+                      0.004317,
+                      -0.027729
+                    ],
+                    "start_table_clearance_m": 0.052029,
+                    "start_compliant": true,
+                    "violations": []
+                  }
+                }
+              }
+            ]
+          },
+          "terminal": {
+            "seq": 739,
+            "event_id": "evt_a69d3f0c052646f0a0235cdc820c4032",
+            "command_id": "cmd_b3dfe1e7bd97479b",
+            "stage": "Completed",
+            "wall_time": "2026-11-21T10:35:58.635284Z",
+            "monotonic_ms": 26737865.288063,
+            "source": "hardware_adapter",
+            "result": "gateway confirmed actual bus registers within +/-12 pulses",
+            "error_code": null,
+            "schema_version": 1,
+            "details": {
+              "actual": {
+                "joint1": {
+                  "raw_position": 501,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 339,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 930,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 426,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": null,
+                  "sample_age_ms": 0
+                }
+              },
+              "commanded_cache": {
+                "joint1": {
+                  "raw_position": 505,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                },
+                "joint2": {
+                  "raw_position": 342,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                },
+                "joint3": {
+                  "raw_position": 930,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                },
+                "joint4": {
+                  "raw_position": 424,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                },
+                "joint5": {
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                },
+                "r_joint": {
+                  "raw_position": 170,
+                  "received_at": "2026-11-21T10:35:59.944085Z",
+                  "sample_age_ms": 0
+                }
+              },
+              "completion": "position",
+              "deviations_pulses": {
+                "joint1": -4,
+                "joint2": -3,
+                "joint3": 0,
+                "joint4": 2,
+                "joint5": 0
+              },
+              "duration_s": 0.45957005750895047,
+              "tolerance_pulses": 3,
+              "verification": "bus",
+              "verification_tolerance_pulses": 12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "label": "close",
+      "kind": "grip",
+      "commands": [
+        {
+          "label": "close_pre",
+          "profile": null,
+          "preview": {
+            "command_id": "cmd_99c8049623b54bec",
+            "session_id": "operator-g8-fast",
+            "valid": true,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "servo_id": 1,
+                "from_rad": -2.2200588085367876,
+                "target_rad": -1.6,
+                "delta_rad": 0.6200588085367875,
+                "duration_s": 0.35,
+                "target_raw": 318,
+                "limit_min_rad": -2.220058808536787,
+                "limit_max_rad": 0.0,
+                "limit_verified": true,
+                "limit_source": "measured_gripper_stops_2026_11_18",
+                "completion": "timed"
+              }
+            ],
+            "errors": [],
+            "warnings": [],
+            "preview_token": "sVSMj6xvw1FE6hDaKQulWg7GpEIHlAjf",
+            "expires_at": "2026-11-21T10:36:28.890074Z",
+            "mapping_version": "measured-2026-11-19",
+            "evaluated_at": "2026-11-21T10:35:58.890436Z",
+            "pose": null
+          },
+          "execute": {
+            "error": {
+              "code": "MOTION_BAD_REQUEST",
+              "message": "duration_s must be within [1.0, 10.0]",
+              "details": {}
+            },
+            "trace_id": "52f5d7ae00f24052bcbb6a4123e84204"
+          }
+        }
+      ]
+    }
+  ],
+  "approach_pulses": [
+    {
+      "approach": {
+        "kind": "chassis_pulse",
+        "vx": 0.996364,
+        "vy": -0.085203,
+        "duty": 10.0,
+        "duration_s": 0.268,
+        "nominal_travel_mm": 13.1,
+        "travel_m": 0.0131,
+        "forward_mm": 13.1,
+        "left_mm": -1.1,
+        "point_m": [
+          0.24306245299265528,
+          -0.001117020166170951,
+          -0.03941010589435684
+        ],
+        "target_point_m": [
+          0.23,
+          0.0
+        ]
+      },
+      "response": {
+        "status": "Completed",
+        "verification": "open_loop",
+        "session_id": "operator-g8-fast",
+        "pulse": {
+          "vx": 0.996364,
+          "vy": -0.085203,
+          "duty": 10.0,
+          "duration_s": 0.268
+        },
+        "gateway": {
+          "status": "completed",
+          "verification": "open_loop",
+          "topic": "/ros_robot_controller/set_motor_speeds",
+          "mode": "pulse",
+          "vx": 0.996364,
+          "vy": -0.085203,
+          "duty": 10.0,
+          "duration_s": 0.268,
+          "wheels": {
+            "1": 9.112,
+            "2": -10.816,
+            "3": -10.816,
+            "4": 9.112
+          },
+          "nominal_travel_mm": 13.1,
+          "subscribers_matched": 1,
+          "messages": 10,
+          "elapsed_s": 0.517,
+          "started_wall": "2026-11-21T10:35:54.469715Z",
+          "ended_wall": "2026-11-21T10:35:54.987740Z"
+        }
+      }
+    }
+  ],
+  "verify": null,
+  "ok": false,
+  "error": "close/close_pre: execute returned {'error': {'code': 'MOTION_BAD_REQUEST', 'message': 'duration_s must be within [1.0, 10.0]', 'details': {}}, 'trace_id': '52f5d7ae00f24052bcbb6a4123e84204'}"
+}

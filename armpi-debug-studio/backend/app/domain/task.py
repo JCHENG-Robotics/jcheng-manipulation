@@ -1,41 +1,39 @@
 """G8 task plan: the validated floor-cube sequence, step by step.
 
 The plan is built from a measured grasp point and the deep-family fit, then
-each pose is validated (limits, velocity, FK gate) **from the previous step's
-target**. The UI executes the steps through the ordinary motion
-preview/execute endpoints, so the gateway's bus verification applies to every
-arm move. The plan is only a proposal: nothing here dispatches motion.
+each pose command is validated (limits, velocity, FK gate) **from the previous
+command's target**. Every pose command carries an S-curve profile
+(``domain.profile``): the dense waypoint list is built at execute time from the
+current pose, so the arm moves fast and smooth instead of doing one long
+constant-velocity point.
+
+The plan groups the commands into a few operator-facing steps: one row per
+logical phase (approach, grasp, close, lift, verify, release, return). The UI
+and ``tools/studio/g8_task_run.py`` execute the commands in order through the
+ordinary motion preview/execute endpoints, so the gateway's bus verification
+still applies to every arm move. The plan is only a proposal: nothing here
+dispatches motion.
 """
 
 from __future__ import annotations
 
-import math
+from dataclasses import replace
 from typing import Any
 
 from .mapping import MappingConfig
 from .motion import EffectiveMotionLimits
 from .models import MotionTarget
+from .profile import ProfileParams, plan_move
 from .takeover import TakeoverConfig
 from ..safety.pose_gate import PoseGate
-from ..safety.validation import validate_targets
+from ..safety.validation import ValidationOutcome, validate_targets
 
 ARM_JOINTS = ("joint1", "joint2", "joint3", "joint4", "joint5")
 
-
-def _pose_duration(
-    start: dict[str, float],
-    target: dict[str, float],
-    *,
-    vmax: float,
-    floor: float,
-    ceiling: float,
-) -> float:
-    delta = max(
-        abs(float(target[name]) - float(start.get(name, 0.0)))
-        for name in ARM_JOINTS
-    )
-    value = math.ceil((delta / vmax) * 10.0) / 10.0
-    return min(ceiling, max(floor, value))
+# An open command is skipped when the gripper is already this close to the
+# measured open stop (about 14 raw). After a release the gripper is open, so a
+# repeated run does not pay for a no-op gripper step.
+OPEN_SKIP_RAD = 0.06
 
 
 def _targets(
@@ -74,10 +72,15 @@ def build_task_plan(
     task = takeover.task
     if task is None:
         raise ValueError("the takeover contract has no task block")
+    fast = task.fast
+    if not fast.enabled:
+        raise ValueError(
+            "the fast task profile is disabled in configs/takeover.yaml "
+            "(task.fast.enabled)"
+        )
     view = takeover.preset(task.view_preset)
-    lift = takeover.preset(task.lift_preset)
-    if view is None or lift is None:
-        raise ValueError("task presets are missing")
+    if view is None:
+        raise ValueError("the task view preset is missing")
     fit = {
         name: float(fit_result["joints"][index])
         for index, name in enumerate(ARM_JOINTS)
@@ -93,7 +96,12 @@ def build_task_plan(
     pre_grasp = dict(fit)
     pre_grasp["joint4"] = fit["joint4"] - sign * task.pre_grasp_offset_rad
     view_joints = dict(view.joints)
-    lift_joints = dict(lift.joints)
+    fast_gripper = replace(
+        takeover.gripper,
+        speed_raw_per_s=fast.gripper_speed_raw_per_s,
+        min_duration_s=fast.gripper_min_duration_s,
+        max_duration_s=max(takeover.gripper.max_duration_s, 5.0),
+    )
 
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
@@ -109,84 +117,89 @@ def build_task_plan(
             }
         )
 
-    def pose_step(
+    def check_outcome(
         label: str,
+        outcome: ValidationOutcome,
+        check,
         start: dict[str, float],
-        target: dict[str, float],
-    ) -> dict[str, float]:
-        duration = _pose_duration(
-            start,
-            target,
-            vmax=float(limits.max_velocity_rad_s or 0.5),
-            floor=limits.min_duration_s,
-            ceiling=limits.max_duration_s,
-        )
-        targets = _targets(target, duration)
-        outcome = validate_targets(
-            mapping,
-            [MotionTarget(item["joint"], item["target_rad"], duration) for item in targets],
-            current_targets=start,
-            max_step_rad=limits.max_step_rad,
-            min_duration_s=limits.min_duration_s,
-            max_duration_s=limits.max_duration_s,
-            single_joint_only=False,
-            scope="pose",
-            max_velocity_rad_s=limits.max_velocity_rad_s,
-            gripper=takeover.gripper,
-        )
-        check = gate.check(start, target)
+    ) -> None:
         if not outcome.valid:
             for issue in outcome.errors:
                 fail(label, issue.code, issue.message, issue.joint)
-        if not check.ok:
-            for violation in check.violations:
-                fail(
-                    label,
-                    violation.code,
-                    violation.message,
-                    violation.joint,
+        if check is not None:
+            if not check.ok:
+                for violation in check.violations:
+                    fail(label, violation.code, violation.message, violation.joint)
+            if not check.start_compliant:
+                warnings.append(
+                    {
+                        "label": label,
+                        "code": "START_OUTSIDE_GATE",
+                        "message": "the planned start is outside the FK gate; it "
+                        "is exempt so the arm can be commanded back",
+                    }
                 )
-        if not check.start_compliant:
-            warnings.append(
-                {
-                    "label": label,
-                    "code": "START_OUTSIDE_GATE",
-                    "message": "the planned start is outside the FK gate; it "
-                    "is exempt so the arm can be commanded back",
-                }
-            )
+
+    def profile_command(
+        label: str,
+        start: dict[str, float],
+        target: dict[str, float],
+        vmax: float,
+    ) -> tuple[dict[str, Any], dict[str, float]]:
+        params = ProfileParams(
+            vmax_rad_s=float(vmax),
+            amax_rad_s2=float(fast.amax_rad_s2),
+            dt_s=float(fast.dt_s),
+        )
+        profile = plan_move(start, target, params)
+        duration = float(profile.total_s)
+        targets = _targets(target, duration)
+        outcome = validate_targets(
+            mapping,
+            [
+                MotionTarget(item["joint"], item["target_rad"], duration)
+                for item in targets
+            ],
+            current_targets=start,
+            max_step_rad=limits.max_step_rad,
+            min_duration_s=0.0,
+            max_duration_s=limits.max_duration_s,
+            single_joint_only=False,
+            scope="pose",
+            max_velocity_rad_s=vmax,
+            gripper=fast_gripper,
+        )
+        check = gate.check(start, target)
+        check_outcome(label, outcome, check, start)
         normalized = _normalized_map(outcome.normalized)
-        step = {
+        command = {
             "kind": "pose",
             "label": label,
             "joints": {name: round(value, 6) for name, value in target.items()},
-            "from_joints": {name: round(value, 6) for name, value in start.items()},
+            "from_joints": {
+                name: round(value, 6) for name, value in start.items()
+            },
             "targets": targets,
             "duration_s": duration,
+            "profile": {
+                **params.to_public_dict(),
+                "segments": profile.segments,
+                "total_s": round(duration, 6),
+            },
             "target_raw": {
                 name: normalized.get(name, {}).get("target_raw")
                 for name in ARM_JOINTS
             },
             "pose_check": check.to_public_dict(),
-            "status": "pending",
         }
-        steps.append(step)
-        return target
+        return command, target
 
-    def grip_step(
+    def grip_command(
         label: str,
         start_rad: float,
         target_rad: float,
         duration: float,
-        *,
-        configured_duration: bool = False,
-    ) -> float:
-        if not configured_duration:
-            delta_raw = abs(
-                takeover.gripper.rad_to_raw(target_rad)
-                - takeover.gripper.rad_to_raw(start_rad)
-            )
-            duration = takeover.gripper.suggested_duration_s(delta_raw)
+    ) -> tuple[dict[str, Any], float]:
         targets = [
             {
                 "joint": takeover.gripper.joint,
@@ -203,18 +216,16 @@ def build_task_plan(
             ],
             current_targets={takeover.gripper.joint: float(start_rad)},
             max_step_rad=limits.max_step_rad,
-            min_duration_s=limits.min_duration_s,
+            min_duration_s=0.0,
             max_duration_s=limits.max_duration_s,
             single_joint_only=False,
             scope="pose",
-            max_velocity_rad_s=limits.max_velocity_rad_s,
-            gripper=takeover.gripper,
+            max_velocity_rad_s=None,
+            gripper=fast_gripper,
         )
-        if not outcome.valid:
-            for issue in outcome.errors:
-                fail(label, issue.code, issue.message, issue.joint)
+        check_outcome(label, outcome, None, {})
         normalized = _normalized_map(outcome.normalized)
-        step = {
+        command = {
             "kind": "grip",
             "label": label,
             "target_rad": round(float(target_rad), 6),
@@ -224,58 +235,103 @@ def build_task_plan(
             "target_raw": normalized.get(takeover.gripper.joint, {}).get(
                 "target_raw"
             ),
-            "status": "pending",
+            "fast": True,
         }
-        steps.append(step)
-        return float(target_rad)
+        return command, float(target_rad)
+
+    def add_step(
+        label: str, kind: str, commands: list[dict[str, Any]], **extra: Any
+    ) -> None:
+        steps.append(
+            {
+                "kind": kind,
+                "label": label,
+                "commands": commands,
+                "duration_s": round(
+                    sum(float(item["duration_s"]) for item in commands), 6
+                ),
+                "status": "pending",
+                **extra,
+            }
+        )
 
     current = {name: float(start_joints.get(name, 0.0)) for name in ARM_JOINTS}
     gripper_now = float(start_gripper_rad)
 
-    gripper_now = grip_step(
-        "open_gripper",
-        gripper_now,
-        takeover.gripper.open_rad,
-        0.0,
+    if abs(gripper_now - takeover.gripper.open_rad) > OPEN_SKIP_RAD:
+        command, gripper_now = grip_command(
+            "open_gripper",
+            gripper_now,
+            takeover.gripper.open_rad,
+            fast.gripper_open_duration_s,
+        )
+        add_step("open_gripper", "grip", [command])
+
+    command, current = profile_command(
+        "approach", current, approach, fast.vmax_rad_s
     )
-    current = pose_step("approach", current, approach)
-    current = pose_step("pre_grasp", current, pre_grasp)
-    current = pose_step("grasp", current, fit)
-    gripper_now = grip_step(
+    add_step("approach", "pose", [command])
+
+    descend, current = profile_command(
+        "descend", current, pre_grasp, fast.descent_vmax_rad_s
+    )
+    final, current = profile_command(
+        "grasp", current, fit, fast.final_vmax_rad_s
+    )
+    add_step("grasp", "pose", [descend, final])
+
+    close_pre, gripper_now = grip_command(
         "close_pre",
         gripper_now,
         task.preclose_rad,
-        task.grip_preclose_duration_s,
-        configured_duration=True,
+        fast.gripper_preclose_duration_s,
     )
-    gripper_now = grip_step(
+    close_grip, gripper_now = grip_command(
         "close_grip",
         gripper_now,
         task.grip_rad,
-        task.grip_duration_s,
-        configured_duration=True,
+        fast.gripper_grip_duration_s,
     )
-    current = pose_step("lift", current, lift_joints)
-    current = pose_step("view_verify", current, view_joints)
-    steps.append(
-        {
-            "kind": "verify",
-            "label": "grip_verify",
-            "status": "pending",
-            "detail": "fetch a cloud at the view and check the cube box",
-        }
+    add_step("close", "grip", [close_pre, close_grip])
+
+    # The lift and the return to the view are one fast move: the measured
+    # 2026-11-20 sequence goes from the grasp pose straight to the verify pose
+    # at 4.0 rad/s instead of through a separate 150 mm lift preset.
+    command, current = profile_command(
+        "lift", current, view_joints, fast.vmax_rad_s
     )
-    current = pose_step("putback_pre_grasp", current, pre_grasp)
-    current = pose_step("putback_grasp", current, fit)
-    gripper_now = grip_step(
+    add_step("lift", "pose", [command])
+
+    add_step(
+        "grip_verify",
+        "verify",
+        [],
+        detail="fetch a cloud at the view and check the cube box",
+    )
+
+    release_descend, current = profile_command(
+        "release_descend",
+        current,
+        pre_grasp,
+        fast.release_descent_vmax_rad_s,
+    )
+    release_final, current = profile_command(
+        "release_final", current, fit, fast.release_final_vmax_rad_s
+    )
+    release_open, gripper_now = grip_command(
         "release_open",
         gripper_now,
         takeover.gripper.open_rad,
-        task.release_open_duration_s,
-        configured_duration=True,
+        fast.gripper_release_open_duration_s,
     )
-    pose_step("return_view", current, view_joints)
-    del gripper_now
+    add_step(
+        "release", "mixed", [release_descend, release_final, release_open]
+    )
+
+    command, current = profile_command(
+        "return_view", current, view_joints, fast.vmax_rad_s
+    )
+    add_step("return_view", "pose", [command])
 
     if simulated:
         warnings.append(
@@ -294,6 +350,8 @@ def build_task_plan(
                 "from the actual); each move is bus-verified",
             }
         )
+    fast_public = fast.to_public_dict()
+    fast_public["mode"] = "s_curve"
     return {
         "schema_version": 1,
         "valid": not errors,
@@ -311,13 +369,16 @@ def build_task_plan(
         "approach_joints": approach,
         "pre_grasp_joints": pre_grasp,
         "view_joints": view_joints,
-        "lift_joints": lift_joints,
+        "lift_joints": view_joints,
         "view_preset": task.view_preset,
-        "lift_preset": task.lift_preset,
-        "start_joints": {name: round(value, 6) for name, value in start_joints.items()},
+        "lift_preset": task.view_preset,
+        "start_joints": {
+            name: round(value, 6) for name, value in start_joints.items()
+        },
         "start_gripper_rad": round(float(start_gripper_rad), 6),
         "source": source,
         "locate": locate_summary or {},
         "hand_eye": hand_eye_summary or {},
+        "fast": fast_public,
         "steps": steps,
     }

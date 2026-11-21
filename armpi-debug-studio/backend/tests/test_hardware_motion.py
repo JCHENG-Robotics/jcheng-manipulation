@@ -175,6 +175,17 @@ def test_snapshot_labels_the_vendor_cache_as_commanded(mapping, clock) -> None:
     assert joint1.raw_position == 502
 
 
+def test_fast_flag_is_forwarded_to_the_gateway(mapping, clock) -> None:
+    """The fast gripper timings need the gateway's profile block; the flag
+    must travel with the dispatch, not be inferred from the duration."""
+    adapter, gateway = _adapter(mapping, clock)
+    targets = _one(mapping)
+    result = adapter.dispatch(targets, "cmd_fast", fast=True)
+    assert result.status is CommandStage.DISPATCHED
+    _path, body = gateway.posts[-1]
+    assert body["fast"] is True
+
+
 def test_dispatch_then_completed_events(mapping, clock) -> None:
     adapter, gateway = _adapter(mapping, clock)
     targets = _one(mapping)
@@ -185,6 +196,7 @@ def test_dispatch_then_completed_events(mapping, clock) -> None:
     assert body["command_id"] == "cmd_1"
     assert body["supervised"] is True
     assert body["joints"][0]["target_pulse"] == targets[0]["target_raw"]
+    assert "fast" not in body
 
     assert adapter.snapshot().connection_state.value == "Executing"
     gateway.motion_status = {

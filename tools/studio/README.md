@@ -77,35 +77,38 @@ the measured pulses are unchanged. Evidence from the first run:
 
 With the arm at the `view_table` preset and the pose gateway started with
 `--pointcloud-topic /depth_cam/depth_registered/points`, one command plans the
-13-step task from a live registered cloud and runs it step by step:
+**7-phase fast task** from a live registered cloud and runs it phase by phase.
+Each pose phase is one dense S-curve (4.0 rad/s / 20 rad/s² free moves,
+0.6/0.35 rad/s grasp descents, 1.4/0.8 rad/s release descents); each grip
+phase is one timed raw bus-servo command (0.35/0.5/0.45 s):
 
 ```bash
 # plan only (read-only: capture + locate + deep-family fit + validation)
 python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
   --out /tmp/g8_plan.json
 
-# execute (operator beside the robot; every step bus-verified)
+# execute (operator beside the robot; every phase bus-verified)
 python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
   --session operator-g8 --out /tmp/g8_run.json \
   --execute --i-have-clear-workspace
 ```
 
-The plan is refused unless the arm is within 0.12 rad of the view, the cube is
-inside the 0.220-0.255 m direct-grasp band, and every step passes the joint
-limits, the velocity cap and the FK gate. A `TOP_CLIPPED_RECOVERED` warning
-means the Aurora's min-range sphere (~0.25 m) hid the near part of the top
-face and the centre was rebuilt from the intact far edge with the measured
-39.4 mm cube. The runner aborts on a rejected preview or a non-`Completed`
-event and never retries. Evidence:
-[`evidence/studio_g8/20261121/`](../../evidence/studio_g8/20261121/README.md).
+The plan is refused unless the arm is within 0.12 rad of the view and every
+command passes the joint limits, the profile velocity cap and the FK gate. A
+`TOP_CLIPPED_RECOVERED` warning means the Aurora's min-range sphere (~0.25 m)
+hid the near part of the top face and the centre was rebuilt from the intact
+far edge with the measured 39.4 mm cube. The runner aborts on a rejected
+preview or a non-`Completed` event and never retries. Evidence (the older
+13-step plan): [`evidence/studio_g8/20261121/`](../../evidence/studio_g8/20261121/README.md).
 
 ### Out-of-band cube (G8.1)
 
-If "定位并规划" answers `APPROACH_REQUIRED`, the page shows a
-"底盘接近（前进/后退 N mm / 左移/右移 N mm）" button. One confirmation runs up
-to three bounded base pulses, each followed by a fresh cloud and a new plan;
-when the target is back inside the 0.220-0.255 m band the task can run. The
-same loop from a terminal:
+If "定位并规划" answers `APPROACH_REQUIRED`, the run still starts: it pulses
+the base toward `(0.230, 0)` (up to three bounded pulses, each followed by a
+fresh cloud and a new plan) and continues with the arm phases automatically.
+The standalone "底盘接近" button is gone, and
+`tools/studio/g8_task_run.py --execute` performs the same loop. The G8.1
+runner is still available for a base-only alignment:
 
 ```bash
 # plan only (no motion): reports whether an approach is needed

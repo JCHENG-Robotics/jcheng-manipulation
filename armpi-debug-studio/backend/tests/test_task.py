@@ -20,6 +20,7 @@ from app.domain.locate import (
 )
 from app.domain.mapping import MappingConfig
 from app.domain.models import MotionTarget
+from app.domain.profile import ProfileParams
 from app.domain.takeover import load_takeover_config
 from app.domain.visual import compute_frames, load_urdf
 from app.main import create_app
@@ -194,12 +195,42 @@ def test_task_plan_and_verify_in_mock(mapping, clock, takeover, tmp_path) -> Non
         plan = service.task_plan()
         assert plan["valid"], plan
         assert plan["simulated"] is True
-        assert len(plan["steps"]) == 13
+        # The fast plan groups the old single-command steps into 7 phases; the
+        # gripper is already open, so open_gripper is skipped.
+        assert len(plan["steps"]) == 7
         labels = [step["label"] for step in plan["steps"]]
-        assert labels[:4] == ["open_gripper", "approach", "pre_grasp", "grasp"]
-        assert "grip_verify" in labels
-        assert "putback_grasp" in labels
+        assert labels == [
+            "approach",
+            "grasp",
+            "close",
+            "lift",
+            "grip_verify",
+            "release",
+            "return_view",
+        ]
+        assert [c["label"] for c in plan["steps"][1]["commands"]] == [
+            "descend",
+            "grasp",
+        ]
+        assert [c["label"] for c in plan["steps"][2]["commands"]] == [
+            "close_pre",
+            "close_grip",
+        ]
+        assert [c["label"] for c in plan["steps"][5]["commands"]] == [
+            "release_descend",
+            "release_final",
+            "release_open",
+        ]
+        assert plan["fast"]["mode"] == "s_curve"
+        assert plan["fast"]["vmax_rad_s"] == pytest.approx(4.0)
         assert plan["fit"]["xy_error_mm"] < 1.0
+        grasp = plan["steps"][1]["commands"][1]
+        assert grasp["profile"]["vmax_rad_s"] == pytest.approx(0.35)
+        assert grasp["profile"]["segments"] >= 1
+        # The direct grasp -> view move replaces the old lift + view_verify
+        # pair; the total commanded time is far below the single-point plan.
+        assert plan["steps"][3]["commands"][0]["joints"] == plan["view_joints"]
+        assert sum(step["duration_s"] for step in plan["steps"]) < 8.0
         assert plan["grasp_joints"]["joint4"] == pytest.approx(
             plan["fit"]["joints"][3], abs=1e-6
         )
@@ -401,3 +432,86 @@ def test_chassis_pulse_api_in_mock(tmp_path, mapping, clock, takeover) -> None:
             },
         )
         assert too_short.status_code == 400
+
+
+def test_profile_preview_and_execute_in_mock(
+    mapping, clock, takeover, tmp_path
+) -> None:
+    """The fast path previews a dense S-curve and executes it in one command."""
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        lease = _prepare_view(service, takeover, clock)
+        preset = takeover.preset("approach_low")
+        assert preset is not None
+        targets = [
+            MotionTarget(name, preset.joints[name], 1.0) for name in ARM_JOINTS
+        ]
+        profile = ProfileParams(4.0, 20.0, 0.05)
+        preview = service.preview("task-test", targets, profile=profile)
+        assert preview["valid"], preview
+        durations = {item["duration_s"] for item in preview["targets"]}
+        assert len(durations) == 1
+        total = durations.pop()
+        assert 0.5 < total < 2.0
+        assert preview["pose"] is not None
+        execute = service.execute(
+            session_id="task-test",
+            lease_id=lease["lease_id"],
+            preview_token=preview["preview_token"],
+            command_id=preview["command_id"],
+            targets=targets,
+            idempotency_key="profile-execute",
+            profile=profile,
+        )
+        assert execute["status"] == "Dispatched"
+        clock.advance(total + 1.5)
+        service.tick()
+        events = service.events(limit=50, command_id=preview["command_id"])
+        stages = [item["stage"] for item in events["items"]]
+        assert "Completed" in stages
+    finally:
+        service.close()
+
+
+def test_fast_gripper_preview_accepts_the_measured_timings(
+    mapping, clock, takeover, tmp_path
+) -> None:
+    """0.35 s / 423 raw/s is the 2026-11-20 fast close, not a 1.0 s step."""
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        _prepare_view(service, takeover, clock)
+        assert takeover.task is not None
+        targets = [
+            MotionTarget(
+                takeover.gripper.joint, takeover.task.preclose_rad, 0.35
+            )
+        ]
+        preview = service.preview("task-test", targets, fast=True)
+        assert preview["valid"], preview
+        assert preview["targets"][0]["duration_s"] == pytest.approx(0.35)
+        slow = service.preview("task-test", targets)
+        assert slow["valid"] is False
+        assert any(item["code"] == "DURATION_RANGE" for item in slow["errors"])
+    finally:
+        service.close()
+
+
+def test_profile_contract_rejects_a_faster_profile(
+    mapping, clock, takeover, tmp_path
+) -> None:
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        _prepare_view(service, takeover, clock)
+        preset = takeover.preset("approach_low")
+        assert preset is not None
+        targets = [
+            MotionTarget(name, preset.joints[name], 1.0) for name in ARM_JOINTS
+        ]
+        preview = service.preview(
+            "task-test", targets, profile=ProfileParams(5.0, 20.0, 0.05)
+        )
+        assert preview["valid"] is False
+        codes = [item["code"] for item in preview["errors"]]
+        assert "PROFILE_LIMIT" in codes
+    finally:
+        service.close()

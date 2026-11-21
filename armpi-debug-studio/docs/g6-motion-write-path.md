@@ -85,6 +85,35 @@ preview token is bound to the requested targets, not to a live `from_rad`.
 gateway. A 4xx gateway rejection is `Failed`; a network/timeout result is
 `Unknown` and never retried.
 
+### Dense profile (G8 fast task path)
+
+When the pose contract exports `safety.profile`, the same endpoint also accepts
+a dense S-curve:
+
+```json
+{
+  "command_id": "cmd_...",
+  "duration_s": 0.71,
+  "joints": [ /* the five endpoint targets */ ],
+  "fast": true,
+  "profile": {
+    "points": [
+      {"duration_s": 0.05, "joints": [ /* five pulse targets */ ]},
+      "..."
+    ]
+  }
+}
+```
+
+The guard checks every segment (pulse limits, per-segment velocity, discrete
+acceleration, the first segment against the measured command cache, and that
+the last point equals `joints`) and then publishes one `ServosPosition` per
+segment at the segment cadence. A `fast: true` gripper-only command uses the
+profile block's `gripper_min_duration_s`/`gripper_speed_raw_per_s` and the
+`gripper_settle_s` post-command wait. Without the block these requests are
+`MOTION_PROFILE_DISABLED`/`MOTION_FAST_DISABLED`; the slow single-command path
+is unchanged.
+
 ## Completion and unknown outcomes
 
 > **Corrected 2026-11-21.** The original text below said `/controller_manager/servo_states`

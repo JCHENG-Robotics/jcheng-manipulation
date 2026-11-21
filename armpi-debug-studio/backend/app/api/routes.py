@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from ..domain.models import MotionTarget
+from ..domain.profile import ProfileParams
 from ..errors import ServiceError
 from ..service import RobotService
 
@@ -35,9 +36,19 @@ class TargetIn(BaseModel):
     duration_s: float
 
 
+class ProfileIn(BaseModel):
+    """The fast task path: one dense S-curve instead of a single point."""
+
+    vmax_rad_s: float = Field(gt=0, le=4.0)
+    amax_rad_s2: float = Field(gt=0, le=20.0)
+    dt_s: float = Field(default=0.05, ge=0.025, le=0.5)
+
+
 class PreviewIn(BaseModel):
     session_id: str = Field(min_length=1, max_length=128)
     targets: list[TargetIn] = Field(min_length=1, max_length=12)
+    profile: ProfileIn | None = None
+    fast: bool = False
 
 
 class ExecuteIn(PreviewIn):
@@ -186,9 +197,24 @@ def task_verify(
     return _service(request).task_verify(body.plan_id if body else None)
 
 
+def _profile(value: ProfileIn | None) -> ProfileParams | None:
+    if value is None:
+        return None
+    return ProfileParams(
+        vmax_rad_s=value.vmax_rad_s,
+        amax_rad_s2=value.amax_rad_s2,
+        dt_s=value.dt_s,
+    )
+
+
 @router.post("/motion/preview")
 def preview(request: Request, body: PreviewIn) -> dict[str, Any]:
-    return _service(request).preview(body.session_id, _targets(body.targets))
+    return _service(request).preview(
+        body.session_id,
+        _targets(body.targets),
+        profile=_profile(body.profile),
+        fast=body.fast,
+    )
 
 
 @router.post("/motion/execute")
@@ -211,6 +237,8 @@ def execute(
         command_id=body.command_id,
         targets=_targets(body.targets),
         idempotency_key=key,
+        profile=_profile(body.profile),
+        fast=body.fast,
     )
 
 

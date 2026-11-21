@@ -4,10 +4,12 @@ import type {
   EventRecord,
   MotionPreset,
   MotionPresetList,
+  PreviewProfile,
   PreviewResult,
   TargetPayload,
   TaskApproach,
   TaskPlan,
+  TaskStep,
   TaskVerify,
 } from "../api/types";
 import {
@@ -25,6 +27,8 @@ import { getSessionId } from "../session";
 import { useRobotStore } from "../store/robotStore";
 
 const ARM_JOINTS = ["joint1", "joint2", "joint3", "joint4", "joint5"];
+
+type TaskProfile = PreviewProfile;
 
 function errorText(error: unknown): string {
   return error instanceof ApiError ? `${error.code}: ${error.message}` : String(error);
@@ -67,6 +71,32 @@ function deviationsText(value: unknown): string {
     .join(" · ");
 }
 
+function stepCommandsText(step: TaskStep): string {
+  if (step.kind === "verify") return step.detail ?? "grip verify";
+  if (!step.commands || step.commands.length === 0) return "—";
+  return step.commands.map((command) => command.label).join(" → ");
+}
+
+function stepRawText(step: TaskStep): string {
+  const commands = step.commands ?? [];
+  const last = commands[commands.length - 1];
+  if (!last) return "—";
+  if (last.kind === "pose") {
+    const raw = last.target_raw as Record<string, number | null> | null;
+    return ARM_JOINTS.map((name) => raw?.[name] ?? "?").join("/");
+  }
+  return String(last.target_raw ?? "—");
+}
+
+function stepSpeedText(step: TaskStep): string {
+  const values = (step.commands ?? [])
+    .filter((command) => command.profile)
+    .map((command) => command.profile?.vmax_rad_s ?? 0);
+  if (values.length === 0) return "";
+  const unique = Array.from(new Set(values));
+  return `vmax ${unique.join("/")} rad/s`;
+}
+
 export function TaskTakeover() {
   const robot = useRobotStore((store) => store.state);
   const diagnostics = useRobotStore((store) => store.diagnostics);
@@ -85,7 +115,6 @@ export function TaskTakeover() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [approachOpen, setApproachOpen] = useState(false);
   const cancelled = useRef(false);
 
   useEffect(() => {
@@ -155,13 +184,14 @@ export function TaskTakeover() {
 
   const executeTargets = async (
     targets: TargetPayload[],
+    options?: { profile?: TaskProfile; fast?: boolean },
   ): Promise<{
     stage: string;
     actual?: Record<string, unknown>;
     deviations?: Record<string, unknown>;
     error?: string;
   }> => {
-    const preview: PreviewResult = await api.preview(sessionId, targets);
+    const preview: PreviewResult = await api.preview(sessionId, targets, options);
     if (!preview.valid || !preview.preview_token) {
       return {
         stage: "Rejected",
@@ -176,6 +206,8 @@ export function TaskTakeover() {
       commandId: preview.command_id,
       targets,
       idempotencyKey: crypto.randomUUID(),
+      profile: options?.profile,
+      fast: options?.fast,
     });
     const duration = Math.max(...targets.map((item) => item.duration_s));
     const deadline = Date.now() + (duration + 15) * 1000;
@@ -195,7 +227,7 @@ export function TaskTakeover() {
           error: terminal.error_code ?? undefined,
         };
       }
-      await delay(300);
+      await delay(150);
     }
     return { stage: "Timeout", error: "no terminal event before the deadline" };
   };
@@ -263,66 +295,52 @@ export function TaskTakeover() {
     }
   };
 
-  const runApproach = async () => {
-    setApproachOpen(false);
-    setBusy(true);
-    setError(null);
-    setNote(null);
-    try {
-      await ensureLease();
-      const approachContract = taskContract?.approach as
-        | Record<string, unknown>
-        | undefined;
-      const maxPulses = Number(approachContract?.max_pulses ?? 3);
-      const settle = Math.max(
-        0.6,
-        Number(approachContract?.settle_s ?? 0.5),
-      );
-      let current = plan;
-      if (!current?.approach) return;
-      for (let index = 0; index < maxPulses; index += 1) {
-        const approach = current.approach;
-        if (!approach) break;
-        setNote(
-          `底盘接近 ${index + 1}/${maxPulses}：${approachText(approach)}…`,
-        );
-        const leaseNow = await ensureLease();
-        const response = await api.chassisPulse({
-          sessionId,
-          leaseId: leaseNow,
-          vx: approach.vx,
-          vy: approach.vy,
-          duty: approach.duty,
-          durationS: approach.duration_s,
-        });
-        if (response.status !== "Completed") {
-          throw new Error(`底盘接近返回 ${response.status}`);
-        }
-        await delay(Math.round(settle * 1000));
-        current = await requestPlan();
-        if (current.valid) {
-          setNote(
-            `已进入抓取带：目标半径 ${(
-              Math.hypot(
-                (current.target ?? [0])[0],
-                (current.target ?? [0, 0])[1] ?? 0,
-              )
-            ).toFixed(3)} m，可以运行任务。`,
-          );
-          break;
-        }
-        const codes = current.errors.map((item) => item.code);
-        if (!codes.includes("APPROACH_REQUIRED") || !current.approach) break;
+  const ensureInBand = async (current: TaskPlan | null): Promise<TaskPlan | null> => {
+    if (!current) return null;
+    const codes = current.errors.map((item) => item.code);
+    if (current.valid) return current;
+    if (!codes.includes("APPROACH_REQUIRED") || !current.approach) return null;
+    const approachContract = taskContract?.approach as
+      | Record<string, unknown>
+      | undefined;
+    const maxPulses = Number(approachContract?.max_pulses ?? 3);
+    const settle = Math.max(0.6, Number(approachContract?.settle_s ?? 0.5));
+    let next = current;
+    for (let index = 0; index < maxPulses; index += 1) {
+      if (cancelled.current) return null;
+      const approach = next.approach;
+      if (!approach) break;
+      setNote(`底盘接近 ${index + 1}/${maxPulses}：${approachText(approach)}…`);
+      const leaseNow = await ensureLease();
+      const response = await api.chassisPulse({
+        sessionId,
+        leaseId: leaseNow,
+        vx: approach.vx,
+        vy: approach.vy,
+        duty: approach.duty,
+        durationS: approach.duration_s,
+      });
+      if (response.status !== "Completed") {
+        throw new Error(`底盘接近返回 ${response.status}`);
       }
-    } catch (caught) {
-      setError(errorText(caught));
-    } finally {
-      setBusy(false);
+      await delay(Math.round(settle * 1000));
+      next = await requestPlan();
+      if (next.valid) {
+        setNote(
+          `已进入抓取带：目标半径 ${Math.hypot(
+            (next.target ?? [0])[0],
+            (next.target ?? [0, 0])[1] ?? 0,
+          ).toFixed(3)} m。`,
+        );
+        return next;
+      }
+      const nextCodes = next.errors.map((item) => item.code);
+      if (!nextCodes.includes("APPROACH_REQUIRED") || !next.approach) return null;
     }
+    return null;
   };
 
   const runPlan = async () => {
-    if (!plan?.valid) return;
     setConfirmOpen(false);
     setRunning(true);
     cancelled.current = false;
@@ -334,15 +352,34 @@ export function TaskTakeover() {
     setStepDeviations({});
     try {
       await ensureLease();
-      for (let index = 0; index < plan.steps.length; index += 1) {
+      // One run covers everything: if the cube is out of the grasp band, the
+      // base pulses first (camera-closed), the plan is rebuilt, and only then
+      // does the arm move.
+      const executable = await ensureInBand(plan);
+      if (!executable || !executable.valid) {
+        const wasApproach =
+          plan?.errors.some((item) => item.code === "APPROACH_REQUIRED") ?? false;
+        setError(
+          wasApproach || !plan || plan.errors.length === 0
+            ? "底盘接近后仍未进入抓取带；任务未执行。"
+            : plan.errors
+                .map((item) => `${item.code}: ${item.message}`)
+                .join("; "),
+        );
+        return;
+      }
+      setPlan(executable);
+      let success = true;
+      for (let index = 0; index < executable.steps.length; index += 1) {
         if (cancelled.current) {
           setNote("任务已由操作员停止（保持请求）。");
+          success = false;
           break;
         }
-        const step = plan.steps[index];
+        const step = executable.steps[index];
         setStepStatus((state) => ({ ...state, [index]: "running" }));
         if (step.kind === "verify") {
-          const result = await api.taskVerify(plan.plan_id);
+          const result = await api.taskVerify(executable.plan_id);
           setVerify(result);
           if (!result.held) {
             setStepStatus((state) => ({ ...state, [index]: "failed" }));
@@ -352,26 +389,46 @@ export function TaskTakeover() {
                   ? "机械臂不在 view，无法验证夹持"
                   : "木块仍在框内：未夹住，已停止，不再放回"),
             );
+            success = false;
             break;
           }
           setStepStatus((state) => ({ ...state, [index]: "held" }));
           continue;
         }
-        if (!step.targets || step.targets.length === 0) {
-          setStepStatus((state) => ({ ...state, [index]: "skipped" }));
-          continue;
+        let failed = false;
+        for (const command of step.commands) {
+          if (cancelled.current) break;
+          if (!command.targets || command.targets.length === 0) continue;
+          const result = await executeTargets(command.targets, {
+            profile: command.profile,
+            fast: command.fast,
+          });
+          setStepActual((state) => ({ ...state, [index]: result.actual }));
+          setStepDeviations((state) => ({ ...state, [index]: result.deviations }));
+          if (result.stage !== "Completed") {
+            setStepStatus((state) => ({ ...state, [index]: result.stage }));
+            setError(
+              `${step.label} / ${command.label}: ${result.stage}${
+                result.error ? ` (${result.error})` : ""
+              }`,
+            );
+            failed = true;
+            break;
+          }
         }
-        const result = await executeTargets(step.targets);
-        setStepActual((state) => ({ ...state, [index]: result.actual }));
-        setStepDeviations((state) => ({ ...state, [index]: result.deviations }));
-        if (result.stage !== "Completed") {
-          setStepStatus((state) => ({ ...state, [index]: result.stage }));
-          setError(
-            `${step.label}: ${result.stage}${result.error ? ` (${result.error})` : ""}`,
-          );
+        if (failed) {
+          success = false;
+          break;
+        }
+        if (cancelled.current) {
+          setNote("任务已由操作员停止（保持请求）。");
+          success = false;
           break;
         }
         setStepStatus((state) => ({ ...state, [index]: "completed" }));
+      }
+      if (success && !cancelled.current) {
+        setNote("任务完成：木块已放回。");
       }
     } catch (caught) {
       setError(errorText(caught));
@@ -435,8 +492,9 @@ export function TaskTakeover() {
       <div className="banner banner-warning">
         <strong>G8 TASK · 无急停 / 无自碰撞模型</strong>
         <span>
-          任务会连续执行 13 个动作（约 25 s）。手边保持可断电；第一次运行请清空工作区。
-          夹持验证用 view 相机，失败即停，不自动重试。
+          一次“运行任务”完成全部动作：木块在抓取带外时先自动底盘接近并重新定位，然后以
+          S 曲线（4.0 rad/s / 20 rad/s²）执行 7 个阶段步骤，每步仍走预览/执行与总线校验。
+          手边保持可断电；第一次运行请清空工作区。夹持验证失败即停，不自动重试。
         </span>
       </div>
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
@@ -487,21 +545,19 @@ export function TaskTakeover() {
             <Button variant="primary" onClick={() => void planTask()} disabled={busy || running || !viewPreset}>
               {busy ? "定位中…" : "定位并规划"}
             </Button>
-            {requiredApproach && (
-              <Button
-                variant="primary"
-                onClick={() => setApproachOpen(true)}
-                disabled={busy || running || hardwareBlocked || !safetyReady}
-                title="底盘会慢速脉冲，然后重新拍点云并规划"
-              >
-                底盘接近（{approachText(requiredApproach)}）
-              </Button>
-            )}
             <Button
               variant="danger"
               onClick={() => setConfirmOpen(true)}
-              disabled={!plan?.valid || running || hardwareBlocked || !safetyReady}
-              title={!plan?.valid ? "先定位并规划一个有效的任务" : "确认后连续执行任务"}
+              disabled={(!plan?.valid && !requiredApproach) || running || hardwareBlocked || !safetyReady}
+              title={
+                !plan
+                  ? "先定位并规划"
+                  : plan.valid
+                    ? "确认后连续执行任务"
+                    : requiredApproach
+                      ? "运行时会先底盘接近，再重新规划并执行"
+                      : "规划无效"
+              }
             >
               运行任务（需确认）
             </Button>
@@ -511,9 +567,9 @@ export function TaskTakeover() {
           </div>
           {requiredApproach && (
             <p className="muted">
-              木块在抓取带外：需要底盘{approachText(requiredApproach)}（duty{" "}
-              {requiredApproach.duty}，{requiredApproach.duration_s} s，约{" "}
-              {requiredApproach.nominal_travel_mm.toFixed(0)} mm），接近后自动重新定位。
+              木块在抓取带外：运行任务时会先自动底盘{approachText(requiredApproach)}
+              （duty {requiredApproach.duty}，{requiredApproach.duration_s} s，约{" "}
+              {requiredApproach.nominal_travel_mm.toFixed(0)} mm），重新定位后再执行机械臂步骤。
             </p>
           )}
           {plan && !plan.valid && plan.errors.length > 0 && !requiredApproach && (
@@ -575,7 +631,11 @@ export function TaskTakeover() {
 
         <Card
           title="Steps"
-          subtitle={plan?.valid ? `${plan.steps.length} steps · ${plan.view_preset} → ${plan.lift_preset}` : "规划后显示"}
+          subtitle={
+            plan?.valid
+              ? `${plan.steps.length} 个阶段 · S 曲线 · ${plan.view_preset}`
+              : "规划后显示"
+          }
           actions={<StatusChip tone={running ? "warning" : "neutral"} label={running ? "RUNNING" : "IDLE"} />}
         >
           {!plan?.valid ? (
@@ -598,24 +658,20 @@ export function TaskTakeover() {
                   {plan.steps.map((step, index) => (
                     <tr key={`${step.label}-${index}`}>
                       <td className="mono">{index + 1}</td>
-                      <td className="mono">{step.label}</td>
+                      <td className="mono">
+                        <strong>{step.label}</strong>
+                        <span className="muted"> {stepCommandsText(step)}</span>
+                        {stepSpeedText(step) ? (
+                          <span className="muted"> ({stepSpeedText(step)})</span>
+                        ) : null}
+                      </td>
                       <td>{step.kind}</td>
                       <td className="mono">
                         {step.duration_s !== undefined && step.duration_s !== null
-                          ? `${step.duration_s} s`
+                          ? `${formatNumber(step.duration_s, 2)} s`
                           : "—"}
                       </td>
-                      <td className="mono">
-                        {step.kind === "pose"
-                          ? ARM_JOINTS.map((name) =>
-                              step.target_raw && typeof step.target_raw === "object"
-                                ? step.target_raw[name] ?? "?"
-                                : "?",
-                            ).join("/")
-                          : step.kind === "grip"
-                            ? String(step.target_raw ?? "—")
-                            : "—"}
-                      </td>
+                      <td className="mono">{stepRawText(step)}</td>
                       <td>
                         <StatusChip
                           tone={
@@ -643,8 +699,8 @@ export function TaskTakeover() {
             </div>
           )}
           <p className="footnote">
-            每个 pose/grip 步骤仍走 /api/motion/preview → execute；完成后由网关
-            <code> GetBusServoState </code> 校验实际寄存器，Unknown 立即停止任务。
+            每个 pose 命令是一条 S 曲线（密集 waypoint，网关逐段复核速度/加速度），
+            grip 命令走同一条预览/执行与总线校验；Unknown 立即停止任务。
           </p>
         </Card>
       </div>
@@ -679,52 +735,6 @@ export function TaskTakeover() {
       </Card>
 
       <Modal
-        open={approachOpen}
-        title="确认底盘接近"
-        onClose={() => setApproachOpen(false)}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setApproachOpen(false)}>
-              取消
-            </Button>
-            <Button variant="primary" onClick={() => void runApproach()}>
-              确认接近
-            </Button>
-          </>
-        }
-      >
-        {requiredApproach && (
-          <>
-            <p>
-              底盘会慢速脉冲 <strong>{approachText(requiredApproach)}</strong>
-              ，机械臂保持在 view；每次脉冲后重新拍点云定位，最多 3 次。底盘没有编码器，
-              位置由相机闭环确认。
-            </p>
-            <KeyValue label="Pulse">
-              <span className="mono">
-                vx {formatNumber(requiredApproach.vx, 3)} · vy{" "}
-                {formatNumber(requiredApproach.vy, 3)} · duty{" "}
-                {requiredApproach.duty} · {requiredApproach.duration_s} s
-              </span>
-            </KeyValue>
-            <KeyValue label="Nominal travel">
-              <span className="mono">
-                {requiredApproach.nominal_travel_mm.toFixed(0)} mm
-              </span>
-            </KeyValue>
-            <KeyValue label="Aim point">
-              <span className="mono">
-                {requiredApproach.target_point_m
-                  .map((value) => formatNumber(value, 3))
-                  .join(", ")}{" "}
-                m
-              </span>
-            </KeyValue>
-          </>
-        )}
-      </Modal>
-
-      <Modal
         open={confirmOpen}
         title="确认执行任务"
         onClose={() => setConfirmOpen(false)}
@@ -734,35 +744,56 @@ export function TaskTakeover() {
               取消
             </Button>
             <Button variant="danger" onClick={() => void runPlan()}>
-              确认执行 {plan?.steps.length ?? 0} 步
+              {requiredApproach
+                ? "确认：底盘接近 + 执行任务"
+                : `确认执行 ${plan?.steps.length ?? 0} 个阶段`}
             </Button>
           </>
         }
       >
-        {plan?.valid && (
+        {plan && (
           <>
-            <p>
-              即将连续执行 <strong>{plan.steps.length}</strong> 个动作：open → approach →
-              pre-grasp → grasp → close → lift → view → verify → put-back → open → view。
-              每一步都会总线校验；任何 Unknown 立即停止。
-            </p>
-            <KeyValue label="Cube point">
-              <span className="mono">
-                {planPoint?.map((value) => formatNumber(value, 4)).join(", ")}
-              </span>
-            </KeyValue>
-            <KeyValue label="Grasp joints">
-              <span className="mono">
-                {plan.grasp_joints
-                  ? ARM_JOINTS.map((name) => formatNumber(plan.grasp_joints?.[name] ?? 0, 3)).join(", ")
-                  : "—"}
-              </span>
-            </KeyValue>
-            <KeyValue label="View / lift">
-              <span className="mono">
-                {plan.view_preset} / {plan.lift_preset}
-              </span>
-            </KeyValue>
+            {requiredApproach ? (
+              <p>
+                木块在抓取带外。确认后先底盘<strong>{approachText(requiredApproach)}</strong>
+                （<span className="mono">
+                  vx {formatNumber(requiredApproach.vx, 3)} · vy{" "}
+                  {formatNumber(requiredApproach.vy, 3)} · duty{" "}
+                  {requiredApproach.duty} · {requiredApproach.duration_s} s
+                </span>
+                ，约 {requiredApproach.nominal_travel_mm.toFixed(0)} mm），机械臂保持 view；
+                每次脉冲后重新定位，进入抓取带后自动执行机械臂步骤。
+              </p>
+            ) : (
+              <p>
+                即将连续执行 <strong>{plan.steps.length}</strong> 个阶段：
+                {plan.steps.map((step) => step.label).join(" → ")}。
+                每一步都会总线校验；任何 Unknown 立即停止。
+              </p>
+            )}
+            {plan.valid && (
+              <>
+                <KeyValue label="Cube point">
+                  <span className="mono">
+                    {planPoint?.map((value) => formatNumber(value, 4)).join(", ")}
+                  </span>
+                </KeyValue>
+                <KeyValue label="Grasp joints">
+                  <span className="mono">
+                    {plan.grasp_joints
+                      ? ARM_JOINTS.map((name) => formatNumber(plan.grasp_joints?.[name] ?? 0, 3)).join(", ")
+                      : "—"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="View / speed">
+                  <span className="mono">
+                    {plan.view_preset} /{" "}
+                    {(plan.fast?.vmax_rad_s as number | undefined) ?? "?"} rad/s ·{" "}
+                    {(plan.fast?.amax_rad_s2 as number | undefined) ?? "?"} rad/s²
+                  </span>
+                </KeyValue>
+              </>
+            )}
             <p className="muted">
               无急停/抱闸；保持手边可断电。夹持验证失败时不会放回。
             </p>

@@ -279,19 +279,34 @@ export interface MotionPresetList {
   gate_error: string[] | null;
 }
 
-export interface TaskStep {
-  kind: "pose" | "grip" | "verify";
+export interface PreviewProfile {
+  vmax_rad_s: number;
+  amax_rad_s2: number;
+  dt_s?: number;
+}
+
+export interface TaskCommand {
+  kind: "pose" | "grip";
   label: string;
   joints?: Record<string, number>;
   from_joints?: Record<string, number>;
   targets?: TargetPayload[];
-  duration_s?: number;
+  duration_s: number;
+  profile?: PreviewProfile & { segments?: number; total_s?: number };
   target_rad?: number;
   from_rad?: number;
   target_raw?: number | Record<string, number | null> | null;
   pose_check?: PoseCheck | null;
-  status: string;
+  fast?: boolean;
+}
+
+export interface TaskStep {
+  kind: "pose" | "grip" | "mixed" | "verify";
+  label: string;
+  commands: TaskCommand[];
+  duration_s: number;
   detail?: string;
+  status: string;
 }
 
 export interface TaskIssue {
@@ -352,6 +367,7 @@ export interface TaskPlan {
   cloud?: Record<string, unknown>;
   current_joints?: Record<string, number>;
   approach?: TaskApproach | null;
+  fast?: Record<string, unknown> | null;
 }
 
 export interface TaskVerify {

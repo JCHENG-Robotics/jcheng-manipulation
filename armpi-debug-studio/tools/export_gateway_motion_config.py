@@ -207,6 +207,35 @@ def build_config(
                     chassis_raw.get("max_duration_s", 3.0)
                 ),
             }
+        task_raw = takeover_raw.get("task") or {}
+        fast_raw = task_raw.get("fast") if isinstance(task_raw, dict) else None
+        if isinstance(fast_raw, dict) and bool(fast_raw.get("enabled", False)):
+            # The G8 fast task path: dense S-curve waypoints and the measured
+            # gripper timings. The per-command pose cap above stays 0.5 rad/s;
+            # this block only applies to a profile payload or a fast gripper.
+            config["safety"]["profile"] = {
+                "max_velocity_rad_s": float(fast_raw.get("vmax_rad_s", 4.0)),
+                "max_accel_rad_s2": float(fast_raw.get("amax_rad_s2", 20.0)),
+                "min_segment_s": 0.025,
+                "max_segment_s": 0.5,
+                "max_points": int(fast_raw.get("max_points", 400)),
+                "max_total_duration_s": float(
+                    fast_raw.get("max_total_duration_s", 6.0)
+                ),
+                "start_tolerance_pulses": 20,
+                "gripper_speed_raw_per_s": float(
+                    fast_raw.get("gripper_speed_raw_per_s", 900.0)
+                ),
+                "gripper_min_duration_s": float(
+                    fast_raw.get("gripper_min_duration_s", 0.25)
+                ),
+                "gripper_settle_s": float(
+                    fast_raw.get("gripper_settle_s", 0.6)
+                ),
+            }
+            config["safety"]["verification_settle_s"] = float(
+                fast_raw.get("verify_settle_s", 0.35)
+            )
     return config
 
 
@@ -260,6 +289,19 @@ def main(argv: list[str] | None = None) -> int:
             f"  gripper={parsed.gripper.joint} "
             f"pulse {parsed.gripper.min_pulse}..{parsed.gripper.max_pulse} "
             f"completion={parsed.gripper.completion}"
+        )
+    if parsed.profile is not None:
+        profile = parsed.profile
+        print(
+            f"  fast profile enabled: velocity<={profile.max_velocity_rad_s} "
+            f"rad/s accel<={profile.max_accel_rad_s2} rad/s^2 "
+            f"segments<={profile.max_points} "
+            f"total<={profile.max_total_duration_s} s"
+        )
+        print(
+            f"  fast gripper: duration>={profile.gripper_min_duration_s} s "
+            f"rate<={profile.gripper_speed_raw_per_s} raw/s "
+            f"settle={profile.gripper_settle_s} s"
         )
     print("  add --enable-motion --motion-config to the motion gateway launch")
     return 0

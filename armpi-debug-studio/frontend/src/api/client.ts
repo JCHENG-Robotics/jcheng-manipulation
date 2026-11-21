@@ -12,6 +12,7 @@ import type {
   Lease,
   MotionPresetList,
   Peripherals,
+  PreviewProfile,
   PreviewResult,
   ProbeResult,
   RobotState,
@@ -202,10 +203,19 @@ export const api = {
       body: JSON.stringify({ lease_id: leaseId, session_id: sessionId }),
     });
   },
-  async preview(sessionId: string, targets: TargetPayload[]): Promise<PreviewResult> {
+  async preview(
+    sessionId: string,
+    targets: TargetPayload[],
+    options?: { profile?: PreviewProfile; fast?: boolean },
+  ): Promise<PreviewResult> {
     return request<PreviewResult>("/api/motion/preview", {
       method: "POST",
-      body: JSON.stringify({ session_id: sessionId, targets }),
+      body: JSON.stringify({
+        session_id: sessionId,
+        targets,
+        profile: options?.profile ?? null,
+        fast: options?.fast ?? false,
+      }),
     });
   },
   async motionPresets(): Promise<MotionPresetList> {
@@ -247,6 +257,8 @@ export const api = {
     commandId: string;
     targets: TargetPayload[];
     idempotencyKey: string;
+    profile?: PreviewProfile;
+    fast?: boolean;
   }): Promise<CommandRecord> {
     return request<CommandRecord>("/api/motion/execute", {
       method: "POST",
@@ -257,6 +269,8 @@ export const api = {
         preview_token: input.previewToken,
         command_id: input.commandId,
         targets: input.targets,
+        profile: input.profile ?? null,
+        fast: input.fast ?? false,
       }),
     });
   },

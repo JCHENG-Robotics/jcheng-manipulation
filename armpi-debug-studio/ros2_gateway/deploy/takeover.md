@@ -24,9 +24,15 @@ backend/.venv/bin/python tools/export_gateway_motion_config.py \
 
 Defaults in pose mode: the widest joint span as the step cap (3.61 rad),
 0.5 rad/s velocity, 1.0 s floor, 3.0 s completion margin, five-joint poses and
-the `r_joint` gripper contract from `configs/takeover.yaml`. Do not hand-edit
-pulse bounds; change `takeover.yaml`/`joint_mapping.yaml`, regenerate, and
-re-run the parser (the generator validates with the gateway's own parser).
+the `r_joint` gripper contract from `configs/takeover.yaml`. When
+`task.fast.enabled` is true the export also carries the `safety.profile` block
+(4.0 rad/s / 20 rad/s², 0.025-0.5 s segments, 6 s total, the fast gripper
+durations and a 0.35 s verification settle); the gateway accepts a
+`profile.points` command (and a `fast` gripper command) only when that block
+is present. Re-export and restart the pose instance after changing it; a
+running gateway keeps the old config. Do not hand-edit pulse bounds; change
+`takeover.yaml`/`joint_mapping.yaml`, regenerate, and re-run the parser (the
+generator validates with the gateway's own parser).
 
 ## 2. Use a separate deploy directory
 

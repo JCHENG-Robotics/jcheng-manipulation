@@ -14,6 +14,7 @@ import platform
 import threading
 import time
 import uuid
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
 
@@ -48,6 +49,7 @@ from .domain.motion import effective_motion_limits
 from .domain.approach import plan_approach
 from .domain.grasp_fit import fit as grasp_fit, validate_target as validate_grasp_target
 from .domain.locate import cube_box_present, cube_point, segment_floor_cube
+from .domain.profile import ProfileParams, plan_move, validate_params as validate_profile_params
 from .domain.task import build_task_plan
 from .domain.takeover import (
     ARM_JOINTS,
@@ -267,18 +269,55 @@ class RobotService:
             targets[gripper.joint] = gripper.position_rad
         return targets
 
-    def _validate_targets(self, state: RobotState, targets: list[MotionTarget]):
+    def _fast_gripper(self):
+        """The fast task gripper contract, or None when the fast path is off."""
+        if self.takeover is None or self.takeover.task is None:
+            return None
+        fast = self.takeover.task.fast
+        if not fast.enabled:
+            return None
+        return replace(
+            self.takeover.gripper,
+            speed_raw_per_s=fast.gripper_speed_raw_per_s,
+            min_duration_s=fast.gripper_min_duration_s,
+            max_duration_s=max(self.takeover.gripper.max_duration_s, 5.0),
+        )
+
+    def _validate_targets(
+        self,
+        state: RobotState,
+        targets: list[MotionTarget],
+        *,
+        profile: ProfileParams | None = None,
+        fast: bool = False,
+    ):
+        min_duration = self.motion_limits.min_duration_s
+        max_velocity = self.motion_limits.max_velocity_rad_s
+        gripper = self.takeover.gripper if self.takeover is not None else None
+        if profile is not None:
+            # A dense profile is validated endpoint-by-endpoint against the
+            # profile's own peak velocity; its total can be shorter than the
+            # single-command duration floor.
+            min_duration = 0.0
+            max_velocity = profile.vmax_rad_s
+        elif fast:
+            # Fast task gripper steps use the measured 0.35-0.8 s raw durations.
+            min_duration = 0.0
+        if fast or profile is not None:
+            fast_gripper = self._fast_gripper()
+            if fast_gripper is not None:
+                gripper = fast_gripper
         outcome = validate_targets(
             self.mapping,
             targets,
             current_targets=self._current_targets(state),
             max_step_rad=self.motion_limits.max_step_rad,
-            min_duration_s=self.motion_limits.min_duration_s,
+            min_duration_s=min_duration,
             max_duration_s=self.motion_limits.max_duration_s,
             single_joint_only=self.motion_limits.single_joint_only,
             scope="pose" if self.motion_limits.takeover else "step",
-            max_velocity_rad_s=self.motion_limits.max_velocity_rad_s,
-            gripper=self.takeover.gripper if self.takeover is not None else None,
+            max_velocity_rad_s=max_velocity,
+            gripper=gripper,
         )
         if self.motion_limits.takeover and self.takeover is not None:
             gripper_name = self.takeover.gripper.joint
@@ -305,6 +344,137 @@ class RobotService:
                         )
                     )
         return outcome
+
+    def _check_profile(
+        self,
+        state: RobotState,
+        normalized: list[dict[str, Any]],
+        profile: ProfileParams,
+        outcome,
+    ) -> None:
+        """Validate the fast profile against the contract and the live start."""
+        if self.takeover is None or self.takeover.task is None:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_DISABLED",
+                    "the fast profile needs a task block in takeover.yaml",
+                )
+            )
+            return
+        fast = self.takeover.task.fast
+        if not fast.enabled:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_DISABLED",
+                    "task.fast.enabled is false in configs/takeover.yaml",
+                )
+            )
+            return
+        try:
+            validate_profile_params(profile)
+        except ValueError as exc:
+            outcome.errors.append(self._issue(ErrorCode.BAD_REQUEST, str(exc)))
+            return
+        if profile.vmax_rad_s > fast.vmax_rad_s + 1e-9:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_LIMIT",
+                    f"profile vmax {profile.vmax_rad_s} rad/s exceeds the "
+                    f"contract's {fast.vmax_rad_s} rad/s",
+                )
+            )
+            return
+        if profile.amax_rad_s2 > fast.amax_rad_s2 + 1e-9:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_LIMIT",
+                    f"profile amax {profile.amax_rad_s2} rad/s^2 exceeds the "
+                    f"contract's {fast.amax_rad_s2} rad/s^2",
+                )
+            )
+            return
+        target = {item["joint"]: float(item["target_rad"]) for item in normalized}
+        if set(target) != set(ARM_JOINTS):
+            outcome.errors.append(
+                self._issue(
+                    ErrorCode.POSE_JOINT_SET,
+                    "a dense profile needs exactly the five arm joints",
+                )
+            )
+            return
+        start = self._current_targets(state)
+        try:
+            generated = plan_move(
+                {name: float(start[name]) for name in ARM_JOINTS},
+                target,
+                profile,
+            )
+        except (KeyError, ValueError) as exc:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_INVALID",
+                    f"the profile could not be built: {exc}",
+                )
+            )
+            return
+        if generated.total_s > fast.max_total_duration_s + 1e-9:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_LIMIT",
+                    f"profile total {generated.total_s:.3f} s exceeds the "
+                    f"contract's {fast.max_total_duration_s:.3f} s",
+                )
+            )
+            return
+        if generated.segments > fast.max_points:
+            outcome.errors.append(
+                self._issue(
+                    "PROFILE_LIMIT",
+                    f"profile has {generated.segments} segments; the cap is "
+                    f"{fast.max_points}",
+                )
+            )
+            return
+        # Show the real S-curve time in the preview instead of the plan-time
+        # estimate (the live start differs by a few pulses after every move).
+        for item in normalized:
+            item["duration_s"] = generated.total_s
+
+    def _build_profile_points(
+        self,
+        state: RobotState,
+        normalized: list[dict[str, Any]],
+        profile: ProfileParams,
+    ) -> list[dict[str, Any]]:
+        """Build the concrete waypoints from the fresh start pose."""
+        start = self._current_targets(state)
+        target = {item["joint"]: float(item["target_rad"]) for item in normalized}
+        generated = plan_move(
+            {name: float(start[name]) for name in ARM_JOINTS},
+            target,
+            profile,
+        )
+        by_joint = {item["joint"]: item for item in normalized}
+        points: list[dict[str, Any]] = []
+        for duration, pose in zip(generated.durations_s, generated.points):
+            targets = []
+            for name in ARM_JOINTS:
+                joint = self.mapping.joints[name]
+                targets.append(
+                    {
+                        "joint": name,
+                        "target_rad": float(pose[name]),
+                        "target_raw": int(round(joint.rad_to_raw(float(pose[name])))),
+                    }
+                )
+            points.append({"duration_s": float(duration), "targets": targets})
+        # The gateway requires the last waypoint to equal the previewed
+        # endpoint exactly; use the validated raw pulses there.
+        for item in points[-1]["targets"]:
+            source = by_joint[item["joint"]]
+            item["target_rad"] = float(source["target_rad"])
+            item["target_raw"] = int(source["target_raw"])
+        return points
 
     def _issue(self, code: ErrorCode | str, message: str, joint: str | None = None, **details):
         code_value = code.value if isinstance(code, ErrorCode) else str(code)
@@ -444,32 +614,55 @@ class RobotService:
     def _record_dict(record: CommandRecord) -> dict[str, Any]:
         return jsonable(record)
 
-    def _token_targets(self, normalized: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _token_targets(
+        self,
+        normalized: list[dict[str, Any]],
+        *,
+        profile: ProfileParams | None = None,
+    ) -> list[dict[str, Any]]:
         # ``from_rad`` is deliberately excluded: it comes from the live state
         # read and can change by small amounts between preview and execute
         # (hardware command echo). Binding it would turn a genuinely safe
         # preview into PREVIEW_PAYLOAD_MISMATCH instead of letting the safety
         # gate evaluate the command against the fresh state.
+        # A profile duration is also excluded: it is computed from that live
+        # start, so it changes by a few milliseconds between preview and
+        # execute even when the target is identical.
         return [
             {
                 "joint": item["joint"],
                 "target_rad": item["target_rad"],
-                "duration_s": item["duration_s"],
                 "target_raw": item["target_raw"],
+                **(
+                    {}
+                    if profile is not None
+                    else {"duration_s": item["duration_s"]}
+                ),
             }
             for item in normalized
         ]
 
     def _preview_payload(
-        self, command_id: str, session_id: str, normalized: list[dict[str, Any]]
+        self,
+        command_id: str,
+        session_id: str,
+        normalized: list[dict[str, Any]],
+        *,
+        profile: ProfileParams | None = None,
+        fast: bool = False,
     ) -> dict[str, Any]:
-        return {
+        payload = {
             "command_id": command_id,
             "session_id": session_id,
             "mapping_version": self.mapping.mapping_version,
             "mapping_hash": self.mapping.mapping_hash,
-            "targets": self._token_targets(normalized),
+            "targets": self._token_targets(normalized, profile=profile),
         }
+        if profile is not None:
+            payload["profile"] = profile.to_public_dict()
+        if fast:
+            payload["fast"] = True
+        return payload
 
     @staticmethod
     def _hash(value: Any) -> str:
@@ -1213,11 +1406,22 @@ class RobotService:
             return {"released": True, "storage_error": storage_error}
 
     # ------------------------------------------------------------------- motion
-    def preview(self, session_id: str, targets: list[MotionTarget]) -> dict[str, Any]:
+    def preview(
+        self,
+        session_id: str,
+        targets: list[MotionTarget],
+        *,
+        profile: ProfileParams | None = None,
+        fast: bool = False,
+    ) -> dict[str, Any]:
         with self._lock:
             command_id = f"cmd_{uuid.uuid4().hex[:16]}"
             state = self._state()
-            outcome = self._validate_targets(state, targets)
+            outcome = self._validate_targets(
+                state, targets, profile=profile, fast=fast
+            )
+            if outcome.valid and profile is not None:
+                self._check_profile(state, outcome.normalized, profile, outcome)
             pose_details: dict[str, Any] | None = None
             if outcome.valid:
                 pose_details, pose_errors = self._pose_check(state, outcome.normalized)
@@ -1304,7 +1508,13 @@ class RobotService:
                     )
                 )
 
-            payload = self._preview_payload(command_id, session_id, outcome.normalized)
+            payload = self._preview_payload(
+                command_id,
+                session_id,
+                outcome.normalized,
+                profile=profile,
+                fast=fast,
+            )
             token, expires_at = self.tokens.issue(payload, self.mapping.safety.preview_ttl_s)
             record = CommandRecord(
                 command_id=command_id,
@@ -1363,6 +1573,8 @@ class RobotService:
         command_id: str,
         targets: list[MotionTarget],
         idempotency_key: str,
+        profile: ProfileParams | None = None,
+        fast: bool = False,
     ) -> dict[str, Any]:
         if not idempotency_key or not idempotency_key.strip():
             raise ServiceError(
@@ -1377,6 +1589,8 @@ class RobotService:
                 "preview_token": preview_token,
                 "command_id": command_id,
                 "targets": [jsonable(t) for t in targets],
+                "profile": profile.to_public_dict() if profile else None,
+                "fast": bool(fast),
             }
         )
         with self._lock:
@@ -1393,7 +1607,11 @@ class RobotService:
                 )
 
             state = self._state()
-            outcome = self._validate_targets(state, targets)
+            outcome = self._validate_targets(
+                state, targets, profile=profile, fast=fast
+            )
+            if outcome.valid and profile is not None:
+                self._check_profile(state, outcome.normalized, profile, outcome)
             pose_details: dict[str, Any] | None = None
             if outcome.valid:
                 pose_details, pose_errors = self._pose_check(state, outcome.normalized)
@@ -1435,7 +1653,13 @@ class RobotService:
                     },
                 )
 
-            payload = self._preview_payload(command_id, session_id, outcome.normalized)
+            payload = self._preview_payload(
+                command_id,
+                session_id,
+                outcome.normalized,
+                profile=profile,
+                fast=fast,
+            )
             token_check = self.tokens.consume(preview_token, payload)
             if not token_check.ok:
                 raise ServiceError(
@@ -1494,7 +1718,17 @@ class RobotService:
                 )
 
             try:
-                dispatch = self.adapter.dispatch(outcome.normalized, command_id)
+                if profile is not None:
+                    points = self._build_profile_points(
+                        state, outcome.normalized, profile
+                    )
+                    dispatch = self.adapter.dispatch_profile(
+                        outcome.normalized, points, command_id
+                    )
+                else:
+                    dispatch = self.adapter.dispatch(
+                        outcome.normalized, command_id, fast=fast
+                    )
             except HardwareMotionDisabled as exc:
                 transition(
                     record,

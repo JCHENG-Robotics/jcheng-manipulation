@@ -120,8 +120,34 @@ class RobotAdapter(ABC):
         return None
 
     @abstractmethod
-    def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
-        """Send a validated target set. Hardware must reject in G1."""
+    def dispatch(
+        self,
+        targets: list[dict[str, Any]],
+        command_id: str,
+        *,
+        fast: bool = False,
+    ) -> DispatchResult:
+        """Send a validated target set. Hardware must reject in G1.
+
+        ``fast`` marks the G8 task's measured gripper timings; the gateway
+        uses the ``safety.profile`` block instead of the slow path's 1.0 s
+        floor and 100 raw/s cap. It must be forwarded, not inferred.
+        """
+
+    def dispatch_profile(
+        self,
+        targets: list[dict[str, Any]],
+        points: list[dict[str, Any]],
+        command_id: str,
+    ) -> DispatchResult:
+        """Send a dense S-curve profile.
+
+        ``points`` carries one ``{duration_s, targets}`` entry per segment.
+        The default implementation degrades to one endpoint command so mock
+        adapters stay simple; the hardware adapter forwards the waypoints to
+        the gateway, which validates every segment.
+        """
+        return self.dispatch(targets, command_id)
 
     @abstractmethod
     def stop(self, command_id: str) -> StopResult:

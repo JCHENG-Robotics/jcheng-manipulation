@@ -2,12 +2,15 @@
 """Run one G8 task sequence through the Studio API, with bus-verified steps.
 
 The plan is produced by ``POST /api/task/plan`` (locate + deep-family fit +
-FK/limit validation). Each pose/grip step then goes through the ordinary
-``/api/motion/preview`` and ``/api/motion/execute`` endpoints, so the gateway's
-bus-servo verification applies. A verify step checks the cube box at the view.
+FK/limit validation). A cube outside the grasp band gets the base approach
+inside the same run: pulse, re-plan, repeat until the plan is valid. Each
+pose command is one dense S-curve (the gateway validates every segment) and
+each grip command is one timed bus-servo command; both go through
+``/api/motion/preview`` and ``/api/motion/execute``, so the gateway's bus-servo
+verification applies. A verify step checks the cube box at the view.
 Any rejected preview, `Failed` or `Unknown` aborts the run; nothing is retried.
 
-    # plan only (read-only, prints the located point and steps)
+    # plan only (read-only, prints the located point and phases)
     python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
         --out /tmp/g8_plan.json
 
@@ -98,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         "execute": bool(args.execute),
         "plan": None,
         "steps": [],
+        "approach_pulses": [],
         "verify": None,
         "ok": False,
         "error": None,
@@ -124,10 +128,23 @@ def main(argv: list[str] | None = None) -> int:
             )
         for issue in plan.get("errors", []):
             print("  ERROR", issue.get("code"), issue.get("message"))
-        if not plan.get("valid"):
+        approach_codes = [issue.get("code") for issue in plan.get("errors", [])]
+        approach_required = (
+            not plan.get("valid")
+            and "APPROACH_REQUIRED" in approach_codes
+            and plan.get("approach")
+        )
+        if not plan.get("valid") and not approach_required:
             raise RuntimeError("the task plan is not valid")
-        print("  步骤", len(plan.get("steps", [])))
+        print(
+            "  阶段",
+            len(plan.get("steps", [])),
+            "曲线",
+            (plan.get("fast") or {}).get("mode", "?"),
+        )
         if not args.execute:
+            if approach_required:
+                print("  运行时会先底盘接近:", plan["approach"])
             report["ok"] = True
             return 0
 
@@ -141,11 +158,76 @@ def main(argv: list[str] | None = None) -> int:
         lease = lease_response
         print("控制权租约:", lease["lease_id"])
 
+        # One run does the base approach too: pulse, re-locate, repeat until
+        # the plan is valid, then run the arm phases.
+        if approach_required:
+            presets = client.request("GET", "/api/motion/presets")
+            contract = (presets.get("contract") or {}) if presets else {}
+            approach_contract = (
+                (contract.get("task") or {}).get("approach") or {}
+            )
+            max_pulses = int(approach_contract.get("max_pulses", 3))
+            settle = max(0.6, float(approach_contract.get("settle_s", 0.5)))
+            pulses: list[dict[str, Any]] = []
+            report["approach_pulses"] = pulses
+            for attempt in range(max_pulses):
+                approach = plan.get("approach")
+                if not approach:
+                    break
+                print(
+                    "\n== 底盘接近 {}/{}: vx={:.3f} vy={:.3f} duty={} {:.2f} s "
+                    "({:.0f} mm nominal)".format(
+                        attempt + 1,
+                        max_pulses,
+                        approach["vx"],
+                        approach["vy"],
+                        approach["duty"],
+                        approach["duration_s"],
+                        approach["nominal_travel_mm"],
+                    )
+                )
+                pulse = client.request(
+                    "POST",
+                    "/api/chassis/pulse",
+                    {
+                        "session_id": args.session,
+                        "lease_id": lease["lease_id"],
+                        "vx": approach["vx"],
+                        "vy": approach["vy"],
+                        "duty": approach["duty"],
+                        "duration_s": approach["duration_s"],
+                    },
+                )
+                print("  pulse:", pulse.get("status"), pulse.get("verification"))
+                record = {"approach": approach, "response": pulse}
+                pulses.append(record)
+                if pulse.get("status") != "Completed":
+                    raise RuntimeError(f"chassis pulse returned {pulse}")
+                time.sleep(settle)
+                plan = client.request("POST", "/api/task/plan")
+                report["plan"] = plan
+                print(
+                    "  重新规划:",
+                    "VALID" if plan.get("valid") else
+                    [issue.get("code") for issue in plan.get("errors", [])],
+                )
+                if plan.get("valid"):
+                    break
+                if not plan.get("approach"):
+                    raise RuntimeError("the base approach did not yield a valid plan")
+            if not plan.get("valid"):
+                raise RuntimeError("the base approach did not get the cube into the band")
+
         for index, step in enumerate(plan["steps"]):
             label = step.get("label")
             kind = step.get("kind")
             print(f"\n== [{index + 1}/{len(plan['steps'])}] {label} ({kind})")
-            record: dict[str, Any] = {"index": index, "label": label, "kind": kind}
+            record: dict[str, Any] = {
+                "index": index,
+                "label": label,
+                "kind": kind,
+                "commands": [],
+            }
             report["steps"].append(record)
             if kind == "verify":
                 verify = client.request(
@@ -163,68 +245,84 @@ def main(argv: list[str] | None = None) -> int:
                         "grip verify failed: " + str(verify.get("message") or verify)
                     )
                 continue
-            targets = step.get("targets") or []
-            preview = client.request(
-                "POST",
-                "/api/motion/preview",
-                {"session_id": args.session, "targets": targets},
-            )
-            record["preview"] = preview
-            if not preview.get("valid") or not preview.get("preview_token"):
-                print(
-                    "  preview REJECTED",
-                    [issue.get("code") for issue in preview.get("errors", [])],
-                )
-                raise RuntimeError(f"{label}: preview rejected")
-            command = client.request(
-                "POST",
-                "/api/motion/execute",
-                {
+            for command in step.get("commands") or []:
+                command_label = command.get("label")
+                targets = command.get("targets") or []
+                body: dict[str, Any] = {
                     "session_id": args.session,
-                    "lease_id": lease["lease_id"],
-                    "preview_token": preview["preview_token"],
-                    "command_id": preview["command_id"],
-                    "targets": [
-                        {
-                            "joint": item["joint"],
-                            "target_rad": item["target_rad"],
-                            "duration_s": item["duration_s"],
-                        }
-                        for item in preview["targets"]
-                    ],
-                },
-                headers={"Idempotency-Key": uuid.uuid4().hex},
-            )
-            record["execute"] = command
-            if command.get("status") not in ("Dispatched", "Completed"):
-                raise RuntimeError(f"{label}: execute returned {command}")
-            duration = max(float(item["duration_s"]) for item in preview["targets"])
-            event = terminal_event(client, preview["command_id"], duration)
-            record["terminal"] = event
-            if event is None:
-                raise RuntimeError(f"{label}: no terminal event")
-            if event.get("stage") != "Completed":
-                raise RuntimeError(
-                    f"{label}: {event.get('stage')} {event.get('error_code')}"
+                    "targets": targets,
+                    "profile": command.get("profile"),
+                    "fast": bool(command.get("fast", False)),
+                }
+                preview = client.request("POST", "/api/motion/preview", body)
+                command_record: dict[str, Any] = {
+                    "label": command_label,
+                    "profile": command.get("profile"),
+                    "preview": preview,
+                }
+                record["commands"].append(command_record)
+                if not preview.get("valid") or not preview.get("preview_token"):
+                    print(
+                        "  preview REJECTED",
+                        [issue.get("code") for issue in preview.get("errors", [])],
+                    )
+                    raise RuntimeError(f"{label}/{command_label}: preview rejected")
+                execute = client.request(
+                    "POST",
+                    "/api/motion/execute",
+                    {
+                        "session_id": args.session,
+                        "lease_id": lease["lease_id"],
+                        "preview_token": preview["preview_token"],
+                        "command_id": preview["command_id"],
+                        "targets": [
+                            {
+                                "joint": item["joint"],
+                                "target_rad": item["target_rad"],
+                                "duration_s": item["duration_s"],
+                            }
+                            for item in preview["targets"]
+                        ],
+                        "profile": command.get("profile"),
+                        "fast": bool(command.get("fast", False)),
+                    },
+                    headers={"Idempotency-Key": uuid.uuid4().hex},
                 )
-            details = event.get("details") or {}
-            actual = {
-                joint: item.get("raw_position")
-                for joint, item in (details.get("actual") or {}).items()
-            }
-            deviations = details.get("deviations_pulses") or {}
-            print(
-                "  Completed",
-                "actual", actual,
-                "dev", {k: v for k, v in deviations.items()},
-            )
-            heartbeat = client.request(
-                "POST",
-                "/api/control/heartbeat",
-                {"lease_id": lease["lease_id"], "session_id": args.session},
-            )
-            if heartbeat.get("lease_id"):
-                lease = heartbeat
+                command_record["execute"] = execute
+                if execute.get("status") not in ("Dispatched", "Completed"):
+                    raise RuntimeError(
+                        f"{label}/{command_label}: execute returned {execute}"
+                    )
+                duration = max(
+                    float(item["duration_s"]) for item in preview["targets"]
+                )
+                event = terminal_event(client, preview["command_id"], duration)
+                command_record["terminal"] = event
+                if event is None:
+                    raise RuntimeError(f"{label}/{command_label}: no terminal event")
+                if event.get("stage") != "Completed":
+                    raise RuntimeError(
+                        f"{label}/{command_label}: {event.get('stage')} "
+                        f"{event.get('error_code')}"
+                    )
+                details = event.get("details") or {}
+                actual = {
+                    joint: item.get("raw_position")
+                    for joint, item in (details.get("actual") or {}).items()
+                }
+                deviations = details.get("deviations_pulses") or {}
+                print(
+                    "  {} Completed".format(command_label),
+                    "actual", actual,
+                    "dev", {k: v for k, v in deviations.items()},
+                )
+                heartbeat = client.request(
+                    "POST",
+                    "/api/control/heartbeat",
+                    {"lease_id": lease["lease_id"], "session_id": args.session},
+                )
+                if heartbeat.get("lease_id"):
+                    lease = heartbeat
         report["ok"] = True
         return 0
     except Exception as exc:  # noqa: BLE001 - report and fail loudly

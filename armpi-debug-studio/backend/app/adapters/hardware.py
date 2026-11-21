@@ -980,7 +980,83 @@ class HardwareAdapter(RobotAdapter):
                 },
             )
 
-    def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
+    def _gateway_joints(
+        self, targets: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]] | None, DispatchResult | None]:
+        """Convert normalized targets to the gateway's pulse payload."""
+        joints: list[dict[str, Any]] = []
+        for item in targets:
+            name = str(item["joint"])
+            if self.takeover is not None and name == self.takeover.gripper.joint:
+                gripper = self.takeover.gripper
+                target_rad = float(item["target_rad"])
+                target_raw = int(item["target_raw"])
+                expected_raw = gripper.rad_to_raw(target_rad)
+                if abs(expected_raw - target_raw) > 1.0:
+                    return None, DispatchResult(
+                        CommandStage.FAILED,
+                        ErrorCode.BAD_REQUEST.value,
+                        f"{name}: target_raw {target_raw} disagrees with "
+                        f"rad_to_raw({target_rad:.6f}) = {expected_raw:.3f}",
+                    )
+                if not (
+                    gripper.min_rad - 1e-9
+                    <= target_rad
+                    <= gripper.max_rad + 1e-9
+                ):
+                    return None, DispatchResult(
+                        CommandStage.FAILED,
+                        ErrorCode.GRIPPER_RANGE.value,
+                        f"{name}: {target_rad:.6f} rad outside the measured "
+                        f"command range [{gripper.min_rad:.6f}, "
+                        f"{gripper.max_rad:.6f}]",
+                    )
+                joints.append(
+                    {
+                        "joint": name,
+                        "servo_id": gripper.servo_id,
+                        "target_pulse": target_raw,
+                        "target_rad": target_rad,
+                        "completion": gripper.completion,
+                    }
+                )
+                continue
+            joint = self.mapping.joints.get(name)
+            if joint is None:
+                return None, DispatchResult(
+                    CommandStage.FAILED,
+                    ErrorCode.UNKNOWN_JOINT.value,
+                    f"unknown joint: {name}",
+                )
+            target_rad = float(item["target_rad"])
+            target_raw = int(item["target_raw"])
+            expected_raw = joint.rad_to_raw(target_rad)
+            if abs(expected_raw - target_raw) > 1.0:
+                return None, DispatchResult(
+                    CommandStage.FAILED,
+                    ErrorCode.BAD_REQUEST.value,
+                    f"{name}: target_raw {target_raw} disagrees with "
+                    f"rad_to_raw({target_rad:.6f}) = {expected_raw:.3f}",
+                )
+            low, high = sorted((joint.min_raw, joint.max_raw))
+            if not low <= target_raw <= high:
+                return None, DispatchResult(
+                    CommandStage.FAILED,
+                    ErrorCode.OUT_OF_LIMIT.value,
+                    f"{name}: pulse {target_raw} outside [{low}, {high}]",
+                )
+            joints.append(
+                {
+                    "joint": name,
+                    "servo_id": joint.servo_id,
+                    "target_pulse": target_raw,
+                    "target_rad": target_rad,
+                    "completion": "position",
+                }
+            )
+        return joints, None
+
+    def _dispatch_checks(self, targets: list[dict[str, Any]]) -> DispatchResult | None:
         if not self.motion_enabled:
             raise HardwareMotionDisabled(
                 "Hardware motion is disabled; complete mapping verification and obtain Board approval"
@@ -1013,6 +1089,18 @@ class HardwareAdapter(RobotAdapter):
                 ErrorCode.SUPERVISED_SINGLE_JOINT.value,
                 "supervised hardware motion accepts exactly one joint",
             )
+        return None
+
+    def dispatch(
+        self,
+        targets: list[dict[str, Any]],
+        command_id: str,
+        *,
+        fast: bool = False,
+    ) -> DispatchResult:
+        blocked = self._dispatch_checks(targets)
+        if blocked is not None:
+            return blocked
 
         durations = {round(float(item["duration_s"]), 6) for item in targets}
         if len(durations) != 1:
@@ -1023,7 +1111,15 @@ class HardwareAdapter(RobotAdapter):
                 {"durations_s": sorted(durations)},
             )
         duration = durations.pop()
-        if duration < self.motion_limits.min_duration_s - 1e-9:
+        gripper_only = (
+            len(targets) == 1
+            and self.takeover is not None
+            and str(targets[0]["joint"]) == self.takeover.gripper.joint
+        )
+        if (
+            duration < self.motion_limits.min_duration_s - 1e-9
+            and not gripper_only
+        ):
             return DispatchResult(
                 CommandStage.FAILED,
                 ErrorCode.DURATION_RANGE.value,
@@ -1031,76 +1127,10 @@ class HardwareAdapter(RobotAdapter):
                 f"{self.motion_limits.min_duration_s} s",
             )
 
-        joints = []
-        for item in targets:
-            name = str(item["joint"])
-            if self.takeover is not None and name == self.takeover.gripper.joint:
-                gripper = self.takeover.gripper
-                target_rad = float(item["target_rad"])
-                target_raw = int(item["target_raw"])
-                expected_raw = gripper.rad_to_raw(target_rad)
-                if abs(expected_raw - target_raw) > 1.0:
-                    return DispatchResult(
-                        CommandStage.FAILED,
-                        ErrorCode.BAD_REQUEST.value,
-                        f"{name}: target_raw {target_raw} disagrees with "
-                        f"rad_to_raw({target_rad:.6f}) = {expected_raw:.3f}",
-                    )
-                if not (
-                    gripper.min_rad - 1e-9
-                    <= target_rad
-                    <= gripper.max_rad + 1e-9
-                ):
-                    return DispatchResult(
-                        CommandStage.FAILED,
-                        ErrorCode.GRIPPER_RANGE.value,
-                        f"{name}: {target_rad:.6f} rad outside the measured "
-                        f"command range [{gripper.min_rad:.6f}, "
-                        f"{gripper.max_rad:.6f}]",
-                    )
-                joints.append(
-                    {
-                        "joint": name,
-                        "servo_id": gripper.servo_id,
-                        "target_pulse": target_raw,
-                        "target_rad": target_rad,
-                        "completion": gripper.completion,
-                    }
-                )
-                continue
-            joint = self.mapping.joints.get(name)
-            if joint is None:
-                return DispatchResult(
-                    CommandStage.FAILED,
-                    ErrorCode.UNKNOWN_JOINT.value,
-                    f"unknown joint: {name}",
-                )
-            target_rad = float(item["target_rad"])
-            target_raw = int(item["target_raw"])
-            expected_raw = joint.rad_to_raw(target_rad)
-            if abs(expected_raw - target_raw) > 1.0:
-                return DispatchResult(
-                    CommandStage.FAILED,
-                    ErrorCode.BAD_REQUEST.value,
-                    f"{name}: target_raw {target_raw} disagrees with "
-                    f"rad_to_raw({target_rad:.6f}) = {expected_raw:.3f}",
-                )
-            low, high = sorted((joint.min_raw, joint.max_raw))
-            if not low <= target_raw <= high:
-                return DispatchResult(
-                    CommandStage.FAILED,
-                    ErrorCode.OUT_OF_LIMIT.value,
-                    f"{name}: pulse {target_raw} outside [{low}, {high}]",
-                )
-            joints.append(
-                {
-                    "joint": name,
-                    "servo_id": joint.servo_id,
-                    "target_pulse": target_raw,
-                    "target_rad": target_rad,
-                    "completion": "position",
-                }
-            )
+        joints, error = self._gateway_joints(targets)
+        if error is not None:
+            return error
+        assert joints is not None
 
         payload = {
             "command_id": command_id,
@@ -1110,6 +1140,71 @@ class HardwareAdapter(RobotAdapter):
             "duration_s": duration,
             "joints": joints,
         }
+        if fast:
+            payload["fast"] = True
+        return self._post_dispatch(
+            payload, command_id, joints, duration
+        )
+
+    def dispatch_profile(
+        self,
+        targets: list[dict[str, Any]],
+        points: list[dict[str, Any]],
+        command_id: str,
+    ) -> DispatchResult:
+        """Send one dense S-curve; the gateway re-validates every segment."""
+        blocked = self._dispatch_checks(targets)
+        if blocked is not None:
+            return blocked
+        if not points:
+            return DispatchResult(
+                CommandStage.FAILED,
+                ErrorCode.NO_TARGETS.value,
+                "no profile points to dispatch",
+            )
+        joints, error = self._gateway_joints(targets)
+        if error is not None:
+            return error
+        assert joints is not None
+        point_payload: list[dict[str, Any]] = []
+        duration = 0.0
+        for point in points:
+            segment = float(point.get("duration_s") or 0.0)
+            if segment <= 0.0:
+                return DispatchResult(
+                    CommandStage.FAILED,
+                    ErrorCode.BAD_REQUEST.value,
+                    "profile segment duration must be positive",
+                )
+            point_joints, point_error = self._gateway_joints(
+                point.get("targets") or []
+            )
+            if point_error is not None:
+                return point_error
+            assert point_joints is not None
+            duration += segment
+            point_payload.append(
+                {"duration_s": segment, "joints": point_joints}
+            )
+        payload = {
+            "command_id": command_id,
+            "client": "armpi-debug-studio-backend",
+            "supervised": self.supervised,
+            "mode": self.motion_scope,
+            "duration_s": round(duration, 6),
+            "joints": joints,
+            "fast": True,
+            "profile": {"points": point_payload},
+        }
+        return self._post_dispatch(payload, command_id, joints, duration)
+
+    def _post_dispatch(
+        self,
+        payload: dict[str, Any],
+        command_id: str,
+        joints: list[dict[str, Any]],
+        duration: float,
+    ) -> DispatchResult:
         if self._gateway is None:  # pressed by the motion_enabled guard above
             raise HardwareMotionDisabled("no gateway client configured")
         try:

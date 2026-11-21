@@ -3,6 +3,71 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 Studio G8 fast task path
+
+### Added
+
+- **Fast G8 task run (Studio):** the task plan now emits **7 operator phases**
+  instead of 13 steps and executes each arm phase as one dense S-curve
+  (`backend/app/domain/profile.py`, the pure port of the hardware-verified
+  `tools/phase2/motion_profile.py`): 4.0 rad/s / 20 rad/s² free moves,
+  0.6/0.35 rad/s grasp descents and 1.4/0.8 rad/s release descents. The
+  separate `lift_150` move is replaced by one grasp -> view move, and the
+  measured 0.35/0.5/0.45 s gripper timings replace the slow path's 1.5/2.6/4.0 s.
+- **Dense-profile execution in the gateway:** `POST /motion/dispatch` accepts
+  `profile.points`; the guard re-validates every segment (pulse limits,
+  per-segment velocity, discrete acceleration, measured start, endpoint
+  equality) and publishes one `ServosPosition` per segment at the segment
+  cadence. The busy/stop/bus-verification state machine is unchanged; the
+  verification read still checks the endpoint only.
+- **Merged chassis approach:** the G8.1 base pulses are part of the task run.
+  `APPROACH_REQUIRED` is handled inside the run (pulse -> settle -> re-plan,
+  max 3), then the arm phases execute; the standalone "底盘接近" button and
+  its confirmation modal are removed. The terminal runner
+  `tools/studio/g8_task_run.py` implements the same loop and iterates phase
+  commands with `profile`/`fast` bodies.
+- Fast-path contract in `configs/takeover.yaml` under `task.fast`
+  (`vmax/amax/dt`, descent/final velocities, gripper durations, a 900 raw/s
+  sanity ceiling on the commanded interpolation rate, `gripper_settle_s 0.6`,
+  `verify_settle_s 0.35`); the exporter writes it as the gateway
+  `safety.profile` block. The slow pose path keeps its 0.5 rad/s cap, 1.0 s
+  floor and 100 raw/s gripper validation.
+- Tests: `backend/tests/test_profile.py` (reference-profile parity),
+  `ros2_gateway/tests/test_profile.py` (per-segment rejection, fast gripper,
+  endpoint equality), and task/mock tests for the 7-phase plan and the profile
+  preview/execute token. Backend **136 passed**, gateway **80 passed**, pose
+  scope Playwright **3 passed** (the full task run completes in mock).
+- **Hardware verification (2026-11-21):** the fast path ran on the real robot.
+  The first attempt performed the in-run base pulse (13 mm) and the first three
+  arm profiles, then `close_pre` was rejected before publication because the
+  adapter did not forward `fast: true` (the gateway applied the 1.0 s slow
+  floor). After the fix the second run passed: 7 phases, 5.466 s commanded /
+  **13.46 s wall** (the old 13-step plan was 33.56 s), `close_pre` 309,
+  `close_grip` 414, `held: true`, `release_open` 174, landing **2.27 mm
+  planar**. Evidence:
+  `evidence/studio_g8_fast/20261121/` (`run1.json`, `run2.json`,
+  `after_putback_plan.json`).
+
+### Fixed
+
+- The hardware adapter now forwards `fast: true` on a single-command dispatch
+  (gripper-only fast steps). Without it the gateway used the slow 1.0 s
+  duration floor and rejected a 0.35 s `close_pre`; the fix is covered by
+  `test_fast_flag_is_forwarded_to_the_gateway`.
+
+### Changed
+
+- `POST /api/motion/preview` and `/api/motion/execute` accept an optional
+  `profile {vmax_rad_s, amax_rad_s2, dt_s}` and `fast` flag. A profile binds
+  the endpoint and profile parameters in the preview token; the duration is
+  recomputed from the live start at execute time so a few pulses of actual
+  drift do not break the token.
+- `docs/g8-task-takeover.md` and the Studio README describe the 7 phases, the
+  per-segment gateway checks and the in-run base approach. The fast integration
+  is **hardware-verified (2026-11-21)**; the 4.0/20 profile math is the
+  2026-11-20 hardware-verified values and the Studio integration adds the
+  per-command bus verification settles.
+
 ## [Unreleased] — 2026-11-21 Studio G8.1 chassis approach
 
 ### Added

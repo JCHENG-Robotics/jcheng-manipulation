@@ -225,6 +225,59 @@ class PosePreset:
 
 
 @dataclass(frozen=True)
+class FastProfile:
+    """The G8 fast task path: one S-curve per pose, fast gripper timings.
+
+    The values are the hardware-verified throughput-v2 envelope from
+    2026-11-20 (``docs/phase2/FAST_MOTION.md``): 4.0 rad/s / 20 rad/s^2,
+    0.6/0.35 rad/s descents, 1.4/0.8 rad/s release descents and the
+    0.35/0.5/0.45 s gripper steps. A slow single-point move is not just
+    slower, it shakes: the vendor sends one bus command per point.
+    """
+
+    enabled: bool = False
+    vmax_rad_s: float = 4.0
+    amax_rad_s2: float = 20.0
+    dt_s: float = 0.05
+    descent_vmax_rad_s: float = 0.6
+    final_vmax_rad_s: float = 0.35
+    release_descent_vmax_rad_s: float = 1.4
+    release_final_vmax_rad_s: float = 0.8
+    gripper_open_duration_s: float = 0.8
+    gripper_preclose_duration_s: float = 0.35
+    gripper_grip_duration_s: float = 0.5
+    gripper_release_open_duration_s: float = 0.45
+    gripper_speed_raw_per_s: float = 900.0
+    gripper_min_duration_s: float = 0.25
+    gripper_settle_s: float = 0.6
+    verify_settle_s: float = 0.35
+    max_total_duration_s: float = 6.0
+    max_points: int = 400
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "vmax_rad_s": self.vmax_rad_s,
+            "amax_rad_s2": self.amax_rad_s2,
+            "dt_s": self.dt_s,
+            "descent_vmax_rad_s": self.descent_vmax_rad_s,
+            "final_vmax_rad_s": self.final_vmax_rad_s,
+            "release_descent_vmax_rad_s": self.release_descent_vmax_rad_s,
+            "release_final_vmax_rad_s": self.release_final_vmax_rad_s,
+            "gripper_open_duration_s": self.gripper_open_duration_s,
+            "gripper_preclose_duration_s": self.gripper_preclose_duration_s,
+            "gripper_grip_duration_s": self.gripper_grip_duration_s,
+            "gripper_release_open_duration_s": self.gripper_release_open_duration_s,
+            "gripper_speed_raw_per_s": self.gripper_speed_raw_per_s,
+            "gripper_min_duration_s": self.gripper_min_duration_s,
+            "gripper_settle_s": self.gripper_settle_s,
+            "verify_settle_s": self.verify_settle_s,
+            "max_total_duration_s": self.max_total_duration_s,
+            "max_points": self.max_points,
+        }
+
+
+@dataclass(frozen=True)
 class ApproachConfig:
     """G8.1 chassis approach: open-loop pulses closed by a re-measurement."""
 
@@ -276,6 +329,7 @@ class TaskConfig:
     max_xy_error_mm: float
     locate: LocateParams
     approach: ApproachConfig | None = None
+    fast: FastProfile = FastProfile()
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -305,6 +359,7 @@ class TaskConfig:
             "approach": (
                 self.approach.to_public_dict() if self.approach else None
             ),
+            "fast": self.fast.to_public_dict(),
         }
 
 
@@ -632,6 +687,112 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
                 max_pulses=max_pulses,
                 settle_s=float(approach_raw.get("settle_s", 0.5)),
             )
+        fast_raw = task_raw.get("fast") or {}
+        _require(isinstance(fast_raw, dict), "task.fast must be a mapping")
+        fast = FastProfile()
+        if fast_raw:
+            fast = FastProfile(
+                enabled=bool(fast_raw.get("enabled", False)),
+                vmax_rad_s=float(fast_raw.get("vmax_rad_s", 4.0)),
+                amax_rad_s2=float(fast_raw.get("amax_rad_s2", 20.0)),
+                dt_s=float(fast_raw.get("dt_s", 0.05)),
+                descent_vmax_rad_s=float(
+                    fast_raw.get("descent_vmax_rad_s", 0.6)
+                ),
+                final_vmax_rad_s=float(
+                    fast_raw.get("final_vmax_rad_s", 0.35)
+                ),
+                release_descent_vmax_rad_s=float(
+                    fast_raw.get("release_descent_vmax_rad_s", 1.4)
+                ),
+                release_final_vmax_rad_s=float(
+                    fast_raw.get("release_final_vmax_rad_s", 0.8)
+                ),
+                gripper_open_duration_s=float(
+                    fast_raw.get("gripper_open_duration_s", 0.8)
+                ),
+                gripper_preclose_duration_s=float(
+                    fast_raw.get("gripper_preclose_duration_s", 0.35)
+                ),
+                gripper_grip_duration_s=float(
+                    fast_raw.get("gripper_grip_duration_s", 0.5)
+                ),
+                gripper_release_open_duration_s=float(
+                    fast_raw.get("gripper_release_open_duration_s", 0.45)
+                ),
+                gripper_speed_raw_per_s=float(
+                    fast_raw.get("gripper_speed_raw_per_s", 900.0)
+                ),
+                gripper_min_duration_s=float(
+                    fast_raw.get("gripper_min_duration_s", 0.25)
+                ),
+                gripper_settle_s=float(fast_raw.get("gripper_settle_s", 0.6)),
+                verify_settle_s=float(fast_raw.get("verify_settle_s", 0.35)),
+                max_total_duration_s=float(
+                    fast_raw.get("max_total_duration_s", 6.0)
+                ),
+                max_points=int(fast_raw.get("max_points", 400)),
+            )
+            _require(
+                0.0 < fast.vmax_rad_s <= 4.0,
+                "task.fast.vmax_rad_s must be in (0, 4.0] (the measured ceiling)",
+            )
+            _require(
+                0.0 < fast.amax_rad_s2 <= 20.0,
+                "task.fast.amax_rad_s2 must be in (0, 20.0]",
+            )
+            _require(
+                0.025 <= fast.dt_s <= 0.5,
+                "task.fast.dt_s must be in [0.025, 0.5] s (the vendor clamps <20 ms)",
+            )
+            _require(
+                0.0 < fast.final_vmax_rad_s <= fast.descent_vmax_rad_s
+                <= fast.vmax_rad_s,
+                "task.fast descent/final velocities must ascend to vmax",
+            )
+            _require(
+                0.0 < fast.release_final_vmax_rad_s
+                <= fast.release_descent_vmax_rad_s
+                <= fast.vmax_rad_s,
+                "task.fast release velocities must ascend to vmax",
+            )
+            for name, value in (
+                ("gripper_open_duration_s", fast.gripper_open_duration_s),
+                ("gripper_preclose_duration_s", fast.gripper_preclose_duration_s),
+                ("gripper_grip_duration_s", fast.gripper_grip_duration_s),
+                (
+                    "gripper_release_open_duration_s",
+                    fast.gripper_release_open_duration_s,
+                ),
+            ):
+                _require(
+                    fast.gripper_min_duration_s <= value <= 5.0,
+                    f"task.fast.{name} must be within the fast gripper duration range",
+                )
+            _require(
+                100.0 <= fast.gripper_speed_raw_per_s <= 1000.0,
+                "task.fast.gripper_speed_raw_per_s must be in [100, 1000]",
+            )
+            _require(
+                0.2 <= fast.gripper_min_duration_s <= 1.0,
+                "task.fast.gripper_min_duration_s must be in [0.2, 1.0]",
+            )
+            _require(
+                0.2 <= fast.gripper_settle_s <= 2.0,
+                "task.fast.gripper_settle_s must be in [0.2, 2.0]",
+            )
+            _require(
+                0.1 <= fast.verify_settle_s <= 1.0,
+                "task.fast.verify_settle_s must be in [0.1, 1.0]",
+            )
+            _require(
+                0.0 < fast.max_total_duration_s <= max_duration,
+                "task.fast.max_total_duration_s must be within the pose ceiling",
+            )
+            _require(
+                1 <= fast.max_points <= 1000,
+                "task.fast.max_points must be in [1, 1000]",
+            )
         _require(locate.min_range_m > 0, "task.locate.min_range_m must be positive")
         _require(
             locate.min_range_m < locate.max_range_m,
@@ -703,6 +864,7 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             max_xy_error_mm=max_xy,
             locate=locate,
             approach=approach,
+            fast=fast,
         )
 
     canonical = {

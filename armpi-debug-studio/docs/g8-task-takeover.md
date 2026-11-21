@@ -1,16 +1,16 @@
 # G8 — Task takeover
 
-Status: **implemented and verified with a real task on 2026-11-21**. One
-command planned and ran a 13-step task on the floor cube — locate → grasp →
-lift → grip verify → put-back → return to view — with every arm completion a
-`GetBusServoState` bus read. Evidence:
-[`evidence/studio_g8/20261121/`](../../evidence/studio_g8/20261121/README.md).
+Status: **hardware-verified on 2026-11-21** — the 13-step single-point plan
+(first hardware run) and the **fast 7-phase path** (dense S-curves, base
+approach inside the run; 13.46 s wall, landing 2.27 mm planar). Evidence:
+[`evidence/studio_g8/20261121/`](../../evidence/studio_g8/20261121/README.md)
+and [`evidence/studio_g8_fast/20261121/`](../../evidence/studio_g8_fast/20261121/README.md).
 
 G8 is the first Studio scope that acts on **what the camera sees** instead of a
 pose the operator typed. It is deliberately narrow: one cube on the floor in
 front of the robot, the validated deep grasp family, and a put-back to the
-grasp pose. It is not a planner. Since 2026-11-21 it also drives the chassis
-toward a cube that is visible but out of arm reach (G8.1).
+grasp pose. It is not a planner. It also drives the chassis toward a cube that
+is visible but out of arm reach (G8.1), now **inside the same run**.
 
 ## Flow
 
@@ -23,17 +23,84 @@ view_table preset (operator prepares the view)
         constant correction (+13.7, +3.9, +8.9) mm
         deep-family fit (j2=-0.6618, j3=-1.80117, j5=0, j1/j4 solved on URDF)
         reach band 0.220-0.255 m, FK xy <= 3 mm
-        build 13 steps, each validated: joint limits, velocity cap, FK gate
-   -> per step: POST /api/motion/preview -> /api/motion/execute
+        build 7 phases, each command validated: limits, velocity cap, FK gate
+   -> one "run task":
+        if APPROACH_REQUIRED: chassis pulse -> settle -> re-plan (max 3)
+        for each phase: for each command:
+            POST /api/motion/preview -> /api/motion/execute
+            pose command = one dense S-curve (profile)
+            grip command = one timed raw bus-servo command
         gateway bus-verifies each pose (12 pulses) and timed gripper step
    -> POST /api/task/verify (plan_id) after the lift
 ```
 
-The 13 steps: `open_gripper`, `approach` (j4 = 0), `pre_grasp` (j4 offset
-0.15 rad toward approach), `grasp` (fit), `close_pre` (raw 318), `close_grip`
-(raw 550), `lift` (the 2026-11-19 pass-2 lift preset), `view_verify`,
-`grip_verify` (marker), `putback_pre_grasp`, `putback_grasp`, `release_open`,
-`return_view`.
+## The 7 phases (fast path)
+
+The old plan emitted 13 single-command steps. The fast plan groups them and
+drops two redundant moves:
+
+| # | Phase | Commands | Why |
+|---|---|---|---|
+| — | `open_gripper` | one grip, 0.8 s | **conditional**: only when the gripper is not already open (skipped after a release) |
+| 1 | `approach` | pose j4 -> 0, 4.0 rad/s | |
+| 2 | `grasp` | descend to pre-grasp 0.6 rad/s, final 0.15 rad 0.35 rad/s | two profiles, one operator row |
+| 3 | `close` | preclose raw 318 (0.35 s), grip raw 550 (0.5 s) | contact/stall evidence kept |
+| 4 | `lift` | grasp pose -> `view_table` at 4.0 rad/s | the separate `lift_150` move is gone; the measured 2026-11-20 fast sequence returns straight to the verify pose |
+| 5 | `grip_verify` | marker | cloud at the view, cube box must be empty |
+| 6 | `release` | descend 1.4 rad/s, final 0.8 rad/s, open 0.45 s | |
+| 7 | `return_view` | grasp pose -> `view_table` 4.0 rad/s | |
+
+With the gripper already open this is **7 rows** and ~5.4 s of commanded
+motion for the mock geometry (the old single-point plan was ~23.5 s), plus the
+gateway's per-command verification settles. The measured fast-motion envelope
+is 4.0 rad/s / 20 rad/s² with 8.94 s grasp + put-back motion
+([`docs/phase2/FAST_MOTION.md`](../../docs/phase2/FAST_MOTION.md)).
+
+## Fast profile (why and how)
+
+The vendor controller forwards **one bus-servo command per trajectory point**
+with that segment's duration, so a single long point is one constant-velocity
+move with a hard start/stop (slow *and* shaky). `backend/app/domain/profile.py`
+is the pure port of `tools/phase2/motion_profile.py`: a scalar trapezoid with
+half-cosine ramps, all joints synchronised, endpoints exact, 50 ms waypoints.
+
+- The **plan** stores the endpoint, the profile parameters and the estimated
+  total; each pose command is one `profile` object.
+- **Preview** validates the endpoint (limits, FK gate along the straight
+  joint-space line) and that the profile total/segments fit the contract.
+- **Execute** rebuilds the S-curve from the current pose, converts every
+  waypoint to pulses and sends it as one `/api/motion/dispatch` with
+  `profile.points`.
+- The **gateway** validates every segment again — pulse limits, per-segment
+  velocity, discrete acceleration, the start from the measured command cache,
+  and that the last point equals the requested endpoint — then publishes one
+  `ServosPosition` per segment at the segment cadence (the same path the
+  vendor action controller uses). Completion is still one `GetBusServoState`
+  read of the endpoint after the total duration + settle.
+
+Contract (`configs/takeover.yaml`, exported into the gateway
+`safety.profile`): `vmax 4.0 rad/s`, `amax 20 rad/s²`, `dt 0.05 s`,
+`max_total 6 s`, `verify_settle_s 0.35`, gripper `0.35/0.5/0.45/0.8 s`,
+`gripper_settle_s 0.6`. The slow single-point pose path keeps its 0.5 rad/s
+cap, 1.0 s floor and 100 raw/s gripper validation; the fast values apply only
+to a task profile or a `fast` gripper command.
+
+## Hardware result (2026-11-21)
+
+The first fast run started from an `APPROACH_REQUIRED` plan (target radius
+0.257 m); the run's own base pulse (13 mm nominal) brought the cube into the
+band and the re-plan was valid. `approach`, `descend` and `grasp` completed,
+then `close_pre` was **rejected before publication** because the backend
+adapter did not forward `fast: true` to the gateway and the slow 1.0 s floor
+applied. The arm stayed at the grasp pose; it was returned to the view with the
+ordinary 0.5 rad/s path.
+
+After the fix the second run passed: 7 phases, 5.466 s commanded / **13.46 s
+wall** (the old 13-step plan was 33.56 s), `close_pre` 309 (contact),
+`close_grip` 414, `held: true`, `release_open` 174, and a landing of
+**+2.22 mm x / -0.46 mm y / +1.06 mm z** (2.27 mm planar) against the pre-grasp
+point. Details:
+[`evidence/studio_g8_fast/20261121/`](../../evidence/studio_g8_fast/20261121/README.md).
 
 ## Locate and fit
 
@@ -60,32 +127,31 @@ The 13 steps: `open_gripper`, `approach` (j4 = 0), `pre_grasp` (j4 offset
   TCP). The 2026-11-21 run shows the difference: the same cloud moved the
   measured point ~8 mm between a cache and a fresh-actual basis.
 - The reach band is **direct grasp only** (0.220-0.255 m target radius). A
-  farther cube is rejected, not reached for; the chassis approach is a G8.1
-  decision.
+  farther cube is driven toward by the chassis approach (G8.1).
 
-## G8.1 chassis approach
+## G8.1 chassis approach — inside the run
 
 The view covers about 0.15-0.55 m of floor, while the validated tool-down
 grasp pose reaches a 0.220-0.255 m target radius. A cube outside that band
-used to be rejected (`FIT_REJECTED`). With the approach enabled, the planner
 returns `APPROACH_REQUIRED` plus a pulse vector computed from the measured
-point and the aim point `(0.230, 0.0)` (the middle of the band, on the tool-down
-axis, so the constant correction's `joint1 ~ 0` envelope still holds). The
-operator confirms, `POST /api/chassis/pulse` publishes one bounded
-`MotorsSpeedControl` pulse (duty <= 10, 0.2-2.0 s, ~4.9 mm/s per duty) and
-zeros, the page waits for the coast, re-plans from a fresh cloud and repeats,
-at most 3 pulses.
+point and the aim point `(0.230, 0.0)` (the middle of the band, on the
+tool-down axis, so the constant correction's `joint1 ~ 0` envelope still
+holds). The old separate "底盘接近" button is gone: **the run itself** pulses
+`POST /api/chassis/pulse` (duty <= 10, 0.2-2.0 s, ~4.9 mm/s per duty), waits
+for the coast, re-plans from a fresh cloud and repeats (at most 3 pulses),
+then continues with the arm phases. The UI and `tools/studio/g8_task_run.py`
+both implement the same loop.
 
 The base has **no odometry** (four duty motors, write-only): the pulse response
 is labelled `verification: open_loop` and the camera re-measurement is the only
-confirmation. The gateway caps every pulse; the page caps the loop; the arm
+confirmation. The gateway caps every pulse; the run caps the loop; the arm
 stays at the view during the pulse. The approach is a translation (the mecanum
 strafe handles a lateral offset); a base yaw is not implemented, so a cube
 outside the lateral window is rejected rather than driven to.
 
-Live evidence (2026-11-21): cube at `x = 0.357 m` -> two pulses (2.0 s / 98 mm
-nominal -> 94 mm actual; 0.68 s / 33 mm -> ~42 mm) -> recovered point
-`(0.2214, 0.0024)` -> plan valid -> 13 steps, `close_grip` raw 412,
+Historical live evidence (2026-11-21, 13-step plan): cube at `x = 0.357 m` ->
+two pulses (2.0 s / 98 mm nominal -> 94 mm actual; 0.68 s / 33 mm -> ~42 mm) ->
+recovered point `(0.2214, 0.0024)` -> plan valid -> `close_grip` raw 412,
 `held: true`, put-back landing +0.5 mm x / -0.7 mm y / +0.2 mm z. See
 [`evidence/studio_g81/20261121/`](../../evidence/studio_g81/20261121/README.md).
 
@@ -97,41 +163,53 @@ camera direction, `recovery_radial_min: 0.85`).
 
 ## Safety
 
-- Every planned pose step is validated twice: at plan time from the planned
-  start, and at execute time by the ordinary preview from the **actual**
-  state. A rejected preview aborts the run; nothing is retried.
+- Every command is validated twice: at plan time from the planned start, and
+  at execute time by the ordinary preview from the **actual** state. A
+  rejected preview aborts the run; nothing is retried.
 - The FK gate covers the straight joint-space interpolation (21 samples) with
   the workspace box, the measured tilted table plane + 10 mm, and the low-pose
-  yaw rule; the planned `approach`/`pre_grasp`/`grasp`/put-back start/end are
-  all gate-checked.
+  yaw rule. The S-curve is on the same straight line, so the gate applies.
+- The gateway re-checks a profile independently: every segment's pulses,
+  velocity, discrete acceleration, the measured start and the endpoint
+  equality. A profile cannot hide a fast segment after a slow one.
 - The grip verify segments the view after the lift and requires that no cube
   box remains at the expected point; a miss aborts before the put-back.
 - The run needs a lease, the fixed acknowledgement, pose scope and the
   verified mapping; the operator is at the robot with a clear workspace.
-- Gripper steps are timed (the fingers stall on contact) and speed-capped with
-  a 20 % margin: `speed_raw_per_s: 100` against the vendor's measured
-  100-120 raw/s. The 2026-11-21 first attempt was aborted at `close_grip`
-  because the pre-close stalled 12 raw past its command and a 2.0 s grip
-  needed 0.51 rad/s; the contract now uses 1.5/2.6/4.0 s and a 0.419 rad/s
-  validation cap.
+- Gripper steps are timed (the fingers stall on contact). The slow pose path
+  keeps `speed_raw_per_s: 100` and a 1.0 s floor. The fast task path uses the
+  measured 0.35/0.5/0.45 s durations and a **sanity ceiling** of 900 raw/s on
+  the commanded interpolation rate; the servo physically saturates near
+  420-460 raw/s, so this does not claim the fingers move at 900 raw/s.
+- A stop during a profile is checked at every segment boundary. The hold
+  command wins, but a segment already published can still finish (<= 50 ms),
+  so the arm stops within one waypoint of the hold.
 
 ## API
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/task/plan` | locate + fit + 13 steps; `valid`, `point`, `target`, `fit`, `warnings`, `plan_id` |
+| POST | `/api/task/plan` | locate + fit + 7 phases (or `APPROACH_REQUIRED` + `approach`); `valid`, `point`, `target`, `fit`, `fast`, `warnings`, `plan_id` |
 | POST | `/api/task/verify` | `{plan_id}`; cube box at the view after the lift |
 | POST | `/api/chassis/pulse` | one bounded base pulse; lease + arm at the view |
-| GET | `/api/motion/presets` | `view_table`, `lift_150`, ... from the contract |
+| GET | `/api/motion/presets` | `view_table`, `lift_150`, ... plus `task.fast` and `task.approach` |
+| POST | `/api/motion/preview` | `targets` plus optional `profile {vmax_rad_s, amax_rad_s2, dt_s}` / `fast` |
+| POST | `/api/motion/execute` | same body + lease/token; a profile dispatches the dense waypoints |
 
 `tools/studio/g8_task_run.py` is the operator runner: plan-only by default;
-`--execute --i-have-clear-workspace` runs the steps, requires bus-verified
-`Completed`, and saves a report.
+`--execute --i-have-clear-workspace` runs the base approach and every phase,
+requires bus-verified `Completed`, and saves a report.
 
 ## Limitations
 
 - One cube, one position, one put-back target (the grasp pose); the landing
-  scatter measured after the run is +3.6 mm x, +0.2 mm y, +0.4 mm z.
+  scatter measured after the 13-step run is +3.6 mm x, +0.2 mm y, +0.4 mm z,
+  and after the fast run +2.22 mm x, -0.46 mm y, +1.06 mm z (2.27 mm planar).
+- The fast path ran on the hardware on 2026-11-21: 7 phases, 5.466 s commanded
+  / 13.46 s wall, `close_pre` 309, `close_grip` 414, `held: true`. The first
+  attempt exposed a real regression (the adapter did not forward `fast: true`,
+  so the gateway applied the 1.0 s slow floor and rejected `close_pre` before
+  publication); the fix and both attempts are in the evidence README.
 - The chassis approach is open-loop and translation-only; the cube must be
   visible in the cloud region (0.15-0.55 m, |y| <= 0.09) and inside the lateral
   pulse window. No base yaw.

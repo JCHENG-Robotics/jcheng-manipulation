@@ -203,7 +203,13 @@ class MockRobotAdapter(RobotAdapter):
         return fault
 
     # ------------------------------------------------------------------ motion
-    def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
+    def dispatch(
+        self,
+        targets: list[dict[str, Any]],
+        command_id: str,
+        *,
+        fast: bool = False,
+    ) -> DispatchResult:
         if "disconnect" in self._fault_kinds:
             return DispatchResult(
                 CommandStage.FAILED,
