@@ -3,9 +3,10 @@
 <package format="3">
   <name>armpi_ultra_description</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ArmPi Ultra 5-DoF model, TF frames and vendor-derived meshes</description>
   <maintainer email="maintainer@example.invalid">ubuntu</maintainer>
-  <license>TODO: License declaration</license>
+  <!-- Vendor-derived meshes are used with permission; see THIRD_PARTY_NOTICES.md. -->
+  <license>MIT</license>
 
   <depend>rclpy</depend>
 

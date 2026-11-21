@@ -363,7 +363,9 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 
 - ROS 2 Jazzy on the workstation; ROS 2 Humble + CycloneDDS on the robot.
 - Docker for the Humble MoveIt/RViz container (`tools/humble_moveit/`).
-- Python 3.10+, Node 20+ for the debug studio.
+- Python 3.11+ for the Studio backend (the robot-side Humble tooling uses
+  Python 3.10), Node 20+ for the debug studio.
+- Offline tests also need `pytest`, `numpy`, `PyYAML` and `OpenCV`.
 - For hardware: the direct Ethernet link, the vendor `start_node.service`,
   the D435i `armpi-rs-depth` / `armpi-ext-cam` units, and the network lockdown
   described in [`docs/hardware/network_access.md`](docs/hardware/network_access.md).
@@ -374,24 +376,29 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 source /opt/ros/jazzy/setup.bash
 cd ros2_ws
 colcon build --symlink-install
+cd ..
 
 # pure-Python CI: error budget, paired trials, benchmark, measurement, segmentation
-python -m pytest -q \
+PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_error_budget.py \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
-  tools/phase2/tests/test_grasp_joint_fit.py \
-  tools/phase2/tests/test_low_config_model_fit.py \
-  tools/phase2/tests/test_measurement_protocol.py \
-  tools/phase2/tests/test_object_segment.py \
+  tools/phase2/tests \
   tools/phase3/tests \
-  tools/phase4/tests
+  tools/phase4/tests \
+  tools/tests
 
 # debug studio: backend 144, gateway 80, mock Playwright 10, pose/task Playwright 3
-cd armpi-debug-studio/backend && pytest
-cd ../ros2_gateway && pytest
-cd ../frontend && npm run test:e2e
+cd armpi-debug-studio/backend
+python3 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/pytest
+cd ../ros2_gateway && ../backend/.venv/bin/python -m pytest
+cd ../frontend && npm ci && npx playwright install chromium && npm run test:e2e
 ```
+
+To run all offline checks (config consistency, Python, Studio and both
+Playwright suites) with one command, use `scripts/verify_offline.sh`.
 
 ### Mock pipeline (no hardware)
 
@@ -637,14 +644,15 @@ supervised runners.
   measured a 32.1 mm home error that needed one correction pulse to reach
   9.4 mm, so the far-run landing is a base-frame placement error, not a home
   error. An earlier 5.45 s run used the previous 3.0/12 default.
-- **The random-placement follow-up is starting under the home-return flow.**
-  Its capability and method outcomes are predictions, not results; the
-  2026-11-19 single-fixture trial remains the only paired hardware evidence.
-  One old-flow attempt was discarded (D1); no valid new-flow result exists.
-  The continuous outcome in the new flow is the home release error, not the
-  site put-back. The chassis D435i far-field locator (0.46-0.55 m) is the
-  newest, least-validated link; the free near/far warm-up passed, but the
-  in-run locator chain remains the test.
+- **The random-placement follow-up completed on 2026-11-21.**
+  The primary binary outcome was baseline **9/24** vs intervention **24/24**
+  (McNemar p = 6.1×10⁻⁵). Its continuous outcome is the home release error,
+  whose anchor is the corrected target, so it is descriptive and not
+  comparable to the 2026-11-19 site put-back. One old-flow attempt was
+  discarded (D1) and one false `NO_GRIP` from a release stall (D2); the
+  protocol deviations and tooling changes are recorded in the evidence.
+  The chassis D435i far-field locator (0.46-0.55 m) remains the
+  least-validated link.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
@@ -701,6 +709,8 @@ up separately. `evidence/README.md` explains what is tracked.
 - [Fiducial → grasp bridge](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — TF, search
   and safety veto.
 - [Safety layer](docs/phase2/SAFETY_LAYER.md) — watchdog, limits and veto.
+- [Motion write paths](docs/phase2/MOTION_WRITE_PATHS.md) — every arm/chassis
+  write path, its guard and the freeze rules.
 - [Measurement protocols](docs/phase2/MEASUREMENT_PROTOCOL.md) —
   repeatability, backlash, visual displacement, gripper envelope.
 - [Joint limits](docs/phase2/JOINT_LIMITS.md) — survey, EEPROM bounds and
@@ -788,4 +798,6 @@ only after the fixed-base pipeline is stable.
 
 ## License
 
-See [LICENSE](LICENSE).
+Project code is licensed under [MIT](LICENSE). Vendor-derived model assets are
+used with permission and are **not** relicensed under MIT; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

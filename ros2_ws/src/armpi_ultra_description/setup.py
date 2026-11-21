@@ -22,8 +22,8 @@ setup(
     zip_safe=True,
     maintainer='ubuntu',
     maintainer_email='maintainer@example.invalid',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='ArmPi Ultra 5-DoF model, TF frames and vendor-derived meshes',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

@@ -3,9 +3,9 @@
 <package format="3">
   <name>arm_basics</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Legacy ROS 2 learning nodes for the ArmPi capstone (archived track)</description>
   <maintainer email="jerichocheng@users.noreply.github.com">jerichocheng</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

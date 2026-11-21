@@ -244,7 +244,9 @@ tools/
 
 - 工作站 ROS 2 Jazzy；机器人 ROS 2 Humble + CycloneDDS。
 - Humble MoveIt/RViz 的 Docker 容器（`tools/humble_moveit/`）。
-- Python 3.10+、Node 20+（调试台）。
+- Studio 后端 Python 3.11+（机器人侧 Humble 工具链使用 Python 3.10），
+  Node 20+（调试台）。
+- 离线测试另需 `pytest`、`numpy`、`PyYAML` 与 `OpenCV`。
 - 实机运行还需：直连以太网、厂商 `start_node.service`、D435i 的
   `armpi-rs-depth` / `armpi-ext-cam` 单元，以及
   [`docs/hardware/network_access.md`](docs/hardware/network_access.md) 中的网络锁定。
@@ -255,24 +257,29 @@ tools/
 source /opt/ros/jazzy/setup.bash
 cd ros2_ws
 colcon build --symlink-install
+cd ..
 
 # 纯 Python CI：误差预算、配对试验、基准、测量、分割
-python -m pytest -q \
+PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_error_budget.py \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
-  tools/phase2/tests/test_grasp_joint_fit.py \
-  tools/phase2/tests/test_low_config_model_fit.py \
-  tools/phase2/tests/test_measurement_protocol.py \
-  tools/phase2/tests/test_object_segment.py \
+  tools/phase2/tests \
   tools/phase3/tests \
-  tools/phase4/tests
+  tools/phase4/tests \
+  tools/tests
 
 # 调试台：后端 144、网关 80、Mock Playwright 10、姿态/任务 Playwright 3
-cd armpi-debug-studio/backend && pytest
-cd ../ros2_gateway && pytest
-cd ../frontend && npm run test:e2e
+cd armpi-debug-studio/backend
+python3 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/pytest
+cd ../ros2_gateway && ../backend/.venv/bin/python -m pytest
+cd ../frontend && npm ci && npx playwright install chromium && npm run test:e2e
 ```
+
+要用一条命令跑完配置一致性、Python、Studio 与两套 Playwright 离线测试，
+运行 `scripts/verify_offline.sh`。
 
 ### Mock 链路（无硬件）
 
@@ -447,6 +454,8 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 - [Fiducial 定位](docs/phase2/FIDUCIAL_TARGET_LOCALIZATION.md) — AprilTag 位姿约定与验证。
 - [Fiducial → 抓取桥接](docs/phase2/FIDUCIAL_GRASP_BRIDGE.md) — TF、搜索与安全否决。
 - [安全层](docs/phase2/SAFETY_LAYER.md) — 看门狗、限位与否决。
+- [运动写路径](docs/phase2/MOTION_WRITE_PATHS.md) — 每条机械臂/底盘写路径、
+  对应 guard 与冻结规则。
 - [测量协议](docs/phase2/MEASUREMENT_PROTOCOL.md) — 重复性、回差、视觉位移、夹爪包络。
 - [关节限位](docs/phase2/JOINT_LIMITS.md) — 测量、EEPROM 边界与恢复规则。
 - [快速运动](docs/phase2/FAST_MOTION.md) — S 曲线、实测稳定判据与 4.0/20 包络。
@@ -484,4 +493,5 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 
 ## 许可证
 
-见 [LICENSE](LICENSE)。
+项目代码采用 [MIT](LICENSE)。厂商派生模型资产经授权使用，**不**按 MIT
+重新许可；详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

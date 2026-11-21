@@ -19,6 +19,10 @@ gateway with a velocity cap and an FK workspace/table gate. There is no e-stop.
 The vendor SDK/Driver are referenced read-only and are **not** copied into this
 directory.
 
+**Current verification (2026-11-21):** 144 backend tests, 80 gateway tests and
+16 Playwright tests (10 mock + 3 hardware + 3 pose/task). The dated status
+notes below preserve the counts at the time they were written.
+
 > Status note (2026-11-15): this directory is the G1 **Mock** slice imported into
 > the main repository. It is **not** a PRD G1 pass: E7 (ROS 2 read-only gateway)
 > and supervised hardware acceptance are not implemented. See

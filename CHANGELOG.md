@@ -3,6 +3,52 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 feature-freeze hardening (offline)
+
+Offline only; no hardware motion and no new algorithms. This is the first
+P0/P1 hardening batch after the feature-freeze audit.
+
+### Added
+
+- `tools/verify_config_consistency.py` and `tools/tests/`: read-only checks
+  that the five arm limits agree across the xacro, MoveIt `joint_limits.yaml`,
+  `safety_limits.yaml` and the Studio `joint_mapping.yaml`, and that the
+  constant low-configuration correction agrees across the runners and
+  `takeover.yaml`.
+- `docs/phase2/MOTION_WRITE_PATHS.md`: the six arm/chassis write paths, their
+  guards, limits and freeze rules.
+- `THIRD_PARTY_NOTICES.md`: project MIT code, vendor-derived model assets used
+  with permission, and the MoveIt/librealsense notices.
+- `.github/workflows/studio-ci.yml`: backend tests, gateway tests and the mock
+  Playwright suite on a stock runner.
+
+### Fixed
+
+- **README pair:** the quick-start test command now runs from the repository
+  root with `PYTHONPATH`, covers the full offline tool suite, creates the
+  Studio virtualenv and installs Chromium before Playwright. The Python
+  prerequisite is now 3.11+ for the Studio backend.
+- **English README:** the stale random-placement limitation ("predictions, not
+  results") was replaced with the completed 24-pair result and its metric
+  caveat.
+- **Studio README:** current test counts (144 backend / 80 gateway / 16
+  Playwright) are stated before the dated historical notes.
+- **Package metadata:** the four `TODO: License declaration` packages now
+  declare MIT (or `BSD-3-Clause` for the MoveIt config); the display package
+  description is filled in.
+- **Python CI:** now installs headless OpenCV and runs the full phase-2/3/4
+  and `tools/tests` suites plus the config consistency check.
+
+### Verification
+
+- `tools/verify_config_consistency.py`: `CONFIG OK`, 5 joints and 6 correction
+  sources agree.
+- New consistency tests: 4 passed.
+- Combined offline Python run: **248 passed / 7 skipped**.
+- Studio backend: **144 passed**; gateway: **80 passed**.
+- Mock Playwright: **10 passed**; mock pose/task: **3 passed**.
+- `scripts/verify_offline.sh`: `OFFLINE CHECKS PASSED`.
+
 ## [Unreleased] — 2026-11-21 documentation unification
 
 Documentation only; no new hardware claims. The README pair, ROADMAP,

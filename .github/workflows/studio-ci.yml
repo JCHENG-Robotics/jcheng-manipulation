@@ -1,0 +1,82 @@
+name: studio
+
+# The Studio does not need ROS to run its mock backend, so the whole
+# non-hardware test surface can run on a stock GitHub runner. Hardware
+# Playwright tests stay gated behind ARMPI_E2E_HARDWARE=1 and never run here.
+
+on:
+  push:
+    paths:
+      - "armpi-debug-studio/**"
+      - ".github/workflows/studio-ci.yml"
+  pull_request:
+    paths:
+      - "armpi-debug-studio/**"
+      - ".github/workflows/studio-ci.yml"
+
+jobs:
+  backend-gateway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the backend virtualenv
+        working-directory: armpi-debug-studio/backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Backend tests
+        working-directory: armpi-debug-studio/backend
+        run: .venv/bin/pytest
+
+      - name: Gateway tests
+        working-directory: armpi-debug-studio/ros2_gateway
+        run: ../backend/.venv/bin/python -m pytest
+
+  frontend-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: armpi-debug-studio/frontend/package-lock.json
+
+      - name: Install the backend virtualenv used by Playwright
+        working-directory: armpi-debug-studio/backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Install the frontend
+        working-directory: armpi-debug-studio/frontend
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: armpi-debug-studio/frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Build and run the mock Playwright suite
+        working-directory: armpi-debug-studio/frontend
+        run: npm run test:e2e
+
+      - name: Run the mock pose/task Playwright suite
+        working-directory: armpi-debug-studio/frontend
+        env:
+          E2E_POSE: "1"
+        run: npm run test:e2e

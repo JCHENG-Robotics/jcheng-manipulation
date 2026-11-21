@@ -45,6 +45,7 @@
 | [FIDUCIAL_TARGET_LOCALIZATION.md](FIDUCIAL_TARGET_LOCALIZATION.md) | AprilTag/ArUco detection, 6D pose, measured optical frame, real-background semi-synthetic validation |
 | [FIDUCIAL_GRASP_BRIDGE.md](FIDUCIAL_GRASP_BRIDGE.md) | `target_pose` → TF → grasp search → safety veto; mock E2E result and limitations |
 | [SAFETY_LAYER.md](SAFETY_LAYER.md) | state watchdog, joint/rate/workspace checks, validation service, mock evidence |
+| [MOTION_WRITE_PATHS.md](MOTION_WRITE_PATHS.md) | every arm/chassis write path, its guard, limits and freeze rules |
 | [MEASUREMENT_PROTOCOL.md](MEASUREMENT_PROTOCOL.md) | repeatability, backlash, visual-displacement and gripper-envelope schedules and analyzers |
 | [FAST_MOTION.md](FAST_MOTION.md) | jerk-limited S-curve profiles, measured settles, gripper raw path and the measured speed envelope |
 | [CALIBRATION.md](CALIBRATION.md) | Chessboard camera/hand-eye procedure, tools, validated result and open-loop limitations |
