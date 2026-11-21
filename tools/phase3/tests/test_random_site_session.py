@@ -106,12 +106,22 @@ def test_locator_chain_prefers_wrist_then_front_then_yaw():
 
 def test_the_initial_hook_accepts_an_inside_point():
     fake = _fake_session()
-    fake.args = type('Args', (), {'dry_run': True})()
     point = np.array([0.40, 0.10, 0.0])
     accepted = fake._validate_initial(
         point, {'success': True}, {'site_id': 'r01'}, 't', 'wrist_view')
     assert accepted is point
     assert fake.approach['locator'] == 'wrist_view'
+    assert fake.approach['realized_inside_region'] is True
+
+
+def test_the_initial_hook_does_not_gate_an_outside_point():
+    fake = _fake_session()
+    point = np.array([0.60, 0.00, 0.0])
+    accepted = fake._validate_initial(
+        point, {'success': True}, {'site_id': 'r01'}, 't', 'front_camera')
+    assert accepted is point
+    assert fake.approach['locator'] == 'front_camera'
+    assert fake.approach['realized_inside_region'] is False
 
 
 def test_a_front_report_is_saved(tmp_path):

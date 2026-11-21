@@ -189,8 +189,8 @@ class SiteSession(base.Session):
                 pose, tag='{}_yaw'.format(tag))
             point, valid, report = self._wide_measure(
                 '{}_y{:.2f}'.format(tag, yaw))
-            print('  search yaw {:+.2f} rad: {}'.format(
-                yaw, 'found' if point is not None else 'no point'),
+            print('  扫视 yaw {:+.2f} rad：{}'.format(
+                yaw, '找到木块' if point is not None else '没有点'),
                 flush=True)
             if point is not None:
                 return point, valid, report, float(yaw)
@@ -234,7 +234,7 @@ class SiteSession(base.Session):
         ok, reason = base.placement_quality(report)
         if point is not None and valid and ok:
             return point, report
-        print('  final measurement not usable (valid={}, {})'.format(
+        print('  最终严格测量不可用（valid={}，{}）'.format(
             valid, reason), flush=True)
         return None, report
 
@@ -271,7 +271,7 @@ class SiteSession(base.Session):
             'subscribers_matched': pulse.get('subscribers_matched'),
             'wall_s': round(time.monotonic() - started, 3),
         }
-        print('  base {} pulse vx={:+.3f} vy={:+.3f} {:.2f} s'.format(
+        print('  底盘 {} 脉冲 vx={:+.3f} vy={:+.3f} {:.2f} s'.format(
             kind, vx, vy, duration), flush=True)
         return after, record
 
@@ -297,7 +297,7 @@ class SiteSession(base.Session):
         self.approach['locator'] = locator
         if point is None:
             raise RuntimeError(
-                'site {}: no cube found by the locator chain'.format(
+                '随机点 {}：定位链没有找到木块'.format(
                     site['site_id']))
         point = self._validate_initial(point, report, site, tag, locator)
         self.approach['initial_point'] = [
@@ -312,8 +312,13 @@ class SiteSession(base.Session):
             self.approach['base_pulses'].append(record)
             if point is None:
                 raise RuntimeError(
-                    'site {}: cube lost after base pulse {}'.format(
+                    '随机点 {}：底盘脉冲 {} 后丢失木块'.format(
                         site['site_id'], index + 1))
+        if self.approach['base_pulses']:
+            print('  已通过 {} 次底盘脉冲把木块带入夹取带。'.format(
+                len(self.approach['base_pulses'])), flush=True)
+        else:
+            print('  木块已在夹取带内，直接抓取。', flush=True)
         # The final grasp needs the validated joint1 ~ 0 view.
         if abs(self.approach['search_yaw_rad']) > 1e-9:
             self.robot.move_to_pose(
@@ -324,7 +329,7 @@ class SiteSession(base.Session):
                 self.robot.pulses(), '{}_final'.format(tag))
         if point is None:
             raise RuntimeError(
-                'site {}: no usable final measurement'.format(
+                '随机点 {}：没有可用的最终测量'.format(
                     site['site_id']))
         # Empirical envelope guard. The prior 24/24 single-fixture intervention
         # ran over measured pre-grasp points x 0.2169-0.2388 m, |y| <= 24.5 mm
@@ -344,8 +349,8 @@ class SiteSession(base.Session):
             }
             if envelope['x_ok'] and envelope['j1_ok']:
                 break
-            print('  final point x={:.4f} m joint1={:.3f} rad outside '
-                  'x {}..{} / |j1| <= {:.2f}; one base trim'.format(
+            print('  最终点 x={:.4f} m，joint1={:.3f} rad，超出 '
+                  'x {}..{} / |j1| ≤ {:.2f}；做一次底盘微调'.format(
                       x, j1, self.x_envelope[0], self.x_envelope[1],
                       self.max_j1_rad), flush=True)
             after, record = self._pulse_and_measure(
@@ -366,8 +371,8 @@ class SiteSession(base.Session):
         self.approach['final_envelope'] = envelope
         if envelope is None or not (envelope['x_ok'] and envelope['j1_ok']):
             raise RuntimeError(
-                'site {}: final point x={:.4f} m joint1={:.3f} rad is '
-                'outside the prior 24/24 envelope; refusing to grasp'.format(
+                '随机点 {}：最终点 x={:.4f} m，joint1={:.3f} rad '
+                '超出 24/24 经验包络，拒绝抓取'.format(
                     site['site_id'], float(point[0]),
                     float(fit['joints'][0])))
         self.approach['approach_wall_s'] = round(
@@ -464,7 +469,7 @@ class SiteSession(base.Session):
                 'nominal_travel_mm': round(nominal_travel_mm(pulse), 3),
                 'subscribers_matched': pulse.get('subscribers_matched'),
             })
-            print('  home pulse vx={:+.3f} vy={:+.3f} {:.2f} s'.format(
+            print('  回程脉冲 vx={:+.3f} vy={:+.3f} {:.2f} s'.format(
                 direction[0], direction[1], duration), flush=True)
             remaining -= (duration * self.args.base_duty
                           * fast_motion_e2e.BASE_SPEED_PER_DUTY / 1000.0)

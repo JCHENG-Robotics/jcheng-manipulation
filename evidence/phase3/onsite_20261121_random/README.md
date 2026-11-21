@@ -1,9 +1,11 @@
 # Random-placement 24-pair trial — pre-registered artifacts
 
 > Status: **pre-registered on 2026-11-21; no trial has been run.** The
-> operator places the cube at a fresh random point inside the region before
-> every pair; nothing is pre-taped or pre-drawn. These files fix the region,
-> the placement rule, the pair/method plan and the analysis before data.
+> operator places the cube **by eye, without measuring**, at a new spot in the
+> forward workspace before every pair; nothing is pre-taped or pre-drawn. The
+> radius/bearing envelope is a guide to where the robot can see the cube, not
+> a gate. These files fix the rule, the reference envelope, the pair/method
+> plan and the analysis before data.
 >
 > This directory supersedes the fixed 24-mark fan in
 > `../onsite_20261120_sites/` **before any trial**. The fixed-fan directory
@@ -13,7 +15,7 @@
 
 | File | SHA-256 | Contents |
 |---|---|---|
-| `region.json` | `d947203cadc6771d47ece675a96a37306160901d2b363f2bf016f55cca4dd906` | Region (r 0.25-0.55 m, bearing -20..+25 deg), placement rule, 24 fixture labels, seed, locator order |
+| `region.json` | `26428246f342a210321250141b7fc7852c8d06d1c1c020016151c5fe7f3d3f1f` | Free-placement rule, reference envelope (r ~0.25-0.55 m, bearing ~-20..+25 deg), 24 fixture labels, seed, locator order |
 | `paired_trials_plan.json` | `02a4ac0ddf9f15f9c96f9678dc1778536ddc6c20dc4e9b18976afb17746e0bea` | Seeded plan (seed 17): pair order, within-pair method order, fixtures r01..r24 |
 | `trials.jsonl` | — | Created on the first valid trial; append-only |
 | `approaches.jsonl` | — | One locate/approach/return record per attempted pair, including aborts |
@@ -22,27 +24,30 @@
 | `analysis.json`, `analysis.md` | — | Paired analysis after the session |
 | `session_*.log` | — | Operator terminal logs, including aborted prechecks |
 
-The hashes are the pre-registration. A pre-data region revision (for example
-after the front-camera precheck) regenerates the region and plan and updates
-the hashes before the first trial; after the first trial it is a deviation.
+The hashes are the pre-registration. A pre-data revision (for example after
+the free near/far warm-up) updates the region and its hash before the first
+trial; after the first trial it is a deviation.
 
-## Region and placement rule
+## Free placement and reference envelope
 
 ```text
-radius   0.25-0.55 m
-bearing  -20 ... +25 deg   (base +y is left)
+guide only:  radius ~0.25-0.55 m
+             bearing ~-20 ... +25 deg   (base +y is left)
 ```
 
 The near half is the validated view-pose wrist band or the joint1 yaw sweep;
 the far half (0.46-0.55 m) is outside the wrist image and is covered by the
-chassis D435i. The asymmetric bearing bounds are the calibrated front-camera
-far fan, not an arbitrary choice. A point outside the region has no locator
-from the home pose and would be a guaranteed capability failure.
+chassis D435i. The bearing bounds are the calibrated front-camera far fan.
+They are a **guide** to where the robot can see the cube, not an enforced
+sampling region.
 
-**Operator rule:** before every pair, place the cube at a new, haphazard point
-inside the region. Do not reuse a spot, do not line the points up, keep
->= 30 mm from the previous realized point. The robot measures and records the
-realized point; that measured point is the site.
+**Operator rule:** before every pair, place the cube by eye at a new spot in
+the forward workspace. **No marks, no measurements, no fixed points.** Do not
+reuse the same spot. The robot reports the realized point and records it; if
+the measured point is already in the 0.226-0.234 m band it grasps directly,
+otherwise it drives the base toward it and then grasps. If the cube is too far
+or too wide to locate, move it a little closer/centred; no coordinate is
+needed.
 
 ## Plan
 
@@ -61,11 +66,12 @@ The plan is append-only. The trial records go through
 
 ## Operator procedure
 
-1. Run the pre-session checks in
+1. Run the free near/far warm-up in
    [`docs/phase3/RANDOM_SITE_DESIGN.md`](../../../docs/phase3/RANDOM_SITE_DESIGN.md)
-   §9, starting with `--precheck` at the far region: (0.55, 0), (0.55, -20
-   deg), (0.55, +25 deg). The front-camera far field must return a point at
-   all three; if not, stop and revise the region before data.
+   §9 with `--precheck`: place the cube by eye once near (~0.3 m) and once far
+   (~0.5 m). **No coordinates, no marks.** The far placement should be located
+   by the front camera; if not, move the cube a little closer and repeat. The
+   precheck does not move the base and writes no trial.
 2. Start the session:
 
 ```bash
@@ -76,14 +82,15 @@ sg docker -c "python3 tools/phase3/random_site_session.py \
     2>&1 | tee evidence/phase3/onsite_20261121_random/session_$(date +%Y%m%d_%H%M).log
 ```
 
-The runner prints the pair and the region. Place the cube at a fresh random
-point, press Enter, and repeat the placement on the same spot after the first
-trial. The runner locates, drives the base into the band, runs both methods
-and returns home.
+The runner prints the pair. Place the cube by eye at a fresh spot, press
+Enter, and repeat the placement on the same spot after the first trial. The
+runner reports the realized point and decides: near (already in the
+0.226-0.234 m band) grasps directly, far drives the base toward it and then
+grasps. No measuring is required.
 
 If the runner aborts at a pair (no locator point, lost cube, final
-measurement, envelope, or region), re-check the cube and re-run the same pair.
-The attempt is in the session log and `approaches.jsonl` but writes no trial
+measurement, envelope), re-check the cube and re-run the same pair. The
+attempt is in the session log and `approaches.jsonl` but writes no trial
 record. A pair that fails after one retry is a capability failure; it is
 reported, not converted into a `MISS`.
 

@@ -371,9 +371,9 @@ class Session:
         self.robot.install_tools(os.path.join(REPO, 'tools', 'phase2'))
         self.humble.install_hand_eye(os.path.join(
             REPO, self.args.hand_eye_host))
-        print('moving to the view pose ...')
+        print('正在移动到 view pose ...')
         self.robot.move_to_pose(self.view_pose, tag='view')
-        print('arm at the view pose.')
+        print('手臂已在 view pose。')
 
     def measure(self, pulses, tag, retries=3):
         """Measure the cube, prompting the operator to re-place if needed."""
@@ -384,14 +384,14 @@ class Session:
             if valid and ok:
                 return point, report
             if valid and not ok:
-                print('placement rejected: {}'.format(reason))
+                print('放置不合格：{}'.format(reason))
             clusters = report.get('segmentation', {}).get('clusters', 0)
-            print('measurement not usable '
-                  '(success={}, clusters={}, {})'.format(
+            print('测量不可用 '
+                  '（success={}，clusters={}，{}）'.format(
                       report.get('success'), clusters,
                       report.get('rejection', {}).get('reason')))
             if attempt + 1 < retries and not self.args.dry_run:
-                input('  adjust the cube and press Enter to re-measure ... ')
+                input('  请调整木块，然后按 Enter 重新测量 ... ')
                 pulses = self.robot.pulses()
         return None, report
 
@@ -405,13 +405,17 @@ class Session:
         method = entry['method']
         tag = '{}_s{:02d}'.format(entry['pair_id'], entry['sequence'])
         self.counter += 1
+        method_label = {
+            'baseline': 'baseline（原始目标）',
+            'intervention': 'intervention（常数修正）',
+        }.get(method, method)
         print('\n=== [{}] {} / {} ({}) ==='.format(
-            self.counter, entry['pair_id'], method,
+            self.counter, entry['pair_id'], method_label,
             entry['object_pose_fixture']))
         if self.args.dry_run:
             return self._dry_trial(entry, tag)
         if prompt:
-            input('  place the cube at the fixture and press Enter ... ')
+            input('  请把木块放到指定位置，然后按 Enter ... ')
         pulses = self.robot.pulses()
         point, report = self.measure(pulses, tag + '_pre')
         if point is None:
@@ -421,9 +425,9 @@ class Session:
                           else np.zeros(3))
         fit = grasp_joint_fit.fit(target)
         validate_target(target, fit, self.args.max_xy_error_mm)
-        print('  cube  ({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*point))
-        print('  target({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*target))
-        print('  joints {}  xy error {:.2f} mm'.format(
+        print('  木块  ({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*point))
+        print('  目标  ({:+.4f}, {:+.4f}, {:+.4f}) m'.format(*target))
+        print('  关节 {}  xy 误差 {:.2f} mm'.format(
             ','.join('{:.4f}'.format(v) for v in fit['joints'][:4]),
             fit['xy_error_mm']))
         grasp_report = self.robot.grasp(fit['joints'], self.view_pose, tag)
@@ -454,12 +458,11 @@ class Session:
             code = 'MISS'
             if clusters > 0:
                 self._operator_note(
-                    'the cube box still has points; confirm the cube was '
-                    'not held')
+                    '木块框里还有点；请确认木块没有被夹起')
             self._record(entry, success=False, error_mm=None,
                          failure_code=code, notes=notes)
             return False
-        self._operator_note('the cube is held; the arm will put it back')
+        self._operator_note('木块已夹住；手臂会把它放回')
         release_report = self.robot.release(
             fit['joints'], self.view_pose, tag)
         land_pulses = [
@@ -485,12 +488,12 @@ class Session:
                 'height_above_floor_m', 0.0)) * 1000.0
         self._record(entry, success=True, error_mm=error_mm,
                      failure_code=None, notes=notes)
-        print('  held and released; landing error {:.2f} mm'.format(error_mm))
+        print('  已夹住并放回；落点误差 {:.2f} mm'.format(error_mm))
         return True
 
     def _operator_note(self, text):
         """Print an operator instruction without blocking in dry-run."""
-        print('  operator: {}'.format(text))
+        print('  操作员：{}'.format(text))
 
     def _record(self, entry, success, error_mm, failure_code, notes):
         """Append one validated record."""
@@ -507,7 +510,7 @@ class Session:
         }
         paired_trials.append_record(self.args.trials, record, plan=self.plan)
         self.done.add((entry['pair_id'], entry['method']))
-        print('  recorded {} / {}: success={} error={}'.format(
+        print('  已记录 {} / {}：成功={} 误差={}'.format(
             entry['pair_id'], entry['method'], success,
             'n/a' if error_mm is None else '{:.2f} mm'.format(error_mm)))
 
@@ -598,7 +601,7 @@ def main(argv=None):
     try:
         session.run()
     except KeyboardInterrupt:
-        print('\ninterrupted; completed trials are already recorded')
+        print('\n已中断；已完成的 trial 都已记录')
         return 130
     return 0
 

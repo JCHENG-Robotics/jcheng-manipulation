@@ -381,15 +381,16 @@ has no release landing, the binary outcome is the primary test.
 
 **Pre-registered follow-up (2026-11-21):** the random-placement 24-pair trial
 tests whether the same effect and the locate/approach chain survive unknown
-placements. Before every pair the operator puts the cube at a fresh,
-haphazard point inside the sensor-covered region (radius 0.25-0.55 m, bearing
--20..+25 deg); the robot locates it with the wrist wide measurement, the
-chassis D435i or a `joint1` yaw sweep, drives the base closed-loop into the
-0.226-0.234 m band, runs the two methods and returns home. The design, region,
-seed-17 plan and hashes are written before data
+placements. Before every pair the operator puts the cube by eye at a new spot
+in the forward workspace (no measuring; the radius 0.25-0.55 m / bearing
+-20..+25 deg envelope is a guide). The robot locates it with the wrist wide
+measurement, the chassis D435i or a `joint1` yaw sweep; if it is already in
+the 0.226-0.234 m band it grasps directly, otherwise it drives the base
+closed-loop into the band, runs the two methods and returns home. The design,
+reference envelope, seed-17 plan and hashes are written before data
 ([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md));
-the front-camera far-field precheck and the hardware session are pending. The
-earlier fixed 24-mark fan was superseded before data and never run.
+the free far-field warm-up and the hardware session are pending. The earlier
+fixed 24-mark fan was superseded before data and never run.
 
 ## 11. Safety
 

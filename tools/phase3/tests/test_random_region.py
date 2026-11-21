@@ -26,6 +26,7 @@ def test_default_region_and_fixtures():
         'min_radius_m': 0.25, 'max_radius_m': 0.55,
         'min_bearing_deg': -20.0, 'max_bearing_deg': 25.0}
     assert payload['placement_rule']['operator_random'] is True
+    assert payload['placement_rule']['measured_by_operator'] is False
     assert payload['placement_rule']['min_separation_m'] == 0.03
     assert payload['locators'] == [
         'wrist_view', 'front_camera', 'wrist_yaw']

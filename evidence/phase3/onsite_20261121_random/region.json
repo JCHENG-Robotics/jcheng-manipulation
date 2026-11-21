@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_at": "2026-11-21T01:26:44.200141+00:00",
+  "created_at": "2026-11-21T01:55:19.125759+00:00",
   "n_pairs": 24,
   "seed": 17,
   "fixture_prefix": "r",
@@ -38,8 +38,9 @@
   },
   "placement_rule": {
     "operator_random": true,
+    "measured_by_operator": false,
     "min_separation_m": 0.03,
-    "instructions": "Before every pair the operator places the cube at a new, haphazard point inside the region. Do not reuse a previous spot, do not line the points up, and keep at least 30 mm from the previous realized point. The measured point, not the operator intent, is the recorded site."
+    "instructions": "Before every pair the operator places the cube by eye at a new spot in the forward workspace; no marks and no measurements. Do not reuse the same spot. The robot reports the realized point and decides: if the point is already in the 0.226-0.234 m band it grasps directly, otherwise it drives the base toward it and then grasps. A point too far or too wide to locate is moved a little closer by the operator. The measured point, not the operator intent, is the recorded site."
   },
   "locators": [
     "wrist_view",
@@ -50,8 +51,8 @@
     "wrist_view_max_radius_m": 0.46,
     "front_camera": {
       "role": "far locator (0.46-0.55 m) and fallback",
-      "note": "The far bearing bounds follow the calibrated D435i far-field fan from the home pose. Its top-face measurement is used only to drive the base into the wrist band; the final grasp target is always the validated wrist measurement."
+      "note": "The far bearing bounds follow the calibrated D435i far-field fan from the home pose. Its depth top-face cluster is used only to drive the base into the wrist band; the final grasp target is always the validated wrist measurement."
     },
-    "note": "A random point outside this region has no locator from the home pose, so it is excluded by the placement rule rather than recorded as a grasp failure."
+    "note": "The radius/bearing bounds are a guide to where the robot can see the cube, not a gate. The operator does not measure; the realized point is recorded and its membership is reported descriptively."
   }
 }

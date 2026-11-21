@@ -7,24 +7,26 @@ All notable changes to this project are documented here. Format based on
 
 ### Added
 
-- `tools/phase3/random_region.py`: the pre-registered random-placement region
-  (radius 0.25-0.55 m, bearing -20..+25 deg), the operator placement rule,
-  and the seeded pair/method plan with fixtures `r01`...`r24`.
+- `tools/phase3/random_region.py`: the free-placement rule and the reference
+  envelope (radius about 0.25-0.55 m, bearing about -20..+25 deg; a guide,
+  not a gate), and the seeded pair/method plan with fixtures `r01`...`r24`.
 - `tools/phase3/random_site_session.py`: the session runner. Per pair it
-  prompts for a fresh operator-random point, uses the locator chain
-  wrist-wide -> chassis D435i -> `joint1` yaw sweep, checks the realized
-  point against the region, drives the base into the 0.226-0.234 m band,
-  runs the two validated methods, and returns home. The front-camera
-  capture/copy/measure path and the `--precheck` mode are new.
+  prompts for a by-eye placement (no measuring), uses the locator chain
+  wrist-wide -> chassis D435i -> `joint1` yaw sweep, reports the realized
+  point (its region membership is descriptive), grasps directly if it is
+  already in the 0.226-0.234 m band, otherwise drives the base toward it and
+  then grasps. The front-camera capture/copy/measure path and the
+  `--precheck` free near/far warm-up are new.
 - `ext_cam_measure.py --depth-cluster`: the far-field depth top-face cluster
   used by the front locator (30-50 mm above the support plane, 5 mm x/y
-  grid, restricted to the region's bounding box so a larger background
-  cluster cannot win). The colour rectification stays the default; the
-  precheck frame showed an over-exposed far top that the colour thresholds
+  grid, restricted to the reference envelope's bounding box so a larger
+  background cluster cannot win). The colour rectification stays the default;
+  the precheck frame showed an over-exposed far top that the colour thresholds
   miss.
 - `docs/phase3/RANDOM_SITE_DESIGN.md` and
-  `evidence/phase3/onsite_20261121_random/`: the pre-registration, region,
-  plan (seed 17) and hashes, written before data.
+  `evidence/phase3/onsite_20261121_random/`: the free-placement
+  pre-registration, reference envelope, plan (seed 17) and hashes, written
+  before data.
 - `site_report.py` renders a random site as `random` and uses the realized
   initial point for the radius/bearing columns.
 - Tests: `test_random_region.py` and `test_random_site_session.py`,
@@ -38,15 +40,15 @@ All notable changes to this project are documented here. Format based on
 - `site_diversity_session.SiteSession` now has `_locate_initial`,
   `_locate_after` and `_validate_initial` hooks; the fixed-fan runner keeps
   the wide/yaw behavior and the random runner adds the front camera and the
-  region check.
+  free-placement report. It also prints whether the robot grasped directly
+  (already in the band) or moved the base first.
 - The fixed 24-mark fan design, layout and plan are **superseded before
   data**; the evidence directory has no trial records.
 
 ### Status
 
-- **Pre-registered, not run.** No random-placement trial has been performed.
-  The front-camera far-field precheck (0.55 m at -20/+25 deg) must pass
-  before the 48-trial session.
+- **Pre-registered, not run.** No free-placement trial has been performed.
+  The free near/far warm-up must pass before the 48-trial session.
 
 ## [Unreleased] — 2026-11-20 documentation progress reconciliation
 

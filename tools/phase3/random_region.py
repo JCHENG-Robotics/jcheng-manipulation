@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-"""Define the random-placement region of the 24-pair trial.
+"""Define the free-placement reference envelope of the 24-pair trial.
 
-The 2026-11-21 follow-up does **not** pre-place 24 marks. The operator places
-the same cube at a new, haphazard point inside a pre-registered region before
-every pair; the robot measures the realized point and records it. This tool
-writes the region JSON and the seeded pair/method plan (fixtures ``r01`` ...
-``r24``) before data.
+The 2026-11-21 follow-up does **not** pre-place 24 marks and does not ask the
+operator to measure coordinates. The operator puts the same cube at a new
+place, by eye, anywhere in the forward workspace before every pair; the robot
+measures the realized point and records it. This tool writes the reference
+envelope, the free-placement rule and the seeded pair/method plan (fixtures
+``r01`` ... ``r24``) before data.
 
-The region is the robot's **sensor-covered fan from the home pose**, not a
-design grid:
+The reference envelope is the robot's **sensor-covered fan from the home
+pose**, not a grid:
 
-- radius 0.25-0.55 m;
-- bearing -20 ... +25 deg from the base forward axis (+y is left);
-- at least 30 mm from the previous realized point (operator rule).
+- radius about 0.25-0.55 m;
+- bearing about -20 ... +25 deg from the base forward axis (+y is left);
+- a new spot every pair (about 30 mm from the previous point is a guide).
 
 The near part (radius <= ~0.46 m) is visible to the view-pose wrist camera or
 a joint1 yaw sweep. The far part (0.46-0.55 m) is outside the wrist image; it
 is covered by the chassis D435i, whose calibrated far fan is the reason for
-the asymmetric bearing bounds. A point outside this region has no locator from
-the home pose, so it would be a guaranteed capability failure rather than a
-measurement of the grasp method.
+the asymmetric bearing bounds. The envelope is a **guide**, not a gate: the
+operator does not measure, the robot reports the realized point, and a point
+too far or too wide to locate is simply moved a little closer by the operator.
 
 Run on the laptop (no robot)::
 
@@ -85,13 +86,18 @@ def build_region(n_pairs=DEFAULT_N_PAIRS, seed=DEFAULT_SEED,
         },
         'placement_rule': {
             'operator_random': True,
+            'measured_by_operator': False,
             'min_separation_m': float(min_separation),
             'instructions': (
-                'Before every pair the operator places the cube at a new, '
-                'haphazard point inside the region. Do not reuse a previous '
-                'spot, do not line the points up, and keep at least 30 mm '
-                'from the previous realized point. The measured point, not '
-                'the operator intent, is the recorded site.'),
+                'Before every pair the operator places the cube by eye at a '
+                'new spot in the forward workspace; no marks and no '
+                'measurements. Do not reuse the same spot. The robot reports '
+                'the realized point and decides: if the point is already in '
+                'the 0.226-0.234 m band it grasps directly, otherwise it '
+                'drives the base toward it and then grasps. A point too far '
+                'or too wide to locate is moved a little closer by the '
+                'operator. The measured point, not the operator intent, is '
+                'the recorded site.'),
         },
         'locators': ['wrist_view', 'front_camera', 'wrist_yaw'],
         'coverage': {
@@ -100,15 +106,16 @@ def build_region(n_pairs=DEFAULT_N_PAIRS, seed=DEFAULT_SEED,
                 'role': 'far locator (0.46-0.55 m) and fallback',
                 'note': (
                     'The far bearing bounds follow the calibrated D435i '
-                    'far-field fan from the home pose. Its top-face '
-                    'measurement is used only to drive the base into the '
-                    'wrist band; the final grasp target is always the '
-                    'validated wrist measurement.'),
+                    'far-field fan from the home pose. Its depth top-face '
+                    'cluster is used only to drive the base into the wrist '
+                    'band; the final grasp target is always the validated '
+                    'wrist measurement.'),
             },
             'note': (
-                'A random point outside this region has no locator from the '
-                'home pose, so it is excluded by the placement rule rather '
-                'than recorded as a grasp failure.'),
+                'The radius/bearing bounds are a guide to where the robot '
+                'can see the cube, not a gate. The operator does not '
+                'measure; the realized point is recorded and its membership '
+                'is reported descriptively.'),
         },
     }
 

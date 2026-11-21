@@ -1,0 +1,23 @@
+moving to the view pose ...
+arm at the view pose.
+  place the cube at precheck point 1 inside the region and press Enter ...   PRECHECK 1: locator=wrist_view point=(+0.313, -0.086) r=0.325 m bearing -15.4 deg region=ok
+  another precheck point? [y/N]   place the cube at precheck point 2 inside the region and press Enter ...   PRECHECK 2: locator=wrist_view point=(+0.471, -0.026) r=0.472 m bearing -3.2 deg region=ok
+  another precheck point? [y/N]   place the cube at precheck point 3 inside the region and press Enter ...   front capture failed: robot command python3 failed (11.8 s, rc 1):
+stdout: 
+stderr: frame skew 8.340 s exceeds --max-skew 1.000
+
+  front camera attempt 1 produced no point
+  front measure failed: front camera measure failed (0.5 s, rc 1):
+stdout: 
+stderr: no depth top-face cluster
+
+  front camera attempt 2 produced no point
+  search yaw +0.14 rad: no point
+  search yaw -0.14 rad: no point
+  search yaw +0.28 rad: no point
+  search yaw -0.28 rad: found
+  PRECHECK 3: locator=wrist_yaw point=(+0.401, -0.338) r=0.525 m bearing -40.1 deg region=OUTSIDE
+  another precheck point? [y/N]   place the cube at precheck point 4 inside the region and press Enter ...   PRECHECK 4: locator=wrist_view point=(+0.357, -0.188) r=0.403 m bearing -27.8 deg region=OUTSIDE
+  another precheck point? [y/N]   place the cube at precheck point 5 inside the region and press Enter ...   PRECHECK 5: locator=wrist_view point=(+0.357, -0.188) r=0.403 m bearing -27.9 deg region=OUTSIDE
+  another precheck point? [y/N]   place the cube at precheck point 6 inside the region and press Enter ...   PRECHECK 6: locator=wrist_view point=(+0.357, -0.187) r=0.403 m bearing -27.6 deg region=OUTSIDE
+  another precheck point? [y/N]   place the cube at precheck point 7 inside the region and press Enter ... 

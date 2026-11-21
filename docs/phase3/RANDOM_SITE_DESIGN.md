@@ -18,31 +18,34 @@
 The 2026-11-19 paired trial placed every pair on one fixture. The fixed-fan
 follow-up would have placed one pair on each of 24 pre-marked sites. This
 experiment instead tests the chain on **unknown placements**: the operator
-puts the cube at a new, haphazard point inside a pre-registered region before
-every pair, and the robot must locate it, drive to it and complete the
-validated grasp/put-back.
+puts the cube by eye at a new spot anywhere in the forward workspace before
+every pair, and the robot must locate it, drive to it when it is far, and
+complete the validated grasp/put-back. The radius/bearing envelope is a guide
+to where the robot can see the cube, not a gate; the operator does not
+measure.
 
-1. **Capability.** At how many of the 24 random placements can the robot
-   locate the cube (wrist view, joint1 yaw sweep or chassis front camera),
-   bring it into the 0.226-0.234 m grasp band, and complete the pair?
-2. **Method.** Under this random-placement regime, does the grasp-validated
+1. **Capability.** At how many of the 24 free placements can the robot
+   locate the cube (wrist view, chassis front camera or joint1 yaw sweep),
+   bring it into the 0.226-0.234 m grasp band when needed, and complete the
+   pair? A placement already inside the band is grasped directly.
+2. **Method.** Under this free-placement regime, does the grasp-validated
    constant low-configuration correction `e = (+13.7, +3.9, +8.9) mm` still
    change the grasp outcome relative to the raw FK/hand-eye target?
 
 The realized point, measured by the robot, is the recorded site. The operator
 intent is not used in the analysis.
 
-## 2. Region and placement rule
+## 2. Free placement and reference envelope
 
-The region is the **sensor-covered fan from the home pose**, not a design
-grid:
+The radius/bearing envelope is the **sensor-covered fan from the home pose**,
+a guide, not a design grid or a gate:
 
 ```text
-radius   0.25-0.55 m
-bearing  -20 ... +25 deg   (base +y is left)
+guide only:  radius ~0.25-0.55 m
+             bearing ~-20 ... +25 deg   (base +y is left)
 ```
 
-Why these bounds:
+Why this guide:
 
 - **Near half (radius <= ~0.46 m).** The validated view-pose wrist camera
   sees the floor band; a joint1 yaw sweep covers the wider bearings. The
@@ -52,22 +55,22 @@ Why these bounds:
   (the 2026-11-19 demo saw 0.469 m only at the upper image edge). The chassis
   D435i sees this far band from the home pose; its calibrated optical axis is
   at base y = +0.027 m, yaw -1.1 deg, which is why the bearing bounds are
-  asymmetric. The far bearing limits are the calibrated far fan, not an
-  arbitrary choice: a 0.55 m point at +25 deg sits about 29.5 deg from the
-  front optical axis (inside the 35 deg half-field), and -20 deg sits about
-  29.4 deg on the other side. A point outside this region has **no locator
-  from the home pose**, so it would be a guaranteed capability failure
-  rather than a measurement of the method.
+  asymmetric. The far bearing limits are the calibrated far fan: a 0.55 m
+  point at +25 deg sits about 29.5 deg from the front optical axis (inside the
+  35 deg half-field), and -20 deg sits about 29.4 deg on the other side. A
+  point much farther or wider may not be locatable; the operator then moves
+  it a little closer/centred.
 
-**Placement rule (operator):** before every pair, place the cube at a new,
-haphazard point inside the region. Do not reuse a previous spot, do not line
-the points up, and keep at least **30 mm** from the previous realized point.
-The operator must not aim at the image centre or the region boundary. The
-operator's placement is the randomisation; the robot does not know the point
-in advance.
+**Placement rule (operator):** before every pair, place the cube **by eye at
+a new spot in the forward workspace; no marks, no measurements, no fixed
+points.** Do not reuse the same spot. The robot reports the realized point and
+records it. If the measured point is already inside the 0.226-0.234 m band,
+the robot grasps directly; otherwise it drives the base toward it (one or more
+closed-loop pulses) and then grasps. The region membership is reported
+descriptively, not enforced.
 
-The region, rule, 24 fixture labels (`r01`...`r24`) and the seeded pair/method
-plan (seed **17**) are in
+The rule, reference envelope, 24 fixture labels (`r01`...`r24`) and the
+seeded pair/method plan (seed **17**) are in
 [`region.json`](../../evidence/phase3/onsite_20261121_random/region.json) and
 [`paired_trials_plan.json`](../../evidence/phase3/onsite_20261121_random/paired_trials_plan.json).
 
@@ -126,17 +129,19 @@ never supply the grasp target.
 
 ## 5. Procedure per pair
 
-1. The runner prints the pair and the region/rule. The operator places the
-   cube at a fresh random point and presses Enter.
+1. The runner prints the pair. The operator places the cube by eye at a new
+   spot in the forward workspace (no measuring) and presses Enter.
 2. The arm moves to the validated view pose
    `[0, 0.2574, -1.18773, -1.70, -0.01676]`.
-3. **Locate** with the chain above. The first measured point must be inside
-   the region (10 mm / 1 deg margin); if the operator placed it outside, the
-   runner asks for a re-place and re-locates (up to 3). A point outside after
-   that is a capability failure, not a trial.
-4. **Approach.** Closed-loop base pulses (vector duty 20) toward
+3. **Locate** with the chain above. The realized point is reported and its
+   region membership is recorded descriptively; there is **no** placement gate
+   and no re-place prompt. If the locator finds no point, the pair aborts
+   before any trial and the operator moves the cube a little closer/centred.
+4. **Approach or direct grasp.** If the measured point is already inside the
+   0.226-0.234 m band, no pulse is sent and the robot grasps directly (the
+   near case). Otherwise closed-loop base pulses (vector duty 20) drive toward
    `(0.230, 0)`; after each pulse the full locator chain is re-run. Up to 5
-   pulses; stop below 15 mm remaining planar travel.
+   pulses; stop below 15 mm remaining planar travel (the far case).
 5. **Final measurement and envelope guard.** The strict wrist measurement at
    `joint1 = 0`; the target fit must stay inside the prior 24/24 empirical
    envelope: measured `x` 0.215-0.240 m and `|joint1| <= 0.16 rad` (the
@@ -162,7 +167,8 @@ abort left it; the operator keeps clear and the power switch reachable.
 | Outcome | Definition | Role |
 |---|---|---|
 | Located | the locator chain returns a cube point before the first base pulse | capability (descriptive) |
-| Region-valid | the first measured point is inside the pre-registered region | capability (descriptive) |
+| Inside reference envelope | the first measured point is inside the radius/bearing guide | descriptive (not a gate) |
+| Direct grasp | the first measured point is already inside the 0.226-0.234 m band, so no base pulse is sent | descriptive (near case) |
 | Approached | the strict final measurement passes and the empirical envelope passes | capability (descriptive; a pair is attempted only then) |
 | Grasp success | after the close and rise, the cube's 40 mm floor box is empty | **primary** (paired) |
 | Placement error | for a held cube, the xy landing displacement from the pre-grasp measurement | secondary (paired, continuous) |
@@ -221,45 +227,43 @@ Analysis:
 
 ## 9. Pre-session checks (required)
 
-1. **Front-camera far field.** Place the cube at (0.55, 0) and at the far
-   corners (0.55, -20 deg) and (0.55, +25 deg). With `--precheck`, confirm the
-   front-camera locator returns a point and the region check passes. If the
-   far corners fail, **do not start** the 24-pair session: the far region has
-   no locator; record the failure and revise the region before data (a
-   pre-data design change, Section 11).
-2. **Wrist far edge.** Place the cube at (0.45, 0) and at (0.30, +/-20 deg);
-   confirm the wrist wide measurement or the yaw sweep finds them at the view
-   pose.
-3. **Base direction.** One short forward and one short left pulse in the
+1. **Free near/far warm-up.** With `--precheck`, place the cube **by eye**
+   once near (~0.3 m) and once far (~0.5 m); no coordinates, no marks. The
+   near placement should be located by the wrist (or the chain); the far one
+   by the chassis front camera. If the far one is not located, move it a little
+   closer/centred and repeat; **do not start** the 24-pair session with a far
+   locator that never sees a far cube. The precheck does not move the base and
+   writes no trial.
+2. **Base direction.** One short forward and one short left pulse in the
    cleared workspace; confirm the wrist-measured point shifts in the expected
    direction; return with the reverse.
-4. **Cube and floor.** The cube is flat (39.3-39.6 mm) and is the only
+3. **Cube and floor.** The cube is flat (39.3-39.6 mm) and is the only
    saturated object within 0.70 m; no tape marks or other saturated clutter.
-5. **Robot.** Vendor stack, wrist camera, D435i depth, Humble container,
+4. **Robot.** Vendor stack, wrist camera, D435i depth, Humble container,
    SSH key and battery voltage recorded; the base origin on the home mark and
    the forward axis on the taped line.
 
-The `--precheck` mode runs checks 1-2 without moving the base and writes the
-front-camera measurement JSONs to `front/`.
+The `--precheck` mode runs the free near/far warm-up without moving the base
+and writes the front-camera measurement JSONs to `front/`.
 
 ## 10. Threats to validity and limits
 
 - **The randomisation is the operator, not a random-number generator.** The
   24 realized points are recorded, but the sample is not reproducible and the
-  operator can unconsciously avoid hard spots. The placement rule (new spot,
-  no lines, >= 30 mm) is enforced by instruction, not by the robot; the
-  realized distribution is reported.
+  operator can unconsciously avoid hard spots. The free-placement rule (new
+  spot by eye, no measuring) is enforced by instruction only; the realized
+  distribution is reported.
 - **The front camera's far-field depth top-face measurement is not fully
   validated.** It is used only as a drive target; a bias of a few millimetres
   at 0.5 m is tolerable because the closed loop re-measures and the wrist
-  takes over. The pre-session check gates the far field before the 48-trial
-  budget is spent.
+  takes over. The free near/far warm-up checks it once; the in-run locator
+  chain is the real test.
 - **The home return is open-loop.** The model-cancelled reverse cancels the
   unknown speed scale, not wheel slip or yaw. The next locate is relative and
   absorbs it; no global-pose claim is made.
-- **The region is the sensor envelope, not the whole floor.** A random point
-  outside it would be unlocatable from home; the placement rule keeps the
-  draws inside.
+- **The radius/bearing envelope is a guide, not the whole floor.** A point
+  much farther or wider may be unlocatable from the home pose; the operator
+  then moves it a little closer. No coordinate is measured by the operator.
 - **One cube, one operator, one session, one battery state.** The cube is the
   same 39.4 mm wooden cube; the lighting and operator are fixed.
 - **Site count vs power.** The 24 placements are for coverage, not a power
@@ -268,18 +272,26 @@ front-camera measurement JSONs to `front/`.
 ## 11. Deviations
 
 None: no random-placement trial has been run yet. A **pre-data** change (for
-example a region revision forced by the pre-session front-camera check) is not
-a deviation: it regenerates the region and plan, updates the evidence hashes
-and records the reason in the evidence README, still before the first valid
-record. After the first valid record, any change is listed here
-chronologically.
+example the free-placement amendment below) is not a deviation: it updates
+the region, rule and evidence hashes and records the reason in the evidence
+README, still before the first valid record. After the first valid record, any
+change is listed here chronologically.
+
+**Pre-data amendment (2026-11-21, before any trial).** The operator asked for
+free placement without measuring. The fixed far precheck points and the
+region re-place gate were removed: the operator now places the cube by eye
+anywhere in the forward workspace, the robot reports the realized point and
+decides direct grasp (already in the band) vs base approach (far). The region
+JSON is a sensor-coverage guide, not a gate; the far front camera is checked
+by a free near/far warm-up. No trial record existed at this change.
 
 The fixed 24-mark fan in `SITE_DIVERSITY_DESIGN.md` was superseded by this
 file before data; its evidence directory has no trials.
 
 ## 12. Artifacts and commands
 
-- Region: `tools/phase3/random_region.py`; the pre-registered region/rule in
+- Region: `tools/phase3/random_region.py`; the free-placement rule and
+  reference envelope in
   `evidence/phase3/onsite_20261121_random/region.json`.
 - Runner: `tools/phase3/random_site_session.py` (subclasses the validated
   `paired_trial_session.Session`; the grasp/grip/landing/recorder path is
@@ -290,7 +302,7 @@ file before data; its evidence directory has no trials.
   sidecar: `approaches.jsonl`; front-camera measurement JSONs: `front/`.
 - Session log: `evidence/phase3/onsite_20261121_random/session_*.log`.
 
-Precheck (no base motion, no trial; use the operator's actual far points)::
+Precheck (free near/far warm-up; no coordinates, no base motion, no trial)::
 
     sg docker -c "python3 tools/phase3/random_site_session.py --precheck \
         --region evidence/phase3/onsite_20261121_random/region.json \

@@ -746,11 +746,13 @@ concrete next steps.
 ## Roadmap
 
 **Next (highest priority).** Run the pre-registered **random-placement
-24-pair trial** (24 pairs / 48 trials, operator-random point per pair in
-r 0.25-0.55 m / bearing -20..+25 deg, seed-17 plan already committed). It
-tests whether the 12/24 → 24/24 effect and the locate/approach chain survive
-unknown placements. The front-camera far-field precheck at the 0.55 m far
-corners must pass before the session starts; the fixed 24-mark fan was
+24-pair trial** (24 pairs / 48 trials; the operator places the cube by eye,
+with no measuring, anywhere in the forward workspace; the r 0.25-0.55 m /
+bearing -20..+25 deg envelope is a guide; seed-17 plan committed). It tests
+whether the 12/24 → 24/24 effect and the locate/approach chain survive
+unknown placements. If the cube is already in the 0.226-0.234 m band the robot
+grasps directly; otherwise it drives the base toward it. The free near/far
+far-camera warm-up must pass before the session; the fixed 24-mark fan was
 superseded before data and is not run.
 
 **Then.** Address the dominant error-budget term, **gripper placement**

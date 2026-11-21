@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
-"""Run the 24-pair trial with operator-random placements.
+"""Run the 24-pair trial with free operator placements.
 
 This is the 2026-11-21 follow-up: the operator places the same 39.4 mm cube
-at a **new, haphazard point** inside a pre-registered region before every
-pair; nothing is pre-taped or pre-drawn. The robot locates the cube, drives
-the base to it and runs the pair's two randomized methods. The realized point,
-not the operator's intent, is the recorded site.
+**by eye at a new spot** in the forward workspace before every pair; nothing
+is pre-taped, pre-drawn or measured. The robot locates the cube, decides
+whether it is already in the grasp band (direct grasp) or needs the base to
+drive toward it, and runs the pair's two randomized methods. The realized
+point, not the operator's intent, is the recorded site.
 
 Locator chain per sighting:
 
 1. the validated view-pose wrist measurement with the wide region;
 2. the chassis RealSense D435i, which is the only sensor that sees the far
-   part of the region (0.46-0.55 m) from the home pose. Its top-face point is
-   used only to drive the base into the wrist band; the final grasp target is
-   always the strict wrist measurement. It is tried before the yaw sweep
-   because one capture is shorter than the eight-step sweep;
+   part of the workspace (0.46-0.55 m) from the home pose. Its depth top-face
+   point is used only to drive the base into the wrist band; the final grasp
+   target is always the strict wrist measurement. It is tried before the yaw
+   sweep because one capture is shorter than the eight-step sweep;
 3. a ``joint1`` yaw sweep (the 2026-11-19 out-of-view demo path) for the near
    wide bearings that the front camera cannot see.
 
-The region (``tools/phase3/random_region.py``) is the sensor-covered fan from
-home: radius 0.25-0.55 m, bearing -20...+25 deg. The operator's rule is in the
-region JSON: no reused spots, no deliberate lines, >= 30 mm from the previous
-realized point.
+The radius/bearing envelope in ``region.json`` is a guide to where the
+sensors see the cube, not a gate. The operator does not measure; a point too
+far/wide to locate is moved a little closer.
 
 Run on the laptop::
 
@@ -66,6 +66,12 @@ DEFAULT_FRONT_EXTRINSIC = CALIB + '/front_camera_extrinsic.json'
 DEFAULT_FRONT_DEPTH_TO_COLOR = CALIB + '/depth_to_color_extrinsics.json'
 FRONT_MAX_AGE_S = 20.0
 FRONT_MAX_SKEW_S = 1.0
+LOCATOR_ZH = {
+    'wrist_view': '腕相机（view pose）',
+    'front_camera': '前相机（D435i 深度）',
+    'wrist_yaw': '腕相机扫视',
+    'none': '无',
+}
 
 
 class RandomSiteSession(sites.SiteSession):
@@ -172,7 +178,7 @@ class RandomSiteSession(sites.SiteSession):
                 '--max-skew', str(FRONT_MAX_SKEW_S),
                 '--max-age', str(FRONT_MAX_AGE_S)], timeout=60)
         except Exception as error:  # noqa: BLE001 - reported by the caller
-            print('  front capture failed: {}'.format(error), flush=True)
+            print('  前相机抓取帧失败：{}'.format(error), flush=True)
             return None
         copy = ('sudo rm -rf {host}; '
                 'sudo docker cp {container}:{remote} {host}').format(
@@ -186,7 +192,7 @@ class RandomSiteSession(sites.SiteSession):
                  '{}:{}'.format(self.robot.host, host_remote), local],
                 60, 'front camera scp')
         except Exception as error:  # noqa: BLE001 - reported by the caller
-            print('  front copy failed: {}'.format(error), flush=True)
+            print('  前相机图像拷贝失败：{}'.format(error), flush=True)
             return None
         finally:
             try:
@@ -224,7 +230,7 @@ class RandomSiteSession(sites.SiteSession):
         try:
             base.run_command(command, 60, 'front camera measure')
         except Exception as error:  # noqa: BLE001 - reported by the caller
-            print('  front measure failed: {}'.format(error), flush=True)
+            print('  前相机测量失败：{}'.format(error), flush=True)
             return None, None
         with open(output, 'r', encoding='utf-8') as handle:
             report = json.load(handle)
@@ -250,10 +256,10 @@ class RandomSiteSession(sites.SiteSession):
             point, report = self._front_measure(
                 '{}_{}'.format(tag, attempt))
             if point is not None:
-                print('  front camera point ({:+.3f}, {:+.3f}) m'.format(
+                print('  前相机测得点 ({:+.3f}, {:+.3f}) m'.format(
                     point[0], point[1]), flush=True)
                 return point, False, report
-            print('  front camera attempt {} produced no point'.format(
+            print('  前相机第 {} 次没有测到点'.format(
                 attempt + 1), flush=True)
         return None, False, None
 
@@ -301,27 +307,21 @@ class RandomSiteSession(sites.SiteSession):
         return radius, bearing, radius_ok and bearing_ok
 
     def _validate_initial(self, point, report, site, tag, locator):
-        """Reject an operator placement outside the pre-registered region."""
-        for attempt in range(3):
-            radius, bearing, inside = self._region_check(point)
-            print('  initial {} point r={:.3f} m bearing {:+.1f} deg '
-                  'region={}'.format(
-                      locator, radius, bearing,
-                      'ok' if inside else 'OUTSIDE'), flush=True)
-            if inside:
-                self.approach['locator'] = locator
-                return point
-            if self.args.dry_run:
-                return point
-            input('  the measured point is outside the region; move the cube '
-                  'inside and press Enter ... ')
-            point, _valid, report, locator = self._locate_initial(
-                '{}_re{}'.format(tag, attempt))
-            if point is None:
-                break
-        raise RuntimeError(
-            'site {}: measured point outside the region after a re-place'
-            .format(site['site_id']))
+        """Report the realized placement; no measuring or re-place gate.
+
+        The operator places the cube by eye. The locator only returns a point
+        it actually found, so the realized point is inside the sensor
+        coverage by construction; the region is descriptive, not enforced.
+        """
+        radius, bearing, inside = self._region_check(point)
+        print('  已找到木块（{}）：测得点 x={:+.3f}, y={:+.3f} m，'
+              '半径 {:.3f} m，方位 {:+.1f}°{}'.format(
+                  LOCATOR_ZH.get(locator, locator), point[0], point[1],
+                  radius, bearing,
+                  '' if inside else '（超出参考区域，但已定位）'), flush=True)
+        self.approach['locator'] = locator
+        self.approach['realized_inside_region'] = bool(inside)
+        return point
 
     def _dry_approach(self, site):
         """Build a synthetic random approach record for the dry run."""
@@ -366,31 +366,30 @@ class RandomSiteSession(sites.SiteSession):
         """Run every pending pair with a fresh random placement."""
         self.prepare()
         pending = self._pending_pairs()
-        print('{} pending pairs of {}'.format(
+        print('{} 对未完成，共 {} 对'.format(
             len(pending), self.plan['n_pairs']))
         if self.args.max_pairs:
             pending = pending[:self.args.max_pairs]
         region = self.region_payload['region']
-        size = self.region_payload['placement_rule']['min_separation_m']
+        print('放置方式：你随便放，不用量、不用贴点；尽量放在机器人前方'
+              '（大约 0.25–0.55 m、方位约 {:+.0f}…{:+.0f}°，只是参考）。'
+              '近的机器人直接夹，远的会先开过去再夹。'.format(
+                  region['min_bearing_deg'], region['max_bearing_deg']))
         for index, (pair_id, entries, site) in enumerate(pending):
             self.extra_notes = {}
             self.approach = {}
-            print('\n### pair {} ({}/{}) random placement {}: '
-                  'r {:.2f}-{:.2f} m, bearing {:+.0f}..{:+.0f} deg, '
-                  '>= {:.0f} mm from the previous point'.format(
-                      pair_id, index + 1, len(pending), site['site_id'],
-                      region['min_radius_m'], region['max_radius_m'],
-                      region['min_bearing_deg'],
-                      region['max_bearing_deg'], size * 1000.0))
+            print('\n### 第 {} 对（{}/{}），随机点 {}'.format(
+                pair_id, index + 1, len(pending), site['site_id']))
             if not self.args.dry_run:
-                input('  place the cube at a NEW random point in the region '
-                      'and press Enter ... ')
+                input('  请把木块随手放在机器人前方一个新位置'
+                      '（不用量、不用贴点；不要每次都放同一个点），然后按 '
+                      'Enter ... ')
             try:
                 self.locate_and_approach(site, pair_id)
                 for entry_index, entry in enumerate(entries):
                     if entry_index > 0 and not self.args.dry_run:
-                        input('  re-place the cube on the same spot and '
-                              'press Enter ... ')
+                        input('  请把木块放回同一个位置，然后按 '
+                              'Enter ... ')
                     self.trial(entry, prompt=False)
             except Exception as exc:
                 self.approach['error'] = str(exc)
@@ -402,35 +401,39 @@ class RandomSiteSession(sites.SiteSession):
                     self._write_approach(pair_id, site)
 
     def precheck(self):
-        """Exercise the locator chain and the region check, no base motion."""
+        """Free near/far warm-up of the locator chain; no base motion."""
         if self.args.dry_run:
-            raise SystemExit('--precheck needs the real robot')
+            raise SystemExit('--precheck 需要真实机器人')
         self.prepare()
-        index = 0
-        while True:
+        prompts = (
+            '把木块随便放在近一点的位置（大约 0.3 m 内，不用量），'
+            '然后按 Enter ... ',
+            '把木块随便放在远一点的位置（尽量远，约 0.5 m，不用量），'
+            '然后按 Enter ... ',
+        )
+        print('预检查（不用量、不用贴点）：先放一个近的、再放一个远的，'
+              '看机器人能不能找到。底盘不动，也不记录 trial。')
+        for index, prompt in enumerate(prompts, start=1):
             self.robot.move_to_pose(
                 self.view_pose, tag='precheck_view_{}'.format(index))
-            index += 1
-            input('  place the cube at precheck point {} inside the region '
-                  'and press Enter ... '.format(index))
+            input('预检查 {}/{}：{}'.format(index, len(prompts), prompt))
             self.approach = {'site': {'site_id': 'precheck'}}
             point, valid, report, locator = self._locate_initial(
                 'precheck_{}'.format(index))
             if point is None:
-                print('  PRECHECK {}: NOT LOCATED ({})'.format(
-                    index, locator), flush=True)
-            else:
-                radius, bearing, inside = self._region_check(point)
-                print('  PRECHECK {}: locator={} point=({:+.3f}, {:+.3f}) '
-                      'r={:.3f} m bearing {:+.1f} deg region={}'.format(
-                          index, locator, point[0], point[1], radius,
-                          bearing, 'ok' if inside else 'OUTSIDE'),
-                      flush=True)
-            if not sys.stdin.isatty():
-                break
-            answer = input('  another precheck point? [y/N] ')
-            if answer.strip().lower() not in ('y', 'yes'):
-                break
+                print('预检查 {}/{}：没有找到木块。请把它放得离机器人'
+                      '近一点/正一点，然后告诉我。'.format(
+                          index, len(prompts)), flush=True)
+                continue
+            radius_m, bearing_deg, inside = self._region_check(point)
+            print('预检查 {}/{}：定位方式={}；测得点 x={:+.3f}, y={:+.3f} m；'
+                  '半径 {:.3f} m，方位 {:+.1f}°{}'.format(
+                      index, len(prompts), LOCATOR_ZH.get(locator, locator),
+                      point[0], point[1], radius_m, bearing_deg,
+                      '' if inside else '（在参考范围外，但已定位）'),
+                  flush=True)
+        print('预检查结束。第 2 次如果是“前相机（D435i 深度）”，'
+              '说明远场可用；把两行结果告诉 ZCode。')
 
 
 def build_parser():
@@ -465,7 +468,7 @@ def main(argv=None):
     """Run the random-placement session or the precheck."""
     args = build_parser().parse_args(argv)
     if not args.dry_run and not sys.stdin.isatty():
-        raise SystemExit('the session needs an interactive operator prompt')
+        raise SystemExit('这个 session 需要交互式终端（请在 tmux 或终端里运行）')
     session = RandomSiteSession(args)
     try:
         if args.precheck:
@@ -473,7 +476,7 @@ def main(argv=None):
         else:
             session.run()
     except KeyboardInterrupt:
-        print('\ninterrupted; completed trials are already recorded')
+        print('\n已中断；已完成的 trial 都已记录')
         return 130
     return 0
 

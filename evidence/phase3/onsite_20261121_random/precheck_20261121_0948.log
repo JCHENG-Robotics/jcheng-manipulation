@@ -1,0 +1,19 @@
+正在移动到 view pose ...
+手臂已在 view pose。
+预检查：验证 0.55 m 远场的定位（前相机深度顶面）。不需要贴点，按提示放木块即可。
+预检查 1/3：请把木块放在 半径 0.55 m、方位 +0° （x=0.550 m 向前，y=+0.000 m 向左；从底盘中心/base_link 原点量），然后按 Enter ...   前相机测量失败：front camera measure failed (0.5 s, rc 1):
+stdout: 
+stderr: no depth top-face cluster
+
+  前相机第 1 次没有测到点
+  前相机测量失败：front camera measure failed (0.5 s, rc 1):
+stdout: 
+stderr: no depth top-face cluster
+
+  前相机第 2 次没有测到点
+  扫视 yaw +0.14 rad：没有点
+  扫视 yaw -0.14 rad：没有点
+  扫视 yaw +0.28 rad：没有点
+  扫视 yaw -0.28 rad：找到木块
+预检查 1/3：定位方式=腕相机扫视；测得点 x=+0.396, y=-0.311 m；半径 0.504 m，方位 -38.1°；区域=超出
+预检查 2/3：请把木块放在 半径 0.55 m、方位 -20° （x=0.517 m 向前，y=-0.188 m 向左；从底盘中心/base_link 原点量），然后按 Enter ... 
