@@ -9,9 +9,14 @@
 # Mock mode (no robot, no ROS):
 #   tools/studio/start_studio.sh --mock
 #
-# The script does not move the arm. It starts the camera launch only when the
-# camera has no publisher, because that launch is manual and dies silently
-# after a container restart or a SIGKILL.
+# Pose takeover (G7) against the pose gateway on 8766. Requires the pose
+# gateway instance and the fixed ARMPI_TAKEOVER_ACK phrase:
+#   ARMPI_TAKEOVER_ACK=I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE \
+#     tools/studio/start_studio.sh --takeover
+#
+# The script does not move the arm by itself. It starts the camera launch only
+# when the camera has no publisher, because that launch is manual and dies
+# silently after a container restart or a SIGKILL.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -19,7 +24,7 @@ BACKEND_DIR="$REPO_ROOT/armpi-debug-studio/backend"
 PORT="${PORT:-8000}"
 HOST="${HOST:-127.0.0.1}"
 ROBOT_HOST="${ROBOT_HOST:-10.42.0.218}"   # direct Ethernet (the only inbound path since 2026-11-18)
-GATEWAY_PORT="${GATEWAY_PORT:-8765}"
+GATEWAY_PORT="${GATEWAY_PORT:-}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_armpi}"
 SSH_USER="${SSH_USER:-pi}"
 CONTAINER="${CONTAINER:-ArmPiUltra}"
@@ -28,32 +33,53 @@ DB_PATH="${DB_PATH:-/tmp/armpi_studio_hardware_$(date +%Y%m%d).db}"
 LOG="${LOG:-/tmp/studio_studio_${PORT}.log}"
 MODE="hardware"
 START_CAMERA=1
+TAKEOVER=0
 
 usage() {
-    sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
     cat <<'EOF'
 
 Options:
   --mock            run the mock adapter (no robot, no ROS)
+  --takeover        run ARMPI_MOTION_SCOPE=pose against the 8766 gateway;
+                    requires the fixed ARMPI_TAKEOVER_ACK phrase
   --no-camera       do not start vision.launch.py when the camera is down
   -h, --help        show this help
 
 Environment:
   PORT (8000), HOST (127.0.0.1), ROBOT_HOST (10.42.0.218, direct Ethernet)
-  GATEWAY_PORT (8765), SSH_KEY, SSH_USER (pi), CONTAINER (ArmPiUltra)
-  ARMPI_GATEWAY_TOKEN  use this token instead of fetching it from the robot
-  DB_PATH, LOG
+  GATEWAY_PORT (8765, or 8766 with --takeover), SSH_KEY, SSH_USER (pi),
+  CONTAINER (ArmPiUltra), ARMPI_GATEWAY_TOKEN,
+  ARMPI_TAKEOVER_ACK (required by --takeover), DB_PATH, LOG
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --mock) MODE="mock"; shift ;;
+        --takeover) TAKEOVER=1; shift ;;
         --no-camera) START_CAMERA=0; shift ;;
         -h|--help) usage; exit 0 ;;
         *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
 done
+
+if [[ "$TAKEOVER" == "1" ]]; then
+    GATEWAY_PORT="${GATEWAY_PORT:-8766}"
+    # The pose gateway disables the camera on purpose; the read-only 8765
+    # instance keeps serving it. Never start a second vision.launch.py here.
+    START_CAMERA=0
+    if [[ "$MODE" != "hardware" ]]; then
+        echo "--takeover is a hardware mode option" >&2
+        exit 2
+    fi
+    if [[ "${ARMPI_TAKEOVER_ACK:-}" != "I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE" ]]; then
+        echo "FAIL: --takeover needs ARMPI_TAKEOVER_ACK=I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE" >&2
+        exit 2
+    fi
+else
+    GATEWAY_PORT="${GATEWAY_PORT:-8765}"
+fi
 
 step() { printf '\n== %s\n' "$*"; }
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
@@ -145,6 +171,11 @@ else
     export ARMPI_GATEWAY_URL="http://$ROBOT_HOST:$GATEWAY_PORT"
     export ARMPI_GATEWAY_TOKEN="$TOKEN"
     export DB_PATH="$DB_PATH"
+    if [[ "$TAKEOVER" == "1" ]]; then
+        export ARMPI_HARDWARE_MOTION=1
+        export ARMPI_MOTION_SCOPE=pose
+        export ARMPI_TAKEOVER_ACK
+    fi
 fi
 
 # 4. Backend ------------------------------------------------------------

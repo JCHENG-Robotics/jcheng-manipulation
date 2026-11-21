@@ -199,8 +199,8 @@ export function SettingsPage() {
         </ul>
         <p className="footnote">
           当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G2 Trajectory Inspector、
-          G3 Experiment Lab、G4 Visual Workbench 与 G5 记录器已实现。硬件运动仅在受监督实例中可用，
-          mapping_verified 仍为 false。
+          G3 Experiment Lab、G4 Visual Workbench、G5 记录器、G6 单关节路径与 G7 姿态接管已实现。
+          关节映射已验证；G7 只在显式启动的姿态网关实例（8766）与 TAKEOVER 确认短语下启用。
         </p>
       </Card>
     </div>

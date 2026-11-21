@@ -30,8 +30,17 @@ from std_msgs.msg import UInt16
 
 from .aux_camera import UvcCamera
 from .imaging import cv2, image_to_bgr, np
-from .motion import SERVO_IDS, MotionConfig, MotionGuard, MotionRejected
-from .trajectory_capture import pulse_to_rad
+from .motion import (
+    GRIPPER_INIT_PULSE,
+    GRIPPER_JOINT,
+    MOTION_SERVO_IDS,
+    SERVO_IDS,
+    MotionConfig,
+    MotionGuard,
+    MotionRejected,
+)
+from .pointcloud_cache import PointCloudRunner
+from .trajectory_capture import RADIANS_PER_TICK, pulse_to_rad
 
 try:  # motion messages are only present in the vendor image
     from servo_controller_msgs.msg import ServoPosition, ServosPosition, ServoStateList
@@ -40,7 +49,20 @@ except ImportError:  # pragma: no cover - depends on the robot image
     ServosPosition = None
     ServoStateList = None
 
-SERVO_JOINTS = {servo_id: joint for joint, servo_id in SERVO_IDS.items()}
+try:
+    # The real bus-servo registers. ``/controller_manager/servo_states`` is the
+    # vendor command cache; this service is the only actual read.
+    from ros_robot_controller_msgs.msg import GetBusServoCmd
+    from ros_robot_controller_msgs.srv import GetBusServoState
+except ImportError:  # pragma: no cover - depends on the robot image
+    GetBusServoCmd = None
+    GetBusServoState = None
+
+BUS_SERVO_SERVICE = "/ros_robot_controller/bus_servo/get_state"
+
+SERVO_JOINTS = {
+    servo_id: joint for joint, servo_id in MOTION_SERVO_IDS.items()
+}
 MOTION_TOPIC = "servo_controller"
 
 try:  # tf2_msgs is optional; /tf reports unavailable if it is missing.
@@ -66,6 +88,7 @@ class GatewayNode(Node):
         camera_topic: str = "/depth_cam/rgb/image_raw",
         joint_state_topic: str = "/controller_manager/joint_states",
         servo_state_topic: str = "/controller_manager/servo_states",
+        pointcloud_topic: str = "",
         tf_topic: str = "/tf",
         tf_static_topic: str = "/tf_static",
         jpeg_quality: int = 80,
@@ -80,13 +103,16 @@ class GatewayNode(Node):
         self._aux_camera = aux_camera
         self._joint_state_topic = joint_state_topic
         self._servo_state_topic = servo_state_topic
+        self._pointcloud_topic = pointcloud_topic
         self._tf_topic = tf_topic
         self._tf_static_topic = tf_static_topic
         self._jpeg_quality = max(30, min(95, int(jpeg_quality)))
+        self._cloud_runner: PointCloudRunner | None = None
 
         self._motion_config = motion_config if motion_enabled else None
         self._motion_pub = None
         self._guard = MotionGuard(motion_config) if self._motion_config else None
+        self._bus_client = None
         if motion_enabled:
             if ServosPosition is None or ServoPosition is None:
                 raise RuntimeError(
@@ -97,6 +123,19 @@ class GatewayNode(Node):
             self._motion_pub = self.create_publisher(
                 ServosPosition, MOTION_TOPIC, 1
             )
+            if self._motion_config.safety.verification:
+                if GetBusServoState is None or GetBusServoCmd is None:
+                    raise RuntimeError(
+                        "bus verification requires ros_robot_controller_msgs"
+                    )
+                self._bus_client = self.create_client(
+                    GetBusServoState, BUS_SERVO_SERVICE
+                )
+                if not self._bus_client.wait_for_service(timeout_sec=5.0):
+                    raise RuntimeError(
+                        "bus verification requires " + BUS_SERVO_SERVICE +
+                        "; start the gateway with the vendor CycloneDDS environment"
+                    )
 
         self._battery_mv: int | None = None
         self._battery_at: float | None = None
@@ -118,6 +157,11 @@ class GatewayNode(Node):
         self._measured: dict[str, dict[str, Any]] = {}
         self._measured_at: float | None = None
         self._measured_wall: str | None = None
+
+        self._actual: dict[str, dict[str, Any]] = {}
+        self._actual_at: float | None = None
+        self._actual_wall: str | None = None
+        self._verification_timer: threading.Timer | None = None
 
         self._tf_edges: dict[tuple[str, str], dict[str, Any]] = {}
         self._tf_last_at: float | None = None
@@ -156,6 +200,14 @@ class GatewayNode(Node):
                 50,
             )
 
+        if pointcloud_topic:
+            # A subprocess per locate: a 2.5 MB cloud decoded in-process would
+            # compete with the 50 Hz servo callbacks and the HTTP handlers.
+            self._cloud_runner = PointCloudRunner(pointcloud_topic)
+            self.get_logger().info(
+                f"point cloud: {pointcloud_topic} (G8 locate, on-demand subprocess)"
+            )
+
         if TFMessage is None:
             self.get_logger().warning(
                 "tf2_msgs is not installed; /tf will report unavailable"
@@ -189,9 +241,13 @@ class GatewayNode(Node):
 
         if self._motion_pub is not None:
             self.get_logger().warning(
-                f"SUPERVISED MOTION ENABLED: publisher={MOTION_TOPIC} "
-                f"measured={servo_state_topic} "
+                f"MOTION ENABLED ({self._motion_config.safety.mode}): "
+                f"publisher={MOTION_TOPIC} "
+                f"measured={servo_state_topic} (command cache) "
+                f"verification={self._motion_config.safety.verification} "
+                f"bus={BUS_SERVO_SERVICE if self._bus_client else 'off'} "
                 f"step<={self._motion_config.safety.max_step_rad} rad "
+                f"velocity<={self._motion_config.safety.max_velocity_rad_s} rad/s "
                 f"single_joint={self._motion_config.safety.single_joint_only}"
             )
         else:
@@ -250,6 +306,10 @@ class GatewayNode(Node):
             return None, None
 
     def _pulse_to_radians(self, joint: str, pulse: int) -> float:
+        if joint == GRIPPER_JOINT:
+            if self._motion_config is not None and self._motion_config.gripper:
+                return self._motion_config.gripper.pulse_to_rad(pulse)
+            return (int(pulse) - GRIPPER_INIT_PULSE) * RADIANS_PER_TICK
         if self._motion_config is not None:
             return self._motion_config.joints[joint].pulse_to_rad(pulse)
         return pulse_to_rad(joint, pulse)
@@ -271,10 +331,12 @@ class GatewayNode(Node):
             measured[joint] = {
                 "position_rad": self._pulse_to_radians(joint, pulse),
                 "raw_position": pulse,
-                "truth": "measured",
+                # The vendor controller_manager publishes the cache written by
+                # ServoManager.set_position, not a bus read.
+                "truth": "commanded",
                 "validity": "valid",
                 "sample_age_ms": 0,
-                "source": self._servo_state_topic,
+                "source": self._servo_state_topic + " (command cache)",
             }
         if not measured:
             return
@@ -302,10 +364,24 @@ class GatewayNode(Node):
             item["received_at"] = wall
         return measured
 
+    def _actual_with_age(self, now: float | None = None) -> dict[str, dict[str, Any]]:
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            at = self._actual_at
+            wall = self._actual_wall
+            actual = {name: dict(item) for name, item in self._actual.items()}
+        age_ms = max(0.0, (now - at) * 1000.0) if at is not None else None
+        for item in actual.values():
+            item["sample_age_ms"] = (
+                int(round(age_ms)) if age_ms is not None else None
+            )
+            item["received_at"] = wall
+        return actual
+
     def _measured_ready(self) -> bool:
         now = time.monotonic()
         measured = self._measured_with_age(now)
-        if not measured or set(measured) != set(SERVO_IDS):
+        if not measured or not set(SERVO_IDS).issubset(measured):
             return False
         age_ms = max(
             (item.get("sample_age_ms") or 0) for item in measured.values()
@@ -367,6 +443,48 @@ class GatewayNode(Node):
                 )[0]
                 self._tf_edges.pop(oldest, None)
             self._tf_last_at = now
+
+    def pointcloud_meta_payload(self) -> dict[str, Any]:
+        """Capture one fresh cloud and return its metadata (G8 locate)."""
+        runner = self._cloud_runner
+        if runner is None:
+            return {
+                "available": False,
+                "topic": self._pointcloud_topic or None,
+                "frame_id": None,
+                "count": 0,
+                "sample_age_ms": None,
+                "wall_time": None,
+            }
+        try:
+            return runner.meta()
+        except RuntimeError as exc:
+            return {
+                "available": False,
+                "topic": self._pointcloud_topic,
+                "frame_id": None,
+                "count": 0,
+                "sample_age_ms": None,
+                "wall_time": None,
+                "error": str(exc),
+            }
+
+    def pointcloud_status_payload(self) -> dict[str, Any]:
+        runner = self._cloud_runner
+        if runner is None:
+            return {"available": False, "topic": None, "count": 0}
+        return runner.status()
+
+    def pointcloud_payload(self) -> tuple[bytes, str]:
+        """Return the cloud captured by the preceding metadata request."""
+        runner = self._cloud_runner
+        if runner is None:
+            raise RuntimeError("point cloud endpoint is disabled")
+        return runner.payload()
+
+    def close(self) -> None:
+        """Release the point-cloud runner (the subprocess exits per capture)."""
+        self._cloud_runner = None
 
     def _on_aux_image(self, message: Image) -> None:
         camera = self._aux_camera
@@ -547,21 +665,28 @@ class GatewayNode(Node):
         for item in measured.values():
             if not measured_ready:
                 item["validity"] = "stale"
+        actual = self._actual_with_age()
         with self._lock:
             measured_wall = self._measured_wall
+            actual_wall = self._actual_wall
         return {
             "joints": joints,
             "measured": measured,
             "measured_ready": measured_ready,
             "measured_wall_time": measured_wall,
+            "measured_truth": "commanded",
+            "actual": actual,
+            "actual_wall_time": actual_wall,
             "ros_time_ns": int(self.get_clock().now().nanoseconds),
             "wall_time": wall or utc_now_iso(),
             "source": self._joint_state_topic,
             "measured_source": self._servo_state_topic,
+            "actual_source": BUS_SERVO_SERVICE,
             "truth": "commanded",
             "notes": [
                 "joints is the last commanded pulse (command echo).",
-                "measured is the bus-servo position from servo_states.",
+                "measured is the vendor command cache, not a bus read.",
+                "actual is the last GetBusServoState read (measured_on_demand).",
             ],
         }
 
@@ -640,8 +765,16 @@ class GatewayNode(Node):
             "measured_ready": bool(state.get("measured_ready")),
             "tf_ready": bool(tf["available"]),
             "tf_status": tf["status"],
+            "pointcloud_configured": self._cloud_runner is not None,
+            "pointcloud_topic": self._pointcloud_topic or None,
+            "pointcloud_last_capture": self.pointcloud_status_payload(),
             "motion_enabled": self.motion_enabled,
             "motion_state": self._motion_state(),
+            "motion_mode": (
+                self._motion_config.safety.mode
+                if self.motion_enabled and self._motion_config is not None
+                else "disabled"
+            ),
             "node": self.get_name(),
             "wall_time": utc_now_iso(),
             "topics": {
@@ -650,6 +783,7 @@ class GatewayNode(Node):
                 "aux_camera": aux_camera["topic"],
                 "joint_state": self._joint_state_topic,
                 "measured": self._servo_state_topic,
+                "pointcloud": self._pointcloud_topic or None,
                 "motion": MOTION_TOPIC if self.motion_enabled else None,
                 "tf": self._tf_topic,
                 "tf_static": self._tf_static_topic,
@@ -682,7 +816,7 @@ class GatewayNode(Node):
         message.position_unit = "pulse"
         for joint, pulse in positions:
             item = ServoPosition()
-            item.id = int(SERVO_IDS[joint])
+            item.id = int(MOTION_SERVO_IDS[joint])
             item.position = float(int(pulse))
             message.position.append(item)
         self._motion_pub.publish(message)
@@ -703,24 +837,156 @@ class GatewayNode(Node):
             [(target.joint, target.target_pulse) for target in plan.targets],
         )
         self._guard.start(plan, measured)
+        if self._motion_config is not None and self._motion_config.safety.verification:
+            settle = self._motion_config.safety.verification_settle_s
+            if any(target.completion == "timed" for target in plan.targets):
+                # The linkage relaxes after the commanded close; wait longer
+                # so the recorded register is the settled one, not the
+                # transient at the end of the interpolation.
+                settle = max(settle, 1.2)
+            delay = plan.duration_s + settle
+            if self._verification_timer is not None:
+                self._verification_timer.cancel()
+            timer = threading.Timer(delay, self._verify_bus, args=(plan,))
+            timer.daemon = True
+            timer.start()
+            self._verification_timer = timer
         return {
             "status": "dispatched",
             "command_id": plan.command_id,
+            "mode": plan.mode,
             "duration_s": plan.duration_s,
             "position_unit": "pulse",
             "topic": MOTION_TOPIC,
+            "verification": (
+                "pending"
+                if self._motion_config is not None
+                and self._motion_config.safety.verification
+                else "cache"
+            ),
             "joints": [
                 {
                     "joint": target.joint,
                     "servo_id": target.servo_id,
                     "target_pulse": target.target_pulse,
                     "target_rad": target.target_rad,
+                    "completion": target.completion,
                 }
                 for target in plan.targets
             ],
             "measured": measured,
             "published_at": utc_now_iso(),
         }
+
+    # ------------------------------------------------------- bus verification
+    def _verify_bus(self, plan: Any) -> None:
+        """Read the actual registers after the interpolation and settle.
+
+        The service is the only real position source. It is read once per
+        command; a target whose last commanded pulse is below the configured
+        margin is not read (a negative register crashes the vendor node), and
+        the command is marked unverified instead.
+        """
+        guard = self._guard
+        config = self._motion_config
+        if guard is None or config is None or self._bus_client is None:
+            if guard is not None:
+                guard.mark_verified(
+                    {},
+                    time.monotonic(),
+                    read_ok=False,
+                    reason="bus verification is not configured",
+                )
+            return
+        margin = config.safety.verification_margin_pulses
+        with self._lock:
+            measured = {
+                joint: item.get("raw_position")
+                for joint, item in self._measured.items()
+            }
+        unsafe = []
+        request = GetBusServoState.Request()
+        requested: dict[int, str] = {}
+        for target in plan.targets:
+            last = measured.get(target.joint)
+            low = min(
+                int(target.target_pulse),
+                int(last) if last is not None else int(target.target_pulse),
+            )
+            if low < margin:
+                unsafe.append(target.joint)
+                continue
+            command = GetBusServoCmd()
+            command.id = int(target.servo_id)
+            command.get_position = 1
+            request.cmd.append(command)
+            requested[int(target.servo_id)] = target.joint
+        if unsafe or not requested:
+            guard.mark_verified(
+                {},
+                time.monotonic(),
+                read_ok=False,
+                reason=(
+                    "bus read skipped to protect the vendor node; pulse below "
+                    f"the {margin}-count margin for " + ", ".join(unsafe)
+                    if unsafe
+                    else "no safe target to read"
+                ),
+            )
+            return
+        try:
+            if not self._bus_client.wait_for_service(timeout_sec=1.0):
+                raise RuntimeError("bus servo service unavailable")
+            future = self._bus_client.call_async(request)
+            deadline = time.monotonic() + 2.0
+            while not future.done() and time.monotonic() < deadline:
+                time.sleep(0.02)
+            if not future.done():
+                raise RuntimeError("bus servo service timed out")
+            response = future.result()
+            if response is None or not getattr(response, "success", False):
+                raise RuntimeError("bus servo read failed")
+            actual: dict[str, dict[str, Any]] = {}
+            for command, state in zip(request.cmd, response.state):
+                positions = getattr(state, "position", None)
+                if not positions:
+                    continue
+                # rclpy returns uint16[] as array.array('H'); be explicit
+                # instead of handing the whole array to int().
+                if isinstance(positions, (bytes, bytearray, memoryview)):
+                    raw = bytes(positions)
+                    pulse = (
+                        int.from_bytes(raw, "little") if len(raw) == 2 else raw[0]
+                    )
+                else:
+                    pulse = int(positions[0])
+                joint = requested.get(int(command.id))
+                if joint is None:
+                    continue
+                actual[joint] = {
+                    "position_rad": self._pulse_to_radians(joint, pulse),
+                    "raw_position": pulse,
+                    "truth": "measured_on_demand",
+                    "validity": "valid",
+                    "sample_age_ms": 0,
+                    "source": BUS_SERVO_SERVICE,
+                }
+            with self._lock:
+                self._actual = actual
+                self._actual_at = time.monotonic()
+                self._actual_wall = utc_now_iso()
+            guard.mark_verified(
+                actual,
+                time.monotonic(),
+                read_ok=True,
+            )
+        except Exception as error:  # noqa: BLE001 - report, never crash the node
+            guard.mark_verified(
+                {},
+                time.monotonic(),
+                read_ok=False,
+                reason=f"bus read failed: {error}",
+            )
 
     def stop_motion(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         if not self.motion_enabled:
@@ -788,13 +1054,28 @@ class GatewayNode(Node):
             return payload
         payload.update(self._guard.status())
         payload["safety"] = {
+            "mode": self._motion_config.safety.mode,
             "max_step_rad": self._motion_config.safety.max_step_rad,
+            "max_velocity_rad_s": self._motion_config.safety.max_velocity_rad_s,
             "min_duration_s": self._motion_config.safety.min_duration_s,
             "max_duration_s": self._motion_config.safety.max_duration_s,
             "feedback_max_age_ms": self._motion_config.safety.feedback_max_age_ms,
             "tolerance_pulses": self._motion_config.safety.tolerance_pulses,
             "settle_samples": self._motion_config.safety.settle_samples,
             "single_joint_only": self._motion_config.safety.single_joint_only,
+            "pose_requires_all_arm_joints": (
+                self._motion_config.safety.pose_requires_all_arm_joints
+            ),
+            "verification": self._motion_config.safety.verification,
+            "verification_tolerance_pulses": (
+                self._motion_config.safety.verification_tolerance_pulses
+            ),
+            "verification_settle_s": (
+                self._motion_config.safety.verification_settle_s
+            ),
+            "verification_margin_pulses": (
+                self._motion_config.safety.verification_margin_pulses
+            ),
         }
         payload["limits"] = {
             joint: {

@@ -1,0 +1,175 @@
+# ArmPi Debug Studio — G7 pose takeover contract
+#
+# Scope: replace the single-joint supervised commissioning path with a
+# five-joint absolute-pose path plus a gripper command. The arm joints keep the
+# verified `joint_mapping.yaml` bounds; this file adds the limits that only make
+# sense for a whole-pose command:
+#
+# - one velocity cap for every joint (the vendor interpolates one
+#   `ServosPosition` linearly over `duration`; there is no acceleration limit),
+# - the workspace box and measured table plane from
+#   `ros2_ws/src/armpi_safety/config/safety_limits.yaml`,
+# - a measured chassis/yaw guard (19 cm pose is the safe yaw height; at 13 cm
+#   the arm grazes the chassis),
+# - a small library of poses that have actually run on the hardware.
+#
+# The presets are NOT a planner. Each pose is a full five-joint configuration
+# that the project has executed before (or an exact limit-bound variant of one);
+# the Studio validates the straight joint-space interpolation to it against the
+# gates below. It cannot prove self-collision freedom: the measured joint stops
+# are pose-dependent and there is no collision mesh in this path.
+#
+# Evidence:
+#   docs/phase2/JOINT_LIMITS.md
+#   docs/phase2/SAFETY_LAYER.md            (workspace + table plane)
+#   evidence/phase2/onsite_20261119/reach/README.md   (yaw height)
+#   docs/phase2/FAST_MOTION.md             (approach pose)
+#   docs/phase3/PAIRED_TRIAL_DESIGN.md     (grasp / view / lift poses)
+#   docs/phase2/JOINT_LIMITS.md#gripper     (open/close stops)
+
+schema_version: 1
+scope: pose
+max_velocity_rad_s: 0.5      # conservative: armpi_safety vetoes above 1.2
+min_duration_s: 1.0
+max_duration_s: 10.0
+path_samples: 21             # straight joint-space interpolation samples
+completion_tolerance_pulses: 3
+completion_settle_samples: 3
+timeout_margin_s: 3.0
+
+gripper:
+  joint: r_joint
+  servo_id: 1
+  init_raw: 700              # vendor servo_controller.yaml r_joint init
+  open_raw: 170              # command; measured register open stop is 167
+  close_raw: 700             # command; an empty gripper stalls at register 640
+  measured_min_raw: 167
+  measured_max_raw: 640
+  # The vendor tracks the commanded interpolation at about 100-120 raw/s:
+  # a full open from the grip (~550) to ~183 needs about 3 s.
+  # Validation uses the measured low end of the vendor tracking (100-120 raw/s)
+  # so every grip step carries a ~20% margin: an execute-time start that is a
+  # few raw past the plan (the fingers stall on contact) still fits the cap.
+  speed_raw_per_s: 100
+  min_duration_s: 1.0
+  max_duration_s: 6.0
+  completion: timed          # the fingers stall on contact, so position
+                             # completion cannot be used for this servo
+
+workspace:
+  frame: base_link
+  enabled: true
+  lower: [-0.05, -0.30, -0.10]   # coarse hard floor, not the table guard
+  upper: [0.45, 0.30, 0.55]
+
+table_plane:
+  frame: base_link
+  enabled: true
+  normal: [0.010305, -0.063014, 0.997959]
+  offset: 0.0772828
+  clearance_m: 0.01
+
+chassis_guard:
+  # evidence/phase2/onsite_20261119/reach/README.md:
+  #   the 18 cm pose (nominal TCP z +0.092 m) is the safe yaw height;
+  #   at 13 cm the arm grazes the chassis (base_link mesh z max 0.0695 m).
+  enabled: true
+  low_tcp_z_m: 0.09
+  max_low_yaw_rad: 0.20
+
+presets:
+  - id: init_upright
+    label: 初始竖直位
+    label_en: Init upright
+    joints: {joint1: 0.0, joint2: 0.0, joint3: 0.0, joint4: 0.0, joint5: 0.0}
+    verified_on_hardware: true
+    source: "2026-11-19 joint survey posture; all five servos at init pulse 500"
+
+  - id: approach_low
+    label: 低位接近姿态
+    label_en: Low approach
+    joints: {joint1: 0.0, joint2: -0.6618, joint3: -1.80117, joint4: 0.0, joint5: 0.0}
+    verified_on_hardware: true
+    source: "docs/phase2/FAST_MOTION.md approach pose (adopted low bounds)"
+
+  - id: grasp_low
+    label: 低位抓取姿态
+    label_en: Low grasp
+    joints: {joint1: 0.0, joint2: -0.6618, joint3: -1.80117, joint4: -0.6704, joint5: 0.0}
+    verified_on_hardware: true
+    source: "2026-11-21 standing procedure; grasp at the deepest reachable TCP"
+
+  - id: lift_150
+    label: 抬升 150 mm
+    label_en: Lift 150 mm
+    joints: {joint1: 0.050, joint2: 0.205, joint3: -1.420, joint4: -1.260, joint5: 0.0}
+    verified_on_hardware: true
+    source: "2026-11-19 pass-2 lift trajectory (+0.1093 m TCP, 149.9 mm)"
+
+  - id: view_table
+    label: 桌面俯视（近标定位）
+    label_en: Table-down near view
+    joints: {joint1: 0.0, joint2: 0.2574, joint3: -1.18773, joint4: -1.5917, joint5: -0.01676}
+    verified_on_hardware: false
+    source: >-
+      Calibrated view pose (0, 0.2574, -1.18773, -1.70, -0.01676) with joint4
+      clamped to the adopted low bound. The measured view joint4 is about
+      -1.62 rad (register ~113); the commanded -1.70 stalls on the adopted
+      low stop, so this preset is 7 pulses (1.7 deg) higher than the calibrated
+      view and is NOT the hand-eye calibration pose.
+
+# ---------------------------------------------------------------------------
+# G8 task takeover: locate the floor cube and run the validated grasp family.
+#
+# The hand-eye is the table-down TSAI fit; the cloud layout is the Aurora's
+# OpenCV optical frame even though the driver labels it depth_camera_link.
+# The correction is the 2026-11-19/21 constant low-configuration correction.
+task:
+  hand_eye: ../../evidence/calibration/20261118/table_down/calibration_table_down_20261118.json
+  correction_mm: [13.7, 3.9, 8.9]
+  view_preset: view_table
+  lift_preset: lift_150
+  grasp_j2: -0.6618
+  grasp_j3: -1.80117
+  grasp_j5: 0.0
+  pre_grasp_offset_rad: 0.15
+  preclose_rad: -1.6
+  grip_rad: -0.63
+  grip_preclose_duration_s: 1.5
+  grip_duration_s: 2.6
+  release_open_duration_s: 4.0
+  verify_radius_m: 0.04
+  verify_min_height_m: 0.01
+  # Direct-grasp band: the 24-site trial kept the by-eye cube at x 0.226-0.234
+  # and the corrected target at ~0.240-0.248. A farther cube needs the chassis
+  # approach (not part of G8 v1), so the task refuses it instead of planning a
+  # nominal-FK grasp the pads cannot reach.
+  min_reach_m: 0.220
+  max_reach_m: 0.255
+  max_xy_error_mm: 3.0
+  locate:
+    min_range_m: 0.15
+    max_range_m: 0.60
+    floor_threshold_m: 0.004
+    floor_margin_m: 0.006
+    voxel_m: 0.005
+    min_cluster_points: 30
+    slab_m: 0.005
+    min_top_extent_m: 0.035
+    ransac_iterations: 800
+    ransac_points: 40000
+    x_range_m: [0.15, 0.32]
+    y_range_m: 0.09
+    max_xy_m: 0.09
+    min_height_m: 0.020
+    max_height_m: 0.070
+    seed: 0
+    # The Aurora's min valid range at this view is ~0.25 m, so a cube nearer
+    # than that loses the near part of its top face. Rebuild the centre from
+    # the intact far edge using the measured cube size (default 0 = off).
+    cube_size_m: 0.0394
+    recovery_min_visible_m: 0.012
+    recovery_intact_extent_m: 0.030
+    recovery_edge_tol_m: 0.002      # geometric band used to pick an edge
+    recovery_range_band_m: 0.0025   # mean range minus the cloud's min range
+    recovery_range_std_m: 0.0015    # range spread along the clipped edge

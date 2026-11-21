@@ -97,6 +97,24 @@ class RobotAdapter(ABC):
         """Return a read-only TF snapshot when the adapter supports one."""
         return None
 
+    def pointcloud(self) -> dict[str, Any] | None:
+        """Return the latest registered point cloud, or None when unavailable.
+
+        The hardware adapter decodes the gateway's float32 XYZ payload; the
+        mock adapter returns a synthetic cloud only when a test supplies one.
+        The service fails closed when this is None.
+        """
+        return None
+
+    def last_actual(self) -> dict[str, Any] | None:
+        """Return the last bus-servo read (measured_on_demand), or None.
+
+        The task locate uses this for the hand-eye FK: the vendor command cache
+        at the view can differ by ~0.03 rad, which is ~9 mm at 0.3 m. The
+        service only uses it when the arm is at the view and not executing.
+        """
+        return None
+
     @abstractmethod
     def dispatch(self, targets: list[dict[str, Any]], command_id: str) -> DispatchResult:
         """Send a validated target set. Hardware must reject in G1."""

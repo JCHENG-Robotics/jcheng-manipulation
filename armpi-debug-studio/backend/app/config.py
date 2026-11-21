@@ -9,10 +9,12 @@ from pathlib import Path
 from .domain.enums import Mode
 from .domain.mapping import MappingConfig, load_mapping
 from .domain.motion import SUPERVISED_MOTION_ACK
+from .domain.takeover import TAKEOVER_ACK, load_takeover_config
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = BACKEND_ROOT.parent
 DEFAULT_MAPPING = PROJECT_ROOT / "configs" / "joint_mapping.yaml"
+DEFAULT_TAKEOVER = PROJECT_ROOT / "configs" / "takeover.yaml"
 DEFAULT_URDF = (
     PROJECT_ROOT.parent
     / "ros2_ws"
@@ -22,6 +24,8 @@ DEFAULT_URDF = (
     / "armpi_ultra.xacro"
 )
 DEFAULT_VISUAL_MODEL = PROJECT_ROOT / "configs" / "visual_model.yaml"
+
+MOTION_SCOPES = {"step", "pose"}
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -43,6 +47,9 @@ class Settings:
     log_level: str
     hardware_motion_enabled: bool
     supervised_motion: bool = False
+    motion_scope: str = "step"
+    takeover_acknowledged: bool = False
+    takeover_config_path: Path = DEFAULT_TAKEOVER
     gateway_url: str | None = None
     gateway_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
@@ -66,6 +73,14 @@ class Settings:
         gateway_token = os.getenv("ARMPI_GATEWAY_TOKEN") or None
         ack = (os.getenv("ARMPI_SUPERVISED_MOTION_ACK") or "").strip()
 
+        raw_scope = (os.getenv("ARMPI_MOTION_SCOPE", "step") or "step").strip().lower()
+        if raw_scope not in MOTION_SCOPES:
+            raise ValueError(
+                f"ARMPI_MOTION_SCOPE must be one of {sorted(MOTION_SCOPES)}, "
+                f"got {raw_scope!r}"
+            )
+        takeover_ack = (os.getenv("ARMPI_TAKEOVER_ACK") or "").strip()
+
         supervised_motion = hardware_motion_enabled and ack == SUPERVISED_MOTION_ACK
         if hardware_motion_enabled:
             if gateway_url is None:
@@ -84,6 +99,29 @@ class Settings:
                     f"ARMPI_SUPERVISED_MOTION_ACK={SUPERVISED_MOTION_ACK}"
                 )
 
+        # G7 pose takeover is a wider write surface than G6, so it has its own
+        # acknowledgement and refuses unverified limits even in mock mode.
+        takeover_config_path = Path(
+            os.getenv("ARMPI_TAKEOVER_CONFIG", str(DEFAULT_TAKEOVER))
+        )
+        if raw_scope == "pose":
+            mapping = load_mapping(mapping_path)
+            if not mapping.verified:
+                raise ValueError(
+                    "ARMPI_MOTION_SCOPE=pose requires a verified joint mapping"
+                )
+            if takeover_ack != TAKEOVER_ACK:
+                raise ValueError(
+                    "ARMPI_MOTION_SCOPE=pose requires "
+                    f"ARMPI_TAKEOVER_ACK={TAKEOVER_ACK}"
+                )
+            if resolved_mode is Mode.HARDWARE and not hardware_motion_enabled:
+                raise ValueError(
+                    "ARMPI_MOTION_SCOPE=pose requires ARMPI_HARDWARE_MOTION=1 "
+                    "in hardware mode"
+                )
+            load_takeover_config(takeover_config_path)  # fail at startup, not later
+
         return cls(
             mode=resolved_mode,
             robot_id=os.getenv("ARMPI_ROBOT_ID", "armpi-ultra-01"),
@@ -95,6 +133,9 @@ class Settings:
             log_level=os.getenv("LOG_LEVEL", "info"),
             hardware_motion_enabled=hardware_motion_enabled,
             supervised_motion=supervised_motion,
+            motion_scope=raw_scope if (resolved_mode is Mode.MOCK or hardware_motion_enabled) else "step",
+            takeover_acknowledged=takeover_ack == TAKEOVER_ACK,
+            takeover_config_path=takeover_config_path,
             gateway_url=gateway_url,
             gateway_token=gateway_token,
             urdf_path=Path(os.getenv("ARMPI_URDF_PATH", str(DEFAULT_URDF))),
@@ -105,3 +146,8 @@ class Settings:
 
     def load_mapping(self) -> MappingConfig:
         return load_mapping(self.mapping_path)
+
+    def load_takeover(self):
+        if self.motion_scope != "pose":
+            return None
+        return load_takeover_config(self.takeover_config_path)

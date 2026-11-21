@@ -11,8 +11,10 @@ EnvironmentFile=/etc/armpi-gateway/gateway.env
 ExecStart=/usr/local/lib/armpi-gateway/armpi-gateway-run.sh
 # `docker exec` may not forward signals to the command inside the container.
 # Stop the in-container gateway explicitly; the gateway turns SIGTERM into a
-# clean rclpy/HTTP shutdown.
-ExecStop=/bin/bash -c '/usr/bin/docker exec ArmPiUltra pkill -TERM -f "armpi_debug_gateway.main" || true'
+# clean rclpy/HTTP shutdown. The `--port 8765` pattern and the `--` option
+# terminator keep a separately started pose instance on 8766 alive
+# (2026-11-21); without `--`, pkill parses the leading `--port` as its option.
+ExecStop=/bin/bash -c '/usr/bin/docker exec ArmPiUltra pkill -TERM -f -- "armpi_debug_gateway.main.*--port 8765" || true'
 TimeoutStopSec=20
 Restart=always
 RestartSec=5

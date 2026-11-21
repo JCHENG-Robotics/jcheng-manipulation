@@ -40,6 +40,18 @@ class FakeNode:
     def aux_camera_snapshot(self) -> bytes | None:
         return b"\xff\xd8fake-aux-jpeg"
 
+    def pointcloud_meta_payload(self) -> dict[str, object]:
+        return {
+            "available": True,
+            "topic": "/depth_cam/depth_registered/points",
+            "frame_id": "depth_camera_link",
+            "count": 2,
+            "layout": "opencv_optical_xyz",
+        }
+
+    def pointcloud_payload(self) -> tuple[bytes, str]:
+        return b"\x00" * 24, "application/octet-stream"
+
     def tf_payload(self) -> dict[str, object]:
         return {
             "available": True,
@@ -153,6 +165,72 @@ def test_token_is_required(gateway: tuple[GatewayHTTPServer, threading.Event, th
     status, body, _ = _request(server, "/health", token="secret-token")
     assert status == 200
     assert json.loads(body)["status"] == "ok"
+
+
+def test_pointcloud_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:
+    server, _, _ = gateway
+    status, body, content_type = _request(
+        server, "/pointcloud/meta", token="secret-token"
+    )
+    assert status == 200
+    meta = json.loads(body)
+    assert meta["available"] is True
+    assert meta["count"] == 2
+    assert meta["frame_id"] == "depth_camera_link"
+
+    status, body, content_type = _request(
+        server, "/pointcloud", token="secret-token"
+    )
+    assert status == 200
+    assert content_type == "application/octet-stream"
+    assert len(body) == 24
+
+
+def test_pointcloud_unavailable_without_a_cloud(
+    gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread],
+) -> None:
+    class NoCloudNode(FakeNode):
+        def pointcloud_meta_payload(self) -> dict[str, object]:
+            return {"available": False, "count": 0}
+
+        def pointcloud_payload(self) -> tuple[bytes, str]:
+            raise RuntimeError("no point cloud received")
+
+    server, stop_event, thread = _start("secret-token", NoCloudNode())
+    try:
+        status, body, _ = _request(server, "/pointcloud/meta", token="secret-token")
+        assert status == 200
+        assert json.loads(body)["available"] is False
+        status, body, _ = _request(server, "/pointcloud", token="secret-token")
+        assert status == 503
+        assert json.loads(body)["error"]["code"] == "POINTCLOUD_UNAVAILABLE"
+    finally:
+        stop_event.set()
+        thread.join(timeout=5)
+
+
+def test_pointcloud_xyz_bytes() -> None:
+    import numpy as np
+
+    from armpi_debug_gateway.pointcloud import xyz_bytes
+
+    points = np.array([[0.1, -0.2, 0.3], [0.4, 0.5, -0.6]], dtype="<f4")
+    payload = points.tobytes()
+    fields = {
+        "x": {"offset": 0, "datatype": 7},
+        "y": {"offset": 4, "datatype": 7},
+        "z": {"offset": 8, "datatype": 7},
+    }
+    data = bytearray(len(points) * 16)  # one 4-byte padding column
+    for index in range(len(points)):
+        data[index * 16 : index * 16 + 12] = payload[index * 12 : (index + 1) * 12]
+    result = np.frombuffer(
+        xyz_bytes(bytes(data), fields, 16), dtype="<f4"
+    ).reshape(-1, 3)
+    np.testing.assert_allclose(result, points, atol=1e-6)
+
+    with pytest.raises(ValueError):
+        xyz_bytes(bytes(data), {"x": fields["x"]}, 16)
 
 
 def test_read_only_endpoints(gateway: tuple[GatewayHTTPServer, threading.Event, threading.Thread]) -> None:

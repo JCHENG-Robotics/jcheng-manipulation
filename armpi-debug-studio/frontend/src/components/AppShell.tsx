@@ -10,6 +10,7 @@ import { Button, SourceBadge, StatusChip } from "./ui";
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/joints", label: "Joint Control" },
+  { to: "/task", label: "Task Takeover" },
   { to: "/diagnostics", label: "Diagnostics" },
   { to: "/trajectory", label: "Trajectory Inspector" },
   { to: "/experiments", label: "Experiment Lab" },
@@ -199,8 +200,8 @@ export function AppShell() {
             </NavLink>
           ))}
           <div className="nav-note">
-            <strong>G1 范围</strong>
-            <p>Mock 完整演示；Hardware 只读发现，运动未实现。</p>
+            <strong>G1–G8 范围</strong>
+            <p>Mock 完整演示；Hardware 默认只读，运动需显式接管（G7 姿态 / G8 任务）。</p>
           </div>
         </nav>
 

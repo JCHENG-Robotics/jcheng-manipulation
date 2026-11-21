@@ -21,6 +21,14 @@ export DB_PATH
 export BIND_HOST=127.0.0.1
 export PORT
 
+# The pose-takeover spec needs a pose-scope mock backend. It still has no
+# gateway and never dispatches to hardware; the acknowledgement is only the
+# normal G7 startup contract.
+if [[ "${E2E_POSE:-0}" == "1" ]]; then
+  export ARMPI_MOTION_SCOPE=pose
+  export ARMPI_TAKEOVER_ACK=I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE
+fi
+
 # Use `python -m` instead of the venv's console script: this checkout was moved
 # and the script shebang still points at the old absolute path.
 exec "${ROOT}/backend/.venv/bin/python" -m uvicorn app.main:create_app \

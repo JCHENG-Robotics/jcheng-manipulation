@@ -73,9 +73,10 @@ async def _ticker(service: RobotService) -> None:
 
 def _make_service(settings: Settings, clock: Callable[[], float] | None) -> RobotService:
     mapping = settings.load_mapping()
+    takeover = settings.load_takeover()
     store = EventStore(settings.db_path)
     adapter = (
-        MockRobotAdapter(mapping, clock=clock)
+        MockRobotAdapter(mapping, clock=clock, takeover=takeover)
         if settings.mode is Mode.MOCK
         else HardwareAdapter(
             mapping,
@@ -84,9 +85,13 @@ def _make_service(settings: Settings, clock: Callable[[], float] | None) -> Robo
             gateway_token=settings.gateway_token,
             motion_enabled=settings.hardware_motion_enabled,
             supervised=settings.supervised_motion,
+            motion_scope=settings.motion_scope,
+            takeover=takeover,
         )
     )
-    return RobotService(settings, mapping, adapter, store, clock=clock)
+    return RobotService(
+        settings, mapping, adapter, store, clock=clock, takeover=takeover
+    )
 
 
 def create_app(

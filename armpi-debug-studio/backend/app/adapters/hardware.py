@@ -32,12 +32,14 @@ from ..domain.enums import (
 )
 from ..domain.mapping import MappingConfig
 from ..domain.motion import EffectiveMotionLimits, effective_motion_limits
+from ..domain.takeover import TakeoverConfig
 from ..domain.models import (
     BatteryState,
     CameraStatus,
     Capabilities,
     ConnectionReport,
     Fault,
+    GripperState,
     JointState,
     RobotState,
     SegmentStatus,
@@ -61,6 +63,8 @@ class HardwareAdapter(RobotAdapter):
         gateway_token: str | None = None,
         motion_enabled: bool = False,
         supervised: bool = False,
+        motion_scope: str = "step",
+        takeover: TakeoverConfig | None = None,
     ) -> None:
         self.mapping = mapping
         self._clock = clock or time.monotonic
@@ -69,8 +73,16 @@ class HardwareAdapter(RobotAdapter):
         )
         self.motion_enabled = bool(motion_enabled and gateway_url)
         self.supervised = bool(supervised and self.motion_enabled)
+        self.takeover = takeover if (takeover is not None and self.motion_enabled) else None
+        self.motion_scope = (
+            "pose"
+            if self.takeover is not None
+            else ("step" if self.motion_enabled else "read-only")
+        )
         self.motion_limits: EffectiveMotionLimits = effective_motion_limits(
-            mapping, supervised=self.supervised
+            mapping,
+            supervised=self.supervised,
+            takeover=self.takeover,
         )
         self.capabilities = Capabilities(
             hardware_motion=self.motion_enabled,
@@ -87,6 +99,10 @@ class HardwareAdapter(RobotAdapter):
                 if self.motion_enabled
                 else "read-only"
             ),
+            motion_scope=self.motion_scope,
+            max_velocity_rad_s=self.motion_limits.max_velocity_rad_s,
+            gripper_control=self.motion_limits.gripper_enabled,
+            pose_gate=self.takeover is not None,
         )
         self._health_cache: dict[str, Any] | None = None
         self._health_at = -1e9
@@ -298,6 +314,45 @@ class HardwareAdapter(RobotAdapter):
         self._tf_at = now
         return data
 
+    def pointcloud(self) -> dict[str, Any] | None:
+        """Fetch the gateway's registered cloud as float32 XYZ triples."""
+        if self._gateway is None:
+            return None
+        try:
+            meta = self._gateway.get_json("/pointcloud/meta", timeout_s=20.0)
+        except GatewayError as exc:
+            return {
+                "meta": {"available": False, "error": str(exc)},
+                "points": None,
+            }
+        if not isinstance(meta, dict) or not meta.get("available"):
+            return {"meta": meta if isinstance(meta, dict) else {}, "points": None}
+        try:
+            body, _content_type = self._gateway.get_bytes(
+                "/pointcloud", timeout_s=20.0
+            )
+            import numpy as np
+
+            points = np.frombuffer(body, dtype="<f4")
+            if points.size % 3 != 0:
+                raise ValueError("point cloud payload is not XYZ triples")
+            return {
+                "meta": meta,
+                "points": points.reshape(-1, 3),
+            }
+        except (GatewayError, ValueError) as exc:
+            return {"meta": {**meta, "available": False, "error": str(exc)}, "points": None}
+
+    def last_actual(self) -> dict[str, Any] | None:
+        """Return the gateway's last bus-servo read, regardless of age."""
+        if self._gateway is None:
+            return None
+        payload = self._state_payload()
+        actual = payload.get("actual") if isinstance(payload, dict) else None
+        if isinstance(actual, dict) and actual:
+            return actual
+        return None
+
     # ------------------------------------------------------------------ state
     def tick(self) -> None:
         return None
@@ -320,57 +375,73 @@ class HardwareAdapter(RobotAdapter):
             limit_verified=joint.verified,
         )
 
+    def _fresh_actual(self, actual: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Return the bus read only while it is fresh enough for the gate.
+
+        The bus read is a one-shot snapshot captured after a move. It must not
+        replace the 50 Hz command cache as the *continuous* position source:
+        its age would trip the feedback-freshness check before the next move.
+        """
+        if not isinstance(actual, dict) or actual.get("position_rad") is None:
+            return None
+        age = self._optional_int(actual.get("sample_age_ms"))
+        if age is None or age > self.mapping.safety.feedback_max_age_ms:
+            return None
+        return actual
+
     def _joint_from_gateway(
         self,
         name: str,
         item: dict[str, Any] | None,
         measured: dict[str, Any] | None = None,
+        actual: dict[str, Any] | None = None,
     ) -> JointState:
-        """Build a joint from the commanded echo and measured servo position.
+        """Build a joint from the bus read, the command cache or the echo.
 
-        The measured stream is the only valid feedback for motion. When it is
-        absent the joint falls back to the commanded echo and is labelled
-        ``commanded``; the safety gate then blocks hardware motion.
+        Priority: a **fresh** ``GetBusServoState`` read (``actual``,
+        ``measured_on_demand``), then the vendor command cache
+        (``servo_states``, truth ``commanded``), then the ``joint_states``
+        echo. The cache is **not** a measured position; the gateway verifies
+        each move with a bus read.
         """
         joint = self.mapping.joints[name]
-        if not isinstance(item, dict) or item.get("position_rad") is None:
-            if not isinstance(measured, dict) or measured.get("position_rad") is None:
-                return self._unavailable_joint(name, "hardware_gateway_unavailable")
-            item = None
+        actual = self._fresh_actual(actual)
+        use_actual = actual is not None
+        use_measured = (
+            isinstance(measured, dict) and measured.get("position_rad") is not None
+        )
+        if not use_actual and not use_measured and (
+            not isinstance(item, dict) or item.get("position_rad") is None
+        ):
+            return self._unavailable_joint(name, "hardware_gateway_unavailable")
         try:
-            if isinstance(measured, dict) and measured.get("position_rad") is not None:
-                position = float(measured["position_rad"])
-                target = (
-                    float(item["target_rad"])
-                    if isinstance(item, dict) and item.get("target_rad") is not None
-                    else position
-                )
-                raw = (
-                    int(measured["raw_position"])
-                    if measured.get("raw_position") is not None
-                    else int(round(joint.rad_to_raw(position)))
-                )
-                truth = Truth.MEASURED
-                validity = Validity(measured.get("validity", "valid"))
-                age = self._optional_int(measured.get("sample_age_ms"))
-                source = str(measured.get("source", "gateway:/state#measured"))
+            if use_actual:
+                assert isinstance(actual, dict)
+                block = actual
+                default_truth = "measured_on_demand"
+            elif use_measured:
+                assert isinstance(measured, dict)
+                block = measured
+                default_truth = "commanded"
             else:
                 assert isinstance(item, dict)
-                position = float(item["position_rad"])
-                target = (
-                    float(item["target_rad"])
-                    if item.get("target_rad") is not None
-                    else position
-                )
-                raw = (
-                    int(item["raw_position"])
-                    if item.get("raw_position") is not None
-                    else int(round(joint.rad_to_raw(position)))
-                )
-                truth = Truth(item.get("truth", "commanded"))
-                validity = Validity(item.get("validity", "valid"))
-                age = self._optional_int(item.get("sample_age_ms"))
-                source = str(item.get("source", "gateway:/state"))
+                block = item
+                default_truth = "commanded"
+            position = float(block["position_rad"])
+            target = (
+                float(item["target_rad"])
+                if isinstance(item, dict) and item.get("target_rad") is not None
+                else position
+            )
+            raw = (
+                int(block["raw_position"])
+                if block.get("raw_position") is not None
+                else int(round(joint.rad_to_raw(position)))
+            )
+            truth = Truth(block.get("truth", default_truth))
+            validity = Validity(block.get("validity", "valid"))
+            age = self._optional_int(block.get("sample_age_ms"))
+            source = str(block.get("source", "gateway:/state"))
             return JointState(
                 name=name,
                 servo_id=joint.servo_id,
@@ -389,11 +460,127 @@ class HardwareAdapter(RobotAdapter):
         except (TypeError, ValueError, KeyError):
             return self._unavailable_joint(name, "hardware_gateway_invalid_payload")
 
+    def _gripper_from_gateway(
+        self,
+        measured: dict[str, Any] | None,
+        commanded: dict[str, Any] | None = None,
+        actual: dict[str, Any] | None = None,
+    ) -> GripperState | None:
+        """Build the r_joint telemetry block, or None outside pose scope."""
+        if self.takeover is None:
+            return None
+        gripper = self.takeover.gripper
+        base = GripperState(
+            joint=gripper.joint,
+            servo_id=gripper.servo_id,
+            available=False,
+            target_rad=None,
+            target_raw=None,
+            position_rad=None,
+            raw_position=None,
+            truth=Truth.UNKNOWN,
+            validity=Validity.UNAVAILABLE,
+            sample_age_ms=None,
+            source="gateway:/state#measured",
+            min_rad=gripper.min_rad,
+            max_rad=gripper.max_rad,
+            open_raw=gripper.open_raw,
+            close_raw=gripper.close_raw,
+            measured_min_raw=gripper.measured_min_raw,
+            measured_max_raw=gripper.measured_max_raw,
+            completion=gripper.completion,
+            notes=[
+                "completion is timed; the fingers stall on contact",
+                f"measured register range {gripper.measured_min_raw}"
+                f"..{gripper.measured_max_raw} (command "
+                f"{gripper.open_raw}..{gripper.close_raw})",
+            ],
+        )
+        actual = self._fresh_actual(actual)
+        use_actual = actual is not None
+        use_measured = (
+            isinstance(measured, dict) and measured.get("position_rad") is not None
+        )
+        if not use_actual and not use_measured:
+            return base
+        block = actual if use_actual else measured
+        assert isinstance(block, dict)
+        try:
+            position = float(block["position_rad"])
+            raw = (
+                int(block["raw_position"])
+                if block.get("raw_position") is not None
+                else int(round(gripper.rad_to_raw(position)))
+            )
+            commanded_rad = (
+                float(commanded["position_rad"])
+                if isinstance(commanded, dict) and commanded.get("position_rad") is not None
+                else position
+            )
+            return replace(
+                base,
+                available=True,
+                position_rad=position,
+                raw_position=raw,
+                target_rad=commanded_rad,
+                target_raw=int(round(gripper.rad_to_raw(commanded_rad))),
+                truth=Truth(
+                    block.get(
+                        "truth",
+                        "measured_on_demand" if use_actual else "commanded",
+                    )
+                ),
+                validity=Validity(block.get("validity", "valid")),
+                sample_age_ms=self._optional_int(block.get("sample_age_ms")),
+                source=str(block.get("source", "gateway:/state#measured")),
+            )
+        except (TypeError, ValueError, KeyError):
+            return replace(
+                base,
+                notes=base.notes + ["invalid gripper payload"],
+            )
+
     def _motion_ready(self) -> bool:
         if not self.motion_enabled:
             return False
         health = self._health()
-        return bool(health and health.get("motion_enabled"))
+        if not health or not health.get("motion_enabled"):
+            return False
+        mode = health.get("motion_mode")
+        if self.motion_scope == "pose":
+            # A pose-capable backend must never drive a gateway built with the
+            # 0.10 rad / single-joint contract.
+            return mode == "pose"
+        return mode in (None, "step")
+
+    def _scope_mismatch_fault(self) -> Fault | None:
+        if not self.motion_enabled or self.motion_scope != "pose":
+            return None
+        health = self._health()
+        if not health or not health.get("motion_enabled"):
+            return None
+        mode = health.get("motion_mode")
+        if mode == "pose":
+            return None
+        now = utc_now_iso()
+        return Fault(
+            fault_id="gateway-scope-mismatch",
+            level=FaultLevel.FAULT,
+            code=FaultCode.GATEWAY_SCOPE_MISMATCH.value,
+            message=(
+                "backend runs pose takeover but the gateway reports "
+                f"motion_mode={mode!r}; dispatch is blocked"
+            ),
+            source="hardware_adapter",
+            first_seen=now,
+            last_seen=now,
+            remediation=(
+                "generate a pose motion config and restart the motion gateway "
+                "instance with it, or start the backend with "
+                "ARMPI_MOTION_SCOPE=step"
+            ),
+            details={"gateway_motion_mode": mode, "backend_scope": self.motion_scope},
+        )
 
     def _motion_disabled_fault(self) -> Fault:
         now = utc_now_iso()
@@ -421,6 +608,7 @@ class HardwareAdapter(RobotAdapter):
         online = health is not None
         joints_payload: dict[str, Any] = {}
         measured_payload: dict[str, Any] = {}
+        actual_payload: dict[str, Any] = {}
         state_payload: dict[str, Any] = {}
         if online:
             state_payload = self._state_payload() or {}
@@ -430,11 +618,15 @@ class HardwareAdapter(RobotAdapter):
             raw_measured = state_payload.get("measured")
             if isinstance(raw_measured, dict):
                 measured_payload = raw_measured
+            raw_actual = state_payload.get("actual")
+            if isinstance(raw_actual, dict):
+                actual_payload = raw_actual
 
         faults: list[Fault] = []
         if self.motion_enabled:
             if online and not self._motion_ready():
-                faults.append(self._motion_disabled_fault())
+                mismatch = self._scope_mismatch_fault()
+                faults.append(mismatch or self._motion_disabled_fault())
         else:
             self._not_implemented.last_seen = utc_now_iso()
             faults.append(self._not_implemented)
@@ -486,6 +678,7 @@ class HardwareAdapter(RobotAdapter):
                     name,
                     joints_payload.get(name),
                     measured_payload.get(name),
+                    actual_payload.get(name),
                 )
                 for name in self.mapping.joints
             ],
@@ -496,6 +689,11 @@ class HardwareAdapter(RobotAdapter):
             capabilities=capabilities,
             stop_state=None,
             last_command_id=self._active["command_id"] if self._active else self._last_command_id,
+            gripper=self._gripper_from_gateway(
+                measured_payload.get("r_joint"),
+                joints_payload.get("r_joint"),
+                actual_payload.get("r_joint"),
+            ),
         )
 
     def connection_report(self) -> ConnectionReport:
@@ -657,26 +855,76 @@ class HardwareAdapter(RobotAdapter):
             )
             return
         if state == "completed":
-            measured = status.get("measured") or {}
+            cache = status.get("measured") or {}
+            actual = status.get("actual") or {}
+            verification = status.get("verification")
+            timed = bool(active["targets"]) and all(
+                target.get("completion") == "timed" for target in active["targets"]
+            )
+            if not timed and verification != "bus":
+                # servo_states is the vendor command cache; without a bus read
+                # this is not evidence that the arm reached the target.
+                self._finish_unknown(
+                    "gateway completed without a bus-servo verification",
+                    details={
+                        "verification": verification,
+                        "reason": status.get("verification_reason"),
+                        "commanded_cache": cache,
+                        "actual": actual,
+                    },
+                )
+                return
+            deviations = {}
+            if not timed:
+                for target in active["targets"]:
+                    item = actual.get(target["joint"]) or {}
+                    raw = item.get("raw_position")
+                    if raw is None:
+                        continue
+                    deviations[target["joint"]] = int(raw) - int(
+                        target["target_pulse"]
+                    )
             self._events.append(
                 self._event(
                     CommandStage.OBSERVED,
                     active["command_id"],
-                    "measured servo positions reached the target band",
+                    (
+                        "commanded interpolation time elapsed; bus register "
+                        "recorded, not a force measurement"
+                        if timed
+                        else "bus-servo registers read after the interpolation"
+                    ),
                     None,
-                    {"measured": measured, "targets": active["targets"]},
+                    {
+                        "actual": actual,
+                        "commanded_cache": cache,
+                        "targets": active["targets"],
+                        "verification": verification,
+                    },
                 )
             )
             self._events.append(
                 self._event(
                     CommandStage.COMPLETED,
                     active["command_id"],
-                    "gateway confirmed measured positions within tolerance",
+                    (
+                        "gateway confirmed the timed gripper completion"
+                        if timed
+                        else "gateway confirmed actual bus registers within "
+                        f"+/-{status.get('verification_tolerance_pulses')} pulses"
+                    ),
                     None,
                     {
-                        "measured": measured,
+                        "actual": actual,
+                        "commanded_cache": cache,
+                        "deviations_pulses": deviations,
                         "duration_s": active["duration_s"],
                         "tolerance_pulses": status.get("tolerance_pulses"),
+                        "verification_tolerance_pulses": status.get(
+                            "verification_tolerance_pulses"
+                        ),
+                        "completion": "timed" if timed else "position",
+                        "verification": verification,
                     },
                 )
             )
@@ -767,6 +1015,40 @@ class HardwareAdapter(RobotAdapter):
         joints = []
         for item in targets:
             name = str(item["joint"])
+            if self.takeover is not None and name == self.takeover.gripper.joint:
+                gripper = self.takeover.gripper
+                target_rad = float(item["target_rad"])
+                target_raw = int(item["target_raw"])
+                expected_raw = gripper.rad_to_raw(target_rad)
+                if abs(expected_raw - target_raw) > 1.0:
+                    return DispatchResult(
+                        CommandStage.FAILED,
+                        ErrorCode.BAD_REQUEST.value,
+                        f"{name}: target_raw {target_raw} disagrees with "
+                        f"rad_to_raw({target_rad:.6f}) = {expected_raw:.3f}",
+                    )
+                if not (
+                    gripper.min_rad - 1e-9
+                    <= target_rad
+                    <= gripper.max_rad + 1e-9
+                ):
+                    return DispatchResult(
+                        CommandStage.FAILED,
+                        ErrorCode.GRIPPER_RANGE.value,
+                        f"{name}: {target_rad:.6f} rad outside the measured "
+                        f"command range [{gripper.min_rad:.6f}, "
+                        f"{gripper.max_rad:.6f}]",
+                    )
+                joints.append(
+                    {
+                        "joint": name,
+                        "servo_id": gripper.servo_id,
+                        "target_pulse": target_raw,
+                        "target_rad": target_rad,
+                        "completion": gripper.completion,
+                    }
+                )
+                continue
             joint = self.mapping.joints.get(name)
             if joint is None:
                 return DispatchResult(
@@ -797,6 +1079,7 @@ class HardwareAdapter(RobotAdapter):
                     "servo_id": joint.servo_id,
                     "target_pulse": target_raw,
                     "target_rad": target_rad,
+                    "completion": "position",
                 }
             )
 
@@ -804,6 +1087,7 @@ class HardwareAdapter(RobotAdapter):
             "command_id": command_id,
             "client": "armpi-debug-studio-backend",
             "supervised": self.supervised,
+            "mode": self.motion_scope,
             "duration_s": duration,
             "joints": joints,
         }
@@ -829,7 +1113,11 @@ class HardwareAdapter(RobotAdapter):
             )
 
         now = self._clock()
-        deadline_margin_s = 2.0
+        deadline_margin_s = (
+            self.takeover.timeout_margin_s + 1.0
+            if self.takeover is not None
+            else 2.0
+        )
         self._active = {
             "command_id": command_id,
             "targets": joints,

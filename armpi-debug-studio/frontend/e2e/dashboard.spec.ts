@@ -61,15 +61,15 @@ test.describe("Dashboard (mock mode)", () => {
     }
   });
 
-  test("settings page reports mock mode and provisional mapping", async ({ page }) => {
+  test("settings page reports mock mode and the verified mapping", async ({ page }) => {
     await page.getByRole("link", { name: "Settings" }).click();
     await expect(page.getByRole("heading", { name: "Settings", level: 1 })).toBeVisible();
     await expect(page.getByText("mock", { exact: true }).first()).toBeVisible();
-    // The mapping version advances when hardware limits are adopted; the
-    // safety gate still reports provisional until every joint is verified.
+    // The mapping was adopted from the 2026-11-19 stop survey; its version and
+    // verified status are the contract the Settings page must show.
     await expect(
-      page.getByText(/eeprom-bounded-2026-11-18|vendor-provisional-1/).first(),
+      page.getByText(/measured-2026-11-19/).first(),
     ).toBeVisible();
-    await expect(page.getByText("provisional", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("verified", { exact: true }).first()).toBeVisible();
   });
 });

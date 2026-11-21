@@ -1,0 +1,595 @@
+{
+  "schema_version": 1,
+  "kind": "g7_pose_takeover_no_motion",
+  "generated_at": "2026-11-21T08:49:50.876860Z",
+  "backend": "http://127.0.0.1:8000",
+  "gateway": "http://10.42.0.218:8766",
+  "checks": [
+    {
+      "check": "gateway_pose_mode",
+      "ok": true,
+      "detail": {
+        "motion_enabled": true,
+        "motion_mode": "pose",
+        "measured_ready": true
+      }
+    },
+    {
+      "check": "gateway_idle_contract",
+      "ok": true,
+      "detail": {
+        "state": "completed",
+        "mode": "pose",
+        "max_velocity_rad_s": 0.5,
+        "safety": {
+          "mode": "pose",
+          "max_step_rad": 3.61,
+          "max_velocity_rad_s": 0.5,
+          "min_duration_s": 1.0,
+          "max_duration_s": 10.0,
+          "feedback_max_age_ms": 500,
+          "tolerance_pulses": 3,
+          "settle_samples": 3,
+          "single_joint_only": false,
+          "pose_requires_all_arm_joints": true,
+          "verification": true,
+          "verification_tolerance_pulses": 12,
+          "verification_settle_s": 0.5,
+          "verification_margin_pulses": 25
+        }
+      }
+    },
+    {
+      "check": "gateway_gripper_contract",
+      "ok": true,
+      "detail": {
+        "gripper": {
+          "joint": "r_joint",
+          "servo_id": 1,
+          "min_pulse": 170,
+          "max_pulse": 700,
+          "min_rad": -2.2200588085367876,
+          "max_rad": 0.0,
+          "speed_raw_per_s": 120.0,
+          "completion": "timed"
+        },
+        "measured_r_joint": {
+          "raw_position": 700,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        }
+      }
+    },
+    {
+      "check": "health_pose_scope",
+      "ok": true,
+      "detail": {
+        "hardware_motion": true,
+        "hardware_read": true,
+        "mock_faults": false,
+        "replay": true,
+        "min_duration_s": 1.0,
+        "max_duration_s": 10.0,
+        "max_step_rad": 3.6023595761162968,
+        "supervised_motion": false,
+        "single_joint_only": false,
+        "motion_mode": "pose_takeover",
+        "motion_scope": "pose",
+        "max_velocity_rad_s": 0.5,
+        "gripper_control": true,
+        "pose_gate": true
+      }
+    },
+    {
+      "check": "measured_arm_joints",
+      "ok": true,
+      "detail": [
+        "joint1",
+        "joint2",
+        "joint3",
+        "joint4",
+        "joint5"
+      ]
+    },
+    {
+      "check": "measured_gripper",
+      "ok": true,
+      "detail": {
+        "joint": "r_joint",
+        "raw": 700,
+        "truth": "commanded",
+        "age_ms": 11
+      }
+    },
+    {
+      "check": "safety_ready",
+      "ok": true,
+      "detail": {
+        "blockers": [],
+        "warnings": []
+      }
+    },
+    {
+      "check": "pose_takeover_visible",
+      "ok": true,
+      "detail": [
+        "mode_supported",
+        "gateway_online",
+        "driver_online",
+        "feedback_fresh",
+        "mapping_loaded",
+        "mapping_verified",
+        "pose_takeover",
+        "control_lease",
+        "no_active_fault",
+        "not_executing",
+        "hardware_motion_enabled",
+        "measured_feedback",
+        "gripper_feedback",
+        "joints_available",
+        "stop_state_clear"
+      ]
+    },
+    {
+      "check": "presets_available",
+      "ok": true,
+      "detail": {
+        "count": 5,
+        "ids": [
+          "approach_low",
+          "grasp_low",
+          "init_upright",
+          "lift_150",
+          "view_table"
+        ],
+        "gate_error": null,
+        "current_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ]
+      }
+    },
+    {
+      "check": "valid_preset_preview",
+      "ok": true,
+      "detail": {
+        "duration_s": 1.9,
+        "errors": [],
+        "warnings": [
+          {
+            "code": "NEAR_LIMIT",
+            "message": "joint2: target is within 0.02 rad of a limit",
+            "joint": "joint2",
+            "details": {}
+          },
+          {
+            "code": "NEAR_LIMIT",
+            "message": "joint3: target is within 0.02 rad of a limit",
+            "joint": "joint3",
+            "details": {}
+          },
+          {
+            "code": "START_ECHO",
+            "message": "the start pose is the vendor command cache (the actual registers can differ by ~8 pulses / 0.03 rad); the move is bus-verified after completion",
+            "joint": null,
+            "details": {}
+          }
+        ],
+        "pose": {
+          "ok": true,
+          "tcp_m": [
+            0.195541,
+            0.000297,
+            -0.044604
+          ],
+          "table_clearance_m": 0.034766,
+          "samples": 21,
+          "start_tcp_m": [
+            0.20556,
+            0.000132,
+            0.127198
+          ],
+          "start_table_clearance_m": 0.206331,
+          "start_compliant": true,
+          "violations": []
+        }
+      }
+    },
+    {
+      "check": "partial_joint_set_rejected",
+      "ok": true,
+      "detail": [
+        {
+          "code": "POSE_JOINT_SET",
+          "message": "pose scope accepts exactly the five arm joints or exactly the gripper (r_joint); missing=['joint3', 'joint4', 'joint5'], extra=[]",
+          "joint": null,
+          "details": {
+            "missing": [
+              "joint3",
+              "joint4",
+              "joint5"
+            ],
+            "extra": []
+          }
+        }
+      ]
+    },
+    {
+      "check": "low_pose_yaw_rejected",
+      "ok": true,
+      "detail": [
+        {
+          "code": "LOW_POSE_YAW",
+          "message": "low-pose yaw guard: tcp_z=0.051 m is below 0.090 m with joint1=0.225 rad (limit \u00b10.200)",
+          "joint": "joint1",
+          "details": {
+            "sample": 9,
+            "t": 0.45
+          }
+        },
+        {
+          "code": "LOW_POSE_YAW",
+          "message": "low-pose yaw guard: tcp_z=0.042 m is below 0.090 m with joint1=0.250 rad (limit \u00b10.200)",
+          "joint": "joint1",
+          "details": {
+            "sample": 10,
+            "t": 0.5
+          }
+        },
+        {
+          "code": "LOW_POSE_YAW",
+          "message": "low-pose yaw guard: tcp_z=0.033 m is below 0.090 m with joint1=0.275 rad (limit \u00b10.200)",
+          "joint": "joint1",
+          "details": {
+            "sample": 11,
+            "t": 0.55
+          }
+        }
+      ]
+    },
+    {
+      "check": "velocity_cap_rejected",
+      "ok": true,
+      "detail": [
+        {
+          "code": "VELOCITY_EXCEEDED",
+          "message": "joint2: 0.917 rad/s exceeds the pose velocity cap 0.500 rad/s; increase duration to at least 1.83 s",
+          "joint": "joint2",
+          "details": {
+            "velocity_rad_s": 0.9173162024919699,
+            "max_velocity_rad_s": 0.5,
+            "delta_rad": -0.9173162024919699
+          }
+        },
+        {
+          "code": "VELOCITY_EXCEEDED",
+          "message": "joint3: 0.612 rad/s exceeds the pose velocity cap 0.500 rad/s; increase duration to at least 1.22 s",
+          "joint": "joint3",
+          "details": {
+            "velocity_rad_s": 0.611553581840665,
+            "max_velocity_rad_s": 0.5,
+            "delta_rad": -0.611553581840665
+          }
+        },
+        {
+          "code": "VELOCITY_EXCEEDED",
+          "message": "joint4: 0.921 rad/s exceeds the pose velocity cap 0.500 rad/s; increase duration to at least 1.84 s",
+          "joint": "joint4",
+          "details": {
+            "velocity_rad_s": 0.9213402778188283,
+            "max_velocity_rad_s": 0.5,
+            "delta_rad": 0.9213402778188283
+          }
+        }
+      ]
+    },
+    {
+      "check": "gripper_preview_valid",
+      "ok": true,
+      "detail": {
+        "errors": [],
+        "targets": [
+          {
+            "joint": "r_joint",
+            "servo_id": 1,
+            "from_rad": 0.0,
+            "target_rad": -2.220058808536787,
+            "delta_rad": -2.220058808536787,
+            "duration_s": 5.0,
+            "target_raw": 170,
+            "limit_min_rad": -2.220058808536787,
+            "limit_max_rad": 0.0,
+            "limit_verified": true,
+            "limit_source": "measured_gripper_stops_2026_11_18",
+            "completion": "timed"
+          }
+        ],
+        "cache_raw": 700,
+        "target_raw": 170
+      }
+    },
+    {
+      "check": "gripper_speed_rejected",
+      "ok": true,
+      "detail": [
+        {
+          "code": "VELOCITY_EXCEEDED",
+          "message": "r_joint: 530.0 raw/s exceeds the measured 120 raw/s tracking speed; increase duration to at least 4.42 s",
+          "joint": "r_joint",
+          "details": {
+            "velocity_raw_per_s": 530.0,
+            "max_velocity_raw_per_s": 120.0
+          }
+        }
+      ]
+    },
+    {
+      "check": "gripper_range_rejected",
+      "ok": true,
+      "detail": [
+        {
+          "code": "GRIPPER_RANGE",
+          "message": "r_joint: 0.500000 rad outside the measured command range [-2.220059, 0.000000] (open raw 170, close raw 700)",
+          "joint": "r_joint",
+          "details": {
+            "target_rad": 0.5,
+            "min_rad": -2.220058808536787,
+            "max_rad": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "check": "no_motion_dispatched",
+      "ok": true,
+      "detail": {
+        "deltas": {
+          "joint3": 0,
+          "joint1": 0,
+          "joint5": 0,
+          "joint2": 0,
+          "r_joint": 0,
+          "joint4": 0
+        },
+        "note": "no /api/motion/execute call was made"
+      }
+    }
+  ],
+  "measured_before": {
+    "joint1": 500,
+    "joint2": 561,
+    "joint3": 784,
+    "joint4": 120,
+    "joint5": 496,
+    "r_joint": 700
+  },
+  "measured_after": {
+    "joint1": 500,
+    "joint2": 561,
+    "joint3": 784,
+    "joint4": 120,
+    "joint5": 496,
+    "r_joint": 700
+  },
+  "measured_max_delta_pulses": 0,
+  "dispatched": false,
+  "gateway_snapshot": {
+    "health": {
+      "status": "ok",
+      "ros_ready": true,
+      "battery_ready": true,
+      "camera_ready": false,
+      "aux_camera_ready": false,
+      "joints_ready": true,
+      "measured_ready": true,
+      "tf_ready": true,
+      "tf_status": "ok",
+      "motion_enabled": true,
+      "motion_state": "completed",
+      "motion_mode": "pose",
+      "node": "armpi_debug_gateway",
+      "wall_time": "2026-11-21T08:49:52.138642Z",
+      "topics": {
+        "battery": "/ros_robot_controller/battery",
+        "camera": "/armpi_pose_camera_off",
+        "aux_camera": "uvc:disabled",
+        "joint_state": "/controller_manager/joint_states",
+        "measured": "/controller_manager/servo_states",
+        "motion": "servo_controller",
+        "tf": "/tf",
+        "tf_static": "/tf_static"
+      }
+    },
+    "motion_status": {
+      "motion_enabled": true,
+      "measured_ready": true,
+      "measured": {
+        "joint1": {
+          "raw_position": 500,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        },
+        "joint2": {
+          "raw_position": 561,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        },
+        "joint3": {
+          "raw_position": 784,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        },
+        "joint4": {
+          "raw_position": 120,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        },
+        "joint5": {
+          "raw_position": 496,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        },
+        "r_joint": {
+          "raw_position": 700,
+          "sample_age_ms": 0,
+          "received_at": "2026-11-21T08:49:52.130328Z"
+        }
+      },
+      "measured_source": "/controller_manager/servo_states",
+      "motion_topic": "servo_controller",
+      "truth": "measured",
+      "wall_time": "2026-11-21T08:49:52.140090Z",
+      "state": "completed",
+      "mode": "pose",
+      "max_velocity_rad_s": 0.5,
+      "command_id": "cmd_fccc636991c04495",
+      "duration_s": 5.0,
+      "targets": [
+        {
+          "joint": "r_joint",
+          "servo_id": 1,
+          "target_pulse": 700,
+          "target_rad": 0.0,
+          "completion": "timed"
+        }
+      ],
+      "measured_truth": "commanded",
+      "actual": {
+        "r_joint": {
+          "raw_position": 645,
+          "sample_age_ms": 0,
+          "received_at": null
+        }
+      },
+      "actual_at": "2026-11-21T08:45:04.784151Z",
+      "verification": "bus",
+      "verification_reason": null,
+      "verification_tolerance_pulses": 12,
+      "tolerance_pulses": 3,
+      "started_at": "2026-11-21T08:44:58.563232Z",
+      "finished_at": "2026-11-21T08:45:04.784160Z",
+      "last_stop": null,
+      "gripper": {
+        "joint": "r_joint",
+        "servo_id": 1,
+        "min_pulse": 170,
+        "max_pulse": 700,
+        "min_rad": -2.2200588085367876,
+        "max_rad": 0.0,
+        "speed_raw_per_s": 120.0,
+        "completion": "timed"
+      },
+      "safety": {
+        "mode": "pose",
+        "max_step_rad": 3.61,
+        "max_velocity_rad_s": 0.5,
+        "min_duration_s": 1.0,
+        "max_duration_s": 10.0,
+        "feedback_max_age_ms": 500,
+        "tolerance_pulses": 3,
+        "settle_samples": 3,
+        "single_joint_only": false,
+        "pose_requires_all_arm_joints": true,
+        "verification": true,
+        "verification_tolerance_pulses": 12,
+        "verification_settle_s": 0.5,
+        "verification_margin_pulses": 25
+      },
+      "limits": {
+        "joint1": {
+          "servo_id": 6,
+          "min_pulse": 70,
+          "max_pulse": 930,
+          "min_rad": -1.8011797880581484,
+          "max_rad": 1.8011797880581484
+        },
+        "joint2": {
+          "servo_id": 5,
+          "min_pulse": 342,
+          "max_pulse": 775,
+          "min_rad": -0.6618288523562499,
+          "max_rad": 1.1519173063162575
+        },
+        "joint3": {
+          "servo_id": 4,
+          "min_pulse": 500,
+          "max_pulse": 930,
+          "min_rad": -1.8011797880581484,
+          "max_rad": 0.0
+        },
+        "joint4": {
+          "servo_id": 3,
+          "min_pulse": 120,
+          "max_pulse": 880,
+          "min_rad": -1.5917402778188288,
+          "max_rad": 1.5917402778188288
+        },
+        "joint5": {
+          "servo_id": 2,
+          "min_pulse": 120,
+          "max_pulse": 870,
+          "min_rad": -1.5917402778188288,
+          "max_rad": 1.5498523757709648
+        }
+      }
+    },
+    "measured": {
+      "joint1": {
+        "position_rad": 0.0,
+        "raw_position": 500,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      },
+      "joint2": {
+        "position_rad": 0.2555162024919699,
+        "raw_position": 561,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      },
+      "joint3": {
+        "position_rad": -1.1896164181593352,
+        "raw_position": 784,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      },
+      "joint4": {
+        "position_rad": -1.5917402778188288,
+        "raw_position": 120,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      },
+      "joint5": {
+        "position_rad": -0.016755160819145565,
+        "raw_position": 496,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      },
+      "r_joint": {
+        "position_rad": 0.0,
+        "raw_position": 700,
+        "truth": "commanded",
+        "validity": "valid",
+        "sample_age_ms": 11,
+        "source": "/controller_manager/servo_states (command cache)",
+        "received_at": "2026-11-21T08:49:52.130328Z"
+      }
+    }
+  },
+  "ok": true
+}

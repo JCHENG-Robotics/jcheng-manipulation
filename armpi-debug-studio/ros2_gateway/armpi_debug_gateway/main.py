@@ -43,6 +43,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="/controller_manager/servo_states",
         help="measured bus-servo positions; required for motion completion",
     )
+    parser.add_argument(
+        "--pointcloud-topic",
+        default="",
+        help="registered PointCloud2 for the G8 locate endpoint; empty disables it",
+    )
     parser.add_argument("--tf-topic", default="/tf")
     parser.add_argument("--tf-static-topic", default="/tf_static")
     parser.add_argument("--jpeg-quality", type=int, default=80)
@@ -163,6 +168,7 @@ def main(argv: list[str] | None = None) -> None:
             camera_topic=args.camera_topic,
             joint_state_topic=args.joint_state_topic,
             servo_state_topic=args.servo_state_topic,
+            pointcloud_topic=args.pointcloud_topic,
             tf_topic=args.tf_topic,
             tf_static_topic=args.tf_static_topic,
             jpeg_quality=args.jpeg_quality,
@@ -197,6 +203,7 @@ def main(argv: list[str] | None = None) -> None:
             )
         print(f"  joints:  {args.joint_state_topic}")
         print(f"  measured:{args.servo_state_topic}")
+        print(f"  cloud:   {args.pointcloud_topic or 'DISABLED'}")
         print(f"  tf:      {args.tf_topic} + {args.tf_static_topic}")
         if node.motion_enabled:
             assert motion_config is not None
@@ -213,6 +220,7 @@ def main(argv: list[str] | None = None) -> None:
             server.server_close()
         if aux_camera is not None:
             aux_camera.stop()
+        node.close()
         executor.shutdown()
         node.destroy_node()
         rclpy.shutdown()

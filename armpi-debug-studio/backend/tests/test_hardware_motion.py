@@ -146,6 +146,35 @@ def test_snapshot_prefers_measured_positions(mapping, clock) -> None:
     )
 
 
+def test_snapshot_labels_the_vendor_cache_as_commanded(mapping, clock) -> None:
+    """The gateway's measured block is the vendor command cache (2026-11-21)."""
+    adapter, gateway = _adapter(mapping, clock)
+    for item in gateway.state["measured"].values():
+        item["truth"] = "commanded"
+        item["source"] = "/controller_manager/servo_states (command cache)"
+    state = adapter.snapshot()
+    joint1 = next(item for item in state.joints if item.name == "joint1")
+    assert joint1.truth is Truth.COMMANDED
+    assert joint1.position_rad == pytest.approx(_rad(mapping, "joint1", 500))
+
+    # A later bus read is preferred and labelled measured_on_demand.
+    gateway.state["actual"] = {
+        "joint1": {
+            "position_rad": _rad(mapping, "joint1", 502),
+            "raw_position": 502,
+            "truth": "measured_on_demand",
+            "validity": "valid",
+            "sample_age_ms": 5,
+            "source": "/ros_robot_controller/bus_servo/get_state",
+        }
+    }
+    adapter._state_at = -1e9
+    state = adapter.snapshot()
+    joint1 = next(item for item in state.joints if item.name == "joint1")
+    assert joint1.truth is Truth.MEASURED_ON_DEMAND
+    assert joint1.raw_position == 502
+
+
 def test_dispatch_then_completed_events(mapping, clock) -> None:
     adapter, gateway = _adapter(mapping, clock)
     targets = _one(mapping)
@@ -162,6 +191,15 @@ def test_dispatch_then_completed_events(mapping, clock) -> None:
         "state": "completed",
         "command_id": "cmd_1",
         "tolerance_pulses": 3,
+        "verification": "bus",
+        "verification_tolerance_pulses": 12,
+        "actual": {
+            "joint1": {
+                "raw_position": targets[0]["target_raw"] + 2,
+                "sample_age_ms": 5,
+            }
+        },
+        # servo_states is the command cache; the actual field is the bus read.
         "measured": {"joint1": {"raw_position": targets[0]["target_raw"]}},
     }
     clock.advance(0.2)
@@ -170,7 +208,33 @@ def test_dispatch_then_completed_events(mapping, clock) -> None:
     stages = [event["stage"] for event in events]
     assert "Observed" in stages
     assert "Completed" in stages
+    completed = next(event for event in events if event["stage"] == "Completed")
+    assert completed["details"]["actual"]["joint1"]["raw_position"] == (
+        targets[0]["target_raw"] + 2
+    )
+    assert completed["details"]["deviations_pulses"]["joint1"] == 2
     assert adapter.snapshot().connection_state.value == "ReadOnly"
+
+
+def test_cache_only_completion_is_unknown(mapping, clock) -> None:
+    """A completion without a bus read must never be accepted as Completed."""
+    adapter, gateway = _adapter(mapping, clock)
+    adapter.dispatch(_one(mapping), "cmd_cache")
+    gateway.motion_status = {
+        "state": "completed",
+        "command_id": "cmd_cache",
+        "verification": "pending",
+        "measured": {"joint1": {"raw_position": 510}},
+    }
+    clock.advance(0.2)
+    state = adapter.snapshot()
+    events = adapter.drain_events()
+    stages = [event["stage"] for event in events]
+    assert "Unknown" in stages
+    assert "Completed" not in stages
+    assert any(
+        fault.code == "MOTION_OUTCOME_UNKNOWN" for fault in state.faults
+    )
 
 
 def test_dispatch_rejection_is_failed(mapping, clock) -> None:

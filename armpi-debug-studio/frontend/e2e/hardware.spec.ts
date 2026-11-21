@@ -24,7 +24,7 @@ test.describe("Hardware mode (read-only gateway)", () => {
     await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
   });
 
-  test("shows LIVE measured battery/camera and measured joint state", async ({
+  test("shows LIVE measured battery/camera and command-cache joint state", async ({
     page,
     request,
   }) => {
@@ -64,11 +64,13 @@ test.describe("Hardware mode (read-only gateway)", () => {
 
     const state = await (await request.get("/api/state")).json();
     expect(state.joints).toHaveLength(5);
-    // The gateway now exposes /controller_manager/servo_states; read-only
-    // hardware shows measured positions, not the command echo.
-    expect(state.joints.every((joint: { truth: string }) => joint.truth === "measured")).toBe(
-      true,
-    );
+    // /controller_manager/servo_states is the vendor command cache, not a bus
+    // read; the read-only console must label it `commanded` (2026-11-21).
+    expect(
+      state.joints.every((joint: { truth: string }) =>
+        ["commanded", "measured_on_demand", "measured"].includes(joint.truth),
+      ),
+    ).toBe(true);
     expect(state.joints[0].source).toContain("servo_states");
     expect(state.capabilities.hardware_motion).toBe(false);
   });

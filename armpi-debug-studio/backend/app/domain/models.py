@@ -74,6 +74,40 @@ class Capabilities:
     supervised_motion: bool = False
     single_joint_only: bool = False
     motion_mode: str = "read-only"
+    motion_scope: str = "read-only"  # read-only | step | pose | standard
+    max_velocity_rad_s: float | None = None
+    gripper_control: bool = False
+    pose_gate: bool = False
+
+
+@dataclass
+class GripperState:
+    """Read-only gripper telemetry plus the measured command range.
+
+    The vendor maps ``r_joint`` around init pulse 700: open raw 170 measures
+    register 167, and an empty close stalls at register 640 while the command
+    is 700. Completion is therefore timed, not positional.
+    """
+
+    joint: str
+    servo_id: int
+    available: bool
+    target_rad: float | None
+    target_raw: int | None
+    position_rad: float | None
+    raw_position: int | None
+    truth: Truth
+    validity: Validity
+    sample_age_ms: int | None
+    source: str
+    min_rad: float
+    max_rad: float
+    open_raw: int
+    close_raw: int
+    measured_min_raw: int
+    measured_max_raw: int
+    completion: str = "timed"
+    notes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -158,6 +192,7 @@ class PreviewResult:
     expires_at: str | None
     mapping_version: str
     evaluated_at: str
+    pose: dict[str, Any] | None = None
 
 
 @dataclass
@@ -267,6 +302,7 @@ class RobotState:
     capabilities: Capabilities
     stop_state: StopState | None = None
     last_command_id: str | None = None
+    gripper: "GripperState | None" = None
 
 
 @dataclass

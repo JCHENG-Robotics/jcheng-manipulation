@@ -12,6 +12,32 @@ export interface Capabilities {
   supervised_motion: boolean;
   single_joint_only: boolean;
   motion_mode: string;
+  motion_scope: string;
+  max_velocity_rad_s: number | null;
+  gripper_control: boolean;
+  pose_gate: boolean;
+}
+
+export interface GripperState {
+  joint: string;
+  servo_id: number;
+  available: boolean;
+  target_rad: number | null;
+  target_raw: number | null;
+  position_rad: number | null;
+  raw_position: number | null;
+  truth: string;
+  validity: string;
+  sample_age_ms: number | null;
+  source: string;
+  min_rad: number;
+  max_rad: number;
+  open_raw: number;
+  close_raw: number;
+  measured_min_raw: number;
+  measured_max_raw: number;
+  completion: string;
+  notes: string[];
 }
 
 export interface JointState {
@@ -59,6 +85,7 @@ export interface RobotState {
   capabilities: Capabilities;
   stop_state: string | null;
   last_command_id: string | null;
+  gripper: GripperState | null;
 }
 
 export interface SegmentStatus {
@@ -188,6 +215,24 @@ export interface PreviewTarget {
   limit_max_rad: number;
   limit_verified: boolean;
   limit_source: string;
+  completion?: string;
+}
+
+export interface PoseCheck {
+  ok: boolean;
+  tcp_m: number[] | null;
+  table_clearance_m: number | null;
+  samples: number;
+  start_tcp_m: number[] | null;
+  start_table_clearance_m: number | null;
+  start_compliant: boolean;
+  violations: Array<{
+    code: string;
+    message: string;
+    joint: string | null;
+    details: Record<string, unknown>;
+  }>;
+  warning?: string;
 }
 
 export interface PreviewResult {
@@ -201,6 +246,110 @@ export interface PreviewResult {
   expires_at: string | null;
   mapping_version: string;
   evaluated_at: string;
+  pose?: PoseCheck | null;
+}
+
+export interface MotionPreset {
+  id: string;
+  label: string;
+  label_en: string;
+  joints: Record<string, number>;
+  target_raw: Record<string, number | null>;
+  verified_on_hardware: boolean;
+  source: string;
+  limit_ok: boolean;
+  bad_limits: string[];
+  pose_check: PoseCheck | null;
+}
+
+export interface MotionPresetList {
+  schema_version: number;
+  generated_at: string;
+  scope: string;
+  available: boolean;
+  contract: Record<string, unknown> | null;
+  presets: MotionPreset[];
+  current: {
+    joints: Record<string, number>;
+    gripper: GripperState | null;
+    tcp_m: number[] | null;
+    measured: boolean;
+    source: string;
+  };
+  gate_error: string[] | null;
+}
+
+export interface TaskStep {
+  kind: "pose" | "grip" | "verify";
+  label: string;
+  joints?: Record<string, number>;
+  from_joints?: Record<string, number>;
+  targets?: TargetPayload[];
+  duration_s?: number;
+  target_rad?: number;
+  from_rad?: number;
+  target_raw?: number | Record<string, number | null> | null;
+  pose_check?: PoseCheck | null;
+  status: string;
+  detail?: string;
+}
+
+export interface TaskIssue {
+  label?: string;
+  code: string;
+  message: string;
+  joint?: string | null;
+}
+
+export interface TaskFit {
+  joints: number[];
+  tcp: number[];
+  target: number[];
+  residual_mm: number[];
+  xy_error_mm: number;
+  reach_limited: boolean;
+}
+
+export interface TaskPlan {
+  schema_version: number;
+  valid: boolean;
+  errors: TaskIssue[];
+  warnings: TaskIssue[];
+  simulated: boolean;
+  point?: number[];
+  target?: number[];
+  correction_mm?: number[];
+  fit?: TaskFit | null;
+  grasp_joints?: Record<string, number>;
+  approach_joints?: Record<string, number>;
+  pre_grasp_joints?: Record<string, number>;
+  view_joints?: Record<string, number>;
+  lift_joints?: Record<string, number>;
+  view_preset?: string;
+  lift_preset?: string;
+  start_joints?: Record<string, number>;
+  start_gripper_rad?: number;
+  source?: string;
+  locate?: Record<string, unknown>;
+  hand_eye?: Record<string, unknown>;
+  steps: TaskStep[];
+  plan_id?: string | null;
+  generated_at?: string;
+  cloud?: Record<string, unknown>;
+  current_joints?: Record<string, number>;
+}
+
+export interface TaskVerify {
+  held: boolean | null;
+  verified: boolean;
+  simulated: boolean;
+  code?: string;
+  message?: string;
+  warning?: string | null;
+  point?: number[];
+  clusters?: number;
+  report?: Record<string, unknown>;
+  source?: string;
 }
 
 export interface Lease {

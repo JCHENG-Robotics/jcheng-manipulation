@@ -2,9 +2,20 @@
 
 > Status: **implemented and validated on the robot for a no-motion capture and
 > one supervised moving `camera_forward` capture (2026-11-18)**. The moving
-> capture is a small 0.89 s motion with a real measured stream; it is not a
+> capture is a small 0.89 s motion with a real **command stream**; it is not a
 > grasp or a broad tracking study. The recorder is subscribe-only, is not part
 > of the gateway HTTP service, and never enters the safety or motion chain.
+
+> **Corrected 2026-11-21.** `/controller_manager/servo_states` is **not** a bus
+> read. The vendor `ServoManager.set_position` writes the commanded pulse into
+> the cache that both `/joint_states` and `/servo_states` publish. The G5
+> `feedback` stream is a second view of the command (including the vendor's
+> interpolation step), so its "tracking error" is plan-vs-command, not servo
+> tracking. The actual registers require the `GetBusServoState` service; see
+> [`g7-pose-takeover.md`](g7-pose-takeover.md) and
+> [`evidence/studio_g7/20261121/`](../../evidence/studio_g7/20261121/README.md).
+> The G5 dataset keeps its raw values, but `feedback.truth` must be read as
+> `commanded`.
 
 ## Scope
 
@@ -12,8 +23,8 @@ The recorder closes the data-capture gap left by G2:
 
 - `planned` comes from the MoveIt plan that is about to be executed;
 - `commanded` comes from the vendor controller's joint-state command echo;
-- `feedback` comes from the vendor `servo_states` bus-servo positions, labelled
-  `measured`;
+- `feedback` comes from the vendor `servo_states` **command cache** (labelled
+  `measured` in the historical dataset; corrected to `commanded` here);
 - the result is a G2 `schema_version: 1` dataset that can be imported unchanged
   through `POST /api/trajectories` or the Trajectory Inspector page.
 
@@ -25,7 +36,7 @@ with the existing MoveIt tool; the recorder only listens.
 | Stream | Topic / source | Truth | Observed rate |
 |---|---|---|---|
 | `commanded` | `/controller_manager/joint_states` | `commanded` | ~48.8 Hz (command echo) |
-| `feedback` | `/controller_manager/servo_states` | `measured` | ~47.7 Hz (bus-servo positions) |
+| `feedback` | `/controller_manager/servo_states` | **`commanded`** (historical label `measured`) | ~47.7 Hz (command cache) |
 | `planned` | MoveIt plan JSON (`--trajectory-json`) | `planned` | waypoint count from the plan |
 
 `servo_states` (`servo_controller_msgs/msg/ServoStateList`) publishes raw servo

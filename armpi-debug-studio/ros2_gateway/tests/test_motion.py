@@ -216,3 +216,298 @@ def test_config_rejects_oversized_step_cap() -> None:
     raw["safety"]["max_step_rad"] = 0.5
     with pytest.raises(MotionConfigError):
         motion_config_from_dict(raw)
+
+
+# --------------------------------------------------------------- pose (G7)
+def _pose_raw_config() -> dict:
+    raw = _raw_config()
+    raw["mode"] = "pose"
+    raw["safety"].update(
+        {
+            "max_step_rad": 3.61,
+            "max_velocity_rad_s": 0.5,
+            "single_joint_only": False,
+            "timeout_margin_s": 3.0,
+        }
+    )
+    raw["gripper"] = {
+        "joint": "r_joint",
+        "servo_id": 1,
+        "min_pulse": 170,
+        "max_pulse": 700,
+        "init_pulse": 700,
+        "speed_raw_per_s": 120.0,
+        "min_duration_s": 1.0,
+        "max_duration_s": 6.0,
+        "completion": "timed",
+    }
+    return raw
+
+
+def _pose_config():
+    return motion_config_from_dict(_pose_raw_config())
+
+
+def _pose_measured(gripper: int = 170) -> dict:
+    measured = _measured()
+    measured["r_joint"] = {
+        "raw_position": gripper,
+        "sample_age_ms": 5,
+        "received_at": "2026-11-19T00:00:00Z",
+    }
+    return measured
+
+
+def _pose_payload(command_id: str, targets: dict[str, int], duration: float = 2.0) -> dict:
+    config = _pose_config()
+    joints = []
+    for joint, pulse in targets.items():
+        if joint == "r_joint":
+            joints.append(
+                {
+                    "joint": joint,
+                    "servo_id": 1,
+                    "target_pulse": pulse,
+                    "target_rad": config.gripper.pulse_to_rad(pulse),
+                }
+            )
+        else:
+            joints.append(_target(config, joint, pulse))
+    return {
+        "command_id": command_id,
+        "duration_s": duration,
+        "joints": joints,
+    }
+
+
+def test_pose_accepts_five_arm_joints() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = guard.validate(
+        _pose_payload(
+            "pose-1",
+            {
+                "joint1": 520,
+                "joint2": 500,
+                "joint3": 510,
+                "joint4": 520,
+                "joint5": 500,
+            },
+        ),
+        _pose_measured(),
+        0.0,
+    )
+    assert plan.mode == "pose"
+    assert {target.joint for target in plan.targets} == set(ARM_JOINTS)
+    assert all(target.completion == "position" for target in plan.targets)
+
+
+def test_pose_rejects_partial_joint_set() -> None:
+    guard = MotionGuard(_pose_config())
+    with pytest.raises(MotionRejected) as caught:
+        guard.validate(
+            _pose_payload("pose-2", {"joint1": 520}), _pose_measured(), 0.0
+        )
+    assert caught.value.code == "MOTION_BAD_REQUEST"
+
+
+def test_pose_rejects_velocity_above_the_cap() -> None:
+    guard = MotionGuard(_pose_config())
+    with pytest.raises(MotionRejected) as caught:
+        guard.validate(
+            _pose_payload(
+                "pose-3",
+                {
+                    "joint1": 930,
+                    "joint2": 600,
+                    "joint3": 500,
+                    "joint4": 500,
+                    "joint5": 500,
+                },
+                duration=1.0,
+            ),
+            _pose_measured(),
+            0.0,
+        )
+    assert caught.value.code == "MOTION_VELOCITY_EXCEEDED"
+
+
+def test_pose_gripper_is_validated_and_timed() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = guard.validate(
+        _pose_payload("grip-1", {"r_joint": 700}, duration=5.0),
+        _pose_measured(),
+        0.0,
+    )
+    assert len(plan.targets) == 1
+    assert plan.targets[0].joint == "r_joint"
+    assert plan.targets[0].completion == "timed"
+
+    guard.start(plan, _pose_measured())
+    # With bus verification the command cache does not complete even a timed
+    # gripper; the post-interpolation bus read supplies the register.
+    for at in (4.0, 4.1, 4.2, 5.1, 5.2, 5.3):
+        guard.observe(_pose_measured(), at)
+    assert guard.status()["state"] == "executing"
+    status = guard.mark_verified(
+        {"r_joint": {"raw_position": 645, "sample_age_ms": 0}},
+        6.2,
+        read_ok=True,
+    )
+    assert status["state"] == "completed"
+    assert status["verification"] == "bus"
+    assert status["actual"]["r_joint"]["raw_position"] == 645
+
+
+def test_pose_gripper_speed_is_capped() -> None:
+    guard = MotionGuard(_pose_config())
+    with pytest.raises(MotionRejected) as caught:
+        guard.validate(
+            _pose_payload("grip-2", {"r_joint": 700}, duration=1.0),
+            _pose_measured(),
+            0.0,
+        )
+    assert caught.value.code == "MOTION_VELOCITY_EXCEEDED"
+
+
+def test_pose_rejects_mixed_gripper_and_arm() -> None:
+    guard = MotionGuard(_pose_config())
+    with pytest.raises(MotionRejected) as caught:
+        guard.validate(
+            _pose_payload("mixed", {"joint1": 520, "r_joint": 700}),
+            _pose_measured(),
+            0.0,
+        )
+    assert caught.value.code == "MOTION_BAD_REQUEST"
+
+
+def test_pose_config_requires_velocity_and_gripper() -> None:
+    raw = _pose_raw_config()
+    del raw["safety"]["max_velocity_rad_s"]
+    with pytest.raises(MotionConfigError):
+        motion_config_from_dict(raw)
+
+    raw = _pose_raw_config()
+    del raw["gripper"]
+    with pytest.raises(MotionConfigError):
+        motion_config_from_dict(raw)
+
+
+def test_pose_config_rejects_single_joint_only() -> None:
+    raw = _pose_raw_config()
+    raw["safety"]["single_joint_only"] = True
+    with pytest.raises(MotionConfigError):
+        motion_config_from_dict(raw)
+
+
+def test_step_mode_keeps_the_narrow_step_cap() -> None:
+    raw = _raw_config()
+    raw["mode"] = "step"
+    raw["safety"]["max_step_rad"] = 3.61
+    with pytest.raises(MotionConfigError):
+        motion_config_from_dict(raw)
+
+
+# --------------------------------------------- command-cache vs bus (2026-11-21)
+def _pose_plan(guard: MotionGuard):
+    return guard.validate(
+        _pose_payload(
+            "pose-bus",
+            {
+                "joint1": 520,
+                "joint2": 500,
+                "joint3": 510,
+                "joint4": 520,
+                "joint5": 500,
+            },
+        ),
+        _pose_measured(),
+        0.0,
+    )
+
+
+def _actual_for(plan, *, offset: int = 0) -> dict:
+    return {
+        target.joint: {
+            "raw_position": target.target_pulse + offset,
+            "sample_age_ms": 0,
+            "received_at": "2026-11-21T00:00:00Z",
+        }
+        for target in plan.targets
+    }
+
+
+def test_pose_is_not_completed_from_the_command_cache() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = _pose_plan(guard)
+    guard.start(plan, _pose_measured())
+    cache_at_target = {
+        target.joint: {
+            "raw_position": target.target_pulse,
+            "sample_age_ms": 0,
+            "received_at": "2026-11-21T00:00:00Z",
+        }
+        for target in plan.targets
+    }
+    for at in (0.2, 0.4, 0.6, 1.0, 2.0):
+        guard.observe(cache_at_target, at)
+    status = guard.status()
+    assert status["state"] == "executing"
+    assert status["verification"] == "pending"
+    assert status["measured_truth"] == "commanded"
+
+
+def test_pose_completes_from_a_bus_read_within_tolerance() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = _pose_plan(guard)
+    guard.start(plan, _pose_measured())
+    status = guard.mark_verified(_actual_for(plan, offset=8), 2.0, read_ok=True)
+    assert status["state"] == "completed"
+    assert status["verification"] == "bus"
+    assert status["actual"]["joint1"]["raw_position"] == 528
+
+
+def test_pose_bus_read_outside_tolerance_is_unknown() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = _pose_plan(guard)
+    guard.start(plan, _pose_measured())
+    status = guard.mark_verified(_actual_for(plan, offset=20), 2.0, read_ok=True)
+    assert status["state"] == "unknown"
+    assert status["verification"] == "failed"
+    assert "outside" in (status["verification_reason"] or "")
+
+
+def test_pose_bus_read_failure_is_unknown() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = _pose_plan(guard)
+    guard.start(plan, _pose_measured())
+    status = guard.mark_verified(
+        {}, 2.0, read_ok=False, reason="service unavailable"
+    )
+    assert status["state"] == "unknown"
+    assert status["verification"] == "failed"
+    assert status["verification_reason"] == "service unavailable"
+
+
+def test_pose_config_requires_bus_verification() -> None:
+    raw = _pose_raw_config()
+    raw["safety"]["verification"] = False
+    with pytest.raises(MotionConfigError):
+        motion_config_from_dict(raw)
+
+
+def test_timed_gripper_records_the_bus_register() -> None:
+    guard = MotionGuard(_pose_config())
+    plan = guard.validate(
+        _pose_payload("grip-bus", {"r_joint": 700}, duration=5.0),
+        _pose_measured(),
+        0.0,
+    )
+    guard.start(plan, _pose_measured())
+    status = guard.mark_verified(
+        {"r_joint": {"raw_position": 645, "sample_age_ms": 0}},
+        5.2,
+        read_ok=True,
+    )
+    assert status["state"] == "completed"
+    assert status["verification"] == "bus"
+    assert status["actual"]["r_joint"]["raw_position"] == 645

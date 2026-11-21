@@ -4,6 +4,11 @@ Status: **implemented and verified without moving the arm (2026-11-18)**.
 The default gateway and backend remain read-only. The write path exists only
 behind an explicit, fail-closed operator acknowledgement.
 
+> G7 pose takeover (2026-11-21) supersedes the G6 *scope* for real work: one
+> whole five-joint pose or one gripper command, a 0.5 rad/s velocity cap and an
+> FK workspace/table gate. G6 remains the default `step` scope and the
+> commissioning path; see [`g7-pose-takeover.md`](g7-pose-takeover.md).
+
 ## Why this milestone
 
 G1–G5 built a read-only console plus offline analysis. The one PRD P0 gap was
@@ -82,15 +87,29 @@ gateway. A 4xx gateway rejection is `Failed`; a network/timeout result is
 
 ## Completion and unknown outcomes
 
-Completion is derived from `/controller_manager/servo_states` measured pulses,
-not from `/controller_manager/joint_states` (the command echo). On completion
-the adapter emits `Observed` and `Completed` audit events with the measured
-evidence.
+> **Corrected 2026-11-21.** The original text below said `/controller_manager/servo_states`
+> is measured feedback. It is **not**: the vendor `ServoManager.set_position`
+> writes the commanded pulse into the cache that both `/joint_states` and
+> `/servo_states` publish. A cache-based completion appears ~0.1 s after
+> dispatch regardless of the interpolation. The gateway now bus-reads the
+> actual registers with `GetBusServoState` after `duration + 0.5 s` and accepts
+> a step command only within ±8 pulses; the backend rejects a `completed`
+> status without `verification="bus"` as `Unknown`. The step gateway must be
+> started with the vendor zsh environment (CycloneDDS) so the service is
+> reachable. See [`g7-pose-takeover.md`](g7-pose-takeover.md) and
+> [`evidence/studio_g7/20261121/`](../../evidence/studio_g7/20261121/README.md).
+
+Completion is derived from a **`GetBusServoState` bus read** after the
+interpolation, not from `/controller_manager/servo_states` (the vendor command
+cache). On completion the adapter emits `Observed` and `Completed` audit events
+with the actual pulses. A `completed` status without a bus verification is
+reported as `Unknown`, never `Completed`.
 
 If the gateway cannot confirm the outcome (status unreachable, `unknown`
-state, or deadline exceeded), the adapter emits `Unknown`, sets a **latched**
-`MOTION_OUTCOME_UNKNOWN` fault and refuses further motion until the backend is
-restarted after inspection. A normal stop does not clear the latch.
+state, a failed bus read, or deadline exceeded), the adapter emits `Unknown`,
+sets a **latched** `MOTION_OUTCOME_UNKNOWN` fault and refuses further motion
+until the backend is restarted after inspection. A normal stop does not clear
+the latch.
 
 ## Verified on hardware (2026-11-18, no motion)
 

@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""Run one G8 task sequence through the Studio API, with bus-verified steps.
+
+The plan is produced by ``POST /api/task/plan`` (locate + deep-family fit +
+FK/limit validation). Each pose/grip step then goes through the ordinary
+``/api/motion/preview`` and ``/api/motion/execute`` endpoints, so the gateway's
+bus-servo verification applies. A verify step checks the cube box at the view.
+Any rejected preview, `Failed` or `Unknown` aborts the run; nothing is retried.
+
+    # plan only (read-only, prints the located point and steps)
+    python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
+        --out /tmp/g8_plan.json
+
+    # run it (operator beside the robot; clear workspace; power reachable)
+    python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
+        --session operator-g8 --out /tmp/g8_run.json --execute \
+        --i-have-clear-workspace
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+import urllib.error
+import urllib.request
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+class Client:
+    def __init__(self, base: str, timeout: float = 25.0) -> None:
+        self.base = base.rstrip("/")
+        self.timeout = timeout
+        self._opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({})
+        )
+
+    def request(self, method: str, path: str, body: Any = None, headers=None) -> Any:
+        data = None
+        all_headers = {"Accept": "application/json"}
+        if headers:
+            all_headers.update(headers)
+        if body is not None:
+            data = json.dumps(body).encode("utf-8")
+            all_headers["Content-Type"] = "application/json"
+        request = urllib.request.Request(
+            f"{self.base}{path}", data=data, headers=all_headers, method=method
+        )
+        try:
+            with self._opener.open(request, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            payload = exc.read().decode("utf-8")
+            try:
+                return json.loads(payload)
+            except json.JSONDecodeError:
+                return {"error": {"code": f"HTTP_{exc.code}", "message": payload}}
+
+
+def terminal_event(client: Client, command_id: str, duration: float) -> dict[str, Any] | None:
+    deadline = time.monotonic() + duration + 15.0
+    while time.monotonic() < deadline:
+        payload = client.request(
+            "GET", f"/api/events?command_id={command_id}&limit=100"
+        )
+        items = sorted(payload.get("items", []), key=lambda e: e.get("seq", 0))
+        for event in items:
+            if event.get("stage") in ("Completed", "Failed", "Unknown"):
+                return event
+        time.sleep(0.3)
+    return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--backend", default="http://127.0.0.1:8000")
+    parser.add_argument("--session", default="operator-g8")
+    parser.add_argument("--lease-ttl", type=int, default=600)
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--i-have-clear-workspace", action="store_true")
+    args = parser.parse_args(argv)
+    if args.execute and not args.i_have_clear_workspace:
+        raise SystemExit("--execute needs --i-have-clear-workspace")
+
+    client = Client(args.backend)
+    report: dict[str, Any] = {
+        "schema_version": 1,
+        "kind": "g8_task_run",
+        "generated_at": now_iso(),
+        "execute": bool(args.execute),
+        "plan": None,
+        "steps": [],
+        "verify": None,
+        "ok": False,
+        "error": None,
+    }
+    out = Path(args.out)
+    lease: dict[str, Any] | None = None
+
+    def save() -> None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    try:
+        plan = client.request("POST", "/api/task/plan")
+        report["plan"] = plan
+        if "error" in plan:
+            raise RuntimeError(json.dumps(plan["error"]))
+        print("规划:", "VALID" if plan.get("valid") else "REJECTED", "simulated", plan.get("simulated"))
+        print("  木块点", plan.get("point"), "修正后目标", plan.get("target"))
+        if plan.get("fit"):
+            print(
+                "  拟合 j1..j4",
+                [round(v, 4) for v in plan["fit"]["joints"][:4]],
+                "xy 误差 %.2f mm" % plan["fit"]["xy_error_mm"],
+            )
+        for issue in plan.get("errors", []):
+            print("  ERROR", issue.get("code"), issue.get("message"))
+        if not plan.get("valid"):
+            raise RuntimeError("the task plan is not valid")
+        print("  步骤", len(plan.get("steps", [])))
+        if not args.execute:
+            report["ok"] = True
+            return 0
+
+        lease_response = client.request(
+            "POST",
+            "/api/control/acquire",
+            {"session_id": args.session, "ttl_s": args.lease_ttl},
+        )
+        if lease_response.get("lease_id") is None:
+            raise RuntimeError(f"lease acquire failed: {lease_response}")
+        lease = lease_response
+        print("控制权租约:", lease["lease_id"])
+
+        for index, step in enumerate(plan["steps"]):
+            label = step.get("label")
+            kind = step.get("kind")
+            print(f"\n== [{index + 1}/{len(plan['steps'])}] {label} ({kind})")
+            record: dict[str, Any] = {"index": index, "label": label, "kind": kind}
+            report["steps"].append(record)
+            if kind == "verify":
+                verify = client.request(
+                    "POST", "/api/task/verify", {"plan_id": plan.get("plan_id")}
+                )
+                report["verify"] = verify
+                record["verify"] = verify
+                print(
+                    "  夹持:", verify.get("held"),
+                    "clusters", verify.get("clusters"),
+                    "code", verify.get("code"),
+                )
+                if not verify.get("held"):
+                    raise RuntimeError(
+                        "grip verify failed: " + str(verify.get("message") or verify)
+                    )
+                continue
+            targets = step.get("targets") or []
+            preview = client.request(
+                "POST",
+                "/api/motion/preview",
+                {"session_id": args.session, "targets": targets},
+            )
+            record["preview"] = preview
+            if not preview.get("valid") or not preview.get("preview_token"):
+                print(
+                    "  preview REJECTED",
+                    [issue.get("code") for issue in preview.get("errors", [])],
+                )
+                raise RuntimeError(f"{label}: preview rejected")
+            command = client.request(
+                "POST",
+                "/api/motion/execute",
+                {
+                    "session_id": args.session,
+                    "lease_id": lease["lease_id"],
+                    "preview_token": preview["preview_token"],
+                    "command_id": preview["command_id"],
+                    "targets": [
+                        {
+                            "joint": item["joint"],
+                            "target_rad": item["target_rad"],
+                            "duration_s": item["duration_s"],
+                        }
+                        for item in preview["targets"]
+                    ],
+                },
+                headers={"Idempotency-Key": uuid.uuid4().hex},
+            )
+            record["execute"] = command
+            if command.get("status") not in ("Dispatched", "Completed"):
+                raise RuntimeError(f"{label}: execute returned {command}")
+            duration = max(float(item["duration_s"]) for item in preview["targets"])
+            event = terminal_event(client, preview["command_id"], duration)
+            record["terminal"] = event
+            if event is None:
+                raise RuntimeError(f"{label}: no terminal event")
+            if event.get("stage") != "Completed":
+                raise RuntimeError(
+                    f"{label}: {event.get('stage')} {event.get('error_code')}"
+                )
+            details = event.get("details") or {}
+            actual = {
+                joint: item.get("raw_position")
+                for joint, item in (details.get("actual") or {}).items()
+            }
+            deviations = details.get("deviations_pulses") or {}
+            print(
+                "  Completed",
+                "actual", actual,
+                "dev", {k: v for k, v in deviations.items()},
+            )
+            heartbeat = client.request(
+                "POST",
+                "/api/control/heartbeat",
+                {"lease_id": lease["lease_id"], "session_id": args.session},
+            )
+            if heartbeat.get("lease_id"):
+                lease = heartbeat
+        report["ok"] = True
+        return 0
+    except Exception as exc:  # noqa: BLE001 - report and fail loudly
+        report["error"] = str(exc)
+        print("\nABORT:", exc)
+        return 1
+    finally:
+        if lease is not None:
+            try:
+                client.request(
+                    "POST",
+                    "/api/control/release",
+                    {"lease_id": lease["lease_id"], "session_id": args.session},
+                )
+            except Exception:  # noqa: BLE001
+                pass
+        save()
+        print(f"\nreport: {out}")
+        print("result:", "PASS" if report["ok"] else "FAIL")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

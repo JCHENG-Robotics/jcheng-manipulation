@@ -10,6 +10,7 @@ import type {
   ExperimentDetail,
   ExperimentList,
   Lease,
+  MotionPresetList,
   Peripherals,
   PreviewResult,
   ProbeResult,
@@ -17,6 +18,8 @@ import type {
   SafetyReport,
   StopResult,
   TargetPayload,
+  TaskPlan,
+  TaskVerify,
   TrajectoryList,
   TrajectoryRecord,
   TrajectoryRecompute,
@@ -203,6 +206,18 @@ export const api = {
     return request<PreviewResult>("/api/motion/preview", {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId, targets }),
+    });
+  },
+  async motionPresets(): Promise<MotionPresetList> {
+    return request<MotionPresetList>("/api/motion/presets");
+  },
+  async taskPlan(): Promise<TaskPlan> {
+    return request<TaskPlan>("/api/task/plan", { method: "POST" });
+  },
+  async taskVerify(planId?: string | null): Promise<TaskVerify> {
+    return request<TaskVerify>("/api/task/verify", {
+      method: "POST",
+      body: JSON.stringify({ plan_id: planId ?? null }),
     });
   },
   async execute(input: {

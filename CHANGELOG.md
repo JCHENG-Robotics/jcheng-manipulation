@@ -3,6 +3,86 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 Studio G8 task takeover
+
+### Added
+
+- **G8 task takeover (Studio):** one `POST /api/task/plan` captures the
+  registered point cloud on demand, segments the floor cube, applies the
+  validated constant correction and the deep-family fit, and returns a
+  13-step task (`open_gripper`, `approach`, `pre_grasp`, `grasp`, `close_pre`,
+  `close_grip`, `lift`, `view_verify`, `grip_verify`, put-back, release,
+  `return_view`). Every pose step is validated at plan time and again by the
+  ordinary preview from the actual state; the gripper steps are speed-capped
+  with a 20 % margin (`speed_raw_per_s: 100`, durations 1.5/2.6/4.0 s).
+- **Min-range clip recovery:** the Aurora reports no valid depth nearer than
+  ~0.25 m at the view pose, so a nearby cube's top face loses its near part
+  and the clipped centroid is biased 8-13 mm. When exactly one side of the
+  top's minimum-area rectangle lies on the min-range sphere and the opposite
+  edge and both side edges are intact, the centre is rebuilt from the far edge
+  with the measured 39.4 mm cube size (`task.locate.cube_size_m`); the plan
+  warns `TOP_CLIPPED_RECOVERED`. The whole-top gate itself is unchanged.
+- Backend `POST /api/task/plan` and `POST /api/task/verify`, the Task Takeover
+  page, `tools/studio/g8_task_run.py`, and `docs/g8-task-takeover.md`.
+- Evidence `evidence/studio_g8/20261121/`: a real 13-step run (grasp actual
+  `504/339/930/421/499`, `close_grip` stalled at raw 416 on the cube, grip
+  verify `held: true`, put-back landing +3.6 mm x / +0.2 mm y / +0.4 mm z).
+
+### Fixed
+
+- The manual gripper preview in the pose UI now uses 5.5 s, so the full
+  2.22 rad stroke stays under the 100 raw/s validation cap.
+- `close_grip` was rejected on the first hardware attempt because the
+  pre-close stalled 12 raw past its command and 2.0 s implied 0.51 rad/s.
+
+## [Unreleased] — 2026-11-21 Studio G7 pose takeover
+
+### Added
+
+- **G7 pose takeover (Studio):** one whole five-joint pose or one `r_joint`
+  gripper command per write, behind a separate gateway instance (8766) and the
+  fixed `ARMPI_TAKEOVER_ACK` phrase. A 0.5 rad/s velocity cap, an FK gate over
+  21 samples of the straight joint-space interpolation (workspace box,
+  measured table plane + 10 mm, low-pose yaw), and five hardware-validated
+  presets. The gripper uses a measured command range (170…700 raw) and timed
+  completion.
+- Backend `/api/motion/presets`, `pose` details in the preview, and the new
+  `POSE_JOINT_SET`, `VELOCITY_EXCEEDED`, `GRIPPER_RANGE`, `WORKSPACE`,
+  `TABLE_CLEARANCE`, `LOW_POSE_YAW`, `FK_UNAVAILABLE` codes.
+- Gateway motion contract `mode=pose`, per-joint velocity validation, the
+  `r_joint` contract and timed completion; `motion_mode` in `/health`.
+- **Bus-servo completion:** after `duration + 0.5 s` (1.2 s for the gripper) the
+  gateway reads the actual registers with `GetBusServoState` and completes an
+  arm command only within ±12 pulses; the gripper records the settled register.
+  The read is guarded (no read below 25 counts, because a negative register
+  crashes the vendor node). A cache-only completion is `Unknown`.
+- `tools/studio/verify_takeover.py` (read-only, 17 checks),
+  `tools/studio/g7_first_motion.py` (staged real sequence) and
+  `tools/studio/start_studio.sh --takeover`.
+- Frontend **Pose Takeover** panel: preset library, five-joint editor with
+  per-joint velocity, auto duration, FK TCP/table clearance, gripper
+  open/close, confirm modal and hold request; the command status shows the
+  bus-verified actual registers and deviations.
+- Evidence: `evidence/studio_g7/20261121/` — real `view_table → grasp_low →
+  view_table` + gripper sequence (low pose actual `502/339/928/336/499`, max 4
+  pulses; gripper settled 184/645), 17/17 no-motion checks on the final code;
+  docs `g7-pose-takeover.md` and `ros2_gateway/deploy/takeover.md`.
+
+### Fixed
+
+- **The vendor `/controller_manager/servo_states` is a command cache, not a
+  measured position.** `ServoManager.set_position` writes the commanded pulse
+  into it; a cache-based completion appeared ~0.12 s after dispatch for a 2.5 s
+  interpolation. The gateway now bus-verifies every arm command, the backend
+  labels the continuous stream `truth=commanded`, and a cache-only `completed`
+  status is rejected as `Unknown`. G5's `feedback` stream is the same cache; its
+  docs now say so.
+- The pose editor rounds preset values to 6 decimals and clamps to the adopted
+  limit; rounding `joint4 = -1.5917`/`joint3 = -1.80117` to 4 decimals crossed
+  the limit and produced a false `OUT_OF_LIMIT`.
+- `Settings` no longer claims `mapping_verified` is false (stale since the
+  2026-11-19 survey).
+
 ## [Unreleased] — 2026-11-21 home-return between the two trials
 
 ### Changed

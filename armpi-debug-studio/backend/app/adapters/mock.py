@@ -32,12 +32,14 @@ from ..domain.models import (
     Capabilities,
     ConnectionReport,
     Fault,
+    GripperState,
     JointState,
     RobotState,
     SegmentStatus,
     StopResult,
     utc_now_iso,
 )
+from ..domain.takeover import TakeoverConfig
 from .base import AdapterError, DispatchResult, RobotAdapter
 
 FAULT_KINDS = {
@@ -64,11 +66,13 @@ class MockRobotAdapter(RobotAdapter):
         clock: Callable[[], float] | None = None,
         seed: int = 0,
         noise_rad: float = 0.0,
+        takeover: TakeoverConfig | None = None,
     ) -> None:
         self.mapping = mapping
         self._clock = clock or time.monotonic
         self._random = random.Random(seed)
         self._noise_rad = max(0.0, float(noise_rad))
+        self.takeover = takeover
         self.capabilities = Capabilities(
             hardware_motion=False,
             hardware_read=False,
@@ -76,13 +80,30 @@ class MockRobotAdapter(RobotAdapter):
             replay=True,
             min_duration_s=mapping.safety.min_duration_s,
             max_duration_s=mapping.safety.max_duration_s,
-            max_step_rad=mapping.safety.max_step_rad,
+            max_step_rad=(
+                max(
+                    joint.max_rad - joint.min_rad
+                    for joint in mapping.joints.values()
+                )
+                if takeover is not None
+                else mapping.safety.max_step_rad
+            ),
             supervised_motion=False,
             single_joint_only=False,
             motion_mode="simulation",
+            motion_scope="pose" if takeover is not None else "standard",
+            max_velocity_rad_s=(
+                takeover.max_velocity_rad_s if takeover is not None else None
+            ),
+            gripper_control=takeover is not None,
+            pose_gate=takeover is not None,
         )
         self._targets: dict[str, float] = {name: 0.0 for name in mapping.joints}
         self._positions: dict[str, float] = {name: 0.0 for name in mapping.joints}
+        if takeover is not None:
+            open_rad = takeover.gripper.raw_to_rad(takeover.gripper.open_raw)
+            self._targets[takeover.gripper.joint] = open_rad
+            self._positions[takeover.gripper.joint] = open_rad
         self._motion: dict[str, Any] | None = None
         self._fault_kinds: set[str] = set()
         self._fault_joint: str | None = None
@@ -382,6 +403,43 @@ class MockRobotAdapter(RobotAdapter):
             limit_verified=joint.verified,
         )
 
+    def _gripper_state(self) -> GripperState | None:
+        if self.takeover is None:
+            return None
+        gripper = self.takeover.gripper
+        disconnected = "disconnect" in self._fault_kinds or "driver_exit" in self._fault_kinds
+        position = self._positions.get(gripper.joint)
+        available = position is not None and not disconnected
+        return GripperState(
+            joint=gripper.joint,
+            servo_id=gripper.servo_id,
+            available=available,
+            target_rad=self._targets.get(gripper.joint),
+            target_raw=(
+                int(round(gripper.rad_to_raw(self._targets[gripper.joint])))
+                if gripper.joint in self._targets
+                else None
+            ),
+            position_rad=position if available else None,
+            raw_position=(
+                int(round(gripper.rad_to_raw(position)))
+                if available and position is not None
+                else None
+            ),
+            truth=Truth.SIMULATED if available else Truth.UNKNOWN,
+            validity=Validity.VALID if available else Validity.UNAVAILABLE,
+            sample_age_ms=0 if available else None,
+            source="mock_adapter",
+            min_rad=gripper.min_rad,
+            max_rad=gripper.max_rad,
+            open_raw=gripper.open_raw,
+            close_raw=gripper.close_raw,
+            measured_min_raw=gripper.measured_min_raw,
+            measured_max_raw=gripper.measured_max_raw,
+            completion=gripper.completion,
+            notes=["simulated; completion is timed, not force-verified"],
+        )
+
     def snapshot(self) -> RobotState:
         self.tick()
         now = self._clock()
@@ -403,6 +461,7 @@ class MockRobotAdapter(RobotAdapter):
             capabilities=self.capabilities,
             stop_state=self._stop_state,
             last_command_id=self._last_command_id,
+            gripper=self._gripper_state(),
         )
 
     def connection_report(self) -> ConnectionReport:

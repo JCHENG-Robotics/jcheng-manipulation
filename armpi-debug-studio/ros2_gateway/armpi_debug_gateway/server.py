@@ -141,6 +141,32 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
         if path == "/tf":
             self._json(200, self.server.node.tf_payload())
             return
+        if path == "/pointcloud/meta":
+            meta_fn = getattr(self.server.node, "pointcloud_meta_payload", None)
+            if callable(meta_fn):
+                self._json(200, meta_fn())
+            else:
+                self._json(
+                    200,
+                    {"available": False, "topic": None, "count": 0},
+                )
+            return
+        if path == "/pointcloud":
+            cloud_fn = getattr(self.server.node, "pointcloud_payload", None)
+            if not callable(cloud_fn):
+                self._error(
+                    503,
+                    "POINTCLOUD_UNAVAILABLE",
+                    "this gateway build has no point-cloud endpoint",
+                )
+                return
+            try:
+                body, content_type = cloud_fn()
+            except RuntimeError as exc:
+                self._error(503, "POINTCLOUD_UNAVAILABLE", str(exc))
+                return
+            self._bytes(200, body, content_type)
+            return
         if path == "/motion/status":
             status_fn = getattr(self.server.node, "motion_status_payload", None)
             if callable(status_fn):

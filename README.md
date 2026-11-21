@@ -148,8 +148,8 @@ was discarded (D1).
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
 8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
-   runner, measurement runner, read-only host/DDS benchmark, and a G1–G6 debug
-   studio with 93 backend + 47 gateway tests.
+   runner, measurement runner, read-only host/DDS benchmark, and a G1–G8 debug
+   studio with 117 backend + 65 gateway tests.
 9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
@@ -203,7 +203,9 @@ was discarded (D1).
 | Adopted joint limits | servo EEPROM **−20 pulses** (joint2 low from the measured 322 stop → 342), joint2 high tightened to **775** after the formal survey; all five joints hand-measured 2026-11-19; `mapping_verified=true` (operating envelope) | [`docs/phase2/JOINT_LIMITS.md`](docs/phase2/JOINT_LIMITS.md) |
 | Gripper stroke | **2.22 rad** (open −2.22, closed 0.0); **~34 counts** backlash; 39.4 mm cube grips at −0.63 | [`evidence/phase2/onsite_20261118/gripper_stops_20261118/`](evidence/phase2/onsite_20261118/gripper_stops_20261118/) |
 | Camera / DDS | RGB **~12 Hz** cross-host (in-container undercounts to ~8 Hz); depth **8.2 Hz**; ping **0.24 ms** | [`docs/phase3/HOST_BENCHMARK.md`](docs/phase3/HOST_BENCHMARK.md) |
-| Studio G5 stream check | **712 commanded / 711 measured** samples; same-index max **0.008321 rad**, RMSE **0.003962 rad**, dominated by a one-period start offset and pulse quantization | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
+| Studio G5 stream check | **712 commanded / 711 cache** samples; same-index max **0.008321 rad**, RMSE **0.003962 rad** — plan-vs-command, **not** servo tracking (the feedback stream is the vendor command cache; corrected 2026-11-21) | [`evidence/studio_g5/20261118/README.md`](evidence/studio_g5/20261118/README.md) |
+| Studio G7 pose takeover (2026-11-21) | five-joint pose + gripper write path; **real sequence** `view_table → grasp_low → view_table` + gripper, every arm completion a **`GetBusServoState`** read; low pose actual `502/339/928/336/499` (max **4 pulses** from target), gripper settled **184 / 645**; the vendor `/servo_states` is a command cache (cache 700 vs actual 645), so cache-only completion is rejected as `Unknown` | [`evidence/studio_g7/20261121/`](evidence/studio_g7/20261121/README.md) |
+| Studio G8 task takeover (2026-11-21) | one command plans a **13-step task from the live point cloud** (locate → grasp → lift → grip verify → put-back → return) and runs it with bus-verified steps; measured point `(0.2247, 0.0019, −0.0489) m`, target radius **0.2384 m** (direct-grasp band), fit j4 **−0.350**, grasp actual `504/339/930/421/499`; `close_grip` stalls at **raw 416** on the cube, grip verify `held: true`, put-back landing **+3.6 mm x / +0.2 mm y / +0.4 mm z**; the Aurora's **min-range sphere (~0.251 m)** clips the near top face (23 mm visible), so the centre is rebuilt from the intact far edge with the measured 39.4 mm cube (`TOP_CLIPPED_RECOVERED`) | [`evidence/studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
 | Error budget (2026-11-19, partial: 4/7 translation sources) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS; execution, placement and fixture were still unmeasured | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## System architecture
@@ -212,7 +214,7 @@ was discarded (D1).
 ┌────────────────────────────── workstation (laptop) ──────────────────────────────┐
 │  MoveIt 2 (Humble Docker)      armpi_safety veto      armpi_analysis              │
 │  Pilz PTP / KDL IK             trajectory checks       error budget, paired tests   │
-│  Debug Studio (FastAPI+React)  G1–G6, read-only gateway, G5 recorder               │
+│  Debug Studio (FastAPI+React)  G1–G8, read-only gateway, pose/task takeover, recorder │
 └───────────────────────────────────────┬───────────────────────────────────────────┘
                                         │ CycloneDDS over direct Ethernet
                                         │ 10.42.0.1 ↔ 10.42.0.218
@@ -290,8 +292,8 @@ tools/
 
 ## Project status (2026-11-21)
 
-Hardware results are as of 2026-11-20; this document was synchronized with the
-roadmap, changelog and acceptance report on 2026-11-21. Status convention:
+Hardware results are as of 2026-11-21; this document was synchronized with the
+roadmap, changelog and evidence on 2026-11-21. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
@@ -314,7 +316,7 @@ separately.
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trials | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement 24 pairs: free by-eye spots with a base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; the secondary home release error (+2.12 mm, anchor = corrected target) is descriptive, not an accuracy gain; baseline `MISS` 14 + `NO_GRIP` 1 (grip lost on the return); D1/D2 discards recorded; the pre-grasp gap fix (reused final measurement) is post-data tooling only |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
-| Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
+| Debug Studio | **G1–G8 implemented; tests pass** | 117 backend + 65 gateway; 10 mock + 3 hardware + 3 pose/task Playwright; G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; the min-range clip recovery rebuilds a clipped top from the far edge; D435i aux feed on the Dashboard; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
 | Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m |
@@ -387,7 +389,7 @@ python -m pytest -q \
   tools/phase3/tests \
   tools/phase4/tests
 
-# debug studio: backend 93, gateway 47, mock Playwright 10
+# debug studio: backend 117, gateway 65, mock Playwright 10, pose/task Playwright 3
 cd armpi-debug-studio/backend && pytest
 cd ../ros2_gateway && pytest
 cd ../frontend && npm run test:e2e
@@ -675,7 +677,7 @@ Every quantitative statement in this README traces to one of these bundles:
 | Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md) (random-placement 24-pair trial, 9/24 vs 24/24; the fixed-fan [`onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) was superseded before data); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
 | Joint limits | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | Clock / network | [`docs/hardware/ros_environment.md`](docs/hardware/ros_environment.md), [`docs/hardware/network_access.md`](docs/hardware/network_access.md) |
-| Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
+| Studio G1–G8 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/), [`studio_g7/20261121/`](evidence/studio_g7/20261121/README.md), [`studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
 | Security | [`evidence/security/20261118/`](evidence/security/20261118/) |
 
 The repository keeps raw logs and machine-readable JSON; images are kept when
@@ -730,6 +732,12 @@ up separately. `evidence/README.md` explains what is tracked.
 - [Audit 2026-11-15](docs/audit/2026-11-15/README.md) — sources, conflicts,
   status and decisions.
 - [Debug Studio PRD](docs/armpi/ARMPI_DEBUG_STUDIO_PRD_V1.md)
+- [Studio G7 pose takeover](armpi-debug-studio/docs/g7-pose-takeover.md) —
+  five-joint pose + gripper, velocity cap, FK gate, no-motion evidence;
+  [G6 single-joint path](armpi-debug-studio/docs/g6-motion-write-path.md) is the
+  commissioning step.
+- [Studio G8 task takeover](armpi-debug-studio/docs/g8-task-takeover.md) —
+  locate + fit + 13-step task, bus-verified, min-range clip recovery.
 - [G0 vendor audit](docs/armpi/g0/README.md)
 - [8-week learning log](docs/weekly-log/)
 

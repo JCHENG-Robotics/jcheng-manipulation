@@ -1,0 +1,1110 @@
+{
+  "schema_version": 1,
+  "kind": "g7_first_motion",
+  "generated_at": "2026-11-21T08:44:50.675026Z",
+  "backend": "http://127.0.0.1:8000",
+  "execute": true,
+  "session": "operator-grip-20261121",
+  "steps": [
+    {
+      "label": "gripper_open",
+      "kind": "grip",
+      "preview": {
+        "command_id": "cmd_5bda1b3d9ddc4135",
+        "session_id": "operator-grip-20261121",
+        "valid": true,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "servo_id": 1,
+            "from_rad": 0.0,
+            "target_rad": -2.220058808536787,
+            "delta_rad": -2.220058808536787,
+            "duration_s": 5.0,
+            "target_raw": 170,
+            "limit_min_rad": -2.220058808536787,
+            "limit_max_rad": 0.0,
+            "limit_verified": true,
+            "limit_source": "measured_gripper_stops_2026_11_18",
+            "completion": "timed"
+          }
+        ],
+        "errors": [],
+        "warnings": [
+          {
+            "code": "NEAR_LIMIT",
+            "message": "r_joint: target is at a measured gripper stop",
+            "joint": "r_joint",
+            "details": {}
+          }
+        ],
+        "preview_token": "gTsfXIBR90UtCQEGoPjHinuNTm9Xa5Jw",
+        "expires_at": "2026-11-21T08:45:20.729681Z",
+        "mapping_version": "measured-2026-11-19",
+        "evaluated_at": "2026-11-21T08:44:50.730065Z",
+        "pose": null
+      },
+      "executed": true,
+      "stage": "Completed",
+      "events": [
+        {
+          "seq": 126,
+          "event_id": "evt_39f2274ce221459799a2a031660885ef",
+          "command_id": "cmd_5bda1b3d9ddc4135",
+          "stage": "Requested",
+          "wall_time": "2026-11-21T08:44:50.729470Z",
+          "monotonic_ms": 20069959.883928,
+          "source": "api",
+          "result": "preview requested",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "kind": "preview",
+            "session_id": "operator-grip-20261121",
+            "targets": [
+              {
+                "duration_s": 5.0,
+                "joint": "r_joint",
+                "target_rad": -2.220058808536787
+              }
+            ]
+          }
+        },
+        {
+          "seq": 127,
+          "event_id": "evt_babcf2b435f04ab6a095aa282b27f501",
+          "command_id": "cmd_5bda1b3d9ddc4135",
+          "stage": "Validated",
+          "wall_time": "2026-11-21T08:44:50.729900Z",
+          "monotonic_ms": 20069960.318370998,
+          "source": "api",
+          "result": "preview validated; token issued",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "expires_at": "2026-11-21T08:45:20.729681Z",
+            "pose": null,
+            "targets": [
+              {
+                "completion": "timed",
+                "delta_rad": -2.220058808536787,
+                "duration_s": 5.0,
+                "from_rad": 0.0,
+                "joint": "r_joint",
+                "limit_max_rad": 0.0,
+                "limit_min_rad": -2.220058808536787,
+                "limit_source": "measured_gripper_stops_2026_11_18",
+                "limit_verified": true,
+                "servo_id": 1,
+                "target_rad": -2.220058808536787,
+                "target_raw": 170
+              }
+            ],
+            "warnings": [
+              {
+                "code": "NEAR_LIMIT",
+                "details": {},
+                "joint": "r_joint",
+                "message": "r_joint: target is at a measured gripper stop"
+              }
+            ]
+          }
+        },
+        {
+          "seq": 128,
+          "event_id": "evt_aa97aa56a4114c508d7d92f13013bf51",
+          "command_id": "cmd_5bda1b3d9ddc4135",
+          "stage": "Dispatched",
+          "wall_time": "2026-11-21T08:44:50.742409Z",
+          "monotonic_ms": 20069972.826023,
+          "source": "adapter",
+          "result": "gateway published 1 joint target(s) for 5.0 s",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "gateway": {
+              "command_id": "cmd_5bda1b3d9ddc4135",
+              "duration_s": 5.0,
+              "joints": [
+                {
+                  "completion": "timed",
+                  "joint": "r_joint",
+                  "servo_id": 1,
+                  "target_pulse": 170,
+                  "target_rad": -2.220058808536787
+                }
+              ],
+              "measured": {
+                "joint1": {
+                  "position_rad": 0.0,
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint2": {
+                  "position_rad": 0.2555162024919699,
+                  "raw_position": 561,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint3": {
+                  "position_rad": -1.1896164181593352,
+                  "raw_position": 784,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint4": {
+                  "position_rad": -1.5917402778188288,
+                  "raw_position": 120,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint5": {
+                  "position_rad": -0.016755160819145565,
+                  "raw_position": 496,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "r_joint": {
+                  "position_rad": 0.0,
+                  "raw_position": 700,
+                  "received_at": "2026-11-21T08:44:51.952253Z",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                }
+              },
+              "mode": "pose",
+              "position_unit": "pulse",
+              "published_at": "2026-11-21T08:44:51.960848Z",
+              "status": "dispatched",
+              "topic": "servo_controller",
+              "verification": "pending"
+            },
+            "pose": null
+          }
+        },
+        {
+          "seq": 129,
+          "event_id": "evt_1c9dd7078772490f9556afdc3c368816",
+          "command_id": "cmd_5bda1b3d9ddc4135",
+          "stage": "Observed",
+          "wall_time": "2026-11-21T08:44:57.001477Z",
+          "monotonic_ms": 20076231.735451,
+          "source": "hardware_adapter",
+          "result": "commanded interpolation time elapsed; bus register recorded, not a force measurement",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "actual": {
+              "r_joint": {
+                "raw_position": 184,
+                "received_at": null,
+                "sample_age_ms": 0
+              }
+            },
+            "commanded_cache": {
+              "joint1": {
+                "raw_position": 500,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint2": {
+                "raw_position": 561,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint3": {
+                "raw_position": 784,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint4": {
+                "raw_position": 120,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint5": {
+                "raw_position": 496,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "r_joint": {
+                "raw_position": 170,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              }
+            },
+            "targets": [
+              {
+                "completion": "timed",
+                "joint": "r_joint",
+                "servo_id": 1,
+                "target_pulse": 170,
+                "target_rad": -2.220058808536787
+              }
+            ],
+            "verification": "bus"
+          }
+        },
+        {
+          "seq": 130,
+          "event_id": "evt_6002cbb91bd8452380721056769ddf79",
+          "command_id": "cmd_5bda1b3d9ddc4135",
+          "stage": "Completed",
+          "wall_time": "2026-11-21T08:44:57.001755Z",
+          "monotonic_ms": 20076231.740199,
+          "source": "hardware_adapter",
+          "result": "gateway confirmed the timed gripper completion",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "actual": {
+              "r_joint": {
+                "raw_position": 184,
+                "received_at": null,
+                "sample_age_ms": 0
+              }
+            },
+            "commanded_cache": {
+              "joint1": {
+                "raw_position": 500,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint2": {
+                "raw_position": 561,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint3": {
+                "raw_position": 784,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint4": {
+                "raw_position": 120,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "joint5": {
+                "raw_position": 496,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              },
+              "r_joint": {
+                "raw_position": 170,
+                "received_at": "2026-11-21T08:44:58.203240Z",
+                "sample_age_ms": 0
+              }
+            },
+            "completion": "timed",
+            "deviations_pulses": {},
+            "duration_s": 5.0,
+            "tolerance_pulses": 3,
+            "verification": "bus",
+            "verification_tolerance_pulses": 12
+          }
+        }
+      ],
+      "measured_after": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496,
+        "r_joint": 184
+      },
+      "execute": {
+        "command_id": "cmd_5bda1b3d9ddc4135",
+        "session_id": "operator-grip-20261121",
+        "status": "Dispatched",
+        "targets": [
+          {
+            "completion": "timed",
+            "delta_rad": -2.220058808536787,
+            "duration_s": 5.0,
+            "from_rad": 0.0,
+            "joint": "r_joint",
+            "limit_max_rad": 0.0,
+            "limit_min_rad": -2.220058808536787,
+            "limit_source": "measured_gripper_stops_2026_11_18",
+            "limit_verified": true,
+            "servo_id": 1,
+            "target_rad": -2.220058808536787,
+            "target_raw": 170
+          }
+        ],
+        "created_at": "2026-11-21T08:44:50.729692Z",
+        "updated_at": "2026-11-21T08:44:50.741895Z",
+        "error_code": null,
+        "details": {
+          "pose": null,
+          "warnings": [
+            {
+              "code": "NEAR_LIMIT",
+              "details": {},
+              "joint": "r_joint",
+              "message": "r_joint: target is at a measured gripper stop"
+            }
+          ],
+          "safety": {
+            "ready": true,
+            "warnings": []
+          },
+          "adapter": {
+            "gateway": {
+              "status": "dispatched",
+              "command_id": "cmd_5bda1b3d9ddc4135",
+              "mode": "pose",
+              "duration_s": 5.0,
+              "position_unit": "pulse",
+              "topic": "servo_controller",
+              "verification": "pending",
+              "joints": [
+                {
+                  "joint": "r_joint",
+                  "servo_id": 1,
+                  "target_pulse": 170,
+                  "target_rad": -2.220058808536787,
+                  "completion": "timed"
+                }
+              ],
+              "measured": {
+                "joint1": {
+                  "position_rad": 0.0,
+                  "raw_position": 500,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                },
+                "joint2": {
+                  "position_rad": 0.2555162024919699,
+                  "raw_position": 561,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                },
+                "joint3": {
+                  "position_rad": -1.1896164181593352,
+                  "raw_position": 784,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                },
+                "joint4": {
+                  "position_rad": -1.5917402778188288,
+                  "raw_position": 120,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                },
+                "joint5": {
+                  "position_rad": -0.016755160819145565,
+                  "raw_position": 496,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                },
+                "r_joint": {
+                  "position_rad": 0.0,
+                  "raw_position": 700,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 6,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:51.952253Z"
+                }
+              },
+              "published_at": "2026-11-21T08:44:51.960848Z"
+            }
+          }
+        },
+        "stage_history": [
+          {
+            "at": "2026-11-21T08:44:50.729719Z",
+            "stage": "Requested"
+          },
+          {
+            "at": "2026-11-21T08:44:50.729724Z",
+            "stage": "Validated"
+          },
+          {
+            "stage": "Dispatched",
+            "at": "2026-11-21T08:44:50.741895Z",
+            "error_code": null,
+            "details": {
+              "safety": {
+                "ready": true,
+                "warnings": []
+              },
+              "adapter": {
+                "gateway": {
+                  "status": "dispatched",
+                  "command_id": "cmd_5bda1b3d9ddc4135",
+                  "mode": "pose",
+                  "duration_s": 5.0,
+                  "position_unit": "pulse",
+                  "topic": "servo_controller",
+                  "verification": "pending",
+                  "joints": [
+                    {
+                      "joint": "r_joint",
+                      "servo_id": 1,
+                      "target_pulse": 170,
+                      "target_rad": -2.220058808536787,
+                      "completion": "timed"
+                    }
+                  ],
+                  "measured": {
+                    "joint1": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    },
+                    "joint2": {
+                      "position_rad": 0.2555162024919699,
+                      "raw_position": 561,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    },
+                    "joint3": {
+                      "position_rad": -1.1896164181593352,
+                      "raw_position": 784,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    },
+                    "joint4": {
+                      "position_rad": -1.5917402778188288,
+                      "raw_position": 120,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    },
+                    "joint5": {
+                      "position_rad": -0.016755160819145565,
+                      "raw_position": 496,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    },
+                    "r_joint": {
+                      "position_rad": 0.0,
+                      "raw_position": 700,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 6,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:51.952253Z"
+                    }
+                  },
+                  "published_at": "2026-11-21T08:44:51.960848Z"
+                }
+              },
+              "pose": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "gripper_close",
+      "kind": "grip",
+      "preview": {
+        "command_id": "cmd_fccc636991c04495",
+        "session_id": "operator-grip-20261121",
+        "valid": true,
+        "targets": [
+          {
+            "joint": "r_joint",
+            "servo_id": 1,
+            "from_rad": -2.161415745669778,
+            "target_rad": 0.0,
+            "delta_rad": 2.161415745669778,
+            "duration_s": 5.0,
+            "target_raw": 700,
+            "limit_min_rad": -2.220058808536787,
+            "limit_max_rad": 0.0,
+            "limit_verified": true,
+            "limit_source": "measured_gripper_stops_2026_11_18",
+            "completion": "timed"
+          }
+        ],
+        "errors": [],
+        "warnings": [
+          {
+            "code": "NEAR_LIMIT",
+            "message": "r_joint: target is at a measured gripper stop",
+            "joint": "r_joint",
+            "details": {}
+          }
+        ],
+        "preview_token": "oeFllz5IfpdvFTVAi1fG6n5H6xGykzWC",
+        "expires_at": "2026-11-21T08:45:27.339519Z",
+        "mapping_version": "measured-2026-11-19",
+        "evaluated_at": "2026-11-21T08:44:57.339806Z",
+        "pose": null
+      },
+      "executed": true,
+      "stage": "Completed",
+      "events": [
+        {
+          "seq": 131,
+          "event_id": "evt_11b2800a7c834fe4abcaf6405bd51dcb",
+          "command_id": "cmd_fccc636991c04495",
+          "stage": "Requested",
+          "wall_time": "2026-11-21T08:44:57.339276Z",
+          "monotonic_ms": 20076569.690536,
+          "source": "api",
+          "result": "preview requested",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "kind": "preview",
+            "session_id": "operator-grip-20261121",
+            "targets": [
+              {
+                "duration_s": 5.0,
+                "joint": "r_joint",
+                "target_rad": 0.0
+              }
+            ]
+          }
+        },
+        {
+          "seq": 132,
+          "event_id": "evt_85456c40523e4378bbe93ed739bc9416",
+          "command_id": "cmd_fccc636991c04495",
+          "stage": "Validated",
+          "wall_time": "2026-11-21T08:44:57.339681Z",
+          "monotonic_ms": 20076570.096277,
+          "source": "api",
+          "result": "preview validated; token issued",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "expires_at": "2026-11-21T08:45:27.339519Z",
+            "pose": null,
+            "targets": [
+              {
+                "completion": "timed",
+                "delta_rad": 2.161415745669778,
+                "duration_s": 5.0,
+                "from_rad": -2.161415745669778,
+                "joint": "r_joint",
+                "limit_max_rad": 0.0,
+                "limit_min_rad": -2.220058808536787,
+                "limit_source": "measured_gripper_stops_2026_11_18",
+                "limit_verified": true,
+                "servo_id": 1,
+                "target_rad": 0.0,
+                "target_raw": 700
+              }
+            ],
+            "warnings": [
+              {
+                "code": "NEAR_LIMIT",
+                "details": {},
+                "joint": "r_joint",
+                "message": "r_joint: target is at a measured gripper stop"
+              }
+            ]
+          }
+        },
+        {
+          "seq": 133,
+          "event_id": "evt_f692358b0e6e462a86cc958692748db7",
+          "command_id": "cmd_fccc636991c04495",
+          "stage": "Dispatched",
+          "wall_time": "2026-11-21T08:44:57.344098Z",
+          "monotonic_ms": 20076574.514601,
+          "source": "adapter",
+          "result": "gateway published 1 joint target(s) for 5.0 s",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "gateway": {
+              "command_id": "cmd_fccc636991c04495",
+              "duration_s": 5.0,
+              "joints": [
+                {
+                  "completion": "timed",
+                  "joint": "r_joint",
+                  "servo_id": 1,
+                  "target_pulse": 700,
+                  "target_rad": 0.0
+                }
+              ],
+              "measured": {
+                "joint1": {
+                  "position_rad": 0.0,
+                  "raw_position": 500,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint2": {
+                  "position_rad": 0.2555162024919699,
+                  "raw_position": 561,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint3": {
+                  "position_rad": -1.1896164181593352,
+                  "raw_position": 784,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint4": {
+                  "position_rad": -1.5917402778188288,
+                  "raw_position": 120,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "joint5": {
+                  "position_rad": -0.016755160819145565,
+                  "raw_position": 496,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                },
+                "r_joint": {
+                  "position_rad": -2.2200588085367876,
+                  "raw_position": 170,
+                  "received_at": "2026-11-21T08:44:58.548994Z",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "truth": "commanded",
+                  "validity": "valid"
+                }
+              },
+              "mode": "pose",
+              "position_unit": "pulse",
+              "published_at": "2026-11-21T08:44:58.563606Z",
+              "status": "dispatched",
+              "topic": "servo_controller",
+              "verification": "pending"
+            },
+            "pose": null
+          }
+        },
+        {
+          "seq": 134,
+          "event_id": "evt_c152b0daf1684ecca5de067718331150",
+          "command_id": "cmd_fccc636991c04495",
+          "stage": "Observed",
+          "wall_time": "2026-11-21T08:45:03.623542Z",
+          "monotonic_ms": 20082853.830263,
+          "source": "hardware_adapter",
+          "result": "commanded interpolation time elapsed; bus register recorded, not a force measurement",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "actual": {
+              "r_joint": {
+                "raw_position": 645,
+                "received_at": null,
+                "sample_age_ms": 0
+              }
+            },
+            "commanded_cache": {
+              "joint1": {
+                "raw_position": 500,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint2": {
+                "raw_position": 561,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint3": {
+                "raw_position": 784,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint4": {
+                "raw_position": 120,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint5": {
+                "raw_position": 496,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "r_joint": {
+                "raw_position": 700,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              }
+            },
+            "targets": [
+              {
+                "completion": "timed",
+                "joint": "r_joint",
+                "servo_id": 1,
+                "target_pulse": 700,
+                "target_rad": 0.0
+              }
+            ],
+            "verification": "bus"
+          }
+        },
+        {
+          "seq": 135,
+          "event_id": "evt_9571da989b90441bba61c3495b6583f1",
+          "command_id": "cmd_fccc636991c04495",
+          "stage": "Completed",
+          "wall_time": "2026-11-21T08:45:03.623737Z",
+          "monotonic_ms": 20082853.834592998,
+          "source": "hardware_adapter",
+          "result": "gateway confirmed the timed gripper completion",
+          "error_code": null,
+          "schema_version": 1,
+          "details": {
+            "actual": {
+              "r_joint": {
+                "raw_position": 645,
+                "received_at": null,
+                "sample_age_ms": 0
+              }
+            },
+            "commanded_cache": {
+              "joint1": {
+                "raw_position": 500,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint2": {
+                "raw_position": 561,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint3": {
+                "raw_position": 784,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint4": {
+                "raw_position": 120,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "joint5": {
+                "raw_position": 496,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              },
+              "r_joint": {
+                "raw_position": 700,
+                "received_at": "2026-11-21T08:45:04.830853Z",
+                "sample_age_ms": 0
+              }
+            },
+            "completion": "timed",
+            "deviations_pulses": {},
+            "duration_s": 5.0,
+            "tolerance_pulses": 3,
+            "verification": "bus",
+            "verification_tolerance_pulses": 12
+          }
+        }
+      ],
+      "measured_after": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496,
+        "r_joint": 645
+      },
+      "execute": {
+        "command_id": "cmd_fccc636991c04495",
+        "session_id": "operator-grip-20261121",
+        "status": "Dispatched",
+        "targets": [
+          {
+            "completion": "timed",
+            "delta_rad": 2.161415745669778,
+            "duration_s": 5.0,
+            "from_rad": -2.161415745669778,
+            "joint": "r_joint",
+            "limit_max_rad": 0.0,
+            "limit_min_rad": -2.220058808536787,
+            "limit_source": "measured_gripper_stops_2026_11_18",
+            "limit_verified": true,
+            "servo_id": 1,
+            "target_rad": 0.0,
+            "target_raw": 700
+          }
+        ],
+        "created_at": "2026-11-21T08:44:57.339529Z",
+        "updated_at": "2026-11-21T08:44:57.343766Z",
+        "error_code": null,
+        "details": {
+          "pose": null,
+          "warnings": [
+            {
+              "code": "NEAR_LIMIT",
+              "details": {},
+              "joint": "r_joint",
+              "message": "r_joint: target is at a measured gripper stop"
+            }
+          ],
+          "safety": {
+            "ready": true,
+            "warnings": []
+          },
+          "adapter": {
+            "gateway": {
+              "status": "dispatched",
+              "command_id": "cmd_fccc636991c04495",
+              "mode": "pose",
+              "duration_s": 5.0,
+              "position_unit": "pulse",
+              "topic": "servo_controller",
+              "verification": "pending",
+              "joints": [
+                {
+                  "joint": "r_joint",
+                  "servo_id": 1,
+                  "target_pulse": 700,
+                  "target_rad": 0.0,
+                  "completion": "timed"
+                }
+              ],
+              "measured": {
+                "joint1": {
+                  "position_rad": 0.0,
+                  "raw_position": 500,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                },
+                "joint2": {
+                  "position_rad": 0.2555162024919699,
+                  "raw_position": 561,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                },
+                "joint3": {
+                  "position_rad": -1.1896164181593352,
+                  "raw_position": 784,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                },
+                "joint4": {
+                  "position_rad": -1.5917402778188288,
+                  "raw_position": 120,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                },
+                "joint5": {
+                  "position_rad": -0.016755160819145565,
+                  "raw_position": 496,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                },
+                "r_joint": {
+                  "position_rad": -2.2200588085367876,
+                  "raw_position": 170,
+                  "truth": "commanded",
+                  "validity": "valid",
+                  "sample_age_ms": 14,
+                  "source": "/controller_manager/servo_states (command cache)",
+                  "received_at": "2026-11-21T08:44:58.548994Z"
+                }
+              },
+              "published_at": "2026-11-21T08:44:58.563606Z"
+            }
+          }
+        },
+        "stage_history": [
+          {
+            "at": "2026-11-21T08:44:57.339551Z",
+            "stage": "Requested"
+          },
+          {
+            "at": "2026-11-21T08:44:57.339555Z",
+            "stage": "Validated"
+          },
+          {
+            "stage": "Dispatched",
+            "at": "2026-11-21T08:44:57.343766Z",
+            "error_code": null,
+            "details": {
+              "safety": {
+                "ready": true,
+                "warnings": []
+              },
+              "adapter": {
+                "gateway": {
+                  "status": "dispatched",
+                  "command_id": "cmd_fccc636991c04495",
+                  "mode": "pose",
+                  "duration_s": 5.0,
+                  "position_unit": "pulse",
+                  "topic": "servo_controller",
+                  "verification": "pending",
+                  "joints": [
+                    {
+                      "joint": "r_joint",
+                      "servo_id": 1,
+                      "target_pulse": 700,
+                      "target_rad": 0.0,
+                      "completion": "timed"
+                    }
+                  ],
+                  "measured": {
+                    "joint1": {
+                      "position_rad": 0.0,
+                      "raw_position": 500,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    },
+                    "joint2": {
+                      "position_rad": 0.2555162024919699,
+                      "raw_position": 561,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    },
+                    "joint3": {
+                      "position_rad": -1.1896164181593352,
+                      "raw_position": 784,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    },
+                    "joint4": {
+                      "position_rad": -1.5917402778188288,
+                      "raw_position": 120,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    },
+                    "joint5": {
+                      "position_rad": -0.016755160819145565,
+                      "raw_position": 496,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    },
+                    "r_joint": {
+                      "position_rad": -2.2200588085367876,
+                      "raw_position": 170,
+                      "truth": "commanded",
+                      "validity": "valid",
+                      "sample_age_ms": 14,
+                      "source": "/controller_manager/servo_states (command cache)",
+                      "received_at": "2026-11-21T08:44:58.548994Z"
+                    }
+                  },
+                  "published_at": "2026-11-21T08:44:58.563606Z"
+                }
+              },
+              "pose": null
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "ok": true,
+  "error": null,
+  "measured_start": {
+    "joint1": 500,
+    "joint2": 561,
+    "joint3": 784,
+    "joint4": 120,
+    "joint5": 496,
+    "r_joint": 700
+  },
+  "measured_end": {
+    "joint1": 500,
+    "joint2": 561,
+    "joint3": 784,
+    "joint4": 120,
+    "joint5": 496,
+    "r_joint": 645
+  }
+}

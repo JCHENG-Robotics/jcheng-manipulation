@@ -7,6 +7,7 @@ import { EventTimeline } from "./pages/EventTimeline";
 import { ExperimentLab } from "./pages/ExperimentLab";
 import { JointControl } from "./pages/JointControl";
 import { SettingsPage } from "./pages/Settings";
+import { TaskTakeover } from "./pages/TaskTakeover";
 import { TrajectoryInspector } from "./pages/TrajectoryInspector";
 import { VisualWorkbench } from "./pages/VisualWorkbench";
 
@@ -17,6 +18,7 @@ export default function App() {
       <Route element={<AppShell />}>
         <Route index element={<Dashboard />} />
         <Route path="joints" element={<JointControl />} />
+        <Route path="task" element={<TaskTakeover />} />
         <Route path="diagnostics" element={<DiagnosticsPage />} />
         <Route path="trajectory" element={<TrajectoryInspector />} />
         <Route path="experiments" element={<ExperimentLab />} />

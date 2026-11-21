@@ -21,36 +21,50 @@ On the laptop:
 ```bash
 cd armpi-debug-studio
 backend/.venv/bin/python tools/export_gateway_motion_config.py \
-  --out /tmp/studio_motion_limits.json --overwrite
-scp -i ~/.ssh/id_ed25519_armpi /tmp/studio_motion_limits.json \
-  pi@10.42.0.218:/home/pi/docker/tmp/armpi_gateway_deploy/motion_limits.json
+  --out /tmp/studio_step_limits.json --overwrite
+```
+
+Since 2026-11-21 the step config also carries `verification=true` (tolerance
+8 pulses): `/controller_manager/servo_states` is the vendor command cache, not
+a bus read, so the gateway verifies every step with `GetBusServoState`. Use a
+**separate** deploy directory so the read-only 8765 package and JSON are not
+touched:
+
+```bash
 ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
-  'chown 1000:1000 /home/pi/docker/tmp/armpi_gateway_deploy/motion_limits.json'
+  'mkdir -p /home/pi/docker/tmp/armpi_gateway_step'
+tar -C ros2_gateway --exclude=__pycache__ -cf - armpi_debug_gateway |
+  ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
+  'tar -C /home/pi/docker/tmp/armpi_gateway_step -xf -'
+scp -i ~/.ssh/id_ed25519_armpi /tmp/studio_step_limits.json \
+  pi@10.42.0.218:/home/pi/docker/tmp/armpi_gateway_step/motion_limits.json
+ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
+  'sudo chown -R 1000:1000 /home/pi/docker/tmp/armpi_gateway_step'
 ```
 
 The generator validates the JSON with the gateway parser. Defaults: 0.10 rad
-step cap, 1.0 s duration floor, one joint, ±3 pulse completion tolerance. Do
-not hand-edit pulse bounds; change `configs/joint_mapping.yaml`, then
-regenerate.
+step cap, 1.0 s duration floor, one joint, ±8 pulse bus verification. Do not
+hand-edit pulse bounds; change `configs/joint_mapping.yaml`, then regenerate.
 
 ## 2. Start the supervised instance
 
 On the robot host (inside the vendor container; the read-only service on 8765
-keeps running):
+keeps running). The instance needs the vendor zsh environment for the bus
+service:
 
 ```bash
-sudo docker exec -d -u ubuntu ArmPiUltra bash -lc '
-  source /opt/ros/humble/setup.bash;
-  source /home/ubuntu/ros2_ws/install/setup.bash;
-  cd /home/ubuntu/shared/armpi_gateway_deploy;
+sudo docker exec -d -u ubuntu ArmPiUltra /bin/zsh -lc '
+  source ~/.zshrc >/dev/null 2>&1;
+  cd /home/ubuntu/shared/armpi_gateway_step;
   exec python3 -m armpi_debug_gateway.main \
     --host 10.42.0.218 --port 8766 \
     --token-file /home/ubuntu/shared/armpi_gateway_deploy/token \
     --enable-motion \
-    --motion-config /home/ubuntu/shared/armpi_gateway_deploy/motion_limits.json
+    --motion-config /home/ubuntu/shared/armpi_gateway_step/motion_limits.json
 '
 ```
 
+The log must contain `verification=True bus=/ros_robot_controller/bus_servo/get_state`.
 Record the PID from inside the container:
 
 ```bash
@@ -69,9 +83,11 @@ curl -s -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8766/motion/status
 Expected:
 
 ```text
-health:        motion_enabled=true, motion_state=idle, measured_ready=true
-motion/status: state=idle, max_step_rad=0.1, min_duration_s=1.0,
-               single_joint_only=true, limits for joint1..joint5
+health:        motion_enabled=true, motion_mode=step,
+               motion_state=idle, measured_ready=true
+motion/status: state=idle, mode=step, max_step_rad=0.1, min_duration_s=1.0,
+               single_joint_only=true, verification=true,
+               verification_tolerance_pulses=8, limits for joint1..joint5
 ```
 
 A rejected probe (no publication, no motion):
@@ -98,10 +114,11 @@ Open `http://127.0.0.1:8000` (keep it bound to localhost). Confirm:
 
 - `/api/health`: `hardware_motion=true`, `supervised_motion=true`,
   `max_step_rad=0.096342`, `min_duration_s=1.0`.
-- `/api/state`: five joints with `truth=measured` and
-  `source=/controller_manager/servo_states`.
+- `/api/state`: five joints labelled `truth=commanded` (the vendor cache) with
+  `source=/controller_manager/servo_states (command cache)`; a fresh bus read
+  is `measured_on_demand` for ~500 ms after a move.
 - `/api/diagnostics`: `safety.ready=true`, no blockers; the
-  `mapping_verified` check is a non-blocking supervised warning.
+  `mapping_verified` check is satisfied (verified 2026-11-19).
 
 ## 5. Execute one joint
 
@@ -110,8 +127,10 @@ measured position, duration ≥ 1.5 s, preview, read the rows, then confirm
 execute. Keep the arm supported and the workspace clear.
 
 Expected audit sequence: `Requested → Validated → Dispatched → Observed →
-Completed`. Completion means the measured pulse stayed within ±3 pulses for
-three consecutive samples. A network/status failure produces `Unknown` and a
+Completed`. With bus verification, `Observed` appears **after** the
+interpolation + 0.5 s settle because it is a `GetBusServoState` read; the
+actual pulse must be within ±8 of the target. A cache-only completion, a
+network/status failure or a failed/unsafe bus read produces `Unknown` and a
 **latched** fault; motion stays locked until the backend is restarted after
 inspection.
 

@@ -63,7 +63,14 @@ class GatewayClient:
             str(message) if message is not None else None,
         )
 
-    def _request(self, method: str, path: str, accept: str, body: Any = None):
+    def _request(
+        self,
+        method: str,
+        path: str,
+        accept: str,
+        body: Any = None,
+        timeout_s: float | None = None,
+    ):
         url = f"{self.base_url}{path}"
         headers = self._headers(accept)
         data = None
@@ -72,7 +79,7 @@ class GatewayClient:
             headers["Content-Type"] = "application/json"
         request = Request(url, headers=headers, data=data, method=method)
         try:
-            return urlopen(request, timeout=self.timeout_s)
+            return urlopen(request, timeout=timeout_s or self.timeout_s)
         except HTTPError as exc:
             code, message = self._error_payload(exc)
             raise GatewayError(
@@ -83,8 +90,8 @@ class GatewayClient:
         except (URLError, TimeoutError, OSError) as exc:
             raise GatewayError(f"gateway request failed for {path}: {exc}") from exc
 
-    def _open(self, path: str, accept: str):
-        return self._request("GET", path, accept)
+    def _open(self, path: str, accept: str, timeout_s: float | None = None):
+        return self._request("GET", path, accept, timeout_s=timeout_s)
 
     def _decode_json(self, response, path: str) -> dict[str, Any]:
         with response:
@@ -97,8 +104,12 @@ class GatewayClient:
             raise GatewayError(f"gateway returned a non-object JSON payload for {path}")
         return data
 
-    def get_json(self, path: str) -> dict[str, Any]:
-        return self._decode_json(self._open(path, "application/json"), path)
+    def get_json(
+        self, path: str, timeout_s: float | None = None
+    ) -> dict[str, Any]:
+        return self._decode_json(
+            self._open(path, "application/json", timeout_s), path
+        )
 
     def post_json(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
         """POST a JSON object; only the supervised motion endpoints use this."""
@@ -107,8 +118,10 @@ class GatewayClient:
             path,
         )
 
-    def get_bytes(self, path: str) -> tuple[bytes, str]:
-        with self._open(path, "*/*") as response:
+    def get_bytes(
+        self, path: str, timeout_s: float | None = None
+    ) -> tuple[bytes, str]:
+        with self._open(path, "*/*", timeout_s) as response:
             payload = response.read()
             content_type = response.headers.get_content_type() or "application/octet-stream"
         return payload, content_type

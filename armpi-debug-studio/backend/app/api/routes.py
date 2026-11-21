@@ -164,6 +164,28 @@ def release(request: Request, body: ReleaseIn) -> dict[str, Any]:
     return _service(request).release_lease(body.lease_id, body.session_id)
 
 
+@router.get("/motion/presets")
+def motion_presets(request: Request) -> dict[str, Any]:
+    return _service(request).motion_presets()
+
+
+class TaskVerifyIn(BaseModel):
+    plan_id: str | None = Field(default=None, max_length=128)
+
+
+@router.post("/task/plan")
+def task_plan(request: Request) -> dict[str, Any]:
+    return _service(request).task_plan()
+
+
+@router.post("/task/verify")
+def task_verify(
+    request: Request,
+    body: TaskVerifyIn | None = None,
+) -> dict[str, Any]:
+    return _service(request).task_verify(body.plan_id if body else None)
+
+
 @router.post("/motion/preview")
 def preview(request: Request, body: PreviewIn) -> dict[str, Any]:
     return _service(request).preview(body.session_id, _targets(body.targets))

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import math
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +31,11 @@ SERVO_IDS = {
     "joint5": 2,
 }
 SERVO_INIT_PULSE = 500
+GRIPPER_JOINT = "r_joint"
+GRIPPER_SERVO_ID = 1
+GRIPPER_INIT_PULSE = 700
+MOTION_SERVO_IDS = {**SERVO_IDS, GRIPPER_JOINT: GRIPPER_SERVO_ID}
+MOTION_MODES = ("step", "pose")
 
 
 class MotionConfigError(ValueError):
@@ -105,6 +111,40 @@ class JointMotionLimit:
 
 
 @dataclass(frozen=True)
+class GripperLimit:
+    """The vendor maps r_joint around init pulse 700.
+
+    Open raw 170 measures register 167; an empty close stalls at register 640
+    while the command is 700, so completion is timed rather than positional.
+    """
+
+    joint: str
+    servo_id: int
+    min_pulse: int
+    max_pulse: int
+    init_pulse: int
+    radians_per_tick: float
+    speed_raw_per_s: float
+    min_duration_s: float
+    max_duration_s: float
+    completion: str = "timed"
+
+    def rad_to_pulse(self, radians: float) -> float:
+        return self.init_pulse + float(radians) / self.radians_per_tick
+
+    def pulse_to_rad(self, pulse: int) -> float:
+        return (int(pulse) - self.init_pulse) * self.radians_per_tick
+
+    @property
+    def min_rad(self) -> float:
+        return min(self.pulse_to_rad(self.min_pulse), self.pulse_to_rad(self.max_pulse))
+
+    @property
+    def max_rad(self) -> float:
+        return max(self.pulse_to_rad(self.min_pulse), self.pulse_to_rad(self.max_pulse))
+
+
+@dataclass(frozen=True)
 class MotionSafety:
     max_step_rad: float
     min_duration_s: float
@@ -114,6 +154,16 @@ class MotionSafety:
     settle_samples: int
     timeout_margin_s: float
     single_joint_only: bool
+    mode: str = "step"
+    max_velocity_rad_s: float | None = None
+    pose_requires_all_arm_joints: bool = True
+    # The vendor ``/controller_manager/servo_states`` topic is a command cache,
+    # not a bus read. When ``verification`` is on, an arm command is completed
+    # only after ``GetBusServoState`` returns the actual registers.
+    verification: bool = False
+    verification_tolerance_pulses: int = 12
+    verification_settle_s: float = 0.5
+    verification_margin_pulses: int = 25
 
 
 @dataclass(frozen=True)
@@ -123,6 +173,7 @@ class MotionConfig:
     radians_per_tick: float
     joints: dict[str, JointMotionLimit]
     safety: MotionSafety
+    gripper: GripperLimit | None = None
 
 
 @dataclass
@@ -131,6 +182,7 @@ class MotionTarget:
     servo_id: int
     target_pulse: int
     target_rad: float
+    completion: str = "position"
 
 
 @dataclass
@@ -141,6 +193,7 @@ class MotionPlan:
     started_at: float
     deadline: float
     started_wall: str
+    mode: str = "step"
 
 
 def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
@@ -159,6 +212,20 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
 
     safety_raw = raw.get("safety")
     _require(isinstance(safety_raw, dict), "safety must be an object")
+    mode = str(raw.get("mode", safety_raw.get("mode", "step"))).strip().lower()
+    _require(mode in MOTION_MODES, f"unknown motion mode: {mode!r}")
+    max_velocity_raw = safety_raw.get("max_velocity_rad_s")
+    max_velocity = None
+    if max_velocity_raw is not None:
+        max_velocity = float(max_velocity_raw)
+        _require(0.05 <= max_velocity <= 2.0, "max_velocity_rad_s must be in [0.05, 2.0]")
+    single_joint_only = bool(safety_raw.get("single_joint_only", mode == "step"))
+    verification = bool(safety_raw.get("verification", mode == "pose"))
+    verification_tolerance = int(
+        safety_raw.get("verification_tolerance_pulses", 12)
+    )
+    verification_settle = float(safety_raw.get("verification_settle_s", 0.5))
+    verification_margin = int(safety_raw.get("verification_margin_pulses", 25))
     safety = MotionSafety(
         max_step_rad=float(safety_raw["max_step_rad"]),
         min_duration_s=float(safety_raw["min_duration_s"]),
@@ -167,14 +234,93 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
         tolerance_pulses=int(safety_raw["tolerance_pulses"]),
         settle_samples=int(safety_raw["settle_samples"]),
         timeout_margin_s=float(safety_raw["timeout_margin_s"]),
-        single_joint_only=bool(safety_raw.get("single_joint_only", True)),
+        single_joint_only=single_joint_only,
+        mode=mode,
+        max_velocity_rad_s=max_velocity,
+        pose_requires_all_arm_joints=bool(
+            safety_raw.get("pose_requires_all_arm_joints", True)
+        ),
+        verification=verification,
+        verification_tolerance_pulses=verification_tolerance,
+        verification_settle_s=verification_settle,
+        verification_margin_pulses=verification_margin,
     )
-    _require(0 < safety.max_step_rad <= 0.35, "max_step_rad must be in (0, 0.35]")
+    step_cap = 4.0 if mode == "pose" else 0.35
+    _require(
+        0 < safety.max_step_rad <= step_cap,
+        f"max_step_rad must be in (0, {step_cap}] for mode {mode}",
+    )
     _require(0 <= safety.min_duration_s <= safety.max_duration_s, "invalid duration range")
     _require(safety.feedback_max_age_ms > 0, "feedback_max_age_ms must be positive")
     _require(0 <= safety.tolerance_pulses <= 10, "tolerance_pulses must be 0..10")
     _require(1 <= safety.settle_samples <= 10, "settle_samples must be 1..10")
     _require(0 <= safety.timeout_margin_s <= 10, "timeout_margin_s must be 0..10")
+    _require(
+        0 <= safety.verification_tolerance_pulses <= 50,
+        "verification_tolerance_pulses must be 0..50",
+    )
+    _require(
+        0.0 <= safety.verification_settle_s <= 5.0,
+        "verification_settle_s must be 0..5",
+    )
+    _require(
+        0 <= safety.verification_margin_pulses <= 100,
+        "verification_margin_pulses must be 0..100",
+    )
+    if mode == "pose":
+        _require(not single_joint_only, "pose mode must allow a whole pose")
+        _require(
+            max_velocity is not None,
+            "pose mode requires safety.max_velocity_rad_s",
+        )
+        _require(
+            verification,
+            "pose mode requires bus verification (safety.verification=true)",
+        )
+
+    gripper: GripperLimit | None = None
+    if mode == "pose":
+        gripper_raw = raw.get("gripper")
+        _require(isinstance(gripper_raw, dict), "pose mode requires a gripper block")
+        _require(
+            str(gripper_raw.get("joint", GRIPPER_JOINT)) == GRIPPER_JOINT,
+            f"gripper.joint must be {GRIPPER_JOINT}",
+        )
+        gripper_servo = int(gripper_raw.get("servo_id", GRIPPER_SERVO_ID))
+        _require(
+            gripper_servo == GRIPPER_SERVO_ID,
+            f"gripper.servo_id must be {GRIPPER_SERVO_ID}",
+        )
+        gripper_init = int(gripper_raw.get("init_pulse", GRIPPER_INIT_PULSE))
+        _require(gripper_init == GRIPPER_INIT_PULSE, "gripper.init_pulse must be 700")
+        gripper_min = int(gripper_raw["min_pulse"])
+        gripper_max = int(gripper_raw["max_pulse"])
+        _require(
+            0 <= gripper_min < gripper_max <= 1000,
+            "gripper pulse range is invalid",
+        )
+        speed = float(gripper_raw.get("speed_raw_per_s", 120.0))
+        _require(speed > 0, "gripper.speed_raw_per_s must be positive")
+        gmin = float(gripper_raw.get("min_duration_s", 1.0))
+        gmax = float(gripper_raw.get("max_duration_s", 6.0))
+        _require(0.5 <= gmin <= gmax <= 30.0, "invalid gripper duration range")
+        completion = str(gripper_raw.get("completion", "timed"))
+        _require(
+            completion in {"timed", "position"},
+            "gripper.completion must be 'timed' or 'position'",
+        )
+        gripper = GripperLimit(
+            joint=GRIPPER_JOINT,
+            servo_id=GRIPPER_SERVO_ID,
+            min_pulse=gripper_min,
+            max_pulse=gripper_max,
+            init_pulse=gripper_init,
+            radians_per_tick=radians_per_tick,
+            speed_raw_per_s=speed,
+            min_duration_s=gmin,
+            max_duration_s=gmax,
+            completion=completion,
+        )
 
     joints_raw = raw.get("joints")
     _require(isinstance(joints_raw, dict), "joints must be an object")
@@ -212,6 +358,7 @@ def motion_config_from_dict(raw: dict[str, Any]) -> MotionConfig:
         radians_per_tick=radians_per_tick,
         joints=joints,
         safety=safety,
+        gripper=gripper,
     )
 
 
@@ -251,11 +398,24 @@ def _measured_item(measured: dict[str, Any], joint: str, now: float) -> tuple[in
     return int(raw), float(age_ms)
 
 
+def _guarded(method):
+    """Serialize MotionGuard state: HTTP, servo cache and bus-read threads."""
+
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    wrapper.__name__ = method.__name__
+    wrapper.__doc__ = method.__doc__
+    return wrapper
+
+
 class MotionGuard:
     """Validate one supervised command at a time and derive completion."""
 
     def __init__(self, config: MotionConfig) -> None:
         self.config = config
+        self._lock = threading.RLock()
         self._active: MotionPlan | None = None
         self._state = "idle"
         self._settle_count = 0
@@ -266,8 +426,14 @@ class MotionGuard:
         self._last_measured: dict[str, dict[str, Any]] = {}
         self._finished_at: str | None = None
         self._last_stop: dict[str, Any] | None = None
+        # Bus-verification state. ``None`` until a command needs it.
+        self._verification: str | None = None
+        self._verification_reason: str | None = None
+        self._actual: dict[str, dict[str, Any]] = {}
+        self._actual_at: str | None = None
 
     # ------------------------------------------------------------- validation
+    @_guarded
     def validate(
         self,
         payload: dict[str, Any],
@@ -312,6 +478,27 @@ class MotionGuard:
         if len(raw_joints) > len(ARM_JOINTS):
             raise MotionRejected("MOTION_BAD_REQUEST", "too many joints")
 
+        gripper = self.config.gripper
+        if safety.mode == "pose":
+            names = [
+                str(item.get("joint") or "").strip()
+                for item in raw_joints
+                if isinstance(item, dict)
+            ]
+            gripper_only = gripper is not None and names == [gripper.joint]
+            if not gripper_only and safety.pose_requires_all_arm_joints:
+                if set(names) != set(ARM_JOINTS):
+                    raise MotionRejected(
+                        "MOTION_BAD_REQUEST",
+                        "pose mode requires exactly the five arm joints or "
+                        f"exactly {GRIPPER_JOINT}; got {sorted(set(names))}",
+                    )
+            if gripper is not None and gripper.joint in names and not gripper_only:
+                raise MotionRejected(
+                    "MOTION_BAD_REQUEST",
+                    "a gripper command cannot be mixed with arm joints",
+                )
+
         measured = measured if isinstance(measured, dict) else {}
         targets: list[MotionTarget] = []
         seen: set[str] = set()
@@ -321,6 +508,16 @@ class MotionGuard:
                     "MOTION_BAD_REQUEST", f"joints[{index}] must be an object"
                 )
             joint = str(raw.get("joint") or "").strip()
+            if gripper is not None and joint == gripper.joint:
+                if len(raw_joints) != 1:
+                    raise MotionRejected(
+                        "MOTION_BAD_REQUEST",
+                        "a gripper command must be the only target",
+                    )
+                targets.append(
+                    self._validate_gripper(raw, measured, now, duration)
+                )
+                continue
             if joint not in self.config.joints:
                 raise MotionRejected(
                     "MOTION_BAD_REQUEST", f"unknown joint: {joint!r}"
@@ -328,64 +525,8 @@ class MotionGuard:
             if joint in seen:
                 raise MotionRejected("MOTION_BAD_REQUEST", f"duplicate joint: {joint}")
             seen.add(joint)
-            limit = self.config.joints[joint]
-            servo_id = raw.get("servo_id", limit.servo_id)
-            if int(servo_id) != limit.servo_id:
-                raise MotionRejected(
-                    "MOTION_BAD_REQUEST",
-                    f"{joint}: servo_id must be {limit.servo_id}",
-                )
-            pulse = raw.get("target_pulse")
-            if isinstance(pulse, bool) or not isinstance(pulse, (int, float)):
-                raise MotionRejected(
-                    "MOTION_BAD_REQUEST", f"{joint}: target_pulse is required"
-                )
-            if int(pulse) != float(pulse):
-                raise MotionRejected(
-                    "MOTION_BAD_REQUEST", f"{joint}: target_pulse must be an integer"
-                )
-            target_pulse = int(pulse)
-            if not limit.min_pulse <= target_pulse <= limit.max_pulse:
-                raise MotionRejected(
-                    "MOTION_OUT_OF_LIMIT",
-                    f"{joint}: pulse {target_pulse} outside "
-                    f"[{limit.min_pulse}, {limit.max_pulse}]",
-                )
-            target_rad = raw.get("target_rad")
-            if not _is_number(target_rad):
-                raise MotionRejected(
-                    "MOTION_BAD_REQUEST", f"{joint}: target_rad is required"
-                )
-            if abs(limit.rad_to_pulse(float(target_rad)) - target_pulse) > 1.5:
-                raise MotionRejected(
-                    "MOTION_BAD_REQUEST",
-                    f"{joint}: target_rad disagrees with target_pulse",
-                )
-
-            measured_pulse, age_ms = _measured_item(measured, joint, now)
-            if age_ms > safety.feedback_max_age_ms:
-                raise MotionRejected(
-                    "MOTION_STALE_FEEDBACK",
-                    f"{joint}: measured sample is {age_ms:.0f} ms old "
-                    f"(limit {safety.feedback_max_age_ms} ms)",
-                    http_status=409,
-                )
-            step = abs(target_pulse - measured_pulse)
-            if step > limit.max_step_pulses:
-                raise MotionRejected(
-                    "MOTION_STEP_EXCEEDED",
-                    f"{joint}: step {step} pulses exceeds supervised "
-                    f"{limit.max_step_pulses} pulses "
-                    f"({safety.max_step_rad} rad)",
-                    http_status=409,
-                )
             targets.append(
-                MotionTarget(
-                    joint=joint,
-                    servo_id=limit.servo_id,
-                    target_pulse=target_pulse,
-                    target_rad=float(target_rad),
-                )
+                self._validate_arm(joint, raw, measured, now, duration)
             )
 
         return MotionPlan(
@@ -393,11 +534,170 @@ class MotionGuard:
             duration_s=duration,
             targets=targets,
             started_at=now,
-            deadline=now + duration + safety.timeout_margin_s,
+            deadline=(
+                now
+                + duration
+                + (safety.verification_settle_s if safety.verification else 0.0)
+                + safety.timeout_margin_s
+            ),
             started_wall=utc_now_iso(),
+            mode=safety.mode,
+        )
+
+    # --------------------------------------------------------- target checks
+    def _validate_arm(
+        self,
+        joint: str,
+        raw: dict[str, Any],
+        measured: dict[str, Any],
+        now: float,
+        duration: float,
+    ) -> MotionTarget:
+        limit = self.config.joints[joint]
+        safety = self.config.safety
+        servo_id = raw.get("servo_id", limit.servo_id)
+        if int(servo_id) != limit.servo_id:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{joint}: servo_id must be {limit.servo_id}",
+            )
+        pulse = raw.get("target_pulse")
+        if isinstance(pulse, bool) or not isinstance(pulse, (int, float)):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_pulse is required"
+            )
+        if int(pulse) != float(pulse):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_pulse must be an integer"
+            )
+        target_pulse = int(pulse)
+        if not limit.min_pulse <= target_pulse <= limit.max_pulse:
+            raise MotionRejected(
+                "MOTION_OUT_OF_LIMIT",
+                f"{joint}: pulse {target_pulse} outside "
+                f"[{limit.min_pulse}, {limit.max_pulse}]",
+            )
+        target_rad = raw.get("target_rad")
+        if not _is_number(target_rad):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{joint}: target_rad is required"
+            )
+        if abs(limit.rad_to_pulse(float(target_rad)) - target_pulse) > 1.5:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{joint}: target_rad disagrees with target_pulse",
+            )
+
+        measured_pulse, age_ms = _measured_item(measured, joint, now)
+        if age_ms > safety.feedback_max_age_ms:
+            raise MotionRejected(
+                "MOTION_STALE_FEEDBACK",
+                f"{joint}: measured sample is {age_ms:.0f} ms old "
+                f"(limit {safety.feedback_max_age_ms} ms)",
+                http_status=409,
+            )
+        step = abs(target_pulse - measured_pulse)
+        if step > limit.max_step_pulses:
+            raise MotionRejected(
+                "MOTION_STEP_EXCEEDED",
+                f"{joint}: step {step} pulses exceeds supervised "
+                f"{limit.max_step_pulses} pulses "
+                f"({safety.max_step_rad} rad)",
+                http_status=409,
+            )
+        if safety.max_velocity_rad_s is not None:
+            velocity = step * limit.radians_per_tick / duration
+            if velocity > safety.max_velocity_rad_s + 1e-9:
+                raise MotionRejected(
+                    "MOTION_VELOCITY_EXCEEDED",
+                    f"{joint}: {velocity:.3f} rad/s exceeds the pose cap "
+                    f"{safety.max_velocity_rad_s:.3f} rad/s",
+                    http_status=409,
+                )
+        return MotionTarget(
+            joint=joint,
+            servo_id=limit.servo_id,
+            target_pulse=target_pulse,
+            target_rad=float(target_rad),
+        )
+
+    def _validate_gripper(
+        self,
+        raw: dict[str, Any],
+        measured: dict[str, Any],
+        now: float,
+        duration: float,
+    ) -> MotionTarget:
+        gripper = self.config.gripper
+        safety = self.config.safety
+        if gripper is None:  # guarded by the caller
+            raise MotionRejected("MOTION_BAD_REQUEST", "no gripper contract")
+        if not gripper.min_duration_s <= duration <= gripper.max_duration_s:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{gripper.joint}: duration must be within "
+                f"[{gripper.min_duration_s}, {gripper.max_duration_s}] s",
+            )
+        servo_id = raw.get("servo_id", gripper.servo_id)
+        if int(servo_id) != gripper.servo_id:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{gripper.joint}: servo_id must be {gripper.servo_id}",
+            )
+        pulse = raw.get("target_pulse")
+        if isinstance(pulse, bool) or not isinstance(pulse, (int, float)):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{gripper.joint}: target_pulse is required"
+            )
+        if int(pulse) != float(pulse):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{gripper.joint}: target_pulse must be an integer",
+            )
+        target_pulse = int(pulse)
+        if not gripper.min_pulse <= target_pulse <= gripper.max_pulse:
+            raise MotionRejected(
+                "MOTION_OUT_OF_LIMIT",
+                f"{gripper.joint}: pulse {target_pulse} outside "
+                f"[{gripper.min_pulse}, {gripper.max_pulse}]",
+            )
+        target_rad = raw.get("target_rad")
+        if not _is_number(target_rad):
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST", f"{gripper.joint}: target_rad is required"
+            )
+        if abs(gripper.rad_to_pulse(float(target_rad)) - target_pulse) > 1.5:
+            raise MotionRejected(
+                "MOTION_BAD_REQUEST",
+                f"{gripper.joint}: target_rad disagrees with target_pulse",
+            )
+        measured_pulse, age_ms = _measured_item(measured, gripper.joint, now)
+        if age_ms > safety.feedback_max_age_ms:
+            raise MotionRejected(
+                "MOTION_STALE_FEEDBACK",
+                f"{gripper.joint}: measured sample is {age_ms:.0f} ms old "
+                f"(limit {safety.feedback_max_age_ms} ms)",
+                http_status=409,
+            )
+        delta = abs(target_pulse - measured_pulse)
+        velocity = delta / duration
+        if velocity > gripper.speed_raw_per_s + 1e-9:
+            raise MotionRejected(
+                "MOTION_VELOCITY_EXCEEDED",
+                f"{gripper.joint}: {velocity:.1f} raw/s exceeds the measured "
+                f"{gripper.speed_raw_per_s:.0f} raw/s tracking speed",
+                http_status=409,
+            )
+        return MotionTarget(
+            joint=gripper.joint,
+            servo_id=gripper.servo_id,
+            target_pulse=target_pulse,
+            target_rad=float(target_rad),
+            completion=gripper.completion,
         )
 
     # ------------------------------------------------------------------- state
+    @_guarded
     def start(self, plan: MotionPlan, measured: dict[str, Any] | None = None) -> None:
         self._active = plan
         self._state = "executing"
@@ -408,13 +708,22 @@ class MotionGuard:
         self._last_started_wall = plan.started_wall
         self._last_measured = _measured_snapshot(measured)
         self._finished_at = None
+        self._verification = "pending" if self.config.safety.verification else None
+        self._verification_reason = None
 
+    @_guarded
     def observe(
         self,
         measured: dict[str, Any] | None,
         now: float,
     ) -> None:
-        """Update completion from a measured ``servo_states`` sample."""
+        """Update completion from a ``servo_states`` sample.
+
+        ``servo_states`` is the vendor command cache, not a bus read. When
+        ``verification`` is enabled an arm target is never completed from this
+        stream; the node calls :meth:`mark_verified` with a real bus read.
+        Timed gripper targets still complete from the elapsed time.
+        """
         snapshot = _measured_snapshot(measured)
         if snapshot:
             self._last_measured = snapshot
@@ -423,14 +732,32 @@ class MotionGuard:
             return
         if now > plan.deadline:
             self._state = "unknown"
+            self._verification_reason = (
+                "no bus verification before the deadline"
+                if self.config.safety.verification
+                else None
+            )
             self._finished_at = utc_now_iso()
             self._active = None
             return
         if not snapshot:
             return
+        if self.config.safety.verification:
+            # The command cache cannot prove any target. Even a timed gripper
+            # waits for the post-interpolation bus read so its register is
+            # recorded in the same completion.
+            return
         tolerance = self.config.safety.tolerance_pulses
+        elapsed = now - plan.started_at
         reached = True
         for target in plan.targets:
+            if target.completion == "timed":
+                # The gripper stalls on contact; its completion is the
+                # commanded interpolation time, not the measured pulse.
+                if elapsed < plan.duration_s:
+                    reached = False
+                    break
+                continue
             item = snapshot.get(target.joint)
             if not item or item.get("raw_position") is None:
                 reached = False
@@ -444,9 +771,91 @@ class MotionGuard:
             self._settle_count = 0
         if self._settle_count >= self.config.safety.settle_samples:
             self._state = "completed"
+            self._verification = (
+                "timed"
+                if all(target.completion == "timed" for target in plan.targets)
+                else "cache"
+            )
             self._finished_at = utc_now_iso()
             self._active = None
 
+    @_guarded
+    def mark_verified(
+        self,
+        actual: dict[str, Any] | None,
+        now: float,
+        *,
+        read_ok: bool,
+        reason: str | None = None,
+        tolerance_pulses: int | None = None,
+    ) -> dict[str, Any]:
+        """Record a real ``GetBusServoState`` read for the active command.
+
+        An arm command is ``completed`` only when every position target is
+        within ``tolerance_pulses`` of the actual register. A gripper-only
+        command keeps its timed completion and records the register as
+        evidence. A failed or unsafe read makes an arm command ``unknown``.
+        """
+        snapshot = _measured_snapshot(actual)
+        if snapshot:
+            self._actual = snapshot
+            self._actual_at = utc_now_iso()
+        plan = self._active
+        if plan is None:
+            return self.status()
+        timed_only = all(target.completion == "timed" for target in plan.targets)
+        if timed_only:
+            self._state = "completed"
+            self._verification = "timed" if not read_ok else "bus"
+            self._verification_reason = reason
+            self._finished_at = utc_now_iso()
+            self._active = None
+            return self.status()
+        if not read_ok or not snapshot:
+            self._state = "unknown"
+            self._verification = "failed"
+            self._verification_reason = reason or "bus read failed"
+            self._finished_at = utc_now_iso()
+            self._active = None
+            return self.status()
+        tolerance = (
+            self.config.safety.verification_tolerance_pulses
+            if tolerance_pulses is None
+            else int(tolerance_pulses)
+        )
+        deviations: dict[str, int] = {}
+        reached = True
+        for target in plan.targets:
+            item = snapshot.get(target.joint)
+            if not item or item.get("raw_position") is None:
+                reached = False
+                deviations[target.joint] = 0
+                continue
+            delta = int(item["raw_position"]) - target.target_pulse
+            deviations[target.joint] = delta
+            if abs(delta) > tolerance:
+                reached = False
+        self._verification = "bus"
+        self._verification_reason = None
+        if reached:
+            self._state = "completed"
+        else:
+            self._state = "unknown"
+            self._verification = "failed"
+            self._verification_reason = (
+                "actual registers outside +/-{} pulses: {}".format(
+                    tolerance,
+                    ", ".join(
+                        f"{joint}={delta:+d}"
+                        for joint, delta in sorted(deviations.items())
+                    ),
+                )
+            )
+        self._finished_at = utc_now_iso()
+        self._active = None
+        return self.status()
+
+    @_guarded
     def mark_stopped(
         self,
         measured: dict[str, Any] | None,
@@ -468,6 +877,7 @@ class MotionGuard:
         }
         return self.status()
 
+    @_guarded
     def status(self) -> dict[str, Any]:
         active = self._active
         state = self._state
@@ -477,6 +887,8 @@ class MotionGuard:
             state = "unknown"
         payload: dict[str, Any] = {
             "state": state,
+            "mode": self.config.safety.mode,
+            "max_velocity_rad_s": self.config.safety.max_velocity_rad_s,
             "command_id": (
                 active.command_id if active else self._last_command_id
             ),
@@ -489,16 +901,39 @@ class MotionGuard:
                     "servo_id": target.servo_id,
                     "target_pulse": target.target_pulse,
                     "target_rad": target.target_rad,
+                    "completion": target.completion,
                 }
                 for target in (active.targets if active else self._last_targets)
             ],
             "measured": self._last_measured,
+            "measured_truth": "commanded",
+            "actual": self._actual,
+            "actual_at": self._actual_at,
+            "verification": self._verification,
+            "verification_reason": self._verification_reason,
+            "verification_tolerance_pulses": (
+                self.config.safety.verification_tolerance_pulses
+            ),
             "tolerance_pulses": self.config.safety.tolerance_pulses,
             "started_at": (
                 active.started_wall if active else self._last_started_wall
             ),
             "finished_at": self._finished_at,
             "last_stop": self._last_stop,
+            "gripper": (
+                {
+                    "joint": self.config.gripper.joint,
+                    "servo_id": self.config.gripper.servo_id,
+                    "min_pulse": self.config.gripper.min_pulse,
+                    "max_pulse": self.config.gripper.max_pulse,
+                    "min_rad": self.config.gripper.min_rad,
+                    "max_rad": self.config.gripper.max_rad,
+                    "speed_raw_per_s": self.config.gripper.speed_raw_per_s,
+                    "completion": self.config.gripper.completion,
+                }
+                if self.config.gripper is not None
+                else None
+            ),
         }
         if active is not None:
             payload["command_id"] = active.command_id

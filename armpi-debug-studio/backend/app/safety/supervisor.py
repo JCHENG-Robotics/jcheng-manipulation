@@ -45,6 +45,7 @@ class SafetySupervisor:
         executing: bool = False,
         supervised_motion: bool = False,
         motion_limits: EffectiveMotionLimits | None = None,
+        motion_scope: str = "step",
     ) -> SafetyReport:
         checks: list[SafetyCheck] = []
 
@@ -157,6 +158,21 @@ class SafetySupervisor:
                 severity=Severity.WARNING,
             )
 
+        if motion_scope == "pose" and motion_limits is not None:
+            add(
+                "pose_takeover",
+                "姿态接管",
+                True,
+                (
+                    "whole five-joint pose or one gripper command; "
+                    f"velocity <= {motion_limits.max_velocity_rad_s} rad/s; "
+                    "FK workspace + table + low-pose yaw gate active; "
+                    "no self-collision model"
+                ),
+                blocking=False,
+                severity=Severity.WARNING,
+            )
+
         if require_lease:
             lease = self.leases.check(lease_id, session_id)
             add(
@@ -206,21 +222,69 @@ class SafetySupervisor:
         )
 
         if state.mode.value != "mock" and hardware_motion:
-            measured = [
+            bad = [
                 j.name
                 for j in state.joints
-                if j.truth is not Truth.MEASURED
+                if j.truth
+                not in (Truth.MEASURED, Truth.MEASURED_ON_DEMAND, Truth.COMMANDED)
                 or j.validity in (Validity.INVALID, Validity.UNAVAILABLE)
             ]
+            commanded = [
+                j.name
+                for j in state.joints
+                if j.truth is Truth.COMMANDED
+                and j.validity not in (Validity.INVALID, Validity.UNAVAILABLE)
+            ]
+            if bad:
+                detail = "no position: " + ", ".join(bad)
+            elif commanded:
+                detail = (
+                    "position is the vendor command cache for "
+                    + ", ".join(commanded)
+                    + "; each move is verified by a GetBusServoState read"
+                )
+            else:
+                detail = "actual bus-servo registers (measured_on_demand)"
             add(
                 "measured_feedback",
-                "实测反馈来源",
-                not measured,
-                (
-                    "all joints report measured servo positions"
-                    if not measured
-                    else "not measured: " + ", ".join(measured)
+                "位置来源",
+                not bad,
+                detail,
+                severity=(
+                    Severity.WARNING
+                    if commanded or state.mode.value == "mock"
+                    else Severity.FAULT
                 ),
+            )
+
+        if (
+            state.mode.value != "mock"
+            and hardware_motion
+            and motion_limits is not None
+            and motion_limits.gripper_enabled
+        ):
+            gripper = state.gripper
+            age = gripper.sample_age_ms if gripper is not None else None
+            fresh = bool(
+                gripper is not None
+                and gripper.available
+                and gripper.truth
+                in (Truth.MEASURED, Truth.MEASURED_ON_DEMAND, Truth.COMMANDED)
+                and gripper.validity not in (Validity.INVALID, Validity.UNAVAILABLE)
+                and (age is None or age <= self.mapping.safety.feedback_max_age_ms)
+            )
+            add(
+                "gripper_feedback",
+                "夹爪反馈",
+                fresh,
+                (
+                    f"measured r_joint, sample age {age} ms"
+                    if fresh
+                    else "gripper measured position is unavailable or stale; "
+                    "gripper commands are rejected"
+                ),
+                blocking=False,
+                severity=Severity.WARNING,
             )
 
         unavailable = [

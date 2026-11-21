@@ -16,6 +16,7 @@ import {
 import { formatAngle, formatClock, formatNumber } from "../format";
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
+import { PoseTakeover } from "./PoseTakeover";
 
 function errorText(error: unknown): string {
   return error instanceof ApiError ? `${error.code}: ${error.message}` : String(error);
@@ -54,6 +55,10 @@ export function JointControl() {
     setError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
+
+  if (robot?.capabilities.motion_scope === "pose") {
+    return <PoseTakeover />;
+  }
 
   if (!robot || !diagnostics) {
     return <EmptyState title="正在读取关节状态…">需要后端 /api/state 与 /api/diagnostics。</EmptyState>;

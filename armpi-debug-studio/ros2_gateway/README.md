@@ -25,6 +25,7 @@ instance launched with `--enable-motion` (see
 | Battery | `/ros_robot_controller/battery` (`std_msgs/UInt16`, mV) | 2S pack; `6.4 V` empty, `8.4 V` full estimate |
 | Camera | `/depth_cam/rgb/image_raw` (`sensor_msgs/Image`) | JPEG at the configured quality; Deptrum Aurora 930 |
 | Joint state | `/controller_manager/joint_states` (`sensor_msgs/JointState`) | **command echo**, truth=`commanded`, not encoder feedback |
+| Servo state | `/controller_manager/servo_states` (`ServoStateList`) | **vendor command cache**, truth=`commanded`; the actual registers are only the `GetBusServoState` service (2026-11-21) |
 | TF | `/tf` + `/tf_static` (`tf2_msgs/TFMessage`) | latest edge per parent/child; dynamic edges may derive from commanded joints |
 
 The gateway subscribes only. It never publishes to `/servo_controller`, never
@@ -156,8 +157,8 @@ Expected:
 
 The package also contains a read-only recorder, but the systemd unit does not
 start it. It subscribes to the command echo and to
-`/controller_manager/servo_states` (measured bus-servo positions) and writes a
-G2 dataset. It creates no publisher or service client:
+`/controller_manager/servo_states` (the vendor **command cache**, not a bus
+read) and writes a G2 dataset. It creates no publisher or service client:
 
 ```bash
 sudo docker exec -u ubuntu ArmPiUltra /bin/bash -lc '

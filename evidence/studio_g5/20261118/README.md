@@ -1,5 +1,13 @@
 # Studio G5 read-only trajectory recorder and live TF verification (2026-11-18)
 
+> **Correction (2026-11-21).** The `feedback` stream in this dataset comes from
+> `/controller_manager/servo_states`, which the vendor `ServoManager.set_position`
+> writes as a **command cache**. It is not a bus-servo read; the historical
+> `feedback.truth=measured` label and the "tracking" metrics are plan-vs-command,
+> not servo tracking. The actual registers require `GetBusServoState`; see
+> [`evidence/studio_g7/20261121/`](../../studio_g7/20261121/README.md). The raw
+> dataset is unchanged; read `feedback` as `commanded`.
+
 > Scope: laptop + robot. The first capture is a **static hold**; a later
 > supervised `camera_forward` execute moved the arm for 0.892 s and was
 > recorded with the same read-only recorder. The hardware Playwright spec

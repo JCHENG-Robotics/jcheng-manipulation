@@ -2,12 +2,15 @@
 
 A safe, evidence-first debugging console for the ArmPi Ultra 5-DoF arm.
 
-**Current milestone: G6 supervised single-joint write path (hardware motion off by
-default).** G1–G6 are implemented: the Mock path, the read-only ROS 2 gateway,
-G2–G5 offline/analysis tooling and the G6 supervised write path. Hardware motion
-still requires `ARMPI_HARDWARE_MOTION=1` plus the fixed acknowledgement phrase,
-and remains a single-joint commissioning mode with no e-stop. The vendor
-SDK/Driver are referenced read-only and are **not** copied into this directory.
+**Current milestone: G8 task takeover (hardware motion off by default).**
+G1–G8 are implemented: the Mock path, the read-only ROS 2 gateway, G2–G5
+offline/analysis tooling, the G6 supervised write path, the G7 five-joint
+pose + gripper takeover and the G8 camera-to-task takeover. Hardware motion
+still requires `ARMPI_HARDWARE_MOTION=1`; G6 adds the fixed single-joint
+acknowledgement and G7/G8 use a separate pose acknowledgement plus a pose-mode
+gateway with a velocity cap and an FK workspace/table gate. There is no e-stop.
+The vendor SDK/Driver are referenced read-only and are **not** copied into this
+directory.
 
 > Status note (2026-11-15): this directory is the G1 **Mock** slice imported into
 > the main repository. It is **not** a PRD G1 pass: E7 (ROS 2 read-only gateway)
@@ -50,19 +53,18 @@ SDK/Driver are referenced read-only and are **not** copied into this directory.
 > [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md) and
 > [`evidence/studio_g4/20261118/`](../evidence/studio_g4/20261118/README.md).
 
-> Status note (2026-11-18, latest): the **G5 read-only trajectory recorder** is
-> implemented. It subscribes to the vendor command echo and
-> `/controller_manager/servo_states` (measured bus-servo positions), accepts a
-> MoveIt plan JSON, and writes a G2 dataset. A 5 s no-motion capture produced
-> 242 commanded / 241 measured samples at ~48 Hz; a later **supervised
-> `camera_forward` execute** produced a 0.892 s, 712/711-sample moving capture
-> with `feedback.truth=measured` (G2 tracking max 0.008321 rad, RMSE
-> 0.003962 rad). The gateway `/tf` path is verified on the robot (11 dynamic +
-> 8 static edges, live status, `base_link→link5` within 0.4 mm of `tf2_echo`),
-> and the gated hardware Playwright suite passes 3/3. Backend `pytest` reports
-> **76 passed**, gateway **24 passed**, mock Playwright **10 passed**, hardware
-> Playwright **3 passed**. See
-> [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md) and
+> Status note (2026-11-18, updated 2026-11-21): the **G5 read-only trajectory
+> recorder** is implemented. It subscribes to the vendor command echo and
+> `/controller_manager/servo_states`, which the 2026-11-21 discovery showed is
+> the **vendor command cache**, not a bus read. The G5 dataset's
+> `feedback.truth=measured` label must therefore be read as `commanded`; its
+> "tracking" metrics are plan-vs-command. The actual registers come from
+> `GetBusServoState` (see G7). A 5 s no-motion capture produced 242 commanded /
+> 241 cache samples at ~48 Hz; a later **supervised `camera_forward` execute**
+> produced a 0.892 s, 712/711-sample moving capture. The gateway `/tf` path is
+> verified on the robot (11 dynamic + 8 static edges, `base_link→link5` within
+> 0.4 mm of `tf2_echo`), and the gated hardware Playwright suite passes 3/3.
+> See [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md) and
 > [`evidence/studio_g5/20261118/`](../evidence/studio_g5/20261118/README.md).
 
 > Status note (2026-11-18, latest): the **G6 supervised motion write path** is
@@ -81,6 +83,28 @@ SDK/Driver are referenced read-only and are **not** copied into this directory.
 > [`ros2_gateway/deploy/supervised-motion.md`](ros2_gateway/deploy/supervised-motion.md)
 > and [`evidence/studio_g6/20261118/`](../evidence/studio_g6/20261118/README.md).
 
+> Status note (2026-11-21, latest): the **G7 pose takeover** is implemented and
+> **verified with real motion**. A command is one whole five-joint pose or one
+> `r_joint` gripper command. The backend enforces a 0.5 rad/s velocity cap and
+> an FK gate over 21 samples of the straight joint-space interpolation: the
+> `armpi_safety` workspace box, the measured table plane + 10 mm, and the
+> low-pose yaw rule. The gateway has its own `mode=pose` contract, a gripper
+> command range (170…700 raw) and timed gripper completion.
+>
+> **Correction:** `/controller_manager/servo_states` is the vendor **command
+> cache**, not measured feedback. The gateway now reads the actual registers
+> with `GetBusServoState` after the interpolation and completes an arm command
+> only within ±12 pulses; a cache-only completion is `Unknown`. A full
+> `view_table → grasp_low → view_table` + gripper sequence ran on the robot:
+> the low pose actual was `502/339/928/336/499` (max 4 pulses from target), and
+> the gripper settled at 184 (open) / 645 (close) while the cache said 700.
+> Backend `pytest` reports **108 passed**, gateway **62 passed**, mock
+> Playwright **10 passed**, pose-scope mock Playwright **2 passed**, hardware
+> Playwright **3 passed**. See
+> [`docs/g7-pose-takeover.md`](docs/g7-pose-takeover.md),
+> [`ros2_gateway/deploy/takeover.md`](ros2_gateway/deploy/takeover.md) and
+> [`evidence/studio_g7/20261121/`](../evidence/studio_g7/20261121/README.md).
+
 ## Status
 
 | Area | Status | Evidence |
@@ -92,7 +116,8 @@ SDK/Driver are referenced read-only and are **not** copied into this directory.
 | Dashboard / Joint Control / Diagnostics / Trajectory Inspector / Experiment Lab / Event Timeline / Settings | Implemented | `frontend/src/pages/` |
 | Frontend type-check + production build | Verified | `tsc -b && vite build` |
 | Mock HTTP end-to-end | Verified | preview → execute → Completed; see below |
-| Playwright browser E2E (mock) | **Verified (2026-11-18)** | `npm run test:e2e`, 10 passed; [`frontend/e2e/README.md`](frontend/e2e/README.md) |
+| Playwright browser E2E (mock) | **Verified (2026-11-21)** | `npm run test:e2e`, 10 passed; [`frontend/e2e/README.md`](frontend/e2e/README.md) |
+| Playwright browser E2E (pose-scope mock) | **Verified (2026-11-21)** | `E2E_POSE=1 npm run test:e2e`, 2 passed; preset → preview → execute and gripper preview; no robot |
 | Playwright browser E2E (hardware) | **Verified read-only (2026-11-18)** | `npm run test:e2e:hardware`, 3 passed against the private gateway; environment-gated, never in CI |
 | Camera + battery (Mock) | Implemented | `/api/peripherals`, Dashboard panels |
 | Camera + battery (hardware) | **Verified read-only (2026-11-17)** | live RGB 640×400 `bgr8` and 7.424 V battery via gateway |
@@ -100,10 +125,12 @@ SDK/Driver are referenced read-only and are **not** copied into this directory.
 | G2 Trajectory Inspector (offline) | **Implemented, offline-validated (2026-11-18)** | [`docs/g2-trajectory-inspector.md`](docs/g2-trajectory-inspector.md); 3-stream JSON import, recomputable metrics, client-side replay |
 | G3 Experiment Lab (offline) | **Implemented, offline-validated (2026-11-18)** | [`docs/g3-experiment-lab.md`](docs/g3-experiment-lab.md); immutable definitions, append-only paired trials, failure codes, CSV/JSON export, paired analysis |
 | G4 Visual Workbench (read-only) | **Implemented; live `/tf` verified (2026-11-18)** | [`docs/g4-visual-workbench.md`](docs/g4-visual-workbench.md); URDF FK + optional gateway `/tf`, camera/calibration/TF warnings, metadata-only references |
-| G5 read-only trajectory recorder | **Implemented; no-motion + one supervised moving capture (2026-11-18)** | [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md); commanded + measured streams, MoveIt plan JSON, G2 dataset output; `camera_forward` 0.892 s moving capture imported |
-| G6 supervised motion write path | **Implemented; verified on hardware without motion (2026-11-18)** | [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md); single joint, 0.096342 rad cap, gateway revalidation from measured pulses, latched `Unknown` |
-| Hardware motion | **Off by default; supervised opt-in only** | `ARMPI_HARDWARE_MOTION=1` + `ARMPI_SUPERVISED_MOTION_ACK`; otherwise `capabilities.hardware_motion=false` |
-| Gripper (`r_joint`) | **Excluded from G1** | `configs/joint_mapping.yaml` |
+| G5 read-only trajectory recorder | **Implemented; no-motion + one supervised moving capture (2026-11-18)** | [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md); command + **command-cache** streams (not measured), MoveIt plan JSON, G2 dataset output; `camera_forward` 0.892 s moving capture imported; corrected 2026-11-21 |
+| G6 supervised motion write path | **Implemented; verified without motion (2026-11-18); completion corrected 2026-11-21** | [`docs/g6-motion-write-path.md`](docs/g6-motion-write-path.md); single joint, 0.096342 rad cap, **bus-read completion ±8 pulses**, latched `Unknown`; the old cache-based completion is no longer accepted |
+| G7 pose takeover | **Implemented; verified with real motion and bus-servo completion (2026-11-21)** | [`docs/g7-pose-takeover.md`](docs/g7-pose-takeover.md); 5-joint pose or gripper, 0.5 rad/s cap, FK workspace/table/low-yaw gate, 5 presets; view→grasp→view + gripper actual registers 502/339/928/336/499 and 184/645 |
+| G8 task takeover | **Implemented; verified with a real 13-step task (2026-11-21)** | [`docs/g8-task-takeover.md`](docs/g8-task-takeover.md); live point cloud → locate → deep-family fit → 13 steps → grip verify → put-back; target radius 0.2384 m, grasp actual 504/339/930/421/499, `close_grip` stalled at raw 416, landing +3.6 mm x; min-range clip recovery for the Aurora's ~0.25 m cutoff (`TOP_CLIPPED_RECOVERED`) |
+| Hardware motion | **Off by default; G6 step or G7/G8 pose opt-in only** | `ARMPI_HARDWARE_MOTION=1` + `ARMPI_SUPERVISED_MOTION_ACK` (step) or `ARMPI_MOTION_SCOPE=pose` + `ARMPI_TAKEOVER_ACK` (pose); otherwise `capabilities.hardware_motion=false` |
+| Gripper (`r_joint`) | **G7/G8 pose scope only; excluded from G1/step** | `configs/takeover.yaml`; measured command range 170…700 raw, timed completion, 100 raw/s validation cap |
 | 3D / depth-cloud workbench | **Not implemented** | Settings → Roadmap |
 
 No hardware was accessed while building or testing the Mock slice: no serial
@@ -111,8 +138,9 @@ port, no ROS node, no robot motion. The read-only gateway was later verified on
 the robot host (2026-11-17), its `/tf` path on 2026-11-18, and the G5 recorder
 captured a 5 s no-motion segment plus one supervised `camera_forward` motion.
 Hardware joint positions now come from measured `servo_states`; the command
-echo remains available separately. Studio motion is off by default and only a
-single-joint supervised instance can enable it.
+echo remains available separately. Studio motion is off by default: a G6
+single-joint supervised instance or a G7/G8 pose-mode instance can enable it,
+each behind its own fixed acknowledgement phrase.
 
 ## Architecture
 
@@ -123,7 +151,7 @@ Browser (React + TS)
 FastAPI backend
    ├── SafetySupervisor / LeaseManager / PreviewTokenManager
    ├── MockRobotAdapter (no ROS, no serial)
-   ├── HardwareAdapter (read-only by default; supervised motion opt-in)
+   ├── HardwareAdapter (read-only by default; G6 step / G7 pose motion opt-in)
    ├── SQLite event store (append-only, WAL)
    └── HTTP client ──> armpi_debug_gateway (robot host, ROS 2)
                           ├── /battery  <- /ros_robot_controller/battery
@@ -542,14 +570,17 @@ limitations: [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md).
    with clean SIGTERM is verified. A full reboot test now **passes** (2026-11-20,
    `NRestarts=0` for the gateway, D435i depth and aux-camera units); a
    vendor-container restart still triggers the vendor `startup_check`, which
-   moves the arm. Joint positions are the vendor command echo, not encoder
-   feedback. Rotate the shared token with `deploy/rotate-token.sh` before
+   moves the arm. Both `/joint_states` and `/controller_manager/servo_states`
+   are the vendor **command cache**; the actual registers are
+   `GetBusServoState` reads, and the Studio labels the continuous stream
+   `commanded`. Rotate the shared token with `deploy/rotate-token.sh` before
    sharing the robot; the script is provided but was not exercised in this run.
 2. Hardware motion is **off by default**. G6 adds a supervised single-joint
-   write path behind `ARMPI_HARDWARE_MOTION=1` and the acknowledgement phrase;
-   there is no multi-joint or trajectory-streaming path. The vendor driver
-   defects (no ACK, blocking reads, `joint_states` command echo) are not
-   repaired.
+   write path and G7 adds a five-joint pose + gripper path, each behind its own
+   gateway instance and acknowledgement phrase. G7 is not a planner: the FK gate
+   is TCP-only and nominal, there is **no self-collision model**, no trajectory
+   streaming and no MoveIt action dispatch. The vendor driver defects (no ACK,
+   blocking reads, `joint_states` command echo) are not repaired.
 3. The joint mapping and limits are **verified** (`verified: true` from
    2026-11-19, `mapping_verified=true` for the operating envelope). All five arm
    joints were hand-surveyed with torque released; joint2's high bound was
@@ -591,18 +622,30 @@ limitations: [`docs/g5-trajectory-recorder.md`](docs/g5-trajectory-recorder.md).
 
 ## Next steps
 
-1. Hardware mapping/limit verification with torque off and manual movement
-   (`tools/phase2/joint_limit_survey.py --mode survey`), with the arm supported.
-2. Add a guarded single-joint motion path only after Board approval; keep
-   `hardware_motion=false` until then.
-3. Run more supervised moving captures (larger motions, repeatability) and
-   refine the start-alignment convention before using G5 data for accuracy
-   claims; one small `camera_forward` capture exists.
-4. Run the first supervised paired grasp experiment only after steps 1–3 and
-   size the binary endpoint from pilot discordance, not from a small demo.
-5. Verify reboot/container-restart persistence when arm motion is acceptable.
+1. Verify the gripper closed loop on a real object: command close, record the
+   settled `GetBusServoState` register, and confirm the timed completion is not
+   mistaken for a force/grip proof.
+2. Add a **continuous** measured-position option if one is needed: the actual
+   read is currently one-shot at completion; the vendor `GetBusServoState`
+   service would have to be polled at a low rate (with the negative-register
+   guard), or the vendor driver patched to publish a real register stream.
+3. ~~Add a task-level takeover (G8)~~ — **done 2026-11-21** (camera → locate →
+   fit → 13-step task, bus-verified; the pose gateway captures the registered
+   cloud on demand). Next: G8.1, a chassis approach for cubes outside the
+   direct-grasp band, using the front D435i depth + base pulses.
+4. Correct the G5 recorder if its feedback label matters for new data: it
+   subscribes to the command cache; a real bus-read stream or an explicit
+   `commanded` label is required.
+5. Keep `docs/phase2/JOINT_LIMITS.md`, the safety plane and the pose presets in
+   sync whenever the mapping or the base pose changes.
 
-Completed on 2026-11-18 (was on the previous list): gateway `/tf` verified on
-the robot and compared with `tf2_echo`; hardware-mode Playwright added behind
-`ARMPI_E2E_HARDWARE=1` and passed 3/3; G5 recorder implemented and a supervised
-moving `camera_forward` trajectory captured and imported into G2.
+Completed on 2026-11-19/21 (were on previous lists): formal joint-limit survey;
+the G6 single-joint supervised path; the G7 five-joint pose and gripper path
+verified with **real motion** and bus-servo completion (low pose within 4
+pulses; gripper settled 184/645); the G8 camera-to-task takeover verified with a
+real 13-step run (grasp actual 504/339/930/421/499, `close_grip` raw 416,
+landing 3.6 mm) including the min-range clip recovery; the command-cache
+discovery and the cache-only completion rejection. Earlier: gateway `/tf` verified; hardware-mode
+Playwright gated behind `ARMPI_E2E_HARDWARE=1` and passing 3/3; the G5 recorder
+with a supervised moving `camera_forward` capture imported into G2 (now known
+to be a command-cache capture).
