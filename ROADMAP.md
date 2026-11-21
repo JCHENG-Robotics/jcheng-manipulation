@@ -383,8 +383,8 @@ has no release landing, the binary outcome is the primary test.
 tests whether the same effect and the locate/approach chain survive unknown
 placements. Before every pair the operator puts the cube at a fresh,
 haphazard point inside the sensor-covered region (radius 0.25-0.55 m, bearing
--20..+25 deg); the robot locates it with the wrist wide measurement, a
-`joint1` yaw sweep or the chassis D435i, drives the base closed-loop into the
+-20..+25 deg); the robot locates it with the wrist wide measurement, the
+chassis D435i or a `joint1` yaw sweep, drives the base closed-loop into the
 0.226-0.234 m band, runs the two methods and returns home. The design, region,
 seed-17 plan and hashes are written before data
 ([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md));

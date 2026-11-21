@@ -43,8 +43,8 @@
   },
   "locators": [
     "wrist_view",
-    "wrist_yaw",
-    "front_camera"
+    "front_camera",
+    "wrist_yaw"
   ],
   "coverage": {
     "wrist_view_max_radius_m": 0.46,

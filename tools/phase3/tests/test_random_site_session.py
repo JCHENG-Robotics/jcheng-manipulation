@@ -55,6 +55,8 @@ def test_plan_and_random_sites_load(tmp_path):
     assert len(site_session.sites) == 24
     assert list(site_session.sites)[0] == 'r01'
     assert site_session.plan['n_pairs'] == 24
+    assert site_session.front_x_range == '0.212,0.565'
+    assert site_session.front_y_range == '0.247'
     pending = site_session._pending_pairs()
     assert len(pending) == 24
     pair_id, entries, site = pending[0]
@@ -74,7 +76,7 @@ def test_region_check_inside_and_outside():
     assert fake._region_check([0.20, 0.0, 0.0])[2] is False
 
 
-def test_locator_chain_prefers_wrist_then_yaw_then_front():
+def test_locator_chain_prefers_wrist_then_front_then_yaw():
     fake = _fake_session()
     fake._wide_measure = lambda tag: (
         np.array([0.40, 0.10, 0.0]), True, {'success': True})
@@ -83,13 +85,6 @@ def test_locator_chain_prefers_wrist_then_yaw_then_front():
     assert point[0] == pytest.approx(0.40)
 
     fake._wide_measure = lambda tag: (None, False, {})
-    fake._search = lambda tag: (
-        np.array([0.45, 0.20, 0.0]), True, {'success': True}, 0.14)
-    point, valid, report, locator = fake._locate_initial('t')
-    assert locator == 'wrist_yaw'
-    assert fake.approach['search_yaw_rad'] == pytest.approx(0.14)
-
-    fake._search = lambda tag: (None, False, {}, 0.0)
     fake._front_locate = lambda tag: (
         np.array([0.50, 0.10, 0.0]), False, {'success': False})
     point, valid, report, locator = fake._locate_initial('t')
@@ -97,6 +92,13 @@ def test_locator_chain_prefers_wrist_then_yaw_then_front():
     assert point[0] == pytest.approx(0.50)
 
     fake._front_locate = lambda tag: (None, False, None)
+    fake._search = lambda tag: (
+        np.array([0.45, 0.20, 0.0]), True, {'success': True}, 0.14)
+    point, valid, report, locator = fake._locate_initial('t')
+    assert locator == 'wrist_yaw'
+    assert fake.approach['search_yaw_rad'] == pytest.approx(0.14)
+
+    fake._search = lambda tag: (None, False, {}, 0.0)
     point, valid, report, locator = fake._locate_initial('t')
     assert point is None
     assert locator == 'none'

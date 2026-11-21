@@ -28,7 +28,7 @@ def test_default_region_and_fixtures():
     assert payload['placement_rule']['operator_random'] is True
     assert payload['placement_rule']['min_separation_m'] == 0.03
     assert payload['locators'] == [
-        'wrist_view', 'wrist_yaw', 'front_camera']
+        'wrist_view', 'front_camera', 'wrist_yaw']
 
 
 def test_invalid_regions_are_refused():

@@ -98,16 +98,24 @@ For every sighting (the first one and after each base pulse):
    with the measured bus-servo registers, `x 0.15-0.60`, `|y| <= 0.40`,
    cluster `xy <= 0.12`. A top face rejected only for `partial_top_view` is
    accepted as an **approach** point, never as the final target.
-2. **joint1 yaw sweep.** `+0.14, -0.14, +0.28, -0.28, +0.42, -0.42, +0.56,
-   -0.56 rad`, measuring at each step. This is the 2026-11-19 out-of-view demo
-   path; the arm is at the raised view pose, never the low grasp pose.
-3. **Chassis D435i.** One colour + depth capture in the vendor container,
-   copied to the laptop, then the pose-independent top-face measurement
-   (`ext_cam_measure.py`: depth support plane, top plane, rectified colour,
-   saturated blob). Its `point_base` is used **only as a base-drive target**;
-   the front camera is not a grasp measurement. The 0.30-0.55 m far-field
-   top-face rectification is the new, less-validated part; the pre-session
-   check (Section 9) gates it.
+2. **Chassis D435i.** One colour + depth capture in the vendor container,
+   copied to the laptop, then the pose-independent **depth top-face cluster**
+   (`ext_cam_measure.py --depth-cluster`): RANSAC the support plane, select
+   the points 30-50 mm above it inside the region's bounding box, cluster them
+   on a 5 mm x/y grid and take the largest component. The depth top face is
+   used instead of the rectified colour because at the oblique far view the
+   wooden top can be over-exposed and the fixed colour thresholds miss it
+   (the 2026-11-21 precheck frame: a far cube at 0.43 m was measured by the
+   depth cluster, not by the colour path). The `point_base` is used **only as
+   a base-drive target**; the front camera is not a grasp measurement. It is
+   tried before the yaw sweep because one capture is shorter than the
+   eight-step sweep; it covers the far half (0.46-0.55 m) that the wrist
+   cannot see at any yaw. The 0.30-0.55 m far-field depth is the new,
+   less-validated part; the pre-session check (Section 9) gates it.
+3. **joint1 yaw sweep.** `+0.14, -0.14, +0.28, -0.28, +0.42, -0.42, +0.56,
+   -0.56 rad`, measuring at each step, for the near wide bearings that the
+   front camera cannot see. This is the 2026-11-19 out-of-view demo path; the
+   arm is at the raised view pose, never the low grasp pose.
 
 If all three return no point, the pair aborts before any trial and is a
 **capability failure**, recorded in `approaches.jsonl` with the reason.
@@ -241,7 +249,7 @@ front-camera measurement JSONs to `front/`.
   operator can unconsciously avoid hard spots. The placement rule (new spot,
   no lines, >= 30 mm) is enforced by instruction, not by the robot; the
   realized distribution is reported.
-- **The front camera's far-field top-face measurement is not fully
+- **The front camera's far-field depth top-face measurement is not fully
   validated.** It is used only as a drive target; a bias of a few millimetres
   at 0.5 m is tolerable because the closed loop re-measures and the wrist
   takes over. The pre-session check gates the far field before the 48-trial

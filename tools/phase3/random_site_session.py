@@ -10,11 +10,13 @@ not the operator's intent, is the recorded site.
 Locator chain per sighting:
 
 1. the validated view-pose wrist measurement with the wide region;
-2. a ``joint1`` yaw sweep (the 2026-11-19 out-of-view demo path);
-3. the chassis RealSense D435i, which is the only sensor that sees the far
+2. the chassis RealSense D435i, which is the only sensor that sees the far
    part of the region (0.46-0.55 m) from the home pose. Its top-face point is
    used only to drive the base into the wrist band; the final grasp target is
-   always the strict wrist measurement.
+   always the strict wrist measurement. It is tried before the yaw sweep
+   because one capture is shorter than the eight-step sweep;
+3. a ``joint1`` yaw sweep (the 2026-11-19 out-of-view demo path) for the near
+   wide bearings that the front camera cannot see.
 
 The region (``tools/phase3/random_region.py``) is the sensor-covered fan from
 home: radius 0.25-0.55 m, bearing -20...+25 deg. The operator's rule is in the
@@ -34,6 +36,7 @@ exercises the flow with synthetic points and no robot calls.
 """
 
 import json
+import math
 import os
 import subprocess
 import sys
@@ -84,6 +87,23 @@ class RandomSiteSession(sites.SiteSession):
         if len(envelope) != 2 or envelope[0] >= envelope[1]:
             raise SystemExit('--x-envelope needs two increasing metres')
         self.x_envelope = (envelope[0], envelope[1])
+        region = self.region_payload['region']
+        radius_low = float(region['min_radius_m'])
+        radius_high = float(region['max_radius_m'])
+        bearing_low = math.radians(region['min_bearing_deg'])
+        bearing_high = math.radians(region['max_bearing_deg'])
+        corners = [
+            (radius * math.cos(bearing), radius * math.sin(bearing))
+            for radius in (radius_low, radius_high)
+            for bearing in (bearing_low, bearing_high)]
+        xs = [point[0] for point in corners]
+        ys = [point[1] for point in corners]
+        if bearing_low <= 0.0 <= bearing_high:
+            xs.append(radius_high)
+        self.front_x_range = '{:.3f},{:.3f}'.format(
+            min(xs) - 0.015, max(xs) + 0.015)
+        self.front_y_range = '{:.3f}'.format(
+            max(abs(value) for value in ys) + 0.015)
         self.approaches_path = os.path.join(
             os.path.dirname(os.path.abspath(args.trials)),
             'approaches.jsonl')
@@ -196,8 +216,9 @@ class RandomSiteSession(sites.SiteSession):
             '--extrinsic', os.path.join(REPO, self.args.front_extrinsic),
             '--depth-to-color',
             os.path.join(REPO, self.args.front_depth_to_color),
-            '--x-range', '0.10,0.70',
-            '--y-range', '0.40',
+            '--x-range', self.front_x_range,
+            '--y-range', self.front_y_range,
+            '--depth-cluster',
             '--output', output,
         ]
         try:
@@ -237,30 +258,34 @@ class RandomSiteSession(sites.SiteSession):
         return None, False, None
 
     def _locate_initial(self, tag):
-        """Wrist wide -> yaw sweep -> front camera."""
+        """Wrist wide -> front camera -> yaw sweep."""
         point, valid, report = self._wide_measure(tag)
         if point is not None:
             return point, valid, report, 'wrist_view'
+        # The front camera first: the far half of the region (0.46-0.55 m) is
+        # invisible to the wrist at any yaw, and a front capture is shorter
+        # than the eight-step yaw sweep. The yaw sweep still covers the near
+        # wide bearings that the front camera cannot see.
+        point, valid, report = self._front_locate('{}_front'.format(tag))
+        if point is not None:
+            return point, valid, report, 'front_camera'
         point, valid, report, yaw = self._search(tag)
         self.approach['search_yaw_rad'] = yaw
-        if point is not None:
-            return point, valid, report, 'wrist_yaw'
-        point, valid, report = self._front_locate('{}_front'.format(tag))
         return point, valid, report, (
-            'front_camera' if point is not None else 'none')
+            'wrist_yaw' if point is not None else 'none')
 
     def _locate_after(self, tag):
-        """Wrist wide -> yaw sweep -> front camera after a base pulse."""
+        """Wrist wide -> front camera -> yaw sweep after a base pulse."""
         point, valid, report = self._wide_measure(tag)
         if point is not None:
             return point, valid, report, 'wrist_view'
+        point, valid, report = self._front_locate('{}_front'.format(tag))
+        if point is not None:
+            return point, valid, report, 'front_camera'
         point, valid, report, yaw = self._search(tag)
         self.approach['search_yaw_rad'] = yaw
-        if point is not None:
-            return point, valid, report, 'wrist_yaw'
-        point, valid, report = self._front_locate('{}_front'.format(tag))
         return point, valid, report, (
-            'front_camera' if point is not None else 'none')
+            'wrist_yaw' if point is not None else 'none')
 
     # -- region acceptance ----------------------------------------------
     def _region_check(self, point):

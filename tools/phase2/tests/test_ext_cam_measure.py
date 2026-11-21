@@ -146,3 +146,34 @@ def test_synthetic_square_is_recovered_through_the_real_calibration():
     assert np.linalg.norm(recovered[:2] - centre[:2]) < 0.001
     extent = sorted(value * 0.0005 * 1000.0 for value in rectangle[1])
     assert 30.0 <= extent[0] <= 55.0
+
+
+def test_depth_top_face_selects_the_cube_inside_the_task_box():
+    """A larger background cluster outside the box must not win."""
+    rng = np.random.default_rng(20261121)
+    floor = np.column_stack([
+        rng.uniform(0.20, 0.65, 3000),
+        rng.uniform(-0.30, 0.30, 3000),
+        -0.09 + 0.0015 * rng.normal(size=3000),
+    ])
+    cube_top = np.column_stack([
+        rng.uniform(0.400, 0.440, 300),
+        rng.uniform(-0.020, 0.020, 300),
+        np.full(300, -0.050),
+    ])
+    background = np.column_stack([
+        rng.uniform(0.60, 0.66, 600),
+        rng.uniform(-0.30, -0.24, 600),
+        np.full(600, -0.050),
+    ])
+    points = np.vstack([floor, cube_top, background])
+    normal = np.array([0.0, 0.0, 1.0])
+    without_box = measure.depth_top_face(points, normal, 0.09)
+    assert without_box is not None
+    assert abs(without_box['point_base'][0] - 0.63) < 0.02
+    cluster = measure.depth_top_face(
+        points, normal, 0.09, x_range=(0.20, 0.56), y_range=0.25)
+    assert cluster is not None
+    assert cluster['point_base'][0] == pytest.approx(0.42, abs=0.003)
+    assert cluster['point_base'][1] == pytest.approx(0.0, abs=0.003)
+    assert cluster['cluster_points'] >= measure.DEPTH_MIN_POINTS

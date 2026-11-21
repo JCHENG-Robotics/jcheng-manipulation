@@ -13,7 +13,7 @@
 
 | File | SHA-256 | Contents |
 |---|---|---|
-| `region.json` | `3857dae9c9855210374a18209afaa315d66dd9e879768666b30b127d6bea6efd` | Region (r 0.25-0.55 m, bearing -20..+25 deg), placement rule, 24 fixture labels, seed |
+| `region.json` | `d947203cadc6771d47ece675a96a37306160901d2b363f2bf016f55cca4dd906` | Region (r 0.25-0.55 m, bearing -20..+25 deg), placement rule, 24 fixture labels, seed, locator order |
 | `paired_trials_plan.json` | `02a4ac0ddf9f15f9c96f9678dc1778536ddc6c20dc4e9b18976afb17746e0bea` | Seeded plan (seed 17): pair order, within-pair method order, fixtures r01..r24 |
 | `trials.jsonl` | — | Created on the first valid trial; append-only |
 | `approaches.jsonl` | — | One locate/approach/return record per attempted pair, including aborts |

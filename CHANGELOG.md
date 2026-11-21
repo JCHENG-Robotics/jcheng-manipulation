@@ -12,10 +12,16 @@ All notable changes to this project are documented here. Format based on
   and the seeded pair/method plan with fixtures `r01`...`r24`.
 - `tools/phase3/random_site_session.py`: the session runner. Per pair it
   prompts for a fresh operator-random point, uses the locator chain
-  wrist-wide -> `joint1` yaw sweep -> chassis D435i, checks the realized
+  wrist-wide -> chassis D435i -> `joint1` yaw sweep, checks the realized
   point against the region, drives the base into the 0.226-0.234 m band,
   runs the two validated methods, and returns home. The front-camera
   capture/copy/measure path and the `--precheck` mode are new.
+- `ext_cam_measure.py --depth-cluster`: the far-field depth top-face cluster
+  used by the front locator (30-50 mm above the support plane, 5 mm x/y
+  grid, restricted to the region's bounding box so a larger background
+  cluster cannot win). The colour rectification stays the default; the
+  precheck frame showed an over-exposed far top that the colour thresholds
+  miss.
 - `docs/phase3/RANDOM_SITE_DESIGN.md` and
   `evidence/phase3/onsite_20261121_random/`: the pre-registration, region,
   plan (seed 17) and hashes, written before data.

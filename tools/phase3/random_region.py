@@ -93,7 +93,7 @@ def build_region(n_pairs=DEFAULT_N_PAIRS, seed=DEFAULT_SEED,
                 'from the previous realized point. The measured point, not '
                 'the operator intent, is the recorded site.'),
         },
-        'locators': ['wrist_view', 'wrist_yaw', 'front_camera'],
+        'locators': ['wrist_view', 'front_camera', 'wrist_yaw'],
         'coverage': {
             'wrist_view_max_radius_m': 0.46,
             'front_camera': {

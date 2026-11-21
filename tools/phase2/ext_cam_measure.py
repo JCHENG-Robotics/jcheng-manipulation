@@ -11,6 +11,13 @@ not inherit the wrist camera's arm-pose hand-eye/FK error. The chain is:
 4. segment the saturated, top-face-bright blob and take its centroid in the
    plane. The centroid is the base-frame top-face point.
 
+``--depth-cluster`` is the far-field mode: at 0.30-0.55 m the cube top has
+valid depth, while the wooden top can be over-exposed at an oblique view and
+the fixed colour thresholds miss it. It selects the 30-50 mm-high depth
+points inside the task x/y box, clusters them on a 5 mm grid and returns the
+largest cluster's centroid. The colour path remains the default for the near
+band and the dual-grasp evidence.
+
 Run on the laptop with OpenCV, after ``ext_cam_capture.py`` has saved a frame::
 
     CAL=evidence/calibration/20261120
@@ -42,6 +49,11 @@ DEFAULT_WINDOW_MM = (120.0, 90.0)
 SATURATION_MIN = 70
 VALUE_MIN = 68
 VALUE_MAX = 150
+#: Depth top-face cluster: the cube top sits 39.4 mm above the support plane.
+DEPTH_MIN_HEIGHT_M = 0.030
+DEPTH_MAX_HEIGHT_M = 0.050
+DEPTH_VOXEL_M = 0.005
+DEPTH_MIN_POINTS = 80
 
 
 def load_json(path):
@@ -138,6 +150,70 @@ def project(point, camera_matrix_value, distortion, base_from_camera):
     v = (camera_matrix_value[1, 1] * camera[1] / camera[2]
          + camera_matrix_value[1, 2])
     return np.array([u, v])
+
+
+def points_to_base(points, depth_to_color, base_from_color):
+    """Transform depth-frame points into ``base_link``."""
+    rotation_dc = np.asarray(depth_to_color['R'], dtype=np.float64)
+    translation_dc = np.asarray(depth_to_color['t_m'], dtype=np.float64)
+    rotation = np.asarray(base_from_color[:3, :3], dtype=np.float64)
+    translation = np.asarray(base_from_color[:3, 3], dtype=np.float64)
+    points_base = (np.asarray(points, dtype=np.float64) @ rotation_dc.T
+                   + translation_dc)
+    return points_base @ rotation.T + translation
+
+
+def depth_top_face(points_base, normal, offset,
+                   min_height=DEPTH_MIN_HEIGHT_M,
+                   max_height=DEPTH_MAX_HEIGHT_M,
+                   voxel=DEPTH_VOXEL_M, min_points=DEPTH_MIN_POINTS,
+                   x_range=None, y_range=None):
+    """Return the largest cube-top cluster above the support plane.
+
+    The depth camera is the only far-field sensor: at 0.30-0.55 m the cube
+    top has valid depth, while the colour top-face rectification can fail when
+    the top face is over-exposed. Select the points 30-50 mm above the plane,
+    optionally restrict them to the task's x/y box (so a taller background
+    object cannot win as the largest cluster), cluster them on a 5 mm x/y
+    grid and take the largest component. The centroid is the top-face point
+    in ``base_link``.
+    """
+    points_base = np.asarray(points_base, dtype=np.float64)
+    heights = points_base @ normal + float(offset)
+    slab_mask = (heights >= min_height) & (heights <= max_height)
+    if x_range is not None:
+        slab_mask &= ((points_base[:, 0] >= x_range[0])
+                      & (points_base[:, 0] <= x_range[1]))
+    if y_range is not None:
+        slab_mask &= np.abs(points_base[:, 1]) <= y_range
+    slab = points_base[slab_mask]
+    if len(slab) < min_points:
+        return None
+    cells = np.floor(
+        (slab[:, :2] - slab[:, :2].min(axis=0)) / voxel).astype(np.int64)
+    width = int(cells[:, 0].max()) + 3
+    height = int(cells[:, 1].max()) + 3
+    grid = np.zeros((height, width), dtype=np.uint8)
+    grid[cells[:, 1] + 1, cells[:, 0] + 1] = 255
+    count, labels = cv2.connectedComponents(grid, connectivity=8)
+    best = None
+    for label in range(1, count):
+        member = labels[cells[:, 1] + 1, cells[:, 0] + 1] == label
+        size = int(member.sum())
+        if best is None or size > best[0]:
+            best = (size, member)
+    if best is None or best[0] < min_points:
+        return None
+    cluster = slab[best[1]]
+    centroid = cluster.mean(axis=0)
+    return {
+        'point_base': [float(value) for value in centroid],
+        'cluster_points': int(best[0]),
+        'slab_points': int(len(slab)),
+        'height_mean_m': float(centroid @ normal + offset),
+        'height_min_m': float(heights[slab_mask].min()),
+        'height_max_m': float(heights[slab_mask].max()),
+    }
 
 
 def plane_ray_hit(origin, direction, normal, constant):
@@ -244,6 +320,10 @@ def build_parser():
     parser.add_argument('--y-range', type=float, default=0.09)
     parser.add_argument('--min-plane-inliers', type=float, default=0.30)
     parser.add_argument('--max-plane-rms-m', type=float, default=0.003)
+    parser.add_argument(
+        '--depth-cluster', action='store_true',
+        help='use the depth top-face cluster instead of the rectified colour '
+             '(the far-field mode; no colour thresholds)')
     parser.add_argument('--output', required=True)
     parser.add_argument('--overlay', default=None)
     return parser
@@ -274,6 +354,86 @@ def main(argv=None):
         normal, offset = -normal, -offset
     # 2. top-face plane
     plane_constant = -offset + args.cube_edge
+    if args.depth_cluster:
+        # Far-field mode: the cube top has valid depth; the colour top face
+        # can be over-exposed at an oblique far view. The cluster is used as
+        # a base-drive target, not as a grasp measurement.
+        points_base = points_to_base(
+            points, depth_to_color, base_from_camera)
+        x_range = tuple(float(value) for value in args.x_range.split(','))
+        cluster = depth_top_face(
+            points_base, normal, offset,
+            x_range=x_range, y_range=args.y_range)
+        if cluster is None:
+            raise SystemExit('no depth top-face cluster')
+        point = np.asarray(cluster['point_base'], dtype=np.float64)
+        plane_fraction = float(mask.mean())
+        gates = {
+            'plane_inlier_fraction': {
+                'value': plane_fraction,
+                'ok': plane_fraction >= args.min_plane_inliers,
+            },
+            'plane_rms_m': {
+                'value': rms,
+                'ok': rms <= args.max_plane_rms_m,
+            },
+            'x_in_range': {
+                'value': float(point[0]),
+                'ok': x_range[0] <= point[0] <= x_range[1],
+            },
+            'y_in_range': {
+                'value': float(point[1]),
+                'ok': abs(point[1]) <= args.y_range,
+            },
+            'cluster_points': {
+                'value': cluster['cluster_points'],
+                'ok': cluster['cluster_points'] >= DEPTH_MIN_POINTS,
+            },
+            'height_mean_m': {
+                'value': cluster['height_mean_m'],
+                'ok': DEPTH_MIN_HEIGHT_M <= cluster['height_mean_m']
+                <= DEPTH_MAX_HEIGHT_M,
+            },
+        }
+        report = {
+            'schema_version': 1,
+            'mode': 'front_camera_depth_top_face',
+            'capture': os.path.abspath(args.capture),
+            'cube_edge_m': args.cube_edge,
+            'depth_plane': {
+                'normal_base': [float(value) for value in normal],
+                'rms_m': rms,
+                'inlier_fraction': plane_fraction,
+                'point_base': [float(value) for value in plane_point],
+            },
+            'top_plane': {
+                'normal_base': [float(value) for value in normal],
+                'height_m': float(plane_point[2] + args.cube_edge),
+            },
+            'depth_cluster': cluster,
+            'point_base': [float(value) for value in point],
+            'gates': gates,
+            'success': all(gate['ok'] for gate in gates.values()),
+        }
+        os.makedirs(os.path.dirname(os.path.abspath(args.output)) or '.',
+                    exist_ok=True)
+        with open(args.output, 'w', encoding='utf-8') as handle:
+            json.dump(report, handle, indent=2, default=jsonable)
+        if args.overlay:
+            image = cv2.undistort(color, matrix, distortion)
+            centre = project(point, matrix, distortion, base_from_camera)
+            if centre is not None:
+                cv2.drawMarker(
+                    image, tuple(np.round(centre).astype(int)),
+                    (0, 0, 255), cv2.MARKER_CROSS, 18, 2)
+            cv2.imwrite(args.overlay, image)
+        print('front depth top-face point (base): '
+              '({:+.5f}, {:+.5f}, {:+.5f}) m'.format(*point))
+        print('cluster {} points, height {:.1f} mm, success {}'.format(
+            cluster['cluster_points'], cluster['height_mean_m'] * 1000.0,
+            report['success']))
+        print('WROTE', args.output)
+        return
     # 3. anchor: auto from the unrectified cube centroid, or the CLI value
     if args.anchor:
         x, y = (float(value) for value in args.anchor.split(','))
