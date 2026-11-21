@@ -17,12 +17,14 @@ All notable changes to this project are documented here. Format based on
 
 ### Fixed
 
-- **G8 定位横向窗口：** `task.locate.y_range_m` 从 0.09 m 放宽到 0.15 m。
-  2026-11-21 实际点云里的 39 mm 木块位于 `(0.426, -0.100, -0.057) m`，
-  所有几何门禁都通过，只因横向超出 ±90 mm 被报 `LOCATE_FAILED`；现在会返回
-  `APPROACH_REQUIRED` 并给出横向底盘脉冲。`LOCATE_FAILED` 的文案同时列出被拒
-  簇的门禁原因和中心点（例如“横向超出定位窗口，中心 […] m”），不再只有
-  `no usable cube point`。新增定位窗口与拒绝原因测试，后端 **143 passed**。
+- **G8 定位横向窗口与顶面门禁：** `task.locate.y_range_m` 从 0.09 m 放宽到
+  0.15 m，`min_top_extent_m` 从 0.035 m 放宽到 0.030 m。2026-11-21 实际点云里的
+  39 mm 木块先位于 `(0.426, -0.100, -0.057) m`（仅因横向超出 ±90 mm 被报
+  `LOCATE_FAILED`），旋转移位后又测到 34.6 mm 顶面（被 35 mm 门禁误判为
+  `partial_top_view`）。现在前者返回 `APPROACH_REQUIRED` 和横向底盘脉冲，后者
+  直接接受；`LOCATE_FAILED` 的文案同时列出被拒簇的门禁原因和中心点（例如
+  “横向超出定位窗口，中心 […] m”），不再只有 `no usable cube point`。新增定位
+  窗口、顶面门禁与拒绝原因测试，后端 **144 passed**。
 
 ### Changed
 

@@ -616,7 +616,7 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             voxel_m=float(locate_raw.get("voxel_m", 0.005)),
             min_cluster_points=int(locate_raw.get("min_cluster_points", 30)),
             slab_m=float(locate_raw.get("slab_m", 0.005)),
-            min_top_extent_m=float(locate_raw.get("min_top_extent_m", 0.035)),
+            min_top_extent_m=float(locate_raw.get("min_top_extent_m", 0.030)),
             ransac_iterations=int(locate_raw.get("ransac_iterations", 800)),
             ransac_points=int(locate_raw.get("ransac_points", 40000)),
             x_range_m=x_range,

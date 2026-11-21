@@ -212,7 +212,9 @@ task:
     voxel_m: 0.005
     min_cluster_points: 30
     slab_m: 0.005
-    min_top_extent_m: 0.035
+    min_top_extent_m: 0.030   # a 39.4 mm cube can lose ~5 mm of its top edge
+                              # to depth noise/occlusion; 0.035 rejected a
+                              # valid cube measured at 0.0346 m (2026-11-21)
     ransac_iterations: 800
     ransac_points: 40000
     x_range_m: [0.15, 0.55]   # whole visible floor, not just the reach band;

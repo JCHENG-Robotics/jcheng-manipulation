@@ -27,7 +27,7 @@ from typing import Any
 
 import numpy as np
 
-DEFAULT_MIN_TOP_EXTENT_M = 0.035
+DEFAULT_MIN_TOP_EXTENT_M = 0.030
 
 
 @dataclass(frozen=True)

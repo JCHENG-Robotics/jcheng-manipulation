@@ -151,9 +151,11 @@ outside the lateral window is rejected rather than driven to. The locate
 window is **±150 mm in y** (2026-11-21): a valid 39 mm cube at
 `(0.426, -0.100, -0.057) m` was previously rejected as `y_out_of_region`
 because the old window was ±90 mm; it now returns `APPROACH_REQUIRED` with a
-lateral pulse. The locate failure message names the rejected cluster's gates,
-so a genuinely bad placement is actionable instead of just
-`no usable cube point`.
+lateral pulse. The top-view gate is **30 mm** (was 35 mm): a rotated cube at
+`(0.434, -0.105, -0.042) m` measured a 34.6 mm top extent from depth noise and
+was falsely rejected as `partial_top_view`. The locate failure message names
+the rejected cluster's gates, so a genuinely bad placement is actionable
+instead of just `no usable cube point`.
 
 Historical live evidence (2026-11-21, 13-step plan): cube at `x = 0.357 m` ->
 two pulses (2.0 s / 98 mm nominal -> 94 mm actual; 0.68 s / 33 mm -> ~42 mm) ->

@@ -17,6 +17,7 @@ from app.domain.locate import (
     cube_box_present,
     cube_point,
     segment_floor_cube,
+    top_view_gate,
 )
 from app.domain.mapping import MappingConfig
 from app.domain.models import MotionTarget
@@ -164,6 +165,20 @@ def test_lateral_100mm_cube_is_rejected_by_the_old_window() -> None:
 def test_takeover_locate_window_covers_the_lateral_approach(takeover) -> None:
     assert takeover.task is not None
     assert takeover.task.locate.y_range_m == pytest.approx(0.15)
+
+
+def test_top_view_gate_accepts_the_measured_34_6mm_top() -> None:
+    # Real capture 2026-11-21: a 39.4 mm cube at (0.434, -0.105, -0.042)
+    # produced a 34.6 mm top extent (depth noise/occlusion); the old 35 mm
+    # threshold rejected it as partial_top_view.
+    top = {"extent_m": [0.03461, 0.03895]}
+    ok, reason, extent = top_view_gate(top, 0.030)
+    assert ok is True
+    assert reason is None
+    assert extent == pytest.approx(0.03461)
+    old_ok, old_reason, _ = top_view_gate(top, 0.035)
+    assert old_ok is False
+    assert old_reason == "partial_top_view"
 
 
 def test_fit_matches_the_recorded_2026_11_20_run(urdf) -> None:
