@@ -52,6 +52,15 @@ from armpi_analysis import paired_trials  # noqa: E402
 ARM_JOINTS = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
 DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
 DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
+#: Wider region for the home landing: the cube released at the start can sit
+#: slightly outside the default view-pose region; a cube pushed out of the
+#: grip box during the grasp is still absent and is recorded as NO_GRIP.
+LANDING_WIDE_REGION = ('--x-range', '0.12,0.45', '--y-range', '0.22',
+                       '--max-xy', '0.12')
+#: The 2026-11-20 far-run home release landed 11.06 mm from the fitted target;
+#: a landing farther than this from the start release target means the cube was
+#: not actually carried home (a false grip), not a release repeatability tail.
+HOME_RELEASE_MAX_MM = 60.0
 ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
                'low_config_grasp_validate.py', 'fast_motion.py',
                'motion_profile.py', 'vendor_servo_map.py',
@@ -492,9 +501,22 @@ class Session:
             release_report['pulses_at_verify'][str(servo)]
             for servo in (6, 5, 4, 3, 2)
         ]
-        land_report = self.humble.segment(land_pulses, tag + '_land')
+        land_report = self.humble.segment(
+            land_pulses, tag + '_land',
+            extra_args=LANDING_WIDE_REGION if moved_home else None)
         landing, valid = cube_point(land_report)
         land_ok, land_reason = placement_quality(land_report)
+        if moved_home and landing is None:
+            # A held claim whose cube is absent from the start means the grip
+            # did not actually hold (the cube was pushed out of the check box)
+            # or the release failed to drop. Record a miss; do not stop the
+            # whole session.
+            notes['landing_missing'] = True
+            notes['release_frame'] = 'home'
+            self._operator_note('起点没有看到木块；按未夹住记录')
+            self._record(entry, success=False, error_mm=None,
+                         failure_code='NO_GRIP', notes=notes)
+            return False
         if landing is None or not valid or not land_ok:
             # p003 on 2026-11-19 landed near a 22 mm object and the segmenter
             # selected it; a landing must pass the same cube gates as a
@@ -512,6 +534,15 @@ class Session:
         notes['landing_height_mm'] = float(
             (land_report.get('selected') or {}).get(
                 'height_above_floor_m', 0.0)) * 1000.0
+        if moved_home and error_mm > HOME_RELEASE_MAX_MM:
+            # A cube on the floor near the start but far from the release
+            # target is the operator's original spot, not the carried cube.
+            notes['landing_far_mm'] = error_mm
+            self._operator_note(
+                '落点离起点释放目标 {:.0f} mm，按未夹住记录'.format(error_mm))
+            self._record(entry, success=False, error_mm=None,
+                         failure_code='NO_GRIP', notes=notes)
+            return False
         self._record(entry, success=True, error_mm=error_mm,
                      failure_code=None, notes=notes)
         print('  已夹住并在{}放下；释放误差 {:.2f} mm'.format(

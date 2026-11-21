@@ -162,7 +162,13 @@ For each of a pair's two methods, back to back at the same realized spot:
    releases the cube **at the start**. The operator picks it up there. If the
    trial missed, the base returns empty and the cube stays at the spot; the
    operator adjusts it there for Trial B.
-7. **Trial B.** The operator takes the cube from the start (held case) or
+7. **Home landing check.** The landing is measured with the wide region; it
+   must pass the cube gates and lie within **60 mm** of the fitted release
+   target (the 2026-11-20 release was 11.06 mm). A missing cube or a farther
+   landing means the grip claim was false — the cube stayed at the spot — and
+   the trial is recorded as **NO_GRIP**, not a crash. The operator re-checks
+   the cube at the spot for Trial B.
+8. **Trial B.** The operator takes the cube from the start (held case) or
    adjusts it at the spot (miss case) and places it at the **same spot**; the
    base approach is repeated from the start. The second trial has the same
    locate/approach/grasp/return-home/release sequence.
@@ -185,7 +191,7 @@ abort left it; the operator keeps clear and the power switch reachable.
 | Approached | the strict final measurement passes and the empirical envelope passes | capability (descriptive; a trial is attempted only then) |
 | Grasp success | after the close and rise, the cube's 40 mm floor box is empty | **primary** (paired) |
 | Home release error | for a held cube, the xy landing displacement from the fitted release target (nominal TCP) after the base returns home; it measures the release precision at the start, not a put-back at the original spot | secondary (paired, continuous) |
-| Failure code | `MISS`, `NO_GRIP`, `AMBIGUOUS` | descriptive |
+| Failure code | `MISS` (the grip check still sees the cube at the spot), `NO_GRIP` (the grip claim was false: the cube is absent at the start or more than 60 mm from the release target), `AMBIGUOUS` | descriptive |
 | Approach cost | locator used, initial radius/bearing, base pulses, final x/|joint1|, wall time, per trial | descriptive |
 
 **Capability failure handling.** A trial that cannot be located or approached
@@ -296,6 +302,18 @@ and writes the front-camera measurement JSONs to `front/`.
   the home-return flow, one intervention trial was recorded with the site
   put-back (success, 4.38 mm). It is preserved in the discarded file and
   excluded; `p020` restarts under this flow (D1).
+- **A cube left near the start can look carried.** The home landing accepts a
+  cube within 60 mm of the release target; a false grip that leaves the cube
+  within that radius of the start is indistinguishable from a carried cube.
+  The free spots should stay a few centimetres away from the start release
+  area; the near-direct case (cube already in the band) is the ambiguous one.
+  The operator's visual check and the recorded landing/error values are the
+  audit.
+- **The first new-flow attempt was a false grip.** The cube at 0.2265 m was
+  pushed out of the check box, the robot returned empty, and the start
+  landing found no cube; the trial was not recorded. The runner now records
+  that case as `NO_GRIP` instead of aborting the session, and retries the
+  landing with the wide region. No valid new-flow trial preceded the fix.
 - **One cube, one operator, one session, one battery state.** The cube is the
   same 39.4 mm wooden cube; the lighting and operator are fixed.
 - **Site count vs power.** The 24 placements are for coverage, not a power

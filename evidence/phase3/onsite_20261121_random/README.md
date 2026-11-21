@@ -110,6 +110,16 @@ attempt is in the session log and `approaches.jsonl` but writes no trial
 record. A trial that fails after one retry is a capability failure; it is
 reported, not converted into a `MISS`.
 
+**First new-flow attempt (2026-11-21, aborted).** The wrist wide measurement
+missed the cube; the front camera found no depth cluster at that distance; the
+joint1 yaw sweep found it at 0.481 m. Two base pulses brought it to the band,
+the grasp check claimed held, the robot returned home, but the cube had been
+pushed out of the 40 mm check box and was still at the spot; the start landing
+found no cube and the trial aborted. The runner now records that case as
+`NO_GRIP` (and retries the landing with a wide region) instead of stopping the
+session. No trial record came from the attempt; its approach/error is in
+`approaches.jsonl`.
+
 ## After the session
 
 ```bash

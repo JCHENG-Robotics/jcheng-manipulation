@@ -1,0 +1,44 @@
+正在移动到 view pose ...
+手臂已在 view pose。
+24 对未完成，共 24 对
+放置方式：你随便放，不用量、不用贴点；尽量放在机器人前方（大约 0.25–0.55 m、方位约 -20…+25°，只是参考）。近的机器人直接夹，远的会先开过去再夹。
+
+### 第 p020 对（1/24），随机点 r20
+  请把木块随手放在机器人前方一个新位置（不用量、不用贴点；不要每次都放同一个点），然后按 Enter ...   前相机测量失败：front camera measure failed (0.5 s, rc 1):
+stdout: 
+stderr: no depth top-face cluster
+
+  前相机第 1 次没有测到点
+  前相机测量失败：front camera measure failed (0.5 s, rc 1):
+stdout: 
+stderr: no depth top-face cluster
+
+  前相机第 2 次没有测到点
+  扫视 yaw +0.14 rad：没有点
+  扫视 yaw -0.14 rad：没有点
+  扫视 yaw +0.28 rad：找到木块
+  已找到木块（腕相机扫视）：测得点 x=+0.472, y=-0.095 m，半径 0.481 m，方位 -11.4°
+  底盘 approach 脉冲 vx=+0.930 vy=-0.366 2.65 s
+  底盘 approach 脉冲 vx=+0.530 vy=-0.848 1.09 s
+  已通过 2 次底盘脉冲把木块带入夹取带。
+
+=== [1] p020 / intervention（常数修正） (r20) ===
+  木块  (+0.2265, -0.0028, -0.0470) m
+  目标  (+0.2402, +0.0011, -0.0381) m
+  关节 0.0050,-0.6618,-1.8012,-0.3357  xy 误差 0.00 mm
+  操作员：木块已夹住；手臂会把它带回起点放下
+  回程脉冲 vx=-0.849 vy=+0.529 3.00 s
+  回程脉冲 vx=-0.849 vy=+0.529 0.59 s
+  夹着木块回到起点；将在起点放下。
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 503, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 495, in main
+    session.run()
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 411, in run
+    previous_held = self.trial(entry, prompt=False)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/paired_trial_session.py", line 502, in trial
+    raise RuntimeError(
+RuntimeError: landing measurement rejected (no point); the trial is not recorded, re-place the cube and re-run it

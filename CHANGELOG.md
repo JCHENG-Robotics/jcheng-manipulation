@@ -22,6 +22,15 @@ All notable changes to this project are documented here. Format based on
   reports "approach records" instead of "retries".
 - The operator prompts are Chinese and require no measuring.
 
+### Fixed
+
+- The home landing: a cube absent from the start, or a landing farther than
+  60 mm from the fitted release target, is recorded as `NO_GRIP` (the grip
+  claim was false) instead of aborting the session; the landing is measured
+  with a wide region first. The first new-flow attempt (before this fix)
+  aborted on a missing home landing; its approach/error is in
+  `approaches.jsonl` and no trial was recorded.
+
 ### Data
 
 - **D1:** the first old-flow trial (`p020 / intervention`, success, 4.38 mm,
