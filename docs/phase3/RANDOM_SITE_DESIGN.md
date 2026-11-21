@@ -414,6 +414,14 @@ On-site::
         --trials evidence/phase3/onsite_20261121_random/trials.jsonl" \
         2>&1 | tee evidence/phase3/onsite_20261121_random/session_$(date +%Y%m%d_%H%M).log
 
+**Post-data tooling change (2026-11-21, after all 48 records).** The
+operator reported that the gap between the base arriving and the grasp was
+too long. The runner repeated the final approach measurement (same arm pose,
+same instant) as the trial pre-measurement; it now reuses it and records
+`pre_grasp_gap_s` and `pre_measure_reused`. The release open also uses
+`--release-open-duration 3.5` (D2). Neither change alters a measured
+outcome or the recorded protocol; they shorten the pause before the grasp.
+
 After the session::
 
     PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m \
@@ -426,3 +434,19 @@ After the session::
         --approaches evidence/phase3/onsite_20261121_random/approaches.jsonl \
         --trials evidence/phase3/onsite_20261121_random/trials.jsonl \
         --markdown-out evidence/phase3/onsite_20261121_random/site_report.md
+
+## 13. Outcome (2026-11-21)
+
+24 pairs / 48 valid records, no invalid record:
+
+| Outcome | Result |
+|---|---|
+| Binary success (primary) | baseline **9/24 = 37.5%**; intervention **24/24 = 100%**; McNemar exact **p = 6.1e-05** |
+| Home release error (secondary) | 9 pairs with both errors: mean difference (intervention - baseline) **+2.12 mm**, 95% CI [-9.92, +9.32], sign 1 win / 8 losses (p = 0.039) |
+| Failures | baseline `MISS` = 14, `NO_GRIP` = 1 (the `p004` grip did not survive the return); intervention none |
+
+The secondary metric is not like-for-like: the home release anchor is the
+fitted TCP of the corrected target, so the constant correction appears as an
+offset for the intervention (13.3 ± 2.7 mm). The 2026-11-19 2.19 mm figure
+was the site put-back metric and does not transfer to this flow. The binary
+paired result is the primary outcome.

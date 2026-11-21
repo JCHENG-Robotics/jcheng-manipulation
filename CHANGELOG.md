@@ -21,6 +21,14 @@ All notable changes to this project are documented here. Format based on
   approach/return per trial (two per completed pair); `site_report.py`
   reports "approach records" instead of "retries".
 - The operator prompts are Chinese and require no measuring.
+- **Pre-grasp gap (2026-11-21 operator feedback).** The random-site runner now
+  reuses the final approach measurement (same arm pose, same instant) as the
+  trial's pre-grasp measurement instead of re-segmenting, and records
+  `pre_grasp_gap_s` and `pre_measure_reused` in the trial notes (and prints
+  the gap). Measured post-hoc: one segmentation call 1.36 s and a register
+  read about 1 s, so the duplicate measurement cost about 2.4 s of the pause
+  between the base arrival and the grasp. This is a post-data tooling change
+  and alters no measured outcome.
 
 ### Fixed
 
@@ -79,9 +87,20 @@ All notable changes to this project are documented here. Format based on
   site put-back) and its approach records are preserved in
   `discarded_site_release_attempt.jsonl` and
   `discarded_site_release_approaches.jsonl` and excluded. `p020` restarts
-  under the home-return flow. The home-return flow has since recorded 18
-  valid trials (9 complete pairs); the `p005` attempt aborted before a
-  record.
+  under the home-return flow.
+- **D2:** the false `p015` / intervention `NO_GRIP` (the release gripper open
+  stalled at 421 and the cube stayed in the fingers) is preserved in
+  `discarded_release_stall_trial.jsonl` and excluded; `p015` re-ran.
+- **Final random-placement result (2026-11-21):** 24 pairs / 48 valid
+  records, no invalid record. Binary success (primary) **baseline 9/24 =
+  37.5% vs intervention 24/24 = 100%**, McNemar exact **p = 6.1e-05** (15
+  discordant, all intervention-only). Secondary home release error (9 pairs
+  with both): mean difference (intervention - baseline) **+2.12 mm**, 95% CI
+  [-9.92, +9.32], sign 1 win / 8 losses (p = 0.039); the anchor is the fitted
+  TCP of the corrected target, so it is **not** a like-for-like accuracy
+  comparison and is descriptive only. Baseline failures: `MISS` = 14,
+  `NO_GRIP` = 1 (`p004`: the grip did not survive the return).
+  `analysis.json` / `analysis.md` and `site_report.md` are generated.
 
 ## [Unreleased] — 2026-11-21 random-placement 24-pair trial (pre-registered)
 

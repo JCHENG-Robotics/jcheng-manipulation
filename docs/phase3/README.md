@@ -12,8 +12,10 @@
 > 6 mm / 2° bound gates (translation RSS 13.325 mm, rotation RSS 1.858°); the
 > empirical placement mean (3.080 mm) is inside 6 mm. The 2° rotation gate is
 > still provisional. The 2026-11-21 random-placement pre-registration
-> supersedes the fixed 24-mark fan before data; the random session is in
-> progress (28 trials = 14/24 pairs; `p015` pending after the D2 discard).
+> supersedes the fixed 24-mark fan before data; the random session completed
+> on 2026-11-21 (24 pairs: baseline 9/24 vs intervention 24/24, McNemar
+> p = 6.1e-05; the secondary home-release error is not like-for-like across
+> methods).
 
 Session 4 of the remote work plan covers R11 (error-budget framework), R12
 (paired-trial recorder), R13 (distributed host/DDS benchmark) and R15
@@ -25,7 +27,7 @@ Session 4 of the remote work plan covers R11 (error-budget framework), R12
 | [ERROR_BUDGET.md](ERROR_BUDGET.md) | JSON source schema, RSS/worst-case aggregation, Monte Carlo interval, completed 2026-11-20 budget and limitations |
 | [PAIRED_TRIALS.md](PAIRED_TRIALS.md) | Matched-pair record schema, seeded randomization, bootstrap/sign/McNemar analysis, synthetic validation |
 | [SITE_DIVERSITY_DESIGN.md](SITE_DIVERSITY_DESIGN.md) | Superseded before data (2026-11-21): fixed 24-mark fan, one floor site per pair, locate + closed-loop base approach |
-| [RANDOM_SITE_DESIGN.md](RANDOM_SITE_DESIGN.md) | Pre-registered 2026-11-21 random-placement 24-pair design: operator-random points in the sensor-covered region, wrist/yaw/front-camera locator chain, prior-envelope guard |
+| [RANDOM_SITE_DESIGN.md](RANDOM_SITE_DESIGN.md) | Completed 2026-11-21 random-placement 24-pair design and outcome: operator-random points in the sensor-covered region, wrist/yaw/front-camera locator chain, prior-envelope guard, 9/24 vs 24/24 |
 | [HOST_BENCHMARK.md](HOST_BENCHMARK.md) | Read-only host metrics, DDS topic rate/jitter/age, laptop-vs-Pi results, camera-FPS correction |
 | [../phase2/MEASUREMENT_PROTOCOL.md](../phase2/MEASUREMENT_PROTOCOL.md) | Physical schedules that will feed the budget and trials |
 
@@ -40,7 +42,7 @@ Session 4 of the remote work plan covers R11 (error-budget framework), R12
 | Pure-Python CI | **Added** | flake8 + pytest for the analysis package, measurement protocol and phase-4 tools |
 | Real paired grasp trials | **Complete (2026-11-19)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; paired placement improvement 2.19 mm (p = 0.0063); four deviations recorded |
 | 24-site fixed-fan follow-up | **Superseded before data (2026-11-21)** | 24 pre-marked sites, layout/plan (seed 17) and runner were prepared but never run; replaced by the random-placement design |
-| Random-placement 24-pair trial | **Pre-registered (2026-11-21); in progress (8/24 pairs)** | 24 pairs, operator places the cube by eye (no measuring); the r 0.25-0.55 m / bearing -20..+25 deg envelope is a guide; direct grasp when already in the 0.226-0.234 m band, otherwise wrist -> front camera -> yaw sweep locate + base approach; after a held grip the robot carries the cube back to the start and releases it there between the two trials. 28 new-flow trials (14 complete pairs) recorded; a clipped start top view is accepted as `landing_partial`; a locate miss with the cube outside the segmenter's 3-D region now prompts an operator move-and-retry; the `p005` approach oscillated and its wrist measurement merged with the fingers, so that trial aborted before any record; the `p001` intervention aborted on the serial link death (`bus servo read failed`) and a zsh-environment node relaunch restored the bus; at `p015` the release gripper open stalled at 421 and the cube stayed in the fingers, so the false `NO_GRIP` was discarded (D2) and `p015` restarts with `--release-open-duration 3.5`. One old-flow attempt discarded (D1) |
+| Random-placement 24-pair trial | **Complete (2026-11-21)** | 24 pairs / 48 records: baseline **9/24 = 37.5%** vs intervention **24/24 = 100%**, McNemar **p = 6.1e-05** (15 discordant, all intervention-only). Secondary home release error (9 pairs with both): mean difference +2.12 mm (intervention larger), CI [-9.92, +9.32], sign 1/8 p = 0.039; the release anchor is the fitted TCP of the corrected target, so this is not a like-for-like accuracy comparison. Baseline failures `MISS` = 14, `NO_GRIP` = 1 (`p004`: the grip did not survive the return). Operator places the cube by eye; direct grasp or wrist -> front camera -> yaw locate + base approach; the robot carries a held cube back to the start and releases it there. `p015` false `NO_GRIP` discarded (D2); the release now uses `--release-open-duration 3.5` and records `release_open_register`; the pre-trial measurement is reused from the final approach measurement and `pre_grasp_gap_s` is recorded (post-data gap fix). One old-flow attempt discarded (D1) |
 | Gripper tolerance envelope | **Measured (2026-11-19)** | 46 grasps; opening axis [-6, +12] mm (±9 mm about +3 mm), `x`/`z` pass at ±9 mm; conservative budget tolerance 6 mm |
 | Execution, placement, fixture | **Measured (2026-11-20)** | 20/20 put-backs; execution 4.220 mm / 1.069° mean (5.386 mm / 1.495° max); placement 3.080 mm mean, 11.514 mm max; fixture 5.057 mm RMS, 14.815 mm radial max; three off-tape and two clipped-landing deviations kept as discarded evidence |
 | Rotation tolerance / visual displacement | **Runners added (2026-11-20), not run** | `rotation_tolerance_run.py` sweeps relative cube yaw on `joint5`; `visual_displacement_run.py` uses a seeded steel-ruler grid with a nuisance ruler yaw. Both have unit tests and dry runs, no hardware data yet |

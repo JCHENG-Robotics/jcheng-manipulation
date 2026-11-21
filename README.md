@@ -43,7 +43,7 @@
 | **Platform** | HiWonder ArmPi Ultra: 5-DoF arm, two-finger gripper, mecanum chassis, Raspberry Pi 5, wrist Aurora 930 RGB-D camera and chassis-front RealSense D435i |
 | **Software** | ROS 2 Humble on the robot, ROS 2 Jazzy on the workstation, MoveIt 2 + Pilz `PTP` + KDL, FastAPI/React debug studio |
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
-| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; the pre-registered **24-pair** trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049); the completed error budget has translation **RSS 13.33 mm** (bounds fail 6 mm) while the empirical placement mean is **3.08 mm**; S-curve motion cuts grasp+put-back from **11.67 s to 8.94 s**; a chassis D435i agrees with the wrist camera to **2.58 mm** in x/y |
+| **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; the pre-registered **24-pair** trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049), and the 2026-11-21 **random-placement** 24-pair follow-up on free by-eye spots repeated it at **9/24 vs 24/24** (p = 6.1×10⁻⁵); the completed error budget has translation **RSS 13.33 mm** (bounds fail 6 mm) while the empirical placement mean is **3.08 mm**; S-curve motion cuts grasp+put-back from **11.67 s to 8.94 s**; a chassis D435i agrees with the wrist camera to **2.58 mm** in x/y |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
 | **Status** | 2026-11-21. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
@@ -86,11 +86,12 @@ with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
 4.44 s, 0.92 mm landing) and a far-cube run at 0.464 m which reversed the base
 home while holding the cube (11.06 mm placement error against the fitted
 target; the return itself remains open-loop). A random-placement 24-pair
-follow-up was pre-registered on 2026-11-21: the operator places the cube by
-eye (no measuring) at a fresh point in the sensor-covered region; after a
-held grip the robot carries the cube back to the start and releases it there
-between the two trials. The fixed 24-mark fan was superseded before data and
-never run; one old-flow attempt was discarded (D1).
+follow-up completed on 2026-11-21 on **free by-eye placements** with a base
+approach: grasp success **9/24 (baseline) vs 24/24 (correction)**, McNemar
+p = 6.1×10⁻⁵, while the secondary home release error (anchor = corrected
+target) is reported as descriptive, not as an accuracy gain. The fixed
+24-mark fan was superseded before data and never run; one old-flow attempt
+was discarded (D1).
 
 ## Objectives and contributions
 
@@ -129,7 +130,11 @@ never run; one old-flow attempt was discarded (D1).
    raw FK/hand–eye target with the constant low-configuration correction:
    **12/24 vs 24/24** success (McNemar p = 0.00049) and a **2.19 mm** paired
    placement improvement among dual-success pairs (95 % CI −3.96…−0.83 mm,
-   p = 0.0063), with four protocol deviations recorded and quantified.
+   p = 0.0063), with four protocol deviations recorded and quantified. A
+   **random-placement follow-up** on free by-eye spots with a base approach
+   (2026-11-21) repeated the effect: **9/24 vs 24/24** (McNemar
+   p = 6.1×10⁻⁵); its home release error is reported descriptively because
+   the anchor is the corrected target.
 6. **A completed measured error budget.** Repeatability **0.449 mm RMS /
    1.017 mm max** over 30 visits, backlash **1.117 mm**, grasp execution
    **5.386 mm / 1.495° max** over 20 grasps, gripper placement **11.514 mm max
@@ -183,6 +188,7 @@ never run; one old-flow attempt was discarded (D1).
 | Low-config model selection | joint offsets / `link4` 3-DoF / `link4` 6-DoF fit the tag survey (1.4–2.3 mm RMS) but miss the validated correction by **10.6–15.0 mm**; **constant offset supported** | [`model_selection.md`](evidence/calibration/20261119/low_config_error/model_selection.md) |
 | Yaw extension of the envelope | at `j1 = 27.9°` the required correction is **(9.14, 7.18, 8.75) mm**; the constant is **5.6 mm** away (grip-critical y **3.3 mm**), the fitted models **14–19 mm** with the y sign flipped | [`yaw_envelope/`](evidence/phase3/onsite_20261119/yaw_envelope/) |
 | Paired hardware trial, 24 pairs | **baseline 12/24 vs intervention 24/24** (McNemar **p = 0.00049**); placement error **3.31 mm** vs **4.97 mm**; paired improvement **2.19 mm** (95 % CI −3.96…−0.83, **p = 0.0063**) | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) |
+| Random-placement 24 pairs (2026-11-21) | free by-eye spots with a base approach: **baseline 9/24 vs intervention 24/24** (McNemar **p = 6.1×10⁻⁵**); 14 `MISS` + 1 `NO_GRIP` (grip lost on the return), none intervention; home release error +2.12 mm (anchor = corrected target; descriptive) | [`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md) |
 | Arm repeatability, 30 visits | radial **0.449 mm RMS / 1.017 mm max**; joints repeat to 0–1 pulse; tag rotation max **0.867°** | [`repeatability/`](evidence/phase3/onsite_20261119/repeatability/) |
 | Arm backlash, joint4 ±0.1 rad | hysteresis **1.117 mm** (−0.971, −0.064, −0.549 mm); joint4 settles 10 pulses apart | [`backlash/`](evidence/phase3/onsite_20261119/backlash/) |
 | Gripper tolerance envelope, 46 grasps | opening axis passes **[-6, +12] mm** (**±9 mm** about a +3 mm centre = the correction's y residual); `x` and `z` pass at **±9 mm** with no failure; 0/2 at ±15 and −12 | [`envelope/`](evidence/phase3/onsite_20261119/envelope/) |
@@ -261,7 +267,7 @@ evidence/
 ├── phase3/onsite_20261119 # first paired trial, repeatability, backlash, envelope
 ├── phase3/onsite_20261120 # execution/placement/fixture, completed budget
 ├── phase3/onsite_20261120_sites # fixed-fan pre-registration (superseded, not run)
-├── phase3/onsite_20261121_random # random-placement 24-pair pre-registration (not run)
+├── phase3/onsite_20261121_random # random-placement 24-pair trial (9/24 vs 24/24, 2026-11-21)
 └── studio_g*/             # G2–G6 test and hardware evidence
 ros2_ws/src/
 ├── armpi_ultra_description/    # 5-DoF xacro + gripper + camera frames
@@ -306,7 +312,7 @@ separately.
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
 | Measurement protocols | **Implemented; error-budget sources measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; rotation-tolerance and visual-displacement runners added, hardware runs pending |
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trials | **First physical trial complete (2026-11-19); random-placement 24-pair follow-up pre-registered (2026-11-21); new-flow session starting** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); the fixed 24-mark fan was superseded before data by the free-placement region + seed-17 plan; after a held grip the robot carries the cube back to the start between trials; one old-flow attempt discarded (D1), no valid new-flow result yet |
+| Paired trials | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement 24 pairs: free by-eye spots with a base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; the secondary home release error (+2.12 mm, anchor = corrected target) is descriptive, not an accuracy gain; baseline `MISS` 14 + `NO_GRIP` 1 (grip lost on the return); D1/D2 discards recorded; the pre-grasp gap fix (reused final measurement) is post-data tooling only |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
@@ -334,6 +340,9 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
       gate remains provisional
 - [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
+- [x] Random-placement 24-pair follow-up (2026-11-21): free by-eye spots with
+      a base approach, baseline 9/24 vs intervention 24/24 (McNemar
+      p = 6.1×10⁻⁵); the home release metric is reported descriptively
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
       constant base-frame offset supported inside the measured envelope
 - [x] Formal mechanical joint-limit survey and `mapping_verified=true`
@@ -344,9 +353,9 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
       grasp+put-back 11.67 s → 8.94 s, aligned auto-base landing 2.22 mm;
       four real-cube runs at 4.0/20, including a far-cube return-home run
       (grasp 4.76 s, 11.06 mm landing vs the fitted target)
-- [ ] Random-placement 24-pair follow-up — pre-registered 2026-11-21 (region,
-      seed-17 plan, wrist/yaw/front-camera locator and 48-record dry run); the
-      fixed 24-mark fan was superseded before data; hardware session not run
+- [x] Random-placement 24-pair follow-up (2026-11-21) — free by-eye spots,
+      base approach, baseline 9/24 vs intervention 24/24 (McNemar
+      p = 6.1×10⁻⁵); the fixed 24-mark fan was superseded before data
 
 ## Quick start
 
@@ -425,7 +434,7 @@ required sequence is documented in:
 - [`docs/phase2/FAST_MOTION.md`](docs/phase2/FAST_MOTION.md) — S-curve profile,
   measured settles and the 4.0/20 envelope.
 - [`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md)
-  — pre-registered random-placement 24-pair follow-up; the earlier
+  — completed random-placement 24-pair trial (9/24 vs 24/24); the earlier
   [`SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md) fixed fan
   was superseded before data.
 
@@ -663,7 +672,7 @@ Every quantitative statement in this README traces to one of these bundles:
 | Grasp search | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
 | On-site safety / limits | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
 | Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/), [`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/) (dual-camera, fast motion, throughput) |
-| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md) (random-placement 24-pair pre-registration; the fixed-fan [`onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) was superseded before data); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md) (random-placement 24-pair trial, 9/24 vs 24/24; the fixed-fan [`onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) was superseded before data); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
 | Joint limits | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | Clock / network | [`docs/hardware/ros_environment.md`](docs/hardware/ros_environment.md), [`docs/hardware/network_access.md`](docs/hardware/network_access.md) |
 | Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
@@ -704,9 +713,10 @@ up separately. `evidence/README.md` explains what is tracked.
   analysis; the design is pre-registered in
   [PAIRED_TRIAL_DESIGN.md](docs/phase3/PAIRED_TRIAL_DESIGN.md).
 - [Random-placement 24-pair trial](docs/phase3/RANDOM_SITE_DESIGN.md) —
-  pre-registered 2026-11-21 region, locator chain, envelope guard and analysis.
-  The earlier [fixed-fan design](docs/phase3/SITE_DIVERSITY_DESIGN.md) was
-  superseded before data.
+  completed 2026-11-21 (9/24 vs 24/24): free-placement region, locator chain,
+  envelope guard, analysis and outcome. The earlier
+  [fixed-fan design](docs/phase3/SITE_DIVERSITY_DESIGN.md) was superseded
+  before data.
 - [Host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only metrics and
   camera-rate correction.
 - [Camera mount](docs/hardware/camera_mount.md) — Aurora wrist camera plus the
@@ -744,23 +754,22 @@ same evidence also shows what is not yet solved: the error is corrected, not
 modelled outside the measured envelope; the completed bound budget
 (13.325 mm RSS) fails the 6 mm tolerance even though the empirical placement
 mean (3.080 mm) fits, so the tail and the rotation gate are the open risks;
-the random-placement follow-up is pre-registered but not run; and the result is
-a within-fixture effect, not a population reliability claim. Those are the
-concrete next steps.
+the random-placement follow-up (2026-11-21) repeated the paired success effect
+(**9/24 → 24/24**, p = 6.1×10⁻⁵) but its home release metric penalises the
+intervention by construction, so the placement-accuracy claim still rests on
+the 2026-11-19 put-back metric; and the result is a within-fixture effect, not
+a population reliability claim. Those are the concrete next steps.
 
 ## Roadmap
 
-**Next (highest priority).** Run the pre-registered **random-placement
-24-pair trial** (24 pairs / 48 trials; the operator places the cube by eye,
-with no measuring, anywhere in the forward workspace; the r 0.25-0.55 m /
-bearing -20..+25 deg envelope is a guide; seed-17 plan committed). It tests
-whether the 12/24 → 24/24 effect and the locate/approach chain survive
-unknown placements. If the cube is already in the 0.226-0.234 m band the robot
-grasps directly; otherwise it drives the base toward it. After a held grip it
-carries the cube back to the start and releases it there between the two
-trials, so the operator recovers it at the start. The free near/far warm-up
-passed; one old-flow attempt was discarded (D1). The fixed 24-mark fan was
-superseded before data and is not run.
+**Next (highest priority).** The **random-placement 24-pair trial** ran on
+2026-11-21 (24 pairs / 48 records; the operator placed the cube by eye, no
+measuring): baseline **9/24 = 37.5%** vs intervention **24/24 = 100%**
+(McNemar **p = 6.1×10⁻⁵**). Next, fix the **pre-grasp gap** the operator
+reported (the final measurement is now reused; `pre_grasp_gap_s` is recorded)
+and re-measure the gap on hardware, and resolve the home-release metric's
+anchor (the corrected target shifts it by the correction). The fixed 24-mark
+fan was superseded before data and is not run.
 
 **Then.** Address the dominant error-budget term, **gripper placement**
 (74.7 % of the translation RSS): investigate the 11.5 mm tail and measure the

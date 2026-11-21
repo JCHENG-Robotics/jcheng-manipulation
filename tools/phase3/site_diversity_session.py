@@ -258,6 +258,9 @@ class SiteSession(base.Session):
         started = time.monotonic()
         pulse = self.robot.base_pulse(
             vx, vy, self.args.base_duty, duration)
+        # The operator sees the base arrive when the pulse command ends; the
+        # gap to the grasp action is measured from here (2026-11-21 feedback).
+        self._base_arrival_s = time.monotonic()
         time.sleep(BASE_COAST_S)
         after, _valid, _report, locator = self._locate_after(
             '{}_after'.format(tag))
@@ -283,6 +286,8 @@ class SiteSession(base.Session):
         """Find the cube at the site and drive the base into the grasp band."""
         tag = '{}_loc'.format(pair_id)
         started = time.monotonic()
+        self._base_arrival_s = None
+        self._pre_measure = None
         self.approach = {
             'site': site,
             'locator': 'wrist_view',
@@ -384,6 +389,11 @@ class SiteSession(base.Session):
                     float(fit['joints'][0])))
         self.approach['approach_wall_s'] = round(
             time.monotonic() - started, 3)
+        # The trial's pre-grasp measurement is the same pose and the same
+        # instant; reuse it instead of a second segmentation (the 2026-11-21
+        # operator feedback: the gap between the base arrival and the grasp
+        # was too long). Cleared by Session.trial after one use.
+        self._pre_measure = (point, report)
         self.extra_notes = {'site': site, 'approach': self.approach}
 
     def _dry_approach(self, site):

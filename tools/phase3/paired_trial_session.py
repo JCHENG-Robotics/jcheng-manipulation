@@ -482,8 +482,18 @@ class Session:
             return self._dry_trial(entry, tag)
         if prompt:
             input('  请把木块放到指定位置，然后按 Enter ... ')
-        pulses = self.robot.pulses()
-        point, report = self.measure(pulses, tag + '_pre')
+        pre = getattr(self, '_pre_measure', None)
+        if pre is not None:
+            # The random-site runner just took this measurement at the same
+            # arm pose for the approach gate; re-segmenting the identical
+            # view only lengthens the gap before the grasp.
+            self._pre_measure = None
+            point, report = pre
+            reused = True
+        else:
+            pulses = self.robot.pulses()
+            point, report = self.measure(pulses, tag + '_pre')
+            reused = False
         if point is None:
             raise RuntimeError(
                 'no usable pre-trial measurement for {}'.format(tag))
@@ -496,6 +506,12 @@ class Session:
         print('  关节 {}  xy 误差 {:.2f} mm'.format(
             ','.join('{:.4f}'.format(v) for v in fit['joints'][:4]),
             fit['xy_error_mm']))
+        arrival = getattr(self, '_base_arrival_s', None)
+        gap_s = None if arrival is None else time.monotonic() - arrival
+        if gap_s is not None:
+            print('  到达后 {:.1f} s 开始抓取{}'.format(
+                gap_s, '（复用最终测量）' if reused else ''),
+                flush=True)
         grasp_report = self.robot.grasp(fit['joints'], self.view_pose, tag)
         grip_pulses = [
             grasp_report['pulses_at_verify'][str(servo)]
@@ -515,6 +531,9 @@ class Session:
             'grip_cube_box': bool(in_box),
             'grip_success': grip_report.get('success'),
             'pre_seg_ok': report.get('success'),
+            'pre_measure_reused': reused,
+            'pre_grasp_gap_s': (None if gap_s is None
+                                else round(gap_s, 2)),
         }
         notes['grip_rejection'] = grip_report.get('rejection')
         notes['grip_selected'] = bool(grip_report.get('selected'))

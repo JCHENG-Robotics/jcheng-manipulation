@@ -1,6 +1,8 @@
-# Random-placement 24-pair trial — pre-registered artifacts
+# Random-placement 24-pair trial — artifacts and results
 
-> Status: **pre-registered on 2026-11-21; the new-flow session is starting.**
+> Status: **complete on 2026-11-21.** 24 pairs / 48 valid records: baseline
+> **9/24 = 37.5%** vs intervention **24/24 = 100%** (McNemar
+> **p = 6.1e-05**); the secondary home release error is descriptive only.
 > The operator places the cube **by eye, without measuring**, at a new spot in
 > the forward workspace before every pair; nothing is pre-taped or pre-drawn.
 > The radius/bearing envelope is a guide to where the robot can see the cube,
@@ -171,8 +173,43 @@ found nothing. The operator saw the cube still held, so the `NO_GRIP`
 record is a false negative: it is preserved in
 `discarded_release_stall_trial.jsonl` (D2) and excluded, and `p015` restarts
 from its first method. The release now commands
-`--release-open-duration 3.5` and records `release_open_register`. **28
-valid trials = 14 complete pairs**; `p015` is pending.
+`--release-open-duration 3.5` and records `release_open_register`.
+
+**The session completed on 2026-11-21: 24 pairs / 48 records, no invalid
+record** (`session_20261121_1421.log`). `p015` re-ran with `p015` /
+baseline held at 0.64 mm.
+
+| Outcome | Result |
+|---|---|
+| Binary success (primary) | baseline **9/24 = 37.5%**, intervention **24/24 = 100%**; McNemar exact **p = 6.1e-05** (15 discordant, all intervention-only) |
+| Home release error (secondary) | 9 pairs with both errors: mean difference (intervention − baseline) **+2.12 mm**, 95% CI [-9.92, +9.32], sign test 1 win / 8 losses, p = 0.039 |
+| Failure codes | baseline `MISS` = 14, `NO_GRIP` = 1; intervention none |
+
+The secondary metric is **not a like-for-like accuracy comparison**: for the
+intervention, the release anchor is the fitted TCP of the *corrected* target
+(`point + correction`), while the landing is measured from the biased camera
+chain, so the ~14 mm constant correction appears as an offset (intervention
+release errors 13.3 ± 2.7 mm). The 2026-11-19 2.19 mm placement improvement
+was the **site put-back** metric, not this home release; do not conflate
+them. The binary paired result is the primary outcome.
+
+The one `NO_GRIP` (`p004` / baseline) was a real grip that **did not survive
+the return drive**: the operator saw the cube held, the release opened fully
+(register 183), and the cube was absent from the start. The operator
+recovered it and the intervention succeeded at 14.85 mm. The baseline misses
+skew slightly to longer approaches (failures mean 222 mm vs successes
+202 mm), but the intervention with a similar distance distribution
+(mean 220 mm) succeeded 24/24, so the long travel is not the cause.
+
+**Operator feedback (2026-11-21): the gap between the base arriving and the
+grasp was too long.** Post-hoc timing: one segmentation call is 1.36 s, a
+register read about 1 s, and the flow ran a wide measurement, a strict
+measurement and the trial's pre-trial measurement (the strict and pre-trial
+calls are the identical pose and instant). The runner now **reuses the final
+approach measurement as the pre-trial measurement** (removing ~2.4 s) and
+records `pre_grasp_gap_s` and `pre_measure_reused` in the trial notes (and
+prints the gap). This is a post-data tooling change; it changes no measured
+outcome.
 
 ## After the session
 
