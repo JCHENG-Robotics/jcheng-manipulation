@@ -152,6 +152,18 @@ pairs**. The aborted trial's approach and its single 3.0 s reverse-home pulse
 (`done: false`, about 104 mm short of home) are kept in `approaches.jsonl`;
 the session log is `session_20261121_1200.log`. The resume starts at `p005`.
 
+The resumed session (after the operator re-aligned the base and the arm was
+re-homed to the view pose) then ran **9 more trials**: `p005`, `p021`,
+`p007` and `p016` completed (8/8 held; home release errors 2.47-12.34 mm),
+and `p001` recorded only its baseline (`MISS`). The `p001` intervention
+aborted before any grasp with `bus servo read failed` - the known serial
+link death (`device reports readiness to read but returned no data`); a
+zsh-environment relaunch of only `ros_robot_controller` restored the bus
+(`init_finish` then a read of `503,596,833,113,500`), the arm was re-homed
+to the view pose and the gripper opened. That makes **27 trials = 13
+complete pairs plus a partial `p001`**; the log is
+`session_20261121_1350.log`. The resume starts at `p001` (intervention).
+
 ## After the session
 
 ```bash

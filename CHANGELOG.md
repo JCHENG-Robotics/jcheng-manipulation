@@ -51,6 +51,16 @@ All notable changes to this project are documented here. Format based on
   approach and its single 3.0 s reverse-home pulse (`done: false`, about
   104 mm short of home) are in `approaches.jsonl`; the resume starts at
   `p005`.
+- The next resumed segment ran 9 more trials: `p005`, `p021`, `p007` and
+  `p016` completed (8/8 held; home release errors 2.47-12.34 mm) and `p001`
+  recorded only its baseline (`MISS`). The `p001` intervention aborted
+  before any grasp with `bus servo read failed`, the known serial link death
+  (`device reports readiness to read but returned no data`); relaunching
+  only `ros_robot_controller` in the zsh environment restored the bus
+  (`init_finish`, then `503,596,833,113,500`), and the arm was re-homed to
+  the view pose with the gripper open. **27 trials = 13 complete pairs plus
+  a partial `p001`**; the log is `session_20261121_1350.log`, the resume
+  starts at `p001` (intervention).
 
 ### Data
 
