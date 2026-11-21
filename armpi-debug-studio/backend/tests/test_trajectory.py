@@ -91,7 +91,7 @@ def test_command_echo_feedback_has_no_tracking_error() -> None:
     assert tracking["aggregate"] is None
     assert tracking["per_joint"] == {}
     assert "not measured feedback" in tracking["reason"]
-    assert any("command echo" in note for note in analysis["notes"])
+    assert any("命令回显" in note for note in analysis["notes"])
 
 
 def test_invalid_datasets_are_rejected_with_paths() -> None:
@@ -134,7 +134,7 @@ def test_demo_is_deterministic_and_explicitly_simulated() -> None:
     assert first_analysis["sampling_quality"]["feedback"]["truth"] == "simulated"
     assert first_analysis["executor"]["truth"] == "simulated"
     assert first_analysis["tracking"]["available"] is True
-    assert any("synthetic" in note for note in first_analysis["notes"])
+    assert any("合成" in note for note in first_analysis["notes"])
 
 
 def test_demo_import_list_get_and_recompute(client: TestClient) -> None:
@@ -161,7 +161,7 @@ def test_demo_import_list_get_and_recompute(client: TestClient) -> None:
 
     detail = client.get(f"/api/trajectories/{trajectory_id}")
     assert detail.status_code == 200
-    assert detail.json()["dataset"]["name"] == "G2 demo - simulated 5-joint move"
+    assert detail.json()["dataset"]["name"] == "G2 示例 - 模拟五关节运动"
 
     recomputed = client.post(f"/api/trajectories/{trajectory_id}/recompute")
     assert recomputed.status_code == 200

@@ -122,8 +122,8 @@ def test_visual_api_and_camera_reference(client: TestClient) -> None:
     assert body["camera"]["truth"] == "simulated"
     assert body["camera"]["frame"] == "rgb_camera_link"
     assert body["camera"]["optical_frame"] == "camera_optical_calibrated"
-    assert any("provisional" in warning for warning in body["warnings"])
-    assert any("SIMULATION" in warning for warning in body["camera"]["warnings"])
+    assert any("暂定" in warning for warning in body["warnings"])
+    assert any("模拟" in warning for warning in body["camera"]["warnings"])
 
     joint_names = {joint["name"] for joint in body["joints"]}
     assert {"joint1", "joint2", "joint3", "joint4", "joint5"} <= joint_names

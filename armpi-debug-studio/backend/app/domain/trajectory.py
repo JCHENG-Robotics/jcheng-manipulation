@@ -464,19 +464,16 @@ def analyze(dataset: dict[str, Any]) -> dict[str, Any]:
             )
 
     notes = [
-        "timebase is a declared shared trajectory start; cross-device latency is "
-        "not computed because no synchronization evidence is recorded",
-        "metrics use linear interpolation of the planned stream at each sample "
-        "timestamp; the CSV export reproduces them",
+        "timebase 是声明的共享轨迹起点；未记录同步证据，因此不计算跨设备时延",
+        "指标在每个样本时间戳上对计划流做线性插值；CSV 导出可复算同一结果",
     ]
     if feedback_truth == "commanded":
         notes.append(
-            "feedback is the vendor joint_states command echo, not encoder feedback"
+            "反馈是厂商 joint_states 命令回显，不是编码器反馈"
         )
     if feedback_truth == "simulated":
         notes.append(
-            "feedback truth=simulated: the demo is synthetic and is not hardware "
-            "validation"
+            "反馈真值=模拟：示例为合成数据，不是硬件验证"
         )
 
     return {
@@ -629,41 +626,40 @@ def build_demo_dataset() -> dict[str, Any]:
 
     return {
         "schema_version": SCHEMA_VERSION,
-        "name": "G2 demo - simulated 5-joint move",
+        "name": "G2 示例 - 模拟五关节运动",
         "description": (
-            "Deterministic offline demo: planned trapezoid-like move, 25 Hz "
-            "commanded stream, simulated lagged feedback with a deliberate gap. "
-            "Synthetic data only."
+            "确定性离线示例：类梯形计划运动、25 Hz 指令流、带刻意间隔的模拟滞后反馈。"
+            "仅含合成数据。"
         ),
         "timebase": TIMEBASE,
         "joint_names": joint_names,
         "planned": {
             "truth": "planned",
             "time_offset_s": 0.0,
-            "source": "demo generator",
+            "source": "示例生成器",
             "points": planned_points,
         },
         "commanded": {
             "truth": "commanded",
             "time_offset_s": 0.0,
-            "source": "demo generator (25 Hz target stream)",
+            "source": "示例生成器（25 Hz 目标流）",
             "points": commanded_points,
         },
         "feedback": {
             "truth": "simulated",
             "time_offset_s": 0.0,
-            "source": "demo generator (first-order lag, seeded noise, two gaps)",
+            "source": "示例生成器（一阶滞后、固定种子噪声、两处间隔）",
             "points": feedback_points,
         },
         "executor": {
             "status": "Succeeded",
-            "detail": "simulated executor; no controller or hardware was involved",
+            "detail": "模拟执行器；未涉及控制器或硬件",
             "truth": "simulated",
         },
         "metadata": {
-            "origin": "generated demo",
+            "origin": "生成示例",
             "hardware": False,
             "seed": 42,
-            "warning": "synthetic data; not hardware validation",
+            "warning": "合成数据；不是硬件验证",
         },
     }

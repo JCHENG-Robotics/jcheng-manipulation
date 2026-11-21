@@ -23,20 +23,20 @@ SCHEMA_VERSION = 1
 ANALYSIS_VERSION = "g3-1"
 METHODS = ("baseline", "intervention")
 METHOD_LABELS = {
-    "baseline": "Vendor baseline",
-    "intervention": "Project method",
+    "baseline": "厂商基线",
+    "intervention": "项目方法",
 }
 FAILURE_CODES = {
-    "COMMUNICATION": "Communication failure",
-    "TIMEOUT": "Timeout",
-    "JOINT_LIMIT": "Joint limit",
-    "PLANNING_FAILED": "Planning failed",
-    "TRAJECTORY_FAILED": "Trajectory execution failed",
-    "VISION_FAILED": "Vision localization failed",
-    "CALIBRATION_INVALID": "Calibration invalid",
-    "GRASP_FAILED": "Grasp failed",
-    "SAFETY_VETO": "Safety gate veto",
-    "UNKNOWN": "Unknown",
+    "COMMUNICATION": "通信失败",
+    "TIMEOUT": "超时",
+    "JOINT_LIMIT": "关节限位",
+    "PLANNING_FAILED": "规划失败",
+    "TRAJECTORY_FAILED": "轨迹执行失败",
+    "VISION_FAILED": "视觉定位失败",
+    "CALIBRATION_INVALID": "标定无效",
+    "GRASP_FAILED": "抓取失败",
+    "SAFETY_VETO": "安全门禁否决",
+    "UNKNOWN": "未知",
 }
 MEASUREMENT_SOURCES = {
     "vision",
@@ -51,12 +51,11 @@ DATA_ORIGINS = {"hardware", "simulated"}
 MAX_PAIRS = 200
 MAX_ARTIFACTS = 20
 LIMITATIONS = [
-    "The analysis is only as good as the fixture and measurement.",
-    "The exact sign test ignores effect size; report it with the mean "
-    "difference and interval.",
-    "McNemar tests paired success only; it does not explain a failure.",
-    "Order-effect estimates are observational, not a randomized crossover.",
-    "A fixture is assumed geometrically identical across its pairs.",
+    "分析质量取决于夹具与测量本身。",
+    "精确符号检验忽略效应量；应与平均差值和置信区间一起报告。",
+    "McNemar 只检验配对成功率；它不能解释失败原因。",
+    "顺序效应是观测性的，不是随机交叉设计。",
+    "假设同一夹具在各配对间几何一致。",
 ]
 
 
@@ -671,8 +670,7 @@ def analyze_experiment(
             **base,
             "available": False,
             "reason": (
-                "no complete pairs; record one baseline and one intervention "
-                "for at least one pair"
+                "没有完整配对；至少为一对记录一次基线和一次干预"
             ),
             "methods": {},
             "paired": None,
@@ -681,10 +679,10 @@ def analyze_experiment(
             "order_effect": {
                 "groups": {},
                 "difference_mm": None,
-                "note": "observational; not a randomized crossover",
+                "note": "观测性结果，不是随机交叉设计",
             },
             "failure_codes": {"baseline": {}, "intervention": {}},
-            "warnings": ["No complete pairs yet; no comparison is reported."],
+            "warnings": ["还没有完整配对，未生成比较结果。"],
         }
 
     baseline_records = [pair["baseline"] for pair in complete]
@@ -759,21 +757,21 @@ def analyze_experiment(
 
     warnings = []
     if experiment["data_origin"] == "simulated":
-        warnings.append("Data is simulated; this is not hardware validation.")
+        warnings.append("数据为模拟生成，不是硬件验证。")
     if len(complete) < 8:
         warnings.append(
-            f"Only {len(complete)} complete pair(s); treat comparisons as descriptive."
+            f"仅有 {len(complete)} 个完整配对；比较结果只能作为描述性参考。"
         )
     if baseline_only + intervention_only < 10:
         warnings.append(
-            "The paired success endpoint is underpowered "
-            f"({baseline_only + intervention_only} discordant pairs); "
-            "do not claim a significant success-rate improvement."
+            "配对成功率检验功效不足 "
+            f"（{baseline_only + intervention_only} 个不一致对）；"
+            "不要宣称成功率有显著改善。"
         )
     if len(paired) < len(complete):
         warnings.append(
-            f"{len(complete) - len(paired)} complete pair(s) have a missing "
-            "continuous error and are excluded from the continuous analysis."
+            f"{len(complete) - len(paired)} 个完整配对缺少连续误差，"
+            "已从连续结果分析中排除。"
         )
 
     return {
@@ -836,24 +834,23 @@ DEMO_SIGNATURE = hashlib.sha256(b"armpi-debug-studio-g3-demo-v1").hexdigest()
 def build_demo_experiment() -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Build a deterministic simulated experiment; never hardware evidence."""
     raw_experiment = {
-        "name": "G3 demo - simulated paired grasp",
+        "name": "G3 示例 - 模拟配对抓取",
         "purpose": (
-            "Demonstrate paired baseline/intervention recording and analysis. "
-            "All trials are synthetic."
+            "演示基线/干预的配对记录与分析。全部试验均为合成数据。"
         ),
         "data_origin": "simulated",
-        "operator": "demo generator",
+        "operator": "示例生成器",
         "robot_id": "armpi-ultra-01",
-        "hardware_config": "simulated; no arm or camera was involved",
+        "hardware_config": "模拟；未使用机械臂或相机",
         "calibration_version": "demo-not-calibrated",
         "mapping_version": "vendor-provisional-1",
-        "stop_rules": "N/A: the demo never executes motion",
+        "stop_rules": "不适用：示例不执行任何运动",
         "planned_pairs": 16,
         "seed": 7,
         "fixtures": ["demo_fixture_A"],
         "bootstrap_samples": 5000,
         "confidence": 0.95,
-        "notes": "Synthetic demo for G3; not hardware validation.",
+        "notes": "G3 合成示例；不是硬件验证。",
     }
     experiment = normalize_experiment(raw_experiment)
     generator = random.Random(20261118)
@@ -881,7 +878,7 @@ def build_demo_experiment() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         failure_detail = ""
         if not success:
             failure_code = failure_pool[generator.randrange(len(failure_pool))]
-            failure_detail = "synthetic demo failure"
+            failure_detail = "合成示例失败"
         rotation = None if error is None else abs(generator.gauss(0.9, 0.3))
         trials.append(
             {
@@ -900,10 +897,10 @@ def build_demo_experiment() -> tuple[dict[str, Any], list[dict[str, Any]]]:
                     {
                         "kind": "other",
                         "path": f"simulated://g3-demo/{entry['pair_id']}/{entry['method']}",
-                        "note": "synthetic reference",
+                        "note": "合成引用",
                     }
                 ],
-                "operator_notes": "Synthetic demo; no hardware.",
+                "operator_notes": "合成示例；无硬件。",
             }
         )
     return experiment, trials

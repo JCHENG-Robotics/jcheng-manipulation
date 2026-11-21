@@ -119,7 +119,10 @@ def create_app(
     app = FastAPI(
         title="ArmPi Debug Studio",
         version=__version__,
-        description="G1 mock-first debugging console. Hardware motion is disabled.",
+        description=(
+            "ArmPi 安全调试工作台：Mock 完整演示；硬件默认只读，运动需显式启用并按 "
+            "G6 单关节 / G7 姿态 / G8 任务接管确认。"
+        ),
         lifespan=lifespan,
     )
     app.state.settings = resolved

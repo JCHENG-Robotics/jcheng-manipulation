@@ -20,6 +20,7 @@ import {
   TruthBadge,
 } from "../components/ui";
 import { formatAngle, formatClock, formatNumber } from "../format";
+import { connectionLabel, stageLabel, stopStateLabel, truthLabel } from "../labels";
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
@@ -167,10 +168,10 @@ export function PoseTakeover() {
   const canExecuteGrip = canExecuteBase && previewKind === "grip";
 
   const disabledReason = (() => {
-    if (hardwareBlocked) return "硬件运动未启用（后端或网关 motion disabled）";
+    if (hardwareBlocked) return "硬件运动未启用（后端或网关已关闭运动）";
     if (!preview) return "先完成预览";
-    if (!preview.valid) return "预览未通过，检查 errors 与 pose gate";
-    if (!preview.preview_token) return "预览没有签发 token";
+    if (!preview.valid) return "预览未通过，检查错误与姿态门禁";
+    if (!preview.preview_token) return "预览未签发令牌";
     if (!lease) return "需要控制权租约";
     if (previewExpired) return "预览已过期，请重新预览";
     if (!safetyReady) return `安全门禁阻止：${diagnostics.safety.blockers.join(", ")}`;
@@ -339,19 +340,23 @@ export function PoseTakeover() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Pose Takeover</h1>
+          <h1 className="page-title">姿态接管</h1>
           <p className="page-subtitle">
             多关节姿态接管。一次命令 = 五个关节或一个夹爪；流程仍是 预览 → 二次确认 → 执行。
             停止只是“保持指令已发送”，不是急停。
           </p>
         </div>
         <div className="page-actions">
-          <StatusChip tone="ok" label={robot.source_label} />
-          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "lease held" : "no lease"} />
+          <StatusChip
+            tone={robot.source_label === "SIMULATION" ? "simulation" : "ok"}
+            label={robot.source_label === "SIMULATION" ? "模拟" : "实机"}
+            detail={robot.source_label}
+          />
+          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "持有控制权" : "无控制权"} />
           {gripper && (
             <StatusChip
               tone={gripper.available ? "neutral" : "fault"}
-              label={`grip ${gripper.raw_position ?? "?"} raw`}
+              label={`夹爪 ${gripper.raw_position ?? "?"} raw`}
             />
           )}
         </div>
@@ -359,12 +364,12 @@ export function PoseTakeover() {
 
       {hardwareBlocked && (
         <div className="banner banner-warning">
-          <strong>Hardware motion disabled</strong>
-          <span>后端或网关未启用运动。Execute 会被拒绝，不会伪造运动结果。</span>
+          <strong>硬件运动未启用</strong>
+          <span>后端或网关未启用运动。执行会被拒绝，不会伪造运动结果。</span>
         </div>
       )}
       <div className="banner banner-warning">
-        <strong>POSE TAKEOVER · 无急停 / 无自碰撞模型</strong>
+        <strong>姿态接管 · 无急停 / 无自碰撞模型</strong>
         <span>
           速度上限 {formatNumber(vmax, 2)} rad/s，时长 ≥ {minDuration} s。FK 只检查工作区、桌面平面和低位偏航，
           不能证明自碰撞自由；保持手扶或清空工作区，物理断电仍是最终防护。
@@ -372,13 +377,13 @@ export function PoseTakeover() {
       </div>
       {!safetyReady && (
         <div className="banner banner-fault">
-          <strong>Safety gate blocked</strong>
+          <strong>安全门禁已阻止</strong>
           <span>{diagnostics.safety.blockers.join(", ")}</span>
         </div>
       )}
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       {presetError && (
-        <ErrorBanner message={`presets: ${presetError}`} onDismiss={() => setPresetError(null)} />
+        <ErrorBanner message={`姿态库：${presetError}`} onDismiss={() => setPresetError(null)} />
       )}
       {stopResult && (
         <div className="stop-banner">
@@ -390,7 +395,8 @@ export function PoseTakeover() {
                   ? "fault"
                   : "warning"
             }
-            label={stopResult.state}
+            label={stopStateLabel(stopResult.state)}
+            detail={stopResult.state}
           />
           <span>{stopResult.detail}</span>
           <span className="muted">{stopResult.evidence}</span>
@@ -402,22 +408,22 @@ export function PoseTakeover() {
 
       <div className="grid grid-2">
         <Card
-          title="Pose library"
+          title="姿态库"
           subtitle={
             presets?.available
-              ? `${presets.presets.length} poses · ${presets.scope}`
-              : "pose contract unavailable"
+              ? `${presets.presets.length} 个姿态 · ${presets.scope}`
+              : "姿态契约不可用"
           }
-          actions={<StatusChip tone="neutral" label={robot.connection_state} />}
+          actions={<StatusChip tone="neutral" label={connectionLabel(robot.connection_state)} detail={robot.connection_state} />}
         >
           {presets === null ? (
             <p className="muted">正在读取姿态库…</p>
           ) : presets.presets.length === 0 ? (
             <EmptyState title="没有预设姿态">
-              后端不在 pose scope，或 takeover.yaml 没有 presets。
+              后端不在姿态模式，或 takeover.yaml 没有 presets。
             </EmptyState>
           ) : (
-            <div className="joint-selector">
+            <div className="joint-selector pose-selector">
               {presets.presets.map((preset) => {
                 const check = preset.pose_check;
                 const ok = preset.limit_ok && (check?.ok ?? true);
@@ -432,9 +438,9 @@ export function PoseTakeover() {
                     <span className="joint-name">{preset.label}</span>
                     <span className="joint-meta mono">{preset.id}</span>
                     <span className="joint-meta">
-                      {preset.verified_on_hardware ? "hardware-validated" : "limit-bound variant"}
+                      {preset.verified_on_hardware ? "实机验证" : "限位边界变体"}
                     </span>
-                    <StatusChip tone={ok ? "ok" : "fault"} label={ok ? "gate ok" : "gate reject"} />
+                    <StatusChip tone={ok ? "ok" : "fault"} label={ok ? "门禁通过" : "门禁拒绝"} />
                   </button>
                 );
               })}
@@ -444,37 +450,40 @@ export function PoseTakeover() {
             点击预设只载入编辑器，不发送命令。{presets?.gate_error ? ` FK 不可用：${presets.gate_error.join("; ")}` : ""}
           </p>
           <div className="joint-readout">
-            <KeyValue label="Current TCP">{tcpText(presets?.current.tcp_m ?? null)}</KeyValue>
-            <KeyValue label="Source">
+            <KeyValue label="当前 TCP">{tcpText(presets?.current.tcp_m ?? null)}</KeyValue>
+            <KeyValue label="来源">
               <span className="mono">
-                {presets?.current.source ??
-                  (presets?.current.measured ? "measured" : "commanded")}
+                {presets?.current.source
+                  ? truthLabel(presets.current.source)
+                  : presets?.current.measured
+                    ? "实测"
+                    : "指令回显"}
               </span>
             </KeyValue>
           </div>
         </Card>
 
         <Card
-          title="Target pose"
-          subtitle={`5 joints · ${selectedPreset ? selectedPreset.label : "custom"}`}
+          title="目标姿态"
+          subtitle={`5 关节 · ${selectedPreset ? selectedPreset.label : "自定义"}`}
           actions={
             <StatusChip
               tone={selectedPreset ? "info" : "neutral"}
-              label={selectedPreset ? "preset" : "custom"}
+              label={selectedPreset ? "预设" : "自定义"}
             />
           }
         >
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data-table pose-table">
               <thead>
                 <tr>
-                  <th>Joint</th>
-                  <th>Measured</th>
-                  <th>Target (rad)</th>
+                  <th>关节</th>
+                  <th>实测</th>
+                  <th>目标 (rad)</th>
                   <th>Δ</th>
                   <th>rad/s</th>
-                  <th>Limit</th>
-                  <th>Age</th>
+                  <th>限位</th>
+                  <th>时延</th>
                 </tr>
               </thead>
               <tbody>
@@ -532,7 +541,7 @@ export function PoseTakeover() {
 
           <div className="form-grid">
             <label className="field">
-              <span>Duration (s)</span>
+              <span>时长 (s)</span>
               <input
                 className="input mono"
                 type="number"
@@ -549,7 +558,7 @@ export function PoseTakeover() {
               <span className="hint">建议 {suggested.toFixed(1)} s（按 {vmax} rad/s）</span>
             </label>
             <label className="field">
-              <span>Auto duration</span>
+              <span>自动时长</span>
               <input
                 type="checkbox"
                 checked={autoDuration}
@@ -595,39 +604,39 @@ export function PoseTakeover() {
       </div>
 
       <Card
-        title="Gripper"
-        subtitle="r_joint · 闭合是 timed completion（失速不是失败）"
+        title="夹爪"
+        subtitle="r_joint · 闭合按时间完成（失速不是失败）"
         actions={
           <StatusChip
             tone={gripper?.available ? "ok" : "fault"}
-            label={gripper?.available ? "measured" : "unavailable"}
+            label={gripper?.available ? "实测" : "不可用"}
           />
         }
       >
         {gripper === null ? (
-          <p className="muted">夹爪反馈不可用（后端不在 pose scope，或网关没有 r_joint）。</p>
+          <p className="muted">夹爪反馈不可用（后端不在姿态模式，或网关没有 r_joint）。</p>
         ) : (
           <>
             <div className="joint-readout">
-              <KeyValue label="Measured">
+              <KeyValue label="实测">
                 <span className="mono">
                   {formatNumber(gripper.position_rad, 4)} rad · {gripper.raw_position ?? "?"} raw
                 </span>
               </KeyValue>
-              <KeyValue label="Truth">
+              <KeyValue label="真值">
                 <TruthBadge truth={gripper.truth} />
               </KeyValue>
-              <KeyValue label="Command range">
+              <KeyValue label="命令范围">
                 <span className="mono">
-                  {gripper.open_raw} (open) … {gripper.close_raw} (close) raw
+                  {gripper.open_raw}（张开）… {gripper.close_raw}（闭合）raw
                 </span>
               </KeyValue>
-              <KeyValue label="Measured stops">
+              <KeyValue label="实测止点">
                 <span className="mono">
                   {gripper.measured_min_raw} … {gripper.measured_max_raw} raw
                 </span>
               </KeyValue>
-              <KeyValue label="Age">
+              <KeyValue label="时延">
                 <DataAge ageMs={gripper.sample_age_ms} maxAgeMs={500} />
               </KeyValue>
             </div>
@@ -669,10 +678,10 @@ export function PoseTakeover() {
 
       {preview && (
         <Card
-          title={previewKind === "grip" ? `Gripper preview · ${gripTarget?.label ?? ""}` : "Pose preview"}
-          subtitle={`${preview.valid ? "valid" : "rejected"} · command ${preview.command_id.slice(0, 10)}…`}
+          title={previewKind === "grip" ? `夹爪预览 · ${gripTarget?.label ?? ""}` : "姿态预览"}
+          subtitle={`${preview.valid ? "有效" : "已拒绝"} · 命令 ${preview.command_id.slice(0, 10)}…`}
           actions={
-            <StatusChip tone={preview.valid ? "ok" : "fault"} label={preview.valid ? "VALID" : "REJECTED"} />
+            <StatusChip tone={preview.valid ? "ok" : "fault"} label={preview.valid ? "有效" : "已拒绝"} />
           }
         >
           {preview.valid ? (
@@ -681,13 +690,13 @@ export function PoseTakeover() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Joint</th>
-                      <th>From</th>
-                      <th>To</th>
-                      <th>Delta</th>
-                      <th>Raw</th>
-                      <th>Duration</th>
-                      <th>Completion</th>
+                      <th>关节</th>
+                      <th>起点</th>
+                      <th>终点</th>
+                      <th>变化量</th>
+                      <th>原始值</th>
+                      <th>时长</th>
+                      <th>完成方式</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -699,7 +708,9 @@ export function PoseTakeover() {
                         <td className="mono">{formatNumber(target.delta_rad, 3)}</td>
                         <td className="mono">{target.target_raw}</td>
                         <td className="mono">{target.duration_s} s</td>
-                        <td className="mono">{target.completion ?? "position"}</td>
+                        <td className="mono">
+                          {target.completion === "timed" ? "定时" : target.completion === "position" ? "位置" : target.completion ?? "位置"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -707,29 +718,29 @@ export function PoseTakeover() {
               </div>
               {poseCheck && (
                 <div className="joint-readout">
-                  <KeyValue label="Target TCP">{tcpText(poseCheck.tcp_m)}</KeyValue>
-                  <KeyValue label="Table clearance">
+                  <KeyValue label="目标 TCP">{tcpText(poseCheck.tcp_m)}</KeyValue>
+                  <KeyValue label="桌面余量">
                     <span className="mono">
                       {poseCheck.table_clearance_m === null
                         ? "—"
                         : `${formatNumber(poseCheck.table_clearance_m * 1000, 1)} mm`}
                     </span>
                   </KeyValue>
-                  <KeyValue label="Path samples">
+                  <KeyValue label="路径采样">
                     <span className="mono">{poseCheck.samples}</span>
                   </KeyValue>
-                  <KeyValue label="Start">
+                  <KeyValue label="起点">
                     <StatusChip
                       tone={poseCheck.start_compliant ? "ok" : "warning"}
-                      label={poseCheck.start_compliant ? "inside gate" : "outside gate (exempt)"}
+                      label={poseCheck.start_compliant ? "门禁内" : "门禁外（豁免）"}
                     />
                   </KeyValue>
                 </div>
               )}
-              <KeyValue label="Preview token">
+              <KeyValue label="预览令牌">
                 <span className="mono">{preview.preview_token?.slice(0, 16)}…</span>
               </KeyValue>
-              <KeyValue label="Expires">
+              <KeyValue label="到期">
                 <span className="mono">{formatClock(preview.expires_at, preferences.timeMode)}</span>
               </KeyValue>
               {preview.warnings.length > 0 && (
@@ -754,8 +765,8 @@ export function PoseTakeover() {
 
       {command && (
         <Card
-          title="Command status"
-          subtitle={`${command.command_id} · ${latestStage ?? command.status}`}
+          title="命令状态"
+          subtitle={`${command.command_id} · ${stageLabel(latestStage ?? command.status)}`}
           actions={
             <StatusChip
               tone={
@@ -766,15 +777,20 @@ export function PoseTakeover() {
                     ? "fault"
                     : "warning"
               }
-              label={latestStage ?? command.status}
+              label={stageLabel(latestStage ?? command.status)}
+              detail={latestStage ?? command.status}
             />
           }
         >
-          {command.error_code && <p className="error-text">error: {command.error_code}</p>}
+          {command.error_code && <p className="error-text">错误：{command.error_code}</p>}
           <div className="stage-history">
             {displayStages.map((stage, index) => (
               <div className="stage-item" key={`${stage.stage}-${index}`}>
-                <StatusChip tone={index === displayStages.length - 1 ? "info" : "neutral"} label={stage.stage} />
+                <StatusChip
+                  tone={index === displayStages.length - 1 ? "info" : "neutral"}
+                  label={stageLabel(stage.stage)}
+                  detail={stage.stage}
+                />
                 <span className="mono">{formatClock(stage.at, preferences.timeMode)}</span>
                 {stage.error_code && <span className="error-text">{stage.error_code}</span>}
               </div>
@@ -846,7 +862,7 @@ export function PoseTakeover() {
               ))}
             </div>
             {poseCheck && (
-              <KeyValue label="Target TCP / clearance">
+              <KeyValue label="目标 TCP / 桌面余量">
                 <span className="mono">
                   {tcpText(poseCheck.tcp_m)} ·{" "}
                   {poseCheck.table_clearance_m === null

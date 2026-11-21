@@ -16,7 +16,7 @@ export function formatAngle(
   decimals = 3,
 ): string {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return "Unavailable";
+    return "不可用";
   }
   const converted = unit === "deg" ? value * RAD_TO_DEG : value;
   return `${converted.toFixed(decimals)} ${unit}`;
@@ -24,7 +24,7 @@ export function formatAngle(
 
 export function formatAge(ageMs: number | null | undefined): string {
   if (ageMs === null || ageMs === undefined) {
-    return "Unavailable";
+    return "不可用";
   }
   if (ageMs < 1000) {
     return `${Math.round(ageMs)} ms`;

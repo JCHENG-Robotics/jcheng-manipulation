@@ -23,6 +23,7 @@ import {
   TruthBadge,
 } from "../components/ui";
 import { formatNumber } from "../format";
+import { commandLabel, stageLabel, stepKindLabel, stepStatusLabel, taskStepLabel, truthLabel } from "../labels";
 import { getSessionId } from "../session";
 import { useRobotStore } from "../store/robotStore";
 
@@ -72,9 +73,9 @@ function deviationsText(value: unknown): string {
 }
 
 function stepCommandsText(step: TaskStep): string {
-  if (step.kind === "verify") return step.detail ?? "grip verify";
+  if (step.kind === "verify") return "在观察位取点云并检查木块框";
   if (!step.commands || step.commands.length === 0) return "—";
-  return step.commands.map((command) => command.label).join(" → ");
+  return step.commands.map((command) => commandLabel(command.label)).join(" → ");
 }
 
 function stepRawText(step: TaskStep): string {
@@ -229,7 +230,7 @@ export function TaskTakeover() {
       }
       await delay(150);
     }
-    return { stage: "Timeout", error: "no terminal event before the deadline" };
+    return { stage: "Timeout", error: "等待超时：截止前没有终态事件" };
   };
 
   const prepareView = async () => {
@@ -246,10 +247,10 @@ export function TaskTakeover() {
       }));
       const result = await executeTargets(targets);
       if (result.stage !== "Completed") {
-        throw new Error(`view move: ${result.stage} ${result.error ?? ""}`);
+        throw new Error(`移动到观察位失败：${stageLabel(result.stage)} ${result.error ?? ""}`);
       }
       setNote(
-        `已到 view（${duration.toFixed(1)} s，总线校验）；现在可以定位并规划。`,
+        `已到观察位（${duration.toFixed(1)} s，总线校验）；现在可以定位并规划。`,
       );
       setPlan(null);
       setVerify(null);
@@ -458,39 +459,43 @@ export function TaskTakeover() {
   const verifyTone =
     verify?.held === true ? "ok" : verify?.held === false ? "fault" : "warning";
   const verifyLabel =
-    verify?.held === true ? "HELD" : verify?.held === false ? "NOT HELD" : "UNVERIFIED";
+    verify?.held === true ? "已夹持" : verify?.held === false ? "未夹住" : "未验证";
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Task Takeover</h1>
+          <h1 className="page-title">任务接管</h1>
           <p className="page-subtitle">
-            G8 任务级接管：view 定位 → 深位姿抓取 → 闭爪 → 抬升 → 夹持验证 → 放回。
+            G8 任务级接管：观察位定位 → 深位姿抓取 → 闭爪 → 抬升 → 夹持验证 → 放回。
             每一步仍走预览/执行与总线校验；无急停，停止只是保持请求。
           </p>
         </div>
         <div className="page-actions">
-          <StatusChip tone="ok" label={robot.source_label} />
-          <StatusChip tone={poseScope ? "ok" : "fault"} label={poseScope ? "pose scope" : "no pose scope"} />
-          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "lease held" : "no lease"} />
+          <StatusChip
+            tone={robot.source_label === "SIMULATION" ? "simulation" : "ok"}
+            label={robot.source_label === "SIMULATION" ? "模拟" : "实机"}
+            detail={robot.source_label}
+          />
+          <StatusChip tone={poseScope ? "ok" : "fault"} label={poseScope ? "姿态作用域" : "无姿态作用域"} />
+          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "持有控制权" : "无控制权"} />
         </div>
       </header>
 
       {!poseScope && (
         <div className="banner banner-fault">
-          <strong>Task takeover requires pose scope</strong>
+          <strong>任务接管需要姿态作用域</strong>
           <span>以 ARMPI_MOTION_SCOPE=pose 与姿态网关启动后端。</span>
         </div>
       )}
       {hardwareBlocked && (
         <div className="banner banner-warning">
-          <strong>Hardware motion disabled</strong>
+          <strong>硬件运动未启用</strong>
           <span>后端或网关未启用运动；任务不会执行。</span>
         </div>
       )}
       <div className="banner banner-warning">
-        <strong>G8 TASK · 无急停 / 无自碰撞模型</strong>
+        <strong>G8 任务 · 无急停 / 无自碰撞模型</strong>
         <span>
           一次“运行任务”完成全部动作：木块在抓取带外时先自动底盘接近并重新定位，然后以
           S 曲线（4.0 rad/s / 20 rad/s²）执行 7 个阶段步骤，每步仍走预览/执行与总线校验。
@@ -503,7 +508,7 @@ export function TaskTakeover() {
       <div className="grid grid-2">
         <Card
           title="准备与定位"
-          subtitle="先在 view 位测一次点云；定位/规划本身不发运动命令"
+          subtitle="先在观察位测一次点云；定位/规划本身不发运动命令"
           actions={
             <StatusChip
               tone={
@@ -518,29 +523,33 @@ export function TaskTakeover() {
               label={
                 plan
                   ? plan.valid
-                    ? "PLAN VALID"
+                    ? "规划有效"
                     : requiredApproach
-                      ? "APPROACH REQUIRED"
-                      : "PLAN REJECTED"
-                  : "NO PLAN"
+                      ? "需要底盘接近"
+                      : "规划被拒绝"
+                  : "未规划"
               }
             />
           }
         >
           <div className="joint-readout">
-            <KeyValue label="View preset">
+            <KeyValue label="观察位预设">
               <span className="mono">{viewPresetId}</span>
             </KeyValue>
-            <KeyValue label="Position source">
-              <span className="mono">{presets?.current.source ?? "—"}</span>
+            <KeyValue label="位置来源">
+              <span className="mono">
+                {presets?.current.source
+                  ? truthLabel(presets.current.source)
+                  : "—"}
+              </span>
             </KeyValue>
-            <KeyValue label="Safety">
-              <StatusChip tone={safetyReady ? "ok" : "fault"} label={safetyReady ? "ready" : "blocked"} />
+            <KeyValue label="安全门禁">
+              <StatusChip tone={safetyReady ? "ok" : "fault"} label={safetyReady ? "就绪" : "已阻止"} />
             </KeyValue>
           </div>
           <div className="button-row">
             <Button variant="secondary" onClick={() => void prepareView()} disabled={busy || running || !viewPreset}>
-              {busy ? "执行中…" : "准备（移动到 view）"}
+              {busy ? "执行中…" : "准备（移动到观察位）"}
             </Button>
             <Button variant="primary" onClick={() => void planTask()} disabled={busy || running || !viewPreset}>
               {busy ? "定位中…" : "定位并规划"}
@@ -583,21 +592,21 @@ export function TaskTakeover() {
           )}
           {plan?.valid && (
             <div className="joint-readout">
-              <KeyValue label="Cube point">
+              <KeyValue label="木块点">
                 <span className="mono">
                   {planPoint
                     ? planPoint.map((value) => formatNumber(value, 4)).join(", ")
                     : "—"}
                 </span>
               </KeyValue>
-              <KeyValue label="Target (+ correction)">
+              <KeyValue label="目标（含修正）">
                 <span className="mono">
                   {planTarget
                     ? planTarget.map((value) => formatNumber(value, 4)).join(", ")
                     : "—"}
                 </span>
               </KeyValue>
-              <KeyValue label="Fit (j1..j4)">
+              <KeyValue label="拟合 (j1..j4)">
                 <span className="mono">
                   {fit
                     ? fit.joints
@@ -607,16 +616,16 @@ export function TaskTakeover() {
                     : "—"}
                 </span>
               </KeyValue>
-              <KeyValue label="Fit xy error">
+              <KeyValue label="拟合 xy 误差">
                 <span className="mono">
                   {fit ? `${formatNumber(fit.xy_error_mm, 2)} mm` : "—"}
                 </span>
               </KeyValue>
-              <KeyValue label="Locate source">
+              <KeyValue label="定位来源">
                 <span className="mono">{plan.source}</span>
               </KeyValue>
-              <KeyValue label="Simulated">
-                <StatusChip tone={plan.simulated ? "simulation" : "ok"} label={plan.simulated ? "mock" : "live"} />
+              <KeyValue label="模拟">
+                <StatusChip tone={plan.simulated ? "simulation" : "ok"} label={plan.simulated ? "Mock" : "实机"} />
               </KeyValue>
             </div>
           )}
@@ -630,28 +639,28 @@ export function TaskTakeover() {
         </Card>
 
         <Card
-          title="Steps"
+          title="阶段"
           subtitle={
             plan?.valid
               ? `${plan.steps.length} 个阶段 · S 曲线 · ${plan.view_preset}`
               : "规划后显示"
           }
-          actions={<StatusChip tone={running ? "warning" : "neutral"} label={running ? "RUNNING" : "IDLE"} />}
+          actions={<StatusChip tone={running ? "warning" : "neutral"} label={running ? "运行中" : "空闲"} />}
         >
           {!plan?.valid ? (
-            <p className="muted">先准备 view，然后“定位并规划”。</p>
+            <p className="muted">先准备观察位，然后“定位并规划”。</p>
           ) : (
             <div className="table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Step</th>
-                    <th>Kind</th>
-                    <th>Duration</th>
-                    <th>Target / raw</th>
-                    <th>Status</th>
-                    <th>Bus actual</th>
+                    <th>阶段</th>
+                    <th>类型</th>
+                    <th>时长</th>
+                    <th>目标 / 原始值</th>
+                    <th>状态</th>
+                    <th>总线实测</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -659,13 +668,13 @@ export function TaskTakeover() {
                     <tr key={`${step.label}-${index}`}>
                       <td className="mono">{index + 1}</td>
                       <td className="mono">
-                        <strong>{step.label}</strong>
+                        <strong>{taskStepLabel(step.label)}</strong>
                         <span className="muted"> {stepCommandsText(step)}</span>
                         {stepSpeedText(step) ? (
                           <span className="muted"> ({stepSpeedText(step)})</span>
                         ) : null}
                       </td>
-                      <td>{step.kind}</td>
+                      <td>{stepKindLabel(step.kind)}</td>
                       <td className="mono">
                         {step.duration_s !== undefined && step.duration_s !== null
                           ? `${formatNumber(step.duration_s, 2)} s`
@@ -683,7 +692,8 @@ export function TaskTakeover() {
                                   ? "warning"
                                   : "neutral"
                           }
-                          label={stepStatus[index] ?? step.status}
+                          label={stepStatusLabel(stepStatus[index] ?? step.status)}
+                          detail={stepStatus[index] ?? step.status}
                         />
                       </td>
                       <td className="mono">
@@ -699,32 +709,32 @@ export function TaskTakeover() {
             </div>
           )}
           <p className="footnote">
-            每个 pose 命令是一条 S 曲线（密集 waypoint，网关逐段复核速度/加速度），
-            grip 命令走同一条预览/执行与总线校验；Unknown 立即停止任务。
+            每条姿态命令是一条 S 曲线（密集路径点，网关逐段复核速度/加速度）；
+            夹爪命令走同一条预览/执行与总线校验；结果未知（Unknown）立即停止任务。
           </p>
         </Card>
       </div>
 
       <Card
         title="夹持验证"
-        subtitle="抬升后回到 view，用相机检查木块框是否为空"
+        subtitle="抬升后回到观察位，用相机检查木块框是否为空"
         actions={<StatusChip tone={verifyTone} label={verifyLabel} />}
       >
         {!verify ? (
-          <p className="muted">任务运行到 verify 步骤时自动执行；也可在 view 位手动验证。</p>
+          <p className="muted">任务运行到验证阶段时自动执行；也可在观察位手动验证。</p>
         ) : (
           <>
             <div className="joint-readout">
-              <KeyValue label="Held">
-                <StatusChip tone={verify.held ? "ok" : "fault"} label={verify.held ? "YES" : "NO"} />
+              <KeyValue label="已夹住">
+                <StatusChip tone={verify.held ? "ok" : "fault"} label={verify.held ? "是" : "否"} />
               </KeyValue>
-              <KeyValue label="Clusters">
+              <KeyValue label="点云簇">
                 <span className="mono">{verify.clusters ?? "—"}</span>
               </KeyValue>
-              <KeyValue label="Source">
-                <span className="mono">{verify.source ?? (verify.simulated ? "simulated" : "—")}</span>
+              <KeyValue label="来源">
+                <span className="mono">{verify.source ?? (verify.simulated ? "模拟" : "—")}</span>
               </KeyValue>
-              <KeyValue label="Truth">
+              <KeyValue label="真值">
                 <TruthBadge truth={verify.simulated ? "simulated" : verify.verified ? "measured_on_demand" : "unknown"} />
               </KeyValue>
             </div>
@@ -773,19 +783,19 @@ export function TaskTakeover() {
             )}
             {plan.valid && (
               <>
-                <KeyValue label="Cube point">
+                <KeyValue label="木块点">
                   <span className="mono">
                     {planPoint?.map((value) => formatNumber(value, 4)).join(", ")}
                   </span>
                 </KeyValue>
-                <KeyValue label="Grasp joints">
+                <KeyValue label="抓取关节">
                   <span className="mono">
                     {plan.grasp_joints
                       ? ARM_JOINTS.map((name) => formatNumber(plan.grasp_joints?.[name] ?? 0, 3)).join(", ")
                       : "—"}
                   </span>
                 </KeyValue>
-                <KeyValue label="View / speed">
+                <KeyValue label="观察位 / 速度">
                   <span className="mono">
                     {plan.view_preset} /{" "}
                     {(plan.fast?.vmax_rad_s as number | undefined) ?? "?"} rad/s ·{" "}

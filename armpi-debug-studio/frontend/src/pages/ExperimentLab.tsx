@@ -17,6 +17,12 @@ import {
   TruthBadge,
 } from "../components/ui";
 import { useRobotStore } from "../store/robotStore";
+import {
+  experimentStatusLabel,
+  failureCodeLabel,
+  measurementSourceLabel,
+  methodLabel,
+} from "../labels";
 
 type Method = "baseline" | "intervention";
 
@@ -146,7 +152,6 @@ export function ExperimentLab() {
   const diagnostics = useRobotStore((store) => store.diagnostics);
   const [items, setItems] = useState<ExperimentSummary[]>([]);
   const [failureCodes, setFailureCodes] = useState<Record<string, string>>({});
-  const [methodLabels, setMethodLabels] = useState<Record<string, string>>({});
   const [trajectories, setTrajectories] = useState<TrajectorySummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ExperimentDetail | null>(null);
@@ -162,7 +167,6 @@ export function ExperimentLab() {
     const list = await api.experiments();
     setItems(list.items);
     setFailureCodes(list.failure_codes);
-    setMethodLabels(list.methods);
     setSelectedId((current) => prefer ?? current ?? list.items[0]?.experiment_id ?? null);
   }, []);
 
@@ -172,7 +176,6 @@ export function ExperimentLab() {
         const [list, trajectoryList] = await Promise.all([api.experiments(), api.trajectories()]);
         setItems(list.items);
         setFailureCodes(list.failure_codes);
-        setMethodLabels(list.methods);
         setTrajectories(trajectoryList.items);
         setSelectedId(list.items[0]?.experiment_id ?? null);
       } catch (caught) {
@@ -242,7 +245,7 @@ export function ExperimentLab() {
       setNotice(
         loaded.duplicate
           ? "示例实验已存在，已选中原记录。"
-          : "已加载模拟配对实验（16 对 / 32 trials）；全部标记 simulated。",
+          : "已加载模拟配对实验（16 对 / 32 个试验）；全部标记为模拟。",
       );
       await refreshList(loaded.experiment.experiment_id);
     } catch (caught) {
@@ -353,7 +356,7 @@ export function ExperimentLab() {
       const loaded = await api.experiment(experiment.experiment_id);
       setDetail(loaded);
       setTrialForm(trialFormFromEntry(nextPlanEntry(loaded), loaded.experiment.data_origin));
-      setNotice(`已记录 trial：${trialForm.pair_id} / ${trialForm.method}`);
+      setNotice(`已记录试验：${trialForm.pair_id} / ${trialForm.method}`);
       await refreshList(experiment.experiment_id);
     } catch (caught) {
       setError(formatError(caught));
@@ -371,9 +374,9 @@ export function ExperimentLab() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Experiment Lab</h1>
+          <h1 className="page-title">实验台</h1>
           <p className="page-subtitle">
-            G3 实验定义与配对 trial 记录：baseline / intervention、失败代码、连续误差与可复算的配对分析。
+            G3 实验定义与配对试验记录：基线 / 干预、失败代码、连续误差与可复算的配对分析。
           </p>
         </div>
         <div className="page-actions">
@@ -400,10 +403,10 @@ export function ExperimentLab() {
       )}
 
       {showCreate && (
-        <Card title="New experiment" subtitle="实验定义创建后不可修改；trial 只能追加">
+        <Card title="新建实验" subtitle="实验定义创建后不可修改；试验只能追加">
           <div className="experiment-form">
             <label className="field">
-              <span>Name *</span>
+              <span>名称 *</span>
               <input
                 className="input"
                 value={createForm.name}
@@ -413,7 +416,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Data origin</span>
+              <span>数据来源</span>
               <select
                 className="input"
                 value={createForm.data_origin}
@@ -424,12 +427,12 @@ export function ExperimentLab() {
                   }))
                 }
               >
-                <option value="hardware">hardware</option>
-                <option value="simulated">simulated</option>
+                <option value="hardware">硬件</option>
+                <option value="simulated">模拟</option>
               </select>
             </label>
             <label className="field">
-              <span>Operator</span>
+              <span>操作员</span>
               <input
                 className="input"
                 value={createForm.operator}
@@ -439,7 +442,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field experiment-form-wide">
-              <span>Purpose *</span>
+              <span>目的 *</span>
               <textarea
                 className="input"
                 rows={2}
@@ -450,7 +453,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Planned pairs</span>
+              <span>计划配对数量</span>
               <input
                 className="input"
                 type="number"
@@ -463,7 +466,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Randomization seed</span>
+              <span>随机化种子</span>
               <input
                 className="input"
                 type="number"
@@ -474,10 +477,10 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Fixtures (comma separated)</span>
+              <span>夹具（逗号分隔）</span>
               <input
                 className="input"
-                placeholder="fixture_A or fixture_A, fixture_B"
+                placeholder="fixture_A 或 fixture_A, fixture_B"
                 value={createForm.fixtures}
                 onChange={(event) =>
                   setCreateForm((current) => ({ ...current, fixtures: event.target.value }))
@@ -485,7 +488,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Hardware config</span>
+              <span>硬件配置</span>
               <input
                 className="input"
                 value={createForm.hardware_config}
@@ -498,7 +501,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Calibration version</span>
+              <span>标定版本</span>
               <input
                 className="input"
                 value={createForm.calibration_version}
@@ -511,7 +514,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field">
-              <span>Mapping version</span>
+              <span>映射版本</span>
               <input
                 className="input"
                 value={createForm.mapping_version}
@@ -524,7 +527,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field experiment-form-wide">
-              <span>Stop rules</span>
+              <span>停止规则</span>
               <textarea
                 className="input"
                 rows={2}
@@ -535,7 +538,7 @@ export function ExperimentLab() {
               />
             </label>
             <label className="field experiment-form-wide">
-              <span>Notes</span>
+              <span>备注</span>
               <textarea
                 className="input"
                 rows={2}
@@ -562,8 +565,8 @@ export function ExperimentLab() {
       )}
 
       <Card
-        title="Experiments"
-        subtitle={`${items.length} 个实验定义；trial 追加写入本机 SQLite`}
+        title="实验列表"
+        subtitle={`${items.length} 个实验定义；试验追加写入本机 SQLite`}
         actions={
           <Button variant="ghost" onClick={() => void refreshList()} disabled={busy}>
             刷新列表
@@ -581,12 +584,12 @@ export function ExperimentLab() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Origin</th>
-                  <th>Status</th>
-                  <th>Trials</th>
-                  <th>Complete pairs</th>
-                  <th>Baseline / intervention</th>
+                  <th>名称</th>
+                  <th>来源</th>
+                  <th>状态</th>
+                  <th>试验数</th>
+                  <th>完整配对</th>
+                  <th>基线 / 干预成功率</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,7 +615,8 @@ export function ExperimentLab() {
                               ? "warning"
                               : "neutral"
                         }
-                        label={item.status}
+                        label={experimentStatusLabel(item.status)}
+                        detail={item.status}
                       />
                     </td>
                     <td className="mono">{item.n_trials}</td>
@@ -634,27 +638,27 @@ export function ExperimentLab() {
       {experiment && analysis && (
         <>
           <Card
-            title="Paired analysis"
-            subtitle={`${experiment.name} · analysis ${analysis.analysis_version} · seed ${analysis.seed}`}
+            title="配对分析"
+            subtitle={`${experiment.name} · 分析 ${analysis.analysis_version} · 种子 ${analysis.seed}`}
             actions={<TruthBadge truth={analysis.data_origin === "simulated" ? "simulated" : "measured"} />}
           >
             {!analysis.available ? (
               <div className="banner banner-warning">
-                <strong>Analysis unavailable</strong>
+                <strong>分析不可用</strong>
                 <span>{analysis.reason}</span>
               </div>
             ) : (
               <>
                 <div className="metric-row metric-row-4">
                   <MetricValue
-                    label="Mean improvement"
+                    label="平均改善"
                     value={fmt(analysis.paired?.improvement_mm, 3)}
                     unit="mm"
                     tone={(analysis.paired?.improvement_mm ?? 0) > 0 ? "ok" : "warning"}
-                    hint="baseline - intervention; positive is better"
+                    hint="基线 − 干预；正值更好"
                   />
                   <MetricValue
-                    label={`${Math.round((analysis.confidence ?? 0.95) * 100)}% CI (diff)`}
+                    label={`${Math.round((analysis.confidence ?? 0.95) * 100)}% 置信区间（差值）`}
                     value={
                       analysis.paired
                         ? `[${fmt(analysis.paired.ci95_difference_mm.low, 2)}, ${fmt(
@@ -664,19 +668,19 @@ export function ExperimentLab() {
                         : "—"
                     }
                     unit="mm"
-                    hint="intervention - baseline; negative favors intervention"
+                    hint="干预 − 基线；负值偏向干预"
                   />
                   <MetricValue
-                    label="Complete pairs"
+                    label="完整配对"
                     value={analysis.validation.n_complete_pairs}
-                    hint={`${analysis.validation.n_input} trials recorded`}
+                    hint={`已记录 ${analysis.validation.n_input} 个试验`}
                   />
                   <MetricValue
-                    label="Sign test p"
+                    label="符号检验 p"
                     value={fmtP(analysis.paired?.sign_test.p_value)}
                     hint={
                       analysis.paired
-                        ? `${analysis.paired.sign_test.wins} wins / ${analysis.paired.sign_test.losses} losses / ${analysis.paired.sign_test.ties} ties`
+                        ? `${analysis.paired.sign_test.wins} 胜 / ${analysis.paired.sign_test.losses} 负 / ${analysis.paired.sign_test.ties} 平`
                         : "—"
                     }
                   />
@@ -684,7 +688,7 @@ export function ExperimentLab() {
 
                 {analysis.warnings.length > 0 && (
                   <div className="banner banner-warning">
-                    <strong>Interpretation limits</strong>
+                    <strong>解释限制</strong>
                     <ul className="warning-list">
                       {analysis.warnings.map((warning) => (
                         <li key={warning}>{warning}</li>
@@ -695,35 +699,35 @@ export function ExperimentLab() {
 
                 <div className="analysis-grid">
                   <div>
-                    <h3 className="analysis-heading">Continuous outcome (mm)</h3>
+                    <h3 className="analysis-heading">连续结果（mm）</h3>
                     <div className="kv-list">
-                      <KeyValue label="Pairs with error">
+                      <KeyValue label="有误差的配对">
                         {analysis.paired?.n_pairs_with_error ?? "—"}
                       </KeyValue>
-                      <KeyValue label="Mean difference">
+                      <KeyValue label="平均差值">
                         {fmt(analysis.paired?.difference_mm.mean, 4)} mm
                       </KeyValue>
-                      <KeyValue label="Effect size dz">
+                      <KeyValue label="效应量 dz">
                         {fmt(analysis.paired?.effect_size_dz, 3)}
                       </KeyValue>
-                      <KeyValue label="Order difference">
+                      <KeyValue label="顺序效应差">
                         {fmt(analysis.order_effect.difference_mm, 3)} mm
                       </KeyValue>
                       <KeyValue label="Bootstrap">
-                        {analysis.bootstrap_samples} draws, seed {analysis.seed}
+                        {analysis.bootstrap_samples} 次抽样，种子 {analysis.seed}
                       </KeyValue>
                     </div>
                   </div>
                   <div>
-                    <h3 className="analysis-heading">Binary outcome</h3>
+                    <h3 className="analysis-heading">二元结果</h3>
                     <div className="kv-list">
-                      <KeyValue label="Baseline success">
+                      <KeyValue label="基线成功率">
                         {fmtPct(analysis.success?.baseline_rate)}
                       </KeyValue>
-                      <KeyValue label="Intervention success">
+                      <KeyValue label="干预成功率">
                         {fmtPct(analysis.success?.intervention_rate)}
                       </KeyValue>
-                      <KeyValue label="Discordant (base/int)">
+                      <KeyValue label="不一致对（基线/干预）">
                         {analysis.success
                           ? `${analysis.success.discordant.baseline_only} / ${analysis.success.discordant.intervention_only}`
                           : "—"}
@@ -735,18 +739,18 @@ export function ExperimentLab() {
                   </div>
                 </div>
 
-                <h3 className="analysis-heading">Method summary</h3>
+                <h3 className="analysis-heading">方法汇总</h3>
                 <div className="table-wrap">
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Method</th>
+                        <th>方法</th>
                         <th>n</th>
-                        <th>Error mean</th>
-                        <th>Error SD</th>
-                        <th>Rotation mean</th>
-                        <th>Success</th>
-                        <th>Failure codes</th>
+                        <th>误差均值</th>
+                        <th>误差 SD</th>
+                        <th>旋转均值</th>
+                        <th>成功率</th>
+                        <th>失败代码</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -754,12 +758,12 @@ export function ExperimentLab() {
                         const summary = analysis.methods[method];
                         if (!summary) return null;
                         const codes = Object.entries(summary.failure_codes)
-                          .map(([code, count]) => `${code}=${count}`)
+                          .map(([code, count]) => `${failureCodeLabel(code)}=${count}`)
                           .join(", ");
                         return (
                           <tr key={method}>
                             <td>
-                              <strong>{methodLabels[method] ?? method}</strong>
+                              <strong>{methodLabel(method)}</strong>
                               <div className="muted">{method}</div>
                             </td>
                             <td className="mono">{summary.n}</td>
@@ -783,8 +787,8 @@ export function ExperimentLab() {
           <div className="experiment-layout">
             <div className="experiment-main">
               <Card
-                title="Record trial"
-                subtitle="追加式记录；成功后 pair/method 不可重复"
+                title="记录试验"
+                subtitle="追加式记录；成功后配对/方法不可重复"
                 actions={
                   <Button
                     variant="secondary"
@@ -797,14 +801,14 @@ export function ExperimentLab() {
               >
                 {planComplete ? (
                   <div className="banner banner-warning">
-                    <strong>Plan complete</strong>
-                    <span>随机化计划中的全部 pair/method 都已记录；不能再追加。</span>
+                    <strong>计划已完成</strong>
+                    <span>随机化计划中的全部配对/方法都已记录；不能再追加。</span>
                   </div>
                 ) : (
                   <>
                     <div className="trial-form">
                       <label className="field">
-                        <span>Pair ID</span>
+                        <span>配对 ID</span>
                         {experiment.plan.entries.length > 0 ? (
                           <select
                             className="input"
@@ -831,18 +835,18 @@ export function ExperimentLab() {
                         )}
                       </label>
                       <label className="field">
-                        <span>Method</span>
+                        <span>方法</span>
                         <select
                           className="input"
                           value={trialForm.method}
                           onChange={(event) => handleMethodChange(event.target.value as Method)}
                         >
-                          <option value="baseline">baseline</option>
-                          <option value="intervention">intervention</option>
+                          <option value="baseline">基线（baseline）</option>
+                          <option value="intervention">干预（intervention）</option>
                         </select>
                       </label>
                       <label className="field">
-                        <span>Trial order</span>
+                        <span>试验顺序</span>
                         <select
                           className="input"
                           value={trialForm.trial_order}
@@ -858,7 +862,7 @@ export function ExperimentLab() {
                         </select>
                       </label>
                       <label className="field">
-                        <span>Fixture</span>
+                        <span>夹具</span>
                         <input
                           className="input"
                           value={trialForm.fixture}
@@ -871,7 +875,7 @@ export function ExperimentLab() {
                         />
                       </label>
                       <label className="field">
-                        <span>Result</span>
+                        <span>结果</span>
                         <select
                           className="input"
                           value={trialForm.grasp_success ? "success" : "failure"}
@@ -882,12 +886,12 @@ export function ExperimentLab() {
                             }))
                           }
                         >
-                          <option value="success">success</option>
-                          <option value="failure">failure</option>
+                          <option value="success">成功</option>
+                          <option value="failure">失败</option>
                         </select>
                       </label>
                       <label className="field">
-                        <span>Error (mm) *</span>
+                        <span>误差 (mm) *</span>
                         <input
                           className="input"
                           type="number"
@@ -900,7 +904,7 @@ export function ExperimentLab() {
                         />
                       </label>
                       <label className="field">
-                        <span>Rotation error (°)</span>
+                        <span>旋转误差 (°)</span>
                         <input
                           className="input"
                           type="number"
@@ -916,7 +920,7 @@ export function ExperimentLab() {
                         />
                       </label>
                       <label className="field">
-                        <span>Duration (s)</span>
+                        <span>时长 (s)</span>
                         <input
                           className="input"
                           type="number"
@@ -932,7 +936,7 @@ export function ExperimentLab() {
                         />
                       </label>
                       <label className="field">
-                        <span>Failure code</span>
+                        <span>失败代码</span>
                         <select
                           className="input"
                           value={trialForm.failure_code}
@@ -944,15 +948,15 @@ export function ExperimentLab() {
                             }))
                           }
                         >
-                          {Object.entries(failureCodes).map(([code, label]) => (
+                          {Object.keys(failureCodes).map((code) => (
                             <option key={code} value={code}>
-                              {code} — {label}
+                              {failureCodeLabel(code)} — {code}
                             </option>
                           ))}
                         </select>
                       </label>
                       <label className="field">
-                        <span>Failure detail</span>
+                        <span>失败详情</span>
                         <input
                           className="input"
                           value={trialForm.failure_detail}
@@ -966,7 +970,7 @@ export function ExperimentLab() {
                         />
                       </label>
                       <label className="field">
-                        <span>Measurement source</span>
+                        <span>测量来源</span>
                         <select
                           className="input"
                           value={trialForm.measurement_source}
@@ -979,13 +983,13 @@ export function ExperimentLab() {
                         >
                           {MEASUREMENT_SOURCES.map((source) => (
                             <option key={source} value={source}>
-                              {source}
+                              {measurementSourceLabel(source)}
                             </option>
                           ))}
                         </select>
                       </label>
                       <label className="field">
-                        <span>Trajectory dataset</span>
+                        <span>轨迹数据集</span>
                         <select
                           className="input"
                           value={trialForm.trajectory_id}
@@ -996,7 +1000,7 @@ export function ExperimentLab() {
                             }))
                           }
                         >
-                          <option value="">none</option>
+                          <option value="">无</option>
                           {trajectories.map((trajectory) => (
                             <option key={trajectory.trajectory_id} value={trajectory.trajectory_id}>
                               {trajectory.name}
@@ -1005,7 +1009,7 @@ export function ExperimentLab() {
                         </select>
                       </label>
                       <label className="field trial-form-wide">
-                        <span>Operator notes</span>
+                        <span>操作员备注</span>
                         <input
                           className="input"
                           value={trialForm.operator_notes}
@@ -1020,10 +1024,10 @@ export function ExperimentLab() {
                     </div>
                     <div className="button-row form-actions">
                       <Button variant="primary" onClick={() => void handleRecordTrial()} disabled={busy}>
-                        记录 trial
+                        记录试验
                       </Button>
                       <span className="hint">
-                        成功 trial 必须填写连续误差；失败 trial 必须选择失败代码。数据来源由实验定义决定。
+                        成功试验必须填写连续误差；失败试验必须选择失败代码。数据来源由实验定义决定。
                       </span>
                     </div>
                   </>
@@ -1031,24 +1035,24 @@ export function ExperimentLab() {
               </Card>
 
               <Card
-                title="Recorded trials"
-                subtitle={`${detail?.trials.length ?? 0} 条追加记录；按 pair 和 trial_order 排序`}
+                title="已记录试验"
+                subtitle={`${detail?.trials.length ?? 0} 条追加记录；按配对和试验顺序排序`}
               >
                 {detail && detail.trials.length > 0 ? (
                   <div className="table-wrap">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Pair</th>
+                          <th>配对</th>
                           <th>#</th>
-                          <th>Method</th>
-                          <th>Fixture</th>
-                          <th>Result</th>
-                          <th>Error (mm)</th>
-                          <th>Rotation (°)</th>
-                          <th>Duration (s)</th>
-                          <th>Truth</th>
-                          <th>Trajectory</th>
+                          <th>方法</th>
+                          <th>夹具</th>
+                          <th>结果</th>
+                          <th>误差 (mm)</th>
+                          <th>旋转 (°)</th>
+                          <th>时长 (s)</th>
+                          <th>真值</th>
+                          <th>轨迹</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1056,12 +1060,12 @@ export function ExperimentLab() {
                           <tr key={trial.trial_id}>
                             <td className="mono">{trial.pair_id}</td>
                             <td className="mono">{trial.trial_order}</td>
-                            <td>{trial.method}</td>
+                            <td>{methodLabel(trial.method)}</td>
                             <td>{trial.fixture}</td>
                             <td>
                               <StatusChip
                                 tone={trial.grasp_success ? "ok" : "fault"}
-                                label={trial.grasp_success ? "success" : "failure"}
+                                label={trial.grasp_success ? "成功" : "失败"}
                                 detail={trial.failure_detail || undefined}
                               />
                               {trial.failure_code && (
@@ -1093,7 +1097,7 @@ export function ExperimentLab() {
                     </table>
                   </div>
                 ) : (
-                  <EmptyState title="还没有 trial">
+                  <EmptyState title="还没有试验">
                     使用上面的表单记录第一条 baseline 或 intervention trial。
                   </EmptyState>
                 )}
@@ -1101,23 +1105,23 @@ export function ExperimentLab() {
             </div>
 
             <aside className="experiment-side">
-              <Card title="Definition" subtitle="创建后不可修改">
+              <Card title="定义" subtitle="创建后不可修改">
                 <div className="kv-list">
                   <KeyValue label="ID">{experiment.experiment_id}</KeyValue>
-                  <KeyValue label="Created">{experiment.created_at}</KeyValue>
-                  <KeyValue label="Origin">
+                  <KeyValue label="创建时间">{experiment.created_at}</KeyValue>
+                  <KeyValue label="来源">
                     <TruthBadge truth={experiment.data_origin === "simulated" ? "simulated" : "measured"} />
                   </KeyValue>
-                  <KeyValue label="Operator">{experiment.operator || "—"}</KeyValue>
-                  <KeyValue label="Robot">{experiment.robot_id || "—"}</KeyValue>
-                  <KeyValue label="Calibration">{experiment.calibration_version || "—"}</KeyValue>
-                  <KeyValue label="Mapping">{experiment.mapping_version || "—"}</KeyValue>
-                  <KeyValue label="Plan">
+                  <KeyValue label="操作员">{experiment.operator || "—"}</KeyValue>
+                  <KeyValue label="机器人">{experiment.robot_id || "—"}</KeyValue>
+                  <KeyValue label="标定">{experiment.calibration_version || "—"}</KeyValue>
+                  <KeyValue label="映射">{experiment.mapping_version || "—"}</KeyValue>
+                  <KeyValue label="计划">
                     {experiment.protocol.planned_pairs > 0
-                      ? `${experiment.plan.n_pairs} pairs, seed ${experiment.plan.seed}`
-                      : "manual (no plan)"}
+                      ? `${experiment.plan.n_pairs} 对，种子 ${experiment.plan.seed}`
+                      : "手动（无计划）"}
                   </KeyValue>
-                  <KeyValue label="Successes">
+                  <KeyValue label="成功率">
                     {analysis?.success
                       ? `${fmtPct(analysis.success.baseline_rate)} / ${fmtPct(
                           analysis.success.intervention_rate,
@@ -1125,10 +1129,10 @@ export function ExperimentLab() {
                       : "—"}
                   </KeyValue>
                 </div>
-                <p className="hint">{experiment.stop_rules || "No stop rules recorded."}</p>
+                <p className="hint">{experiment.stop_rules || "未记录停止规则。"}</p>
               </Card>
 
-              <Card title="Exports" subtitle="CSV 可用脚本复算；JSON 含定义、trials 与分析">
+              <Card title="导出" subtitle="CSV 可用脚本复算；JSON 含定义、试验与分析">
                 <div className="button-row export-row">
                   <a
                     className="button button-secondary"
@@ -1142,20 +1146,20 @@ export function ExperimentLab() {
                     href={api.experimentExportUrl(experiment.experiment_id, "json")}
                     download
                   >
-                    Metadata JSON
+                    元数据 JSON
                   </a>
                 </div>
               </Card>
 
-              <Card title="Failure codes" subtitle="失败 trial 必须归类">
+              <Card title="失败代码" subtitle="失败试验必须归类">
                 {analysis && analysis.available ? (
                   <div className="table-wrap">
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Code</th>
-                          <th>Baseline</th>
-                          <th>Intervention</th>
+                          <th>代码</th>
+                          <th>基线</th>
+                          <th>干预</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1177,7 +1181,7 @@ export function ExperimentLab() {
                             .sort()
                             .map((code) => (
                               <tr key={code}>
-                                <td className="mono">{code}</td>
+                                <td className="mono">{failureCodeLabel(code)}</td>
                                 <td className="mono">
                                   {analysis.methods.baseline?.failure_codes[code] ?? 0}
                                 </td>
@@ -1195,16 +1199,18 @@ export function ExperimentLab() {
                 )}
               </Card>
 
-              <Card title="Protocol notes" subtitle="方法学限制与可追溯信息">
+              <Card title="协议说明" subtitle="方法学限制与可追溯信息">
                 <ul className="note-list">
                   {analysis?.limitations.map((item) => <li key={item}>{item}</li>)}
                   <li>
                     分析版本 {analysis?.analysis_version ?? "—"}；同一 trials 与 seed 可复算。
                   </li>
                   <li>
-                    {diagnostics?.mapping.verification_status === "provisional" && experiment.data_origin === "hardware"
-                      ? "当前映射仍为 provisional；不要据此宣称硬件显著改善。"
-                      : "模拟实验只用于展示流程，不是硬件验证。"}
+                    {experiment.data_origin === "simulated"
+                      ? "模拟实验只用于展示流程，不是硬件验证。"
+                      : diagnostics?.mapping.verification_status === "provisional"
+                        ? "当前映射仍为暂定；不要据此宣称硬件显著改善。"
+                        : "映射已验证；硬件对比仍需结合夹具与测量误差解读。"}
                   </li>
                 </ul>
               </Card>

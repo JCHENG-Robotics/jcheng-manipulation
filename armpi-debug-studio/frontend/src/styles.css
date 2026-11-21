@@ -838,6 +838,16 @@ select:focus-visible {
   background: rgba(90, 169, 255, 0.08);
 }
 
+/* 姿态预设的名称是中文，旁边还有契约 id；步进模式的关节行只有 joint1。
+   这里只给姿态库加宽名称列，避免中文标签换行。 */
+.pose-selector .joint-option {
+  grid-template-columns: 112px 104px 1fr auto auto auto;
+}
+
+.pose-table td.mono {
+  white-space: nowrap;
+}
+
 .joint-name {
   font-weight: 700;
 }

@@ -121,14 +121,14 @@ class HardwareAdapter(RobotAdapter):
             level=FaultLevel.WARNING,
             code=FaultCode.HARDWARE_MOTION_DISABLED.value,
             message=(
-                "Hardware motion is disabled; the gateway is read-only"
+                "硬件运动未启用；网关为只读"
                 if gateway_url
-                else "ARMPI_GATEWAY_URL is not configured; motion is disabled"
+                else "未配置 ARMPI_GATEWAY_URL；运动已禁用"
             ),
             source="hardware_adapter",
             first_seen=utc_now_iso(),
             last_seen=utc_now_iso(),
-            remediation="Complete joint-mapping verification and obtain Board approval before motion",
+            remediation="完成关节映射验证并获得评审批准后再启用运动",
         )
 
     # ------------------------------------------------------------------ gateway
@@ -587,16 +587,15 @@ class HardwareAdapter(RobotAdapter):
             level=FaultLevel.FAULT,
             code=FaultCode.GATEWAY_SCOPE_MISMATCH.value,
             message=(
-                "backend runs pose takeover but the gateway reports "
-                f"motion_mode={mode!r}; dispatch is blocked"
+                "后端为姿态接管，但网关报告 "
+                f"motion_mode={mode!r}；已阻止下发"
             ),
             source="hardware_adapter",
             first_seen=now,
             last_seen=now,
             remediation=(
-                "generate a pose motion config and restart the motion gateway "
-                "instance with it, or start the backend with "
-                "ARMPI_MOTION_SCOPE=step"
+                "生成姿态运动配置并用它重启运动网关，或以 "
+                "ARMPI_MOTION_SCOPE=step 启动后端"
             ),
             details={"gateway_motion_mode": mode, "backend_scope": self.motion_scope},
         )
@@ -608,15 +607,15 @@ class HardwareAdapter(RobotAdapter):
             level=FaultLevel.FAULT,
             code=FaultCode.GATEWAY_MOTION_DISABLED.value,
             message=(
-                "backend hardware motion is enabled but the gateway reports "
+                "后端已启用硬件运动，但网关报告 "
                 "motion_enabled=false"
             ),
             source="hardware_adapter",
             first_seen=now,
             last_seen=now,
             remediation=(
-                "start the supervised gateway instance with --enable-motion "
-                "and a motion limits file, or disable ARMPI_HARDWARE_MOTION"
+                "用 --enable-motion 和运动限位文件启动受监督网关，"
+                "或关闭 ARMPI_HARDWARE_MOTION"
             ),
         )
 
@@ -659,11 +658,11 @@ class HardwareAdapter(RobotAdapter):
                     fault_id="gateway-offline",
                     level=FaultLevel.WARNING,
                     code="GATEWAY_OFFLINE",
-                    message=f"gateway not reachable at {self._gateway.base_url}",
+                    message=f"网关不可达：{self._gateway.base_url}",
                     source="hardware_adapter",
                     first_seen=now,
                     last_seen=now,
-                    remediation="Start armpi_debug_gateway on the robot or fix ARMPI_GATEWAY_URL",
+                    remediation="在机器人上启动 armpi_debug_gateway，或修正 ARMPI_GATEWAY_URL",
                 )
             )
 
@@ -719,10 +718,10 @@ class HardwareAdapter(RobotAdapter):
         health = self._health()
         if self._gateway is None:
             segments = [
-                SegmentStatus("serial", "unknown", "not probed", "G1 does not open the serial port"),
-                SegmentStatus("driver", "unknown", "not probed", "gateway not configured"),
-                SegmentStatus("gateway", "offline", "ARMPI_GATEWAY_URL is not configured", "no gateway client"),
-                SegmentStatus("feedback", "unavailable", "no gateway", "no feedback source"),
+                SegmentStatus("serial", "unknown", "未探测", "该后端不直接打开串口；由网关访问驱动"),
+                SegmentStatus("driver", "unknown", "未探测", "gateway not configured"),
+                SegmentStatus("gateway", "offline", "未配置 ARMPI_GATEWAY_URL", "no gateway client"),
+                SegmentStatus("feedback", "unavailable", "无网关", "no feedback source"),
             ]
             return ConnectionReport(
                 segments=segments,
@@ -731,8 +730,8 @@ class HardwareAdapter(RobotAdapter):
                 gateway_online=False,
                 feedback_fresh=False,
                 notes=[
-                    "Hardware Mode is read-only in this phase.",
-                    "No serial port was opened and no ROS node was started by this backend.",
+                    "未配置网关时，硬件模式只读。",
+                    "该后端不直接打开串口，也不启动 ROS 节点。",
                 ],
             )
 
@@ -743,11 +742,11 @@ class HardwareAdapter(RobotAdapter):
         joints_ready = bool(health.get("joints_ready")) if health else False
         measured_ready = bool(health.get("measured_ready")) if health else False
         segments = [
-            SegmentStatus("serial", "unknown", "owned by the vendor stack", "gateway is the only serial owner"),
+            SegmentStatus("serial", "unknown", "由厂商栈占用", "网关是串口的唯一持有者"),
             SegmentStatus(
                 "driver",
                 "online" if ros_ready else "offline",
-                "vendor ROS stack via gateway",
+                "厂商 ROS 栈（经网关）",
                 "GET /health ros_ready",
             ),
             SegmentStatus(
@@ -759,7 +758,7 @@ class HardwareAdapter(RobotAdapter):
             SegmentStatus(
                 "feedback",
                 "online" if (joints_ready or camera_ready or battery_ready) else "unavailable",
-                "battery/camera/joint state via gateway",
+                "经网关读取电池/相机/关节状态",
                 "GET /state, /battery, /camera/status",
             ),
         ]
@@ -835,15 +834,15 @@ class HardwareAdapter(RobotAdapter):
             level=FaultLevel.FAULT,
             code=FaultCode.MOTION_OUTCOME_UNKNOWN.value,
             message=(
-                "a hardware motion outcome could not be confirmed; motion is "
-                "latched until the backend is restarted after inspection"
+                "硬件运动结果无法确认；运动已锁定，"
+                "检查并重启后端后才能继续"
             ),
             source="hardware_adapter",
             first_seen=now,
             last_seen=now,
             remediation=(
-                "check the arm and the vendor stack, then restart the backend; "
-                "do not retry the command"
+                "检查机械臂与厂商栈，然后重启后端；"
+                "不要重试该命令"
             ),
             details={"command_id": command_id, "reason": reason},
         )

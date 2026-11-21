@@ -98,39 +98,39 @@ IDEMPOTENCY_TTL_S = 300
 KNOWN_DEFECTS = [
     {
         "id": "B-01",
-        "summary": "get_torque_state calls a non-existent method",
+        "summary": "get_torque_state 调用不存在的方法",
         "source": "ros_robot_controller_node.py:243",
-        "impact": "torque-state diagnostic raises AttributeError",
+        "impact": "扭矩诊断抛 AttributeError",
     },
     {
         "id": "B-02",
-        "summary": "button publisher uses an unimported PacketReportKeyEvents",
+        "summary": "按键发布者引用未导入的 PacketReportKeyEvents",
         "source": "ros_robot_controller_node.py:291",
-        "impact": "NameError when the button path is exercised",
+        "impact": "触发按键路径时抛 NameError",
     },
     {
         "id": "B-03",
-        "summary": "/joint_controller callback parameter type mismatch",
+        "summary": "/joint_controller 回调参数类型不匹配",
         "source": "controller_manager.py:91-95",
-        "impact": "that control entry point is unusable",
+        "impact": "该控制入口不可用",
     },
     {
         "id": "B-04",
-        "summary": "FollowJointTrajectory action sends no feedback",
+        "summary": "FollowJointTrajectory action 不发送反馈",
         "source": "joint_trajectory_action_controller.py",
-        "impact": "no progress evidence during trajectory execution",
+        "impact": "轨迹执行期间没有进度证据",
     },
     {
         "id": "B-05",
-        "summary": "trajectory action succeeds without checking actual position",
+        "summary": "轨迹 action 未检查实际位置就报告成功",
         "source": "joint_trajectory_action_controller.py:173",
-        "impact": "success does not prove the arm reached the target",
+        "impact": "成功不代表机械臂到达目标",
     },
     {
         "id": "B-06",
-        "summary": "joint_states is the last commanded pulse, not sensor feedback",
+        "summary": "joint_states 是最后下发的脉冲，不是传感器反馈",
         "source": "controller_manager.py:97-114",
-        "impact": "must be labelled truth=commanded, not measured",
+        "impact": "必须标记为 truth=commanded，而不是 measured",
     },
 ]
 
@@ -202,11 +202,11 @@ class RobotService:
             fault_id="storage-write-failed",
             level=FaultLevel.CRITICAL,
             code=FaultCode.STORAGE_WRITE_FAILED.value,
-            message="event store write failed; motion is locked out until repaired",
+            message="事件存储写入失败；修复前运动被锁定",
             source="persistence",
             first_seen=now,
             last_seen=now,
-            remediation="check DB_PATH permissions/disk and restart the backend",
+            remediation="检查 DB_PATH 权限/磁盘并重启后端",
         )
 
     def _drain_adapter_events(self) -> None:
@@ -796,16 +796,16 @@ class RobotService:
         camera_config = config["camera"]
         warnings: list[str] = []
         if not camera.get("available"):
-            warnings.append("Camera is unavailable; no frame can be shown.")
+            warnings.append("相机不可用；无法显示画面。")
         if camera.get("truth") == "simulated":
-            warnings.append("SIMULATION: the camera snapshot is synthetic.")
+            warnings.append("模拟：相机快照为合成画面。")
         if not camera_config.get("available"):
             warnings.append(
-                "Measured optical extrinsic is unavailable; the optical frame is not shown."
+                "缺少实测光学外参；不显示光学框架。"
             )
         warnings.append(
-            f"Image frame is {camera_config.get('body_frame')} (body). "
-            f"PnP must use {camera_config.get('frame')}, not the URDF nominal frame."
+            f"图像框架是 {camera_config.get('body_frame')}（机身）。"
+            f"PnP 必须使用 {camera_config.get('frame')}，不能用 URDF 标称框架。"
         )
         return {
             **camera,
@@ -880,12 +880,11 @@ class RobotService:
         warnings.extend(result["issues"])
         if not model.verified:
             warnings.append(
-                "URDF model is provisional: joint limits and meshes are not "
-                "hardware-verified."
+                "URDF 模型为暂定：关节限位与网格尚未经过硬件验证。"
             )
         if missing_arm:
             warnings.append(
-                "Missing arm joint state: " + ", ".join(missing_arm)
+                "缺少臂关节状态：" + ", ".join(missing_arm)
             )
         if max_age is not None and max_age > self.mapping.safety.feedback_max_age_ms:
             warnings.append(
@@ -995,8 +994,8 @@ class RobotService:
             tf_source = "urdf_fk"
             tf_truth = "model"
             warnings.append(
-                "No live tf2 subscription from the gateway; frames are URDF "
-                f"forward kinematics from truth={joint_truth} joint positions."
+                "网关没有实时 tf2 订阅；框架来自 URDF 前向运动学"
+                f"（关节真值={joint_truth} 位置）。"
             )
         else:
             gateway_status = str(live_tf.get("status", "unknown"))
@@ -2672,7 +2671,7 @@ class RobotService:
         if self.settings.mode is not Mode.MOCK:
             raise ServiceError(
                 ErrorCode.NOT_IMPLEMENTED.value,
-                "hardware feedback probe is not implemented in G1",
+                "硬件反馈探针尚未实现；请用姿态网关执行后的 GetBusServoState 校验",
                 status_code=503,
             )
         state = self._state()

@@ -16,36 +16,36 @@ export function SettingsPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Settings</h1>
+          <h1 className="page-title">设置</h1>
           <p className="page-subtitle">
-            G1 配置只读。危险配置（模式、阈值、映射）需 Board 批准并写审计事件，不能在 UI 直接修改。
+            配置只读。危险配置（模式、阈值、映射）需评审并写审计事件，不能在 UI 直接修改。
           </p>
         </div>
         <div className="page-actions">
-          <StatusChip tone="warning" label="read-only in G1" />
+          <StatusChip tone="warning" label="配置只读" />
         </div>
       </header>
 
       <div className="grid grid-2">
-        <Card title="Connection" subtitle="后端启动参数决定模式；UI 不提供运行时切换">
+        <Card title="连接与能力" subtitle="后端启动参数决定模式；UI 不提供运行时切换">
           <div className="kv-list">
-            <KeyValue label="Mode">
-              <StatusChip tone={robot.mode === "mock" ? "simulation" : "warning"} label={robot.mode} />
+            <KeyValue label="模式">
+              <StatusChip tone={robot.mode === "mock" ? "simulation" : "warning"} label={robot.mode === "mock" ? "模拟" : "硬件"} detail={robot.mode} />
             </KeyValue>
-            <KeyValue label="Browser origin">{window.location.origin}</KeyValue>
-            <KeyValue label="API path">/api（开发期由 Vite 代理到后端）</KeyValue>
-            <KeyValue label="Bind host">{String(diagnostics.environment.bind_host ?? "—")}</KeyValue>
-            <KeyValue label="ROS domain">未连接（G1 无 ROS 网关）</KeyValue>
-            <KeyValue label="Hardware motion">
+            <KeyValue label="浏览器来源">{window.location.origin}</KeyValue>
+            <KeyValue label="API 路径">/api（开发期由 Vite 代理到后端）</KeyValue>
+            <KeyValue label="绑定地址">{String(diagnostics.environment.bind_host ?? "—")}</KeyValue>
+            <KeyValue label="ROS 网关">经 <code>/state</code>、<code>/battery</code>、<code>/tf</code> 读取（不在本页配置）</KeyValue>
+            <KeyValue label="硬件运动">
               <StatusChip
                 tone={robot.capabilities.hardware_motion ? "ok" : "warning"}
-                label={robot.capabilities.hardware_motion ? "enabled" : "disabled"}
+                label={robot.capabilities.hardware_motion ? "已启用" : "已关闭"}
               />
             </KeyValue>
-            <KeyValue label="Hardware read">
+            <KeyValue label="硬件读取">
               <StatusChip
                 tone={robot.capabilities.hardware_read ? "ok" : "warning"}
-                label={robot.capabilities.hardware_read ? "enabled" : "not implemented"}
+                label={robot.capabilities.hardware_read ? "已启用" : "未启用"}
               />
             </KeyValue>
           </div>
@@ -54,10 +54,10 @@ export function SettingsPage() {
           </p>
         </Card>
 
-        <Card title="Display preferences" subtitle="仅保存在本浏览器；不影响后端">
+        <Card title="显示偏好" subtitle="仅保存在本浏览器；不影响后端">
           <div className="form-grid">
             <label className="field">
-              <span>Angle unit</span>
+              <span>角度单位</span>
               <select
                 className="input"
                 value={preferences.unit}
@@ -68,7 +68,7 @@ export function SettingsPage() {
               </select>
             </label>
             <label className="field">
-              <span>Decimals</span>
+              <span>小数位</span>
               <select
                 className="input"
                 value={preferences.decimals}
@@ -80,25 +80,25 @@ export function SettingsPage() {
               </select>
             </label>
             <label className="field">
-              <span>Time display</span>
+              <span>时间显示</span>
               <select
                 className="input"
                 value={preferences.timeMode}
                 onChange={(event) => preferences.setTimeMode(event.target.value as "local" | "utc")}
               >
-                <option value="local">local</option>
+                <option value="local">本地</option>
                 <option value="utc">UTC</option>
               </select>
             </label>
             <label className="field">
-              <span>Density</span>
+              <span>密度</span>
               <select
                 className="input"
                 value={preferences.density}
                 onChange={(event) => preferences.setDensity(event.target.value as "compact" | "comfortable")}
               >
-                <option value="compact">compact</option>
-                <option value="comfortable">comfortable</option>
+                <option value="compact">紧凑</option>
+                <option value="comfortable">宽松</option>
               </select>
             </label>
           </div>
@@ -106,12 +106,12 @@ export function SettingsPage() {
       </div>
 
       <Card
-        title="Joint mapping"
+        title="关节映射"
         subtitle={`${diagnostics.mapping.mapping_version} · ${diagnostics.mapping.verification_status}`}
         actions={
           <StatusChip
             tone={diagnostics.mapping.verified ? "ok" : "warning"}
-            label={diagnostics.mapping.verified ? "verified" : "provisional"}
+            label={diagnostics.mapping.verified ? "已验证" : "暂定"}
           />
         }
       >
@@ -119,14 +119,14 @@ export function SettingsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Joint</th>
-                <th>Servo</th>
-                <th>Init raw</th>
-                <th>Raw range</th>
-                <th>Direction</th>
-                <th>Rad range</th>
-                <th>Source</th>
-                <th>Verified</th>
+                <th>关节</th>
+                <th>舵机</th>
+                <th>初始原始值</th>
+                <th>原始范围</th>
+                <th>方向</th>
+                <th>弧度范围</th>
+                <th>来源</th>
+                <th>验证</th>
               </tr>
             </thead>
             <tbody>
@@ -143,20 +143,20 @@ export function SettingsPage() {
                     {formatNumber(joint.min_rad, 3)} … {formatNumber(joint.max_rad, 3)}
                   </td>
                   <td>{joint.limit_source}</td>
-                  <td>{joint.verified ? "yes" : "provisional"}</td>
+                  <td>{joint.verified ? "是" : "暂定"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="footnote">
-          编辑映射被禁用：需要实机测量、版本化与 Board 批准。当前 hash：
+          编辑映射被禁用：需要实机测量、版本化与评审。当前 hash：
           <span className="mono"> {diagnostics.mapping.mapping_hash.slice(0, 24)}…</span>
         </p>
       </Card>
 
       <div className="grid grid-2">
-        <Card title="Safety thresholds" subtitle="G1 只读；修改需二次确认与审计（G2）">
+        <Card title="安全阈值" subtitle="只读；修改需二次确认与审计">
           <div className="kv-list">
             {Object.entries(diagnostics.mapping.safety).map(([key, value]) => (
               <KeyValue key={key} label={key}>
@@ -166,16 +166,16 @@ export function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="Logging" subtitle="append-only SQLite；事件导出包含 schema version">
+        <Card title="日志与导出" subtitle="只追加 SQLite；事件导出包含 schema 版本">
           <div className="kv-list">
-            <KeyValue label="Event store">{String(diagnostics.environment.mapping_version ? "SQLite WAL" : "—")}</KeyValue>
-            <KeyValue label="Retention">30 days（设计值，清理任务未实现）</KeyValue>
-            <KeyValue label="Privacy">默认脱敏主机名与绝对路径（G2 实现）</KeyValue>
-            <KeyValue label="Storage error">
+            <KeyValue label="事件存储">{String(diagnostics.environment.mapping_version ? "SQLite WAL" : "—")}</KeyValue>
+            <KeyValue label="保留期">30 天（设计值，清理任务未实现）</KeyValue>
+            <KeyValue label="隐私">默认脱敏主机名与绝对路径</KeyValue>
+            <KeyValue label="存储错误">
               {diagnostics.storage_error ? (
                 <span className="error-text">{diagnostics.storage_error}</span>
               ) : (
-                "none"
+                "无"
               )}
             </KeyValue>
           </div>
@@ -187,20 +187,29 @@ export function SettingsPage() {
         </Card>
       </div>
 
-      <Card title="Roadmap" subtitle="未实现功能只列出，不放置可点击的假按钮">
+      <Card title="进度与限制" subtitle="未实现功能只列出，不放置可点击的假按钮">
         <ul className="roadmap-list">
           <li>
-            <strong>G1 supervised motion</strong> — 单关节、限位 provisional、网关按实测脉冲独立复核；
-            默认关闭，必须用固定的 ARMPI_HARDWARE_MOTION / ARMPI_SUPERVISED_MOTION_ACK 组合显式启用。
+            <strong>G6 单关节受控运动</strong> — 单关节、限位已普查、网关按实测脉冲独立复核；
+            默认关闭，必须用 <code>ARMPI_HARDWARE_MOTION</code> / <code>ARMPI_SUPERVISED_MOTION_ACK</code>
+            组合显式启用。
+          </li>
+          <li>
+            <strong>G7 姿态接管</strong> — 一次命令 = 五个关节或一个夹爪；姿态网关实例（8766）+
+            TAKEOVER 确认短语；完成以 <code>GetBusServoState</code> 实测寄存器为准。
+          </li>
+          <li>
+            <strong>G8 任务接管 + G8.1 底盘接近 + 快路径</strong> — 相机定位、深位姿抓取、7 个臂阶段、
+            夹持验证与放回；木块在抓取带外时同一次运行内先底盘接近。实测 13.46 s、落点 2.27 mm
+            （2026-11-21）。
           </li>
           <li>
             <strong>物理急停与独立编码器</strong> — 未实现；Stop 只是保持指令已发送，不是刹车。
           </li>
         </ul>
         <p className="footnote">
-          当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G2 Trajectory Inspector、
-          G3 Experiment Lab、G4 Visual Workbench、G5 记录器、G6 单关节路径与 G7 姿态接管已实现。
-          关节映射已验证；G7 只在显式启动的姿态网关实例（8766）与 TAKEOVER 确认短语下启用。
+          当前版本 {String(diagnostics.environment.backend_version ?? "—")}；G1–G8.1 与 G8 快路径已实现。
+          关节映射已验证；<code>/servo_states</code> 是命令缓存，不是实测反馈。无急停、无自碰撞模型。
         </p>
       </Card>
     </div>

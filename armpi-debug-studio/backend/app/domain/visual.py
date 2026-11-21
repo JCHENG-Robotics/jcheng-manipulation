@@ -669,7 +669,7 @@ def compute_frames(
             }
             frame_records.append(camera_frame)
 
-    issues = [f"missing joint state or FK input: {name}" for name in sorted(set(missing))]
+    issues = [f"缺少关节状态或 FK 输入：{name}" for name in sorted(set(missing))]
     return {
         "frames": frame_records,
         "camera_frame": camera_frame,

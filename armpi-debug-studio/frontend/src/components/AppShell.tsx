@@ -3,20 +3,21 @@ import { NavLink, Outlet } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { StopResult } from "../api/types";
 import { formatAge, formatClock, highestFaultLevel, maxFeedbackAge } from "../format";
+import { connectionLabel, modeLabel, severityLabel, stopStateLabel } from "../labels";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 import { getSessionId } from "../session";
 import { Button, SourceBadge, StatusChip } from "./ui";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/joints", label: "Joint Control" },
-  { to: "/task", label: "Task Takeover" },
-  { to: "/diagnostics", label: "Diagnostics" },
-  { to: "/trajectory", label: "Trajectory Inspector" },
-  { to: "/experiments", label: "Experiment Lab" },
-  { to: "/visual", label: "Visual Workbench" },
-  { to: "/events", label: "Event Timeline" },
-  { to: "/settings", label: "Settings" },
+  { to: "/", label: "总览", end: true },
+  { to: "/joints", label: "关节控制" },
+  { to: "/task", label: "任务接管" },
+  { to: "/diagnostics", label: "诊断" },
+  { to: "/trajectory", label: "轨迹检查" },
+  { to: "/experiments", label: "实验台" },
+  { to: "/visual", label: "可视化工作台" },
+  { to: "/events", label: "事件时间线" },
+  { to: "/settings", label: "设置" },
 ];
 
 function connectionTone(state: string | undefined): "ok" | "warning" | "fault" | "neutral" {
@@ -85,42 +86,43 @@ export function AppShell() {
         <div className="brand">
           <span className="brand-mark">ARM</span>
           <div>
-            <strong>ArmPi Debug Studio</strong>
-            <span className="brand-sub">G1 safe console</span>
+            <strong>ArmPi 调试工作台</strong>
+            <span className="brand-sub">安全调试控制台 · G8 快路径</span>
           </div>
         </div>
 
         <div className="topbar-status">
           <div className="topbar-field">
-            <span className="topbar-label">Robot</span>
+            <span className="topbar-label">机器人</span>
             <strong>{robot?.robot_id ?? "—"}</strong>
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Source</span>
+            <span className="topbar-label">来源</span>
             <SourceBadge source={sourceLabel} />
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Connection</span>
+            <span className="topbar-label">连接</span>
             <StatusChip
               tone={connectionTone(robot?.connection_state)}
-              label={robot?.connection_state ?? "Disconnected"}
+              label={robot?.connection_state ? connectionLabel(robot.connection_state) : "未连接"}
+              detail={robot?.connection_state}
             />
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Control owner</span>
+            <span className="topbar-label">控制权</span>
             <strong className="mono">
-              {lease ? lease.session_id.slice(0, 8) : robot?.control_owner ? robot.control_owner.slice(0, 8) : "none"}
+              {lease ? lease.session_id.slice(0, 8) : robot?.control_owner ? robot.control_owner.slice(0, 8) : "无"}
             </strong>
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Feedback age</span>
+            <span className="topbar-label">反馈时延</span>
             <StatusChip
               tone={feedbackAge === null ? "neutral" : feedbackAge > 500 ? "fault" : "ok"}
               label={formatAge(feedbackAge)}
             />
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Faults</span>
+            <span className="topbar-label">故障</span>
             <StatusChip
               tone={
                 faultLevel === "critical"
@@ -131,14 +133,15 @@ export function AppShell() {
                       ? "warning"
                       : "ok"
               }
-              label={faultLevel ? `${faultLevel} (${robot?.faults.length ?? 0})` : "none"}
+              label={faultLevel ? `${severityLabel(faultLevel)} (${robot?.faults.length ?? 0})` : "无"}
+              detail={faultLevel ?? undefined}
             />
           </div>
           <div className="topbar-field">
-            <span className="topbar-label">Safety gate</span>
+            <span className="topbar-label">安全门禁</span>
             <StatusChip
               tone={ready ? "ok" : "warning"}
-              label={ready ? "ready" : "blocked"}
+              label={ready ? "就绪" : "已阻止"}
               detail={diagnostics?.safety.blockers.join(", ")}
             />
           </div>
@@ -177,7 +180,7 @@ export function AppShell() {
                   ? "fault"
                   : "warning"
             }
-            label={stopResult.state}
+            label={stopStateLabel(stopResult.state)}
           />
           <span>{stopResult.detail}</span>
           <span className="muted">{stopResult.evidence}</span>
@@ -200,8 +203,11 @@ export function AppShell() {
             </NavLink>
           ))}
           <div className="nav-note">
-            <strong>G1–G8 范围</strong>
-            <p>Mock 完整演示；Hardware 默认只读，运动需显式接管（G7 姿态 / G8 任务）。</p>
+            <strong>G1–G8.1 范围</strong>
+            <p>
+              Mock 完整演示；硬件默认只读，运动需显式接管（G6 单关节 / G7 姿态 / G8 任务）。
+              G8 快路径一次运行完成底盘接近 + 7 个臂阶段 + 放回。
+            </p>
           </div>
         </nav>
 
@@ -211,12 +217,12 @@ export function AppShell() {
       </div>
 
       <footer className="statusbar">
-        <span>mode: {mode}</span>
-        <span>mapping: {robot?.mapping_version ?? "—"}</span>
-        <span>limits: {robot?.limit_version ?? "—"}</span>
-        <span>last event: {lastEvent ? formatClock(lastEvent.wall_time, preferences.timeMode) : "—"}</span>
-        <span>backend: {String(diagnostics?.environment.backend_version ?? "—")}</span>
-        <span>clock: {preferences.timeMode.toUpperCase()}</span>
+        <span>模式：{modeLabel(mode)}</span>
+        <span>映射：{robot?.mapping_version ?? "—"}</span>
+        <span>限位：{robot?.limit_version ?? "—"}</span>
+        <span>最近事件：{lastEvent ? formatClock(lastEvent.wall_time, preferences.timeMode) : "—"}</span>
+        <span>后端：{String(diagnostics?.environment.backend_version ?? "—")}</span>
+        <span>时钟：{preferences.timeMode === "utc" ? "UTC" : "本地"}</span>
       </footer>
     </div>
   );

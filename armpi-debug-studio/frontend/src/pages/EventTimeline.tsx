@@ -3,6 +3,7 @@ import type { EventRecord } from "../api/types";
 import { api } from "../api/client";
 import { Button, Card, EmptyState, KeyValue, StatusChip } from "../components/ui";
 import { formatClock, formatTime, isFaultStage, isWarningStage } from "../format";
+import { stageLabel } from "../labels";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
 function severityOf(event: EventRecord): "fault" | "warning" | "info" {
@@ -60,9 +61,9 @@ export function EventTimeline() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Event Timeline</h1>
+          <h1 className="page-title">事件时间线</h1>
           <p className="page-subtitle">
-            命令、状态与错误事件。事件 append-only；故障时可冻结视图而不丢缓冲。
+            命令、状态与错误事件。事件只追加；故障时可冻结视图而不丢缓冲。
           </p>
         </div>
         <div className="page-actions">
@@ -94,8 +95,8 @@ export function EventTimeline() {
       )}
 
       <Card
-        title="Filters"
-        subtitle={`${visible.length} / ${events.length} events`}
+        title="筛选"
+        subtitle={`${visible.length} / ${events.length} 条事件`}
         actions={
           <Button
             variant="ghost"
@@ -112,20 +113,20 @@ export function EventTimeline() {
       >
         <div className="filter-grid">
           <label className="field">
-            <span>Stage</span>
+            <span>阶段</span>
             <select className="input" value={stage} onChange={(event) => setStage(event.target.value)}>
-              <option value="">all</option>
+              <option value="">全部</option>
               {stages.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {stageLabel(item)} ({item})
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            <span>Source</span>
+            <span>来源</span>
             <select className="input" value={source} onChange={(event) => setSource(event.target.value)}>
-              <option value="">all</option>
+              <option value="">全部</option>
               {sources.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -134,16 +135,16 @@ export function EventTimeline() {
             </select>
           </label>
           <label className="field">
-            <span>Severity</span>
+            <span>严重度</span>
             <select className="input" value={severity} onChange={(event) => setSeverity(event.target.value)}>
-              <option value="">all</option>
-              <option value="info">info</option>
-              <option value="warning">warning</option>
-              <option value="fault">fault</option>
+              <option value="">全部</option>
+              <option value="info">信息</option>
+              <option value="warning">警告</option>
+              <option value="fault">故障</option>
             </select>
           </label>
           <label className="field">
-            <span>Command ID</span>
+            <span>命令 ID</span>
             <input
               className="input mono"
               value={commandId}
@@ -155,7 +156,7 @@ export function EventTimeline() {
       </Card>
 
       <div className="timeline-layout">
-        <Card title="Events" subtitle="点击一行查看完整 JSON">
+        <Card title="事件" subtitle="点击一行查看完整 JSON">
           {visible.length === 0 ? (
             <EmptyState title="没有匹配的事件">
               执行一次预览、故障注入或停止请求后，事件会出现在这里。
@@ -165,12 +166,12 @@ export function EventTimeline() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Stage</th>
-                    <th>Source</th>
-                    <th>Command</th>
-                    <th>Result</th>
-                    <th>Error</th>
+                    <th>时间</th>
+                    <th>阶段</th>
+                    <th>来源</th>
+                    <th>命令</th>
+                    <th>结果</th>
+                    <th>错误</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -184,7 +185,8 @@ export function EventTimeline() {
                       <td>
                         <StatusChip
                           tone={severityOf(event) === "fault" ? "fault" : severityOf(event) === "warning" ? "warning" : "info"}
-                          label={event.stage}
+                          label={stageLabel(event.stage)}
+                          detail={event.stage}
                         />
                       </td>
                       <td>{event.source}</td>
@@ -202,8 +204,8 @@ export function EventTimeline() {
         </Card>
 
         <Card
-          title="Event detail"
-          subtitle={selected ? selected.event_id : "select an event"}
+          title="事件详情"
+          subtitle={selected ? selected.event_id : "选择一条事件"}
           actions={
             selected && (
               <Button variant="secondary" onClick={() => void copySelected()}>
@@ -214,12 +216,14 @@ export function EventTimeline() {
         >
           {selected ? (
             <div className="event-detail">
-              <KeyValue label="Time">{formatTime(selected.wall_time, preferences.timeMode)}</KeyValue>
-              <KeyValue label="Monotonic">{selected.monotonic_ms.toFixed(3)} ms</KeyValue>
-              <KeyValue label="Stage">{selected.stage}</KeyValue>
-              <KeyValue label="Source">{selected.source}</KeyValue>
-              <KeyValue label="Command">{selected.command_id ?? "—"}</KeyValue>
-              <KeyValue label="Error">{selected.error_code ?? "—"}</KeyValue>
+              <KeyValue label="时间">{formatTime(selected.wall_time, preferences.timeMode)}</KeyValue>
+              <KeyValue label="单调时钟">{selected.monotonic_ms.toFixed(3)} ms</KeyValue>
+              <KeyValue label="阶段">
+                {stageLabel(selected.stage)}（<span className="mono">{selected.stage}</span>）
+              </KeyValue>
+              <KeyValue label="来源">{selected.source}</KeyValue>
+              <KeyValue label="命令">{selected.command_id ?? "—"}</KeyValue>
+              <KeyValue label="错误">{selected.error_code ?? "—"}</KeyValue>
               <KeyValue label="Schema">{selected.schema_version}</KeyValue>
               <pre className="code-block">{JSON.stringify(selected, null, 2)}</pre>
             </div>

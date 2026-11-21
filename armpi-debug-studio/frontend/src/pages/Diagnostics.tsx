@@ -8,9 +8,9 @@ import {
   ErrorBanner,
   KeyValue,
   StatusChip,
-  TruthBadge,
 } from "../components/ui";
 import { formatAngle, formatNumber } from "../format";
+import { segmentStateLabel, severityLabel, truthLabel } from "../labels";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
 const FAULT_OPTIONS = [
@@ -98,27 +98,42 @@ export function DiagnosticsPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Diagnostics</h1>
+          <h1 className="page-title">诊断</h1>
           <p className="page-subtitle">
-            ROS 图、串口、已知 Driver 缺陷、单次探针与 Mock 故障注入。缺失数据必须显示 Unavailable。
+            ROS 图、串口、已知 Driver 缺陷、单次探针与 Mock 故障注入。缺失数据必须显示“不可用”。
           </p>
         </div>
         <div className="page-actions">
-          <StatusChip tone={diagnostics.safety.ready ? "ok" : "warning"} label={diagnostics.safety.ready ? "ready" : "blocked"} />
-          <StatusChip tone={isMock ? "simulation" : "warning"} label={isMock ? "SIMULATION" : "LIVE / read-only"} />
+          <StatusChip
+            tone={diagnostics.safety.ready ? "ok" : "warning"}
+            label={diagnostics.safety.ready ? "安全门禁就绪" : "安全门禁已阻止"}
+          />
+          <StatusChip
+            tone={isMock ? "simulation" : "warning"}
+            label={
+              isMock
+                ? "模拟"
+                : robot.capabilities.hardware_motion
+                  ? "实机 · 运动已启用"
+                  : "实机 · 只读"
+            }
+          />
         </div>
       </header>
 
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       {!isMock && (
         <div className="banner banner-warning">
-          <strong>Hardware gateway not implemented</strong>
-          <span>E7 只读网关尚未实现；不会打开串口，也不会启动 ROS 节点。</span>
+          <strong>硬件读路径</strong>
+          <span>
+            状态、电池与相机经只读网关读取；运动由姿态/任务网关执行，默认关闭。本页面不会打开串口，
+            也不会启动 ROS 节点。
+          </span>
         </div>
       )}
 
       <div className="grid grid-2">
-        <Card title="Connection / ROS graph" subtitle="期望链路 vs 实际证据">
+        <Card title="连接 / ROS 图" subtitle="期望链路 vs 实际证据">
           <div className="chain">
             {diagnostics.connection.segments.map((segment) => (
               <div className="chain-segment" key={segment.name}>
@@ -134,53 +149,54 @@ export function DiagnosticsPage() {
                             ? "fault"
                             : "warning"
                     }
-                    label={segment.state}
+                    label={segmentStateLabel(segment.state)}
+                    detail={segment.state}
                   />
                 </div>
                 <p>{segment.detail}</p>
-                <span className="evidence">evidence: {segment.evidence}</span>
+                <span className="evidence">证据：{segment.evidence}</span>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card title="Environment" subtitle="版本与映射来源">
+        <Card title="环境" subtitle="版本与映射来源">
           <div className="kv-list">
-            <KeyValue label="Robot">{robot.robot_id}</KeyValue>
-            <KeyValue label="Mode">{diagnostics.mode}</KeyValue>
-            <KeyValue label="Backend">{String(diagnostics.environment.backend_version ?? "—")}</KeyValue>
+            <KeyValue label="机器人">{robot.robot_id}</KeyValue>
+            <KeyValue label="模式">{diagnostics.mode === "mock" ? "模拟（Mock）" : "硬件"}</KeyValue>
+            <KeyValue label="后端">{String(diagnostics.environment.backend_version ?? "—")}</KeyValue>
             <KeyValue label="Python">{String(diagnostics.environment.python ?? "—")}</KeyValue>
-            <KeyValue label="Bind host">{String(diagnostics.environment.bind_host ?? "—")}</KeyValue>
-            <KeyValue label="Mapping version">{diagnostics.mapping.mapping_version}</KeyValue>
-            <KeyValue label="Mapping hash">
+            <KeyValue label="绑定地址">{String(diagnostics.environment.bind_host ?? "—")}</KeyValue>
+            <KeyValue label="映射版本">{diagnostics.mapping.mapping_version}</KeyValue>
+            <KeyValue label="映射哈希">
               <span className="mono">{diagnostics.mapping.mapping_hash.slice(0, 16)}…</span>
             </KeyValue>
-            <KeyValue label="Limits">
+            <KeyValue label="限位">
               <StatusChip
                 tone={diagnostics.mapping.verified ? "ok" : "warning"}
-                label={diagnostics.mapping.verified ? "verified" : "provisional"}
+                label={diagnostics.mapping.verified ? "已验证" : "暂定"}
               />
             </KeyValue>
-            <KeyValue label="Storage error">
+            <KeyValue label="存储错误">
               {diagnostics.storage_error ? (
                 <span className="error-text">{diagnostics.storage_error}</span>
               ) : (
-                "none"
+                "无"
               )}
             </KeyValue>
           </div>
         </Card>
       </div>
 
-      <Card title="Known vendor defects" subtitle="来自 G0 只读审计；未修补前不得依赖这些路径">
+      <Card title="已知厂商缺陷" subtitle="来自 G0 只读审计；未修补前不得依赖这些路径">
         <div className="table-wrap">
           <table className="data-table">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Summary</th>
-                <th>Source</th>
-                <th>Impact</th>
+                <th>摘要</th>
+                <th>来源</th>
+                <th>影响</th>
               </tr>
             </thead>
             <tbody>
@@ -199,8 +215,8 @@ export function DiagnosticsPage() {
 
       <div className="grid grid-2">
         <Card
-          title="Feedback probe"
-          subtitle="单次读取；G1 仅 Mock 可用"
+          title="反馈探针"
+          subtitle="单次读取；当前仅 Mock 可用"
           actions={
             <Button variant="primary" onClick={() => void runProbe()} disabled={busy || !diagnostics.probe_available}>
               {busy ? "探测中…" : "运行探针"}
@@ -208,21 +224,21 @@ export function DiagnosticsPage() {
           }
         >
           {!diagnostics.probe_available ? (
-            <EmptyState title="Hardware probe not implemented">
-              G1 不打开串口。需要 E7 只读网关与 Board 授权后才能做真实探针。
+            <EmptyState title="硬件探针尚未实现">
+              硬件模式不提供单次探针；实际寄存器请通过姿态网关执行后的 <code>GetBusServoState</code> 校验查看。
             </EmptyState>
           ) : probe ? (
             <div className="table-wrap">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Joint</th>
-                    <th>Servo</th>
-                    <th>OK</th>
-                    <th>Raw</th>
-                    <th>Position</th>
-                    <th>Duration</th>
-                    <th>Truth</th>
+                    <th>关节</th>
+                    <th>舵机</th>
+                    <th>成功</th>
+                    <th>原始值</th>
+                    <th>位置</th>
+                    <th>耗时</th>
+                    <th>真值</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,13 +246,19 @@ export function DiagnosticsPage() {
                     <tr key={result.joint}>
                       <td className="mono">{result.joint}</td>
                       <td className="mono">{result.servo_id}</td>
-                      <td>{result.ok ? "yes" : <span className="error-text">no</span>}</td>
-                      <td className="mono">{result.raw_position ?? "Unavailable"}</td>
+                      <td>{result.ok ? "是" : <span className="error-text">否</span>}</td>
+                      <td className="mono">{result.raw_position ?? "不可用"}</td>
                       <td className="mono">
                         {formatAngle(result.position_rad, preferences.unit, preferences.decimals)}
                       </td>
                       <td className="mono">{result.duration_ms} ms</td>
-                      <td><TruthBadge truth={result.truth} /></td>
+                      <td>
+                        <StatusChip
+                          tone={result.truth === "simulated" ? "simulation" : "ok"}
+                          label={truthLabel(result.truth)}
+                          detail={`truth=${result.truth}`}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -249,7 +271,7 @@ export function DiagnosticsPage() {
         </Card>
 
         <Card
-          title="Mock fault injection"
+          title="Mock 故障注入"
           subtitle="仅 Mock 模式；用于验证门禁与 UI 降级"
           actions={
             isMock && (
@@ -260,12 +282,12 @@ export function DiagnosticsPage() {
           }
         >
           {!isMock ? (
-            <EmptyState title="Fault injection unavailable">Hardware Mode 不允许注入模拟故障。</EmptyState>
+            <EmptyState title="故障注入不可用">硬件模式不允许注入模拟故障。</EmptyState>
           ) : (
             <>
               <div className="form-grid">
                 <label className="field">
-                  <span>Fault</span>
+                  <span>故障类型</span>
                   <select
                     className="input"
                     value={faultKind}
@@ -280,7 +302,7 @@ export function DiagnosticsPage() {
                 </label>
                 {faultKind === "missing_servo" && (
                   <label className="field">
-                    <span>Joint</span>
+                    <span>关节</span>
                     <select
                       className="input"
                       value={faultJoint}
@@ -306,7 +328,8 @@ export function DiagnosticsPage() {
                     <div className="fault-item" key={fault.kind}>
                       <StatusChip
                         tone={fault.level === "critical" ? "critical" : "fault"}
-                        label={fault.level}
+                        label={severityLabel(fault.level)}
+                        detail={fault.level}
                       />
                       <strong className="mono">{fault.kind}</strong>
                       {fault.joint && <span className="muted">joint={fault.joint}</span>}
@@ -321,7 +344,7 @@ export function DiagnosticsPage() {
         </Card>
       </div>
 
-      <Card title="Safety checks" subtitle="与 Dashboard 相同的 12 项门禁">
+      <Card title="安全检查" subtitle="与总览相同的 12 项门禁">
         <div className="check-grid">
           {diagnostics.safety.checks.map((check) => (
             <div
@@ -332,7 +355,7 @@ export function DiagnosticsPage() {
                 <span className="check-id">{check.check_id}</span>
                 <StatusChip
                   tone={check.passed ? "ok" : check.blocking ? "fault" : "warning"}
-                  label={check.passed ? "pass" : check.blocking ? "block" : "warn"}
+                  label={check.passed ? "通过" : check.blocking ? "阻止" : "警告"}
                 />
               </div>
               <strong>{check.label}</strong>

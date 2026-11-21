@@ -450,7 +450,7 @@ class MockRobotAdapter(RobotAdapter):
             measured_min_raw=gripper.measured_min_raw,
             measured_max_raw=gripper.measured_max_raw,
             completion=gripper.completion,
-            notes=["simulated; completion is timed, not force-verified"],
+            notes=["模拟；完成按时间判定，未做力校验"],
         )
 
     def snapshot(self) -> RobotState:
@@ -485,25 +485,25 @@ class MockRobotAdapter(RobotAdapter):
             SegmentStatus(
                 name="serial",
                 state="simulated",
-                detail="mock adapter; no /dev/rrc opened",
+                detail="Mock 适配器；未打开 /dev/rrc",
                 evidence="ARMPI_MODE=mock",
             ),
             SegmentStatus(
                 name="driver",
                 state="offline" if driver_fault else "simulated",
-                detail="mock driver state",
+                detail="Mock 驱动状态",
                 evidence="no vendor ROS node",
             ),
             SegmentStatus(
                 name="gateway",
                 state="offline" if disconnected else "online",
-                detail="in-process mock adapter; no ROS gateway",
+                detail="进程内 Mock 适配器；无 ROS 网关",
                 evidence="mock adapter",
             ),
             SegmentStatus(
                 name="feedback",
                 state="unavailable" if feedback_fault else "simulated",
-                detail="simulated positions, not sensor feedback",
+                detail="模拟位置，不是传感器反馈",
                 evidence="truth=simulated",
             ),
         ]
@@ -514,8 +514,8 @@ class MockRobotAdapter(RobotAdapter):
             gateway_online=not disconnected,
             feedback_fresh=not feedback_fault,
             notes=[
-                "SIMULATION: no serial port, ROS node, or hardware was accessed.",
-                "Mock positions are synthetic and must not be treated as hardware feedback.",
+                "模拟：未访问串口、ROS 节点或硬件。",
+                "Mock 位置是合成值，不能当作硬件反馈。",
             ],
         )
 
@@ -540,7 +540,7 @@ class MockRobotAdapter(RobotAdapter):
                 topic="/ros_robot_controller/battery",
                 received_at=utc_now_iso(),
                 sample_age_ms=None,
-                notes=["SIMULATION: battery unavailable due to an injected mock fault."],
+                notes=["模拟：注入故障导致电池不可用。"],
             )
 
         # 2S Li-ion: 6.4 V empty, 8.4 V full. The mock starts near the measured
@@ -570,7 +570,7 @@ class MockRobotAdapter(RobotAdapter):
             topic="/ros_robot_controller/battery",
             received_at=utc_now_iso(),
             sample_age_ms=0,
-            notes=["SIMULATION: synthetic 2S voltage; not a hardware measurement."],
+            notes=["模拟：合成的 2S 电压；不是硬件测量值。"],
         )
 
     def camera_status(self) -> CameraStatus:
@@ -594,7 +594,7 @@ class MockRobotAdapter(RobotAdapter):
                 last_frame_at=None,
                 sample_age_ms=None,
                 frame_count=self._camera_frames,
-                notes=["SIMULATION: camera unavailable due to an injected mock fault."],
+                notes=["模拟：注入故障导致相机不可用。"],
             )
 
         elapsed = max(0.0, now - self._camera_started)
@@ -612,7 +612,7 @@ class MockRobotAdapter(RobotAdapter):
             last_frame_at=utc_now_iso(),
             sample_age_ms=0,
             frame_count=self._camera_frames,
-            notes=["SIMULATION: generated placeholder; no camera device accessed."],
+            notes=["模拟：生成的占位画面；未访问相机设备。"],
         )
 
     def camera_snapshot(self) -> tuple[bytes, str] | None:
@@ -663,7 +663,7 @@ class MockRobotAdapter(RobotAdapter):
                 last_frame_at=None,
                 sample_age_ms=None,
                 frame_count=self._aux_camera_frames,
-                notes=["SIMULATION: aux camera unavailable due to an injected mock fault."],
+                notes=["模拟：注入故障导致辅助相机不可用。"],
             )
 
         elapsed = max(0.0, now - self._aux_camera_started)
@@ -682,7 +682,7 @@ class MockRobotAdapter(RobotAdapter):
             sample_age_ms=0,
             frame_count=self._aux_camera_frames,
             notes=[
-                "SIMULATION: generated aux placeholder; no UVC device was opened."
+                "模拟：生成的辅助占位画面；未打开 UVC 设备。"
             ],
         )
 

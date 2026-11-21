@@ -5,24 +5,24 @@ test.describe("Visual Workbench (read-only, mock backend)", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Visual Workbench" }).click();
-    await expect(page.getByRole("heading", { name: "Visual Workbench", level: 1 })).toBeVisible();
+    await page.getByRole("link", { name: "可视化工作台" }).click();
+    await expect(page.getByRole("heading", { name: "可视化工作台", level: 1 })).toBeVisible();
 
     await expect(page.getByText("只读可视化", { exact: true })).toBeVisible();
-    await expect(page.getByLabel("URDF kinematic model")).toBeVisible();
-    await expect(page.getByText("URDF model is provisional", { exact: false })).toBeVisible();
-    await expect(page.getByText("No live tf2 subscription", { exact: false })).toBeVisible();
+    await expect(page.getByLabel("URDF 运动学模型")).toBeVisible();
+    await expect(page.getByText("URDF 模型为暂定", { exact: false })).toBeVisible();
+    await expect(page.getByText("网关没有实时 tf2 订阅", { exact: false })).toBeVisible();
 
     const camera = page.locator("section", {
-      has: page.getByRole("heading", { name: "Camera · RGB" }),
+      has: page.getByRole("heading", { name: "相机 · RGB" }),
     });
-    await expect(camera.locator('img[alt="ArmPi camera"]')).toBeVisible();
+    await expect(camera.locator('img[alt="ArmPi 相机"]')).toBeVisible();
     await expect(camera).toContainText("640×400");
     await expect(camera).toContainText("rgb_camera_link");
     await expect(camera).toContainText("camera_optical_calibrated");
 
     const joints = page.locator("section", {
-      has: page.getByRole("heading", { name: "Joints and limits" }),
+      has: page.getByRole("heading", { name: "关节与限位" }),
     });
     await expect(joints.locator("tbody tr")).toHaveCount(11);
 
@@ -31,13 +31,13 @@ test.describe("Visual Workbench (read-only, mock backend)", () => {
     const lastSeq = beforeBody.items[0]?.seq ?? 0;
 
     await page
-      .getByPlaceholder("reference note (e.g. pre-run sample)")
+      .getByPlaceholder("引用备注（如：运行前采样）")
       .fill("playwright visual reference");
     await page.getByRole("button", { name: "保存引用" }).click();
-    await expect(page.getByText("已保存引用", { exact: false })).toBeVisible();
+    await expect(page.getByText(/已保存引用 ref_/)).toBeVisible();
 
     const references = page.locator("section", {
-      has: page.getByRole("heading", { name: "Saved references" }),
+      has: page.getByRole("heading", { name: "已保存引用" }),
     });
     await expect(references).toContainText("playwright visual reference");
 

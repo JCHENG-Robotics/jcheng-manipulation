@@ -14,6 +14,7 @@ import {
   ValidityBadge,
 } from "../components/ui";
 import { formatAngle, formatClock, formatNumber } from "../format";
+import { connectionLabel, stageLabel, stopStateLabel } from "../labels";
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 import { PoseTakeover } from "./PoseTakeover";
@@ -83,10 +84,10 @@ export function JointControl() {
 
   const supervised = robot.capabilities.supervised_motion;
   const disabledReason = (() => {
-    if (hardwareBlocked) return "硬件运动未启用（后端或网关 motion disabled）";
+    if (hardwareBlocked) return "硬件运动未启用（后端或网关已关闭运动）";
     if (!preview) return "先完成预览";
-    if (!preview.valid) return "预览未通过，检查 validation errors";
-    if (!preview.preview_token) return "预览没有签发 token";
+    if (!preview.valid) return "预览未通过，检查错误列表";
+    if (!preview.preview_token) return "预览未签发令牌";
     if (!lease) return "需要控制权租约";
     if (previewExpired) return "预览已过期，请重新预览";
     if (!safetyReady) return `安全门禁阻止：${diagnostics.safety.blockers.join(", ")}`;
@@ -193,7 +194,7 @@ export function JointControl() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Joint Control</h1>
+          <h1 className="page-title">关节控制</h1>
           <p className="page-subtitle">
             单关节目标。严格流程：输入 → 预览 → 二次确认 → 执行。滑块只更新本地输入，不发送命令。
           </p>
@@ -201,32 +202,32 @@ export function JointControl() {
         <div className="page-actions">
           <StatusChip
             tone={robot.source_label === "SIMULATION" ? "simulation" : "ok"}
-            label={robot.source_label}
+            label={robot.source_label === "SIMULATION" ? "模拟" : "实机"}
+            detail={robot.source_label}
           />
-          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "lease held" : "no lease"} />
+          <StatusChip tone={lease ? "ok" : "warning"} label={lease ? "持有控制权" : "无控制权"} />
         </div>
       </header>
 
       {hardwareBlocked && (
         <div className="banner banner-warning">
-          <strong>Hardware motion disabled</strong>
-          <span>后端或网关未启用运动。Execute 会被拒绝，不会伪造运动结果。</span>
+          <strong>硬件运动未启用</strong>
+          <span>后端或网关未启用运动。执行会被拒绝，不会伪造运动结果。</span>
         </div>
       )}
       {supervised && !hardwareBlocked && (
         <div className="banner banner-warning">
-          <strong>SUPERVISED PROVISIONAL LIMITS</strong>
+          <strong>受控运动模式</strong>
           <span>
-            限位仍标记为 provisional（mapping_verified=false）。每次只允许一个关节，
-            最大步长 {formatNumber(robot.capabilities.max_step_rad, 3)} rad，时长 ≥{" "}
-            {robot.capabilities.min_duration_s} s。停止只是“保持指令已发送”，
-            不是物理确认，也不是急停。
+            每次只允许一个关节，最大步长 {formatNumber(robot.capabilities.max_step_rad, 3)} rad，时长 ≥{" "}
+            {robot.capabilities.min_duration_s} s。限位映射已验证，但停机点随姿态变化；
+            停止只是“保持指令已发送”，不是物理确认，也不是急停。
           </span>
         </div>
       )}
       {!safetyReady && (
         <div className="banner banner-fault">
-          <strong>Safety gate blocked</strong>
+          <strong>安全门禁已阻止</strong>
           <span>{diagnostics.safety.blockers.join(", ")}</span>
         </div>
       )}
@@ -241,7 +242,8 @@ export function JointControl() {
                   ? "fault"
                   : "warning"
             }
-            label={stopResult.state}
+            label={stopStateLabel(stopResult.state)}
+            detail={stopResult.state}
           />
           <span>{stopResult.detail}</span>
           <span className="muted">{stopResult.evidence}</span>
@@ -252,7 +254,7 @@ export function JointControl() {
       )}
 
       <div className="grid grid-2">
-        <Card title="Joints" subtitle="G1 只暴露 5 个臂关节；夹爪不在范围内">
+        <Card title="关节" subtitle="单关节步进模式只暴露 5 个臂关节；夹爪在姿态接管页">
           <div className="joint-selector">
             {robot.joints.map((item) => (
               <button
@@ -262,7 +264,7 @@ export function JointControl() {
                 onClick={() => setSelected(item.name)}
               >
                 <span className="joint-name mono">{item.name}</span>
-                <span className="joint-meta">servo {item.servo_id}</span>
+                <span className="joint-meta">舵机 {item.servo_id}</span>
                 <span className="joint-target mono">
                   {formatAngle(item.target_rad, preferences.unit, preferences.decimals)}
                 </span>
@@ -273,29 +275,35 @@ export function JointControl() {
             ))}
           </div>
           <p className="footnote">
-            限位来自厂商软件配置，全部为 <strong>provisional</strong>；未做机械限位实测。
+            限位已按 2026-11-19 手动普查并在 2026-11-20 重载；停机点随姿态变化，不是单一机械极限。
           </p>
         </Card>
 
         <Card
-          title={`Target · ${joint.name}`}
-          subtitle={`servo ${joint.servo_id} · ${joint.limit_verified ? "verified" : "provisional"} limits`}
-          actions={<StatusChip tone="neutral" label={robot.connection_state} />}
+          title={`目标 · ${joint.name}`}
+          subtitle={`舵机 ${joint.servo_id} · 限位${joint.limit_verified ? "已验证" : "暂定"}`}
+          actions={
+            <StatusChip
+              tone="neutral"
+              label={connectionLabel(robot.connection_state)}
+              detail={robot.connection_state}
+            />
+          }
         >
           <div className="joint-readout">
-            <KeyValue label="Current target">
+            <KeyValue label="当前目标">
               <span className="mono">{formatAngle(joint.target_rad, preferences.unit, preferences.decimals)}</span>
             </KeyValue>
-            <KeyValue label="Readback">
+            <KeyValue label="读回">
               <span className="mono">{formatAngle(joint.position_rad, preferences.unit, preferences.decimals)}</span>
             </KeyValue>
-            <KeyValue label="Raw">
-              <span className="mono">{joint.raw_position ?? "Unavailable"}</span>
+            <KeyValue label="原始值">
+              <span className="mono">{joint.raw_position ?? "不可用"}</span>
             </KeyValue>
-            <KeyValue label="Truth">
+            <KeyValue label="真值">
               <TruthBadge truth={joint.truth} />
             </KeyValue>
-            <KeyValue label="Limit">
+            <KeyValue label="限位">
               <span className="mono">
                 {formatNumber(joint.limit_min_rad, 3)} … {formatNumber(joint.limit_max_rad, 3)} rad
               </span>
@@ -304,7 +312,7 @@ export function JointControl() {
 
           <div className="form-grid">
             <label className="field">
-              <span>Target ({preferences.unit})</span>
+              <span>目标 ({preferences.unit})</span>
               <input
                 className="input mono"
                 type="number"
@@ -317,7 +325,7 @@ export function JointControl() {
               />
             </label>
             <label className="field">
-              <span>Duration (s)</span>
+              <span>时长 (s)</span>
               <input
                 className="input mono"
                 type="number"
@@ -334,7 +342,7 @@ export function JointControl() {
           </div>
 
           <label className="field">
-            <span>Conservative slider (local only)</span>
+            <span>保守滑块（仅本地输入）</span>
             <input
               className="range"
               type="range"
@@ -377,12 +385,12 @@ export function JointControl() {
 
       {preview && (
         <Card
-          title="Preview result"
-          subtitle={`${preview.valid ? "valid" : "rejected"} · command ${preview.command_id.slice(0, 10)}…`}
+          title="预览结果"
+          subtitle={`${preview.valid ? "有效" : "已拒绝"} · 命令 ${preview.command_id.slice(0, 10)}…`}
           actions={
             <StatusChip
               tone={preview.valid ? "ok" : "fault"}
-              label={preview.valid ? "VALID" : "REJECTED"}
+              label={preview.valid ? "有效" : "已拒绝"}
             />
           }
         >
@@ -392,13 +400,13 @@ export function JointControl() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Joint</th>
-                      <th>From</th>
-                      <th>To</th>
-                      <th>Delta</th>
-                      <th>Raw</th>
-                      <th>Duration</th>
-                      <th>Limit verified</th>
+                      <th>关节</th>
+                      <th>起点</th>
+                      <th>终点</th>
+                      <th>变化量</th>
+                      <th>原始值</th>
+                      <th>时长</th>
+                      <th>限位验证</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -410,16 +418,16 @@ export function JointControl() {
                         <td className="mono">{formatNumber(target.delta_rad, 3)}</td>
                         <td className="mono">{target.target_raw}</td>
                         <td className="mono">{target.duration_s} s</td>
-                        <td>{target.limit_verified ? "yes" : "provisional"}</td>
+                        <td>{target.limit_verified ? "已验证" : "暂定"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <KeyValue label="Preview token">
+              <KeyValue label="预览令牌">
                 <span className="mono">{preview.preview_token?.slice(0, 16)}…</span>
               </KeyValue>
-              <KeyValue label="Expires">
+              <KeyValue label="到期">
                 <span className="mono">{formatClock(preview.expires_at, preferences.timeMode)}</span>
               </KeyValue>
               {preview.warnings.length > 0 && (
@@ -444,8 +452,8 @@ export function JointControl() {
 
       {command && (
         <Card
-          title="Command status"
-          subtitle={`${command.command_id} · ${latestStage ?? command.status}`}
+          title="命令状态"
+          subtitle={`${command.command_id} · ${latestStage ? stageLabel(latestStage) : stageLabel(command.status)}`}
           actions={
             <StatusChip
               tone={
@@ -456,15 +464,20 @@ export function JointControl() {
                     ? "fault"
                     : "warning"
               }
-              label={latestStage ?? command.status}
+              label={stageLabel(latestStage ?? command.status)}
+              detail={latestStage ?? command.status}
             />
           }
         >
-          {command.error_code && <p className="error-text">error: {command.error_code}</p>}
+          {command.error_code && <p className="error-text">错误：{command.error_code}</p>}
           <div className="stage-history">
             {displayStages.map((stage, index) => (
               <div className="stage-item" key={`${stage.stage}-${index}`}>
-                <StatusChip tone={index === displayStages.length - 1 ? "info" : "neutral"} label={stage.stage} />
+                <StatusChip
+                  tone={index === displayStages.length - 1 ? "info" : "neutral"}
+                  label={stageLabel(stage.stage)}
+                  detail={stage.stage}
+                />
                 <span className="mono">{formatClock(stage.at, preferences.timeMode)}</span>
                 {stage.error_code && <span className="error-text">{stage.error_code}</span>}
               </div>

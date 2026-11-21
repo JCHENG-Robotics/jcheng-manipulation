@@ -15,6 +15,7 @@ import {
   ValidityBadge,
 } from "../components/ui";
 import { formatAge, formatAngle, formatClock, formatNumber, maxFeedbackAge } from "../format";
+import { batteryLabel, connectionLabel, segmentStateLabel, severityLabel, stageLabel, validityLabel } from "../labels";
 import { getSessionId } from "../session";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
@@ -50,7 +51,8 @@ function CameraPanel({
           {camera && <TruthBadge truth={camera.truth} />}
           <StatusChip
             tone={camera && camera.available ? (camera.validity === "valid" ? "ok" : "warning") : "neutral"}
-            label={camera && camera.available ? camera.validity : "unavailable"}
+            label={camera && camera.available ? validityLabel(camera.validity) : "不可用"}
+            detail={camera?.validity}
           />
         </>
       }
@@ -61,7 +63,7 @@ function CameraPanel({
         <>
           <div className="camera-frame">
             {failed ? (
-              <div className="camera-fallback">Snapshot unavailable</div>
+              <div className="camera-fallback">快照不可用</div>
             ) : (
               <img src={snapshotUrl} alt={alt} onLoad={onLoad} onError={onError} />
             )}
@@ -73,13 +75,13 @@ function CameraPanel({
             </span>
             <span>{camera.fps !== null ? `${camera.fps.toFixed(1)} fps` : "—"}</span>
             <span>{camera.encoding ?? "—"}</span>
-            <span>age {formatAge(camera.sample_age_ms)}</span>
-            <span>frames {camera.frame_count}</span>
+            <span>时延 {formatAge(camera.sample_age_ms)}</span>
+            <span>帧数 {camera.frame_count}</span>
           </div>
           {camera.notes.length > 0 && <p className="footnote">{camera.notes.join(" ")}</p>}
         </>
       ) : (
-        <EmptyState title="Camera Unavailable">
+        <EmptyState title="相机不可用">
           {camera?.notes?.length
             ? camera.notes.join(" ")
             : "尚未收到相机帧，或网关未配置。"}
@@ -152,10 +154,10 @@ export function Dashboard() {
   const jointTruth = robot.joints[0]?.truth;
   const feedbackHint =
     robot.mode === "mock"
-      ? "simulated in Mock"
+      ? "Mock 内模拟"
       : jointTruth === "commanded"
-        ? "command echo, not encoder feedback"
-        : "measured feedback";
+        ? "指令回显，不是编码器反馈"
+        : "实测反馈";
   const activeFaults = robot.faults;
   const latestEvents = events.slice(0, 8);
   const battery = peripherals?.battery ?? null;
@@ -203,7 +205,7 @@ export function Dashboard() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title">总览</h1>
           <p className="page-subtitle">
             连接链路、安全门禁、关节快照与最近事件。默认只读；运动需要显式控制权与预览确认。
           </p>
@@ -212,7 +214,7 @@ export function Dashboard() {
           <SourceBadge source={robot.source_label} />
           <StatusChip
             tone={safety.ready ? "ok" : "warning"}
-            label={safety.ready ? "safety ready" : "safety blocked"}
+            label={safety.ready ? "安全门禁就绪" : "安全门禁已阻止"}
             detail={safety.blockers.join(", ")}
           />
         </div>
@@ -220,38 +222,42 @@ export function Dashboard() {
 
       {robot.source_label === "SIMULATION" && (
         <div className="banner banner-simulation">
-          <strong>SIMULATION</strong>
+          <strong>模拟</strong>
           <span>当前数据来自 Mock 适配器，不是硬件反馈。没有打开串口，也没有启动 ROS 节点。</span>
         </div>
       )}
       {robot.mode === "hardware" && (
         <div className="banner banner-warning">
-          <strong>Hardware Mode</strong>
-          <span>G1 只读发现阶段：运动未实现，Execute 会被后端拒绝。</span>
+          <strong>{robot.capabilities.hardware_motion ? "硬件运动已启用" : "硬件模式 · 只读"}</strong>
+          <span>
+            {robot.capabilities.hardware_motion
+              ? "运动经姿态/任务网关执行；每次仍需预览、二次确认与总线校验。无急停，手边保持可断电。"
+              : "默认只读；运动需显式设置 ARMPI_HARDWARE_MOTION=1，并经 G6 单关节、G7 姿态或 G8 任务接管确认后才可能下发。"}
+          </span>
         </div>
       )}
 
       <div className="grid grid-4">
         <MetricValue
-          label="Connection"
-          value={robot.connection_state}
+          label="连接"
+          value={connectionLabel(robot.connection_state)}
           tone={robot.connection_state === "Simulation" ? "simulation" : "neutral"}
-          hint={robot.mode === "mock" ? "in-process mock" : "read-only gate"}
+          hint={robot.mode === "mock" ? "进程内 Mock" : "网关读路径"}
         />
         <MetricValue
-          label="Safety blockers"
+          label="安全阻塞项"
           value={safety.blockers.length}
           tone={safety.blockers.length === 0 ? "ok" : "warning"}
-          hint={safety.blockers.join(", ") || "none"}
+          hint={safety.blockers.join(", ") || "无"}
         />
         <MetricValue
-          label="Joints"
+          label="关节"
           value={robot.joints.length}
-          unit="G1"
-          hint="gripper excluded (Q-08)"
+          unit="个"
+          hint="夹爪不计入（Q-08）"
         />
         <MetricValue
-          label="Feedback age"
+          label="反馈时延"
           value={feedbackAge === null ? "—" : `${feedbackAge} ms`}
           tone={feedbackAge === null ? "neutral" : feedbackAge > 500 ? "fault" : "ok"}
           hint={feedbackHint}
@@ -264,12 +270,12 @@ export function Dashboard() {
 
       <div className="grid grid-camera">
         <CameraPanel
-          title="Camera · RGB"
+          title="相机 · RGB"
           subtitle={camera?.topic ?? "/depth_cam/rgb/image_raw"}
           camera={camera}
           snapshotUrl={api.cameraSnapshotUrl(cameraTick)}
-          alt="ArmPi camera"
-          overlay={robot.source_label}
+          alt="ArmPi 相机"
+          overlay={robot.source_label === "SIMULATION" ? "模拟" : "实机"}
           loading={!peripherals}
           failed={cameraFailed}
           onLoad={() => setCameraFailed(false)}
@@ -277,12 +283,12 @@ export function Dashboard() {
         />
 
         <CameraPanel
-          title="Camera · Aux"
+          title="相机 · 辅助"
           subtitle={auxCamera?.topic ?? "uvc:/dev/video4"}
           camera={auxCamera}
           snapshotUrl={api.auxCameraSnapshotUrl(cameraTick)}
-          alt="ArmPi aux camera"
-          overlay={auxCamera?.truth === "simulated" ? "AUX · SIMULATION" : "D435i · UVC"}
+          alt="ArmPi 辅助相机"
+          overlay={auxCamera?.truth === "simulated" ? "辅助 · 模拟" : "D435i · UVC"}
           loading={!peripherals}
           failed={auxCameraFailed}
           onLoad={() => setAuxCameraFailed(false)}
@@ -291,12 +297,16 @@ export function Dashboard() {
 
         <Card
           className="battery-card"
-          title="Battery · 2S"
+          title="电池 · 2S"
           subtitle={battery?.topic ?? "/ros_robot_controller/battery"}
           actions={
             <>
               {battery && <TruthBadge truth={battery.truth} />}
-              <StatusChip tone={batteryTone} label={battery?.status ?? "unavailable"} />
+              <StatusChip
+                tone={batteryTone}
+                label={battery?.status ? batteryLabel(battery.status) : "不可用"}
+                detail={battery?.status}
+              />
             </>
           }
         >
@@ -322,10 +332,10 @@ export function Dashboard() {
                 </span>
               </div>
               <div className="kv-list">
-                <KeyValue label="Cells">{battery.cell_count}S</KeyValue>
-                <KeyValue label="Age">{formatAge(battery.sample_age_ms)}</KeyValue>
-                <KeyValue label="Source">{battery.source}</KeyValue>
-                <KeyValue label="Validity">
+                <KeyValue label="电芯">{battery.cell_count}S</KeyValue>
+                <KeyValue label="时延">{formatAge(battery.sample_age_ms)}</KeyValue>
+                <KeyValue label="来源">{battery.source}</KeyValue>
+                <KeyValue label="有效性">
                   <ValidityBadge validity={battery.validity} />
                 </KeyValue>
               </div>
@@ -339,7 +349,7 @@ export function Dashboard() {
               {battery.notes.length > 0 && <p className="footnote">{battery.notes.join(" ")}</p>}
             </>
           ) : (
-            <EmptyState title="Battery Unavailable">
+            <EmptyState title="电池数据不可用">
               {battery?.notes?.length
                 ? battery.notes.join(" ")
                 : "尚未收到电池数据，或网关未配置。"}
@@ -349,7 +359,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-2">
-        <Card title="Connection chain" subtitle="serial → driver → gateway → feedback">
+        <Card title="连接链路" subtitle="串口 → 驱动 → 网关 → 反馈">
           <div className="chain">
             {diagnostics.connection.segments.map((segment) => (
               <div className="chain-segment" key={segment.name}>
@@ -367,11 +377,12 @@ export function Dashboard() {
                               ? "warning"
                               : "neutral"
                     }
-                    label={segment.state}
+                    label={segmentStateLabel(segment.state)}
+                    detail={segment.state}
                   />
                 </div>
                 <p>{segment.detail}</p>
-                <span className="evidence">evidence: {segment.evidence}</span>
+                <span className="evidence">证据：{segment.evidence}</span>
               </div>
             ))}
           </div>
@@ -385,7 +396,7 @@ export function Dashboard() {
         </Card>
 
         <Card
-          title="Control lease"
+          title="控制权租约"
           subtitle="唯一控制权；预览不需要租约，执行需要"
           actions={
             lease ? (
@@ -401,13 +412,13 @@ export function Dashboard() {
         >
           {leaseError && <ErrorBanner message={leaseError} onDismiss={() => setLeaseError(null)} />}
           <div className="lease-panel">
-            <KeyValue label="Session">{sessionId.slice(0, 12)}…</KeyValue>
+            <KeyValue label="会话">{sessionId.slice(0, 12)}…</KeyValue>
             {lease ? (
               <>
-                <KeyValue label="Lease">{lease.lease_id.slice(0, 12)}…</KeyValue>
-                <KeyValue label="Expires">{formatClock(lease.expires_at, preferences.timeMode)}</KeyValue>
+                <KeyValue label="租约">{lease.lease_id.slice(0, 12)}…</KeyValue>
+                <KeyValue label="到期">{formatClock(lease.expires_at, preferences.timeMode)}</KeyValue>
                 <KeyValue label="TTL">{lease.ttl_s} s</KeyValue>
-                <StatusChip tone="ok" label="lease held by this browser" />
+                <StatusChip tone="ok" label="本浏览器持有控制权" />
               </>
             ) : (
               <EmptyState title="当前没有控制权">
@@ -419,9 +430,9 @@ export function Dashboard() {
       </div>
 
       <Card
-        title="Safety gate"
-        subtitle={`${safety.blockers.length} blockers · ${safety.warnings.length} warnings`}
-        actions={<StatusChip tone={safety.ready ? "ok" : "warning"} label={safety.ready ? "READY" : "BLOCKED"} />}
+        title="安全门禁"
+        subtitle={`${safety.blockers.length} 个阻塞 · ${safety.warnings.length} 个警告`}
+        actions={<StatusChip tone={safety.ready ? "ok" : "warning"} label={safety.ready ? "就绪" : "已阻止"} />}
       >
         <div className="check-grid">
           {safety.checks.map((check) => (
@@ -433,7 +444,7 @@ export function Dashboard() {
                 <span className="check-id">{check.check_id}</span>
                 <StatusChip
                   tone={check.passed ? "ok" : check.blocking ? "fault" : "warning"}
-                  label={check.passed ? "pass" : check.blocking ? "block" : "warn"}
+                  label={check.passed ? "通过" : check.blocking ? "阻止" : "警告"}
                 />
               </div>
               <strong>{check.label}</strong>
@@ -443,19 +454,19 @@ export function Dashboard() {
         </div>
       </Card>
 
-      <Card title="Joint snapshot" subtitle="目标 / 读回 / 来源 / 年龄；不把模拟值当作硬件反馈">
+      <Card title="关节快照" subtitle="目标 / 读回 / 来源 / 时延；不把模拟值当作硬件反馈">
         <div className="table-wrap">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Joint</th>
-                <th>Servo</th>
-                <th>Target</th>
-                <th>Readback</th>
-                <th>Truth</th>
-                <th>Validity</th>
-                <th>Age</th>
-                <th>Limit</th>
+                <th>关节</th>
+                <th>舵机</th>
+                <th>目标</th>
+                <th>读回</th>
+                <th>真值</th>
+                <th>有效性</th>
+                <th>时延</th>
+                <th>限位</th>
               </tr>
             </thead>
             <tbody>
@@ -477,12 +488,13 @@ export function Dashboard() {
           </table>
         </div>
         <p className="footnote">
-          这些限位来自厂商软件配置，状态为 <strong>provisional</strong>，不是机械限位实测值。
+          限位已按 2026-11-19 的手动普查在 2026-11-20 重载到运行栈（<code>mapping_verified=true</code>）。
+          停机点是随姿态变化的自碰撞限位，不是单一机械极限；不要据此推断未测姿态仍安全。
         </p>
       </Card>
 
       <div className="grid grid-2">
-        <Card title="Active faults" subtitle="只有有证据时才显示 Fault/Critical">
+        <Card title="活动故障" subtitle="只有有证据时才显示故障/严重">
           {activeFaults.length === 0 ? (
             <EmptyState title="无活动故障">
               注意：没有故障不等于硬件已验证；Mock 数据始终是模拟值。
@@ -494,7 +506,8 @@ export function Dashboard() {
                   <div className="fault-head">
                     <StatusChip
                       tone={fault.level === "critical" ? "critical" : fault.level === "fault" ? "fault" : "warning"}
-                      label={fault.level}
+                      label={severityLabel(fault.level)}
+                      detail={fault.level}
                     />
                     <strong>{fault.code}</strong>
                   </div>
@@ -506,7 +519,7 @@ export function Dashboard() {
           )}
         </Card>
 
-        <Card title="Latest events" subtitle="最近 8 条命令/状态事件">
+        <Card title="最新事件" subtitle="最近 8 条命令/状态事件">
           {latestEvents.length === 0 ? (
             <EmptyState title="还没有事件">执行一次预览或故障注入后，这里会出现审计记录。</EmptyState>
           ) : (
@@ -514,17 +527,23 @@ export function Dashboard() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Stage</th>
-                    <th>Source</th>
-                    <th>Result</th>
+                    <th>时间</th>
+                    <th>阶段</th>
+                    <th>来源</th>
+                    <th>结果</th>
                   </tr>
                 </thead>
                 <tbody>
                   {latestEvents.map((event) => (
                     <tr key={event.event_id}>
                       <td className="mono">{formatClock(event.wall_time, preferences.timeMode)}</td>
-                      <td><StatusChip tone={event.error_code ? "fault" : "info"} label={event.stage} /></td>
+                      <td>
+                        <StatusChip
+                          tone={event.error_code ? "fault" : "info"}
+                          label={stageLabel(event.stage)}
+                          detail={event.stage}
+                        />
+                      </td>
                       <td>{event.source}</td>
                       <td className="ellipsis" title={event.result}>{event.result}</td>
                     </tr>

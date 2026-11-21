@@ -200,7 +200,7 @@ def test_analysis_matches_fixed_arithmetic() -> None:
     assert report["success"]["mcnemar_exact_p"] == pytest.approx(1.0)
     assert report["methods"]["baseline"]["error"]["mean"] == pytest.approx(2.5)
     assert report["methods"]["intervention"]["error"]["mean"] == pytest.approx(1.75)
-    assert any("simulated" in warning for warning in report["warnings"])
+    assert any("模拟" in warning for warning in report["warnings"])
 
 
 def test_api_create_record_analyze_and_export(client: TestClient) -> None:
@@ -211,7 +211,7 @@ def test_api_create_record_analyze_and_export(client: TestClient) -> None:
     entries = detail["experiment"]["plan"]["entries"]
     assert len(entries) == 4
     assert detail["analysis"]["available"] is False
-    assert "no complete pairs" in detail["analysis"]["reason"]
+    assert "没有完整配对" in detail["analysis"]["reason"]
 
     for entry in entries:
         error = 1.0 if entry["method"] == "intervention" else 2.0
@@ -307,7 +307,7 @@ def test_demo_is_idempotent_and_lists_failure_codes(client: TestClient) -> None:
     assert detail["analysis"]["available"] is True
     assert detail["analysis"]["validation"]["n_complete_pairs"] == 16
     assert detail["analysis"]["data_origin"] == "simulated"
-    assert any("simulated" in warning for warning in detail["analysis"]["warnings"])
+    assert any("模拟" in warning for warning in detail["analysis"]["warnings"])
 
     again = client.post("/api/experiments/demo")
     assert again.status_code == 200

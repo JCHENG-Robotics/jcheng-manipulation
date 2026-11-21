@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 Studio 中文化 + 进度一致性
+
+### Changed
+
+- **Debug Studio 全中文界面：** 导航、页面标题、表头、状态标签、按钮、提示与解释
+  全部改为中文；协议枚举（`Completed`、`commanded`、`LIVE` 等）通过
+  `frontend/src/labels.ts` 映射为中文标签，原始代码保留在 tooltip/详情中，便于与日志、
+  CSV 和 evidence 对照。
+- **过期文案校正：** 总览/诊断/设置/关节控制不再声称“G1 只读、运动未实现”；
+  改为 G1–G8.1 + G8 快路径的现状（硬件默认只读，运动需显式接管；限位已普查并验证；
+  `/servo_states` 是命令缓存）。设置页进度与限制列出 G6/G7/G8/G8.1 与实测 13.46 s /
+  2.27 mm 落点。
+- **后端用户可见文案中文化：** 实验方法/失败代码标签、分析限制与警告、G2 示例名称与
+  说明、G4 的 URDF/TF 警告、存储故障与硬件探针提示；协议值、错误码与 evidence 字段
+  保持原样。
+- 前端 `index.html` 标题与产品名改为“ArmPi 调试工作台”。
+- 同步更新 Playwright e2e 断言（10 mock + 3 pose-scope 通过）与后端测试断言。
+
 ## [Unreleased] — 2026-11-21 Studio G8 fast task path
 
 ### Added

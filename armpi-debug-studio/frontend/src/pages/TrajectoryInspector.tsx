@@ -17,6 +17,7 @@ import {
   TruthBadge,
 } from "../components/ui";
 import { formatNumber } from "../format";
+import { originLabel, stageLabel, streamLabel, truthLabel } from "../labels";
 import { usePreferences, useRobotStore } from "../store/robotStore";
 
 const COLORS = {
@@ -177,7 +178,7 @@ function TrajectoryChart({
       className="trajectory-chart"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="trajectory chart"
+      aria-label="轨迹曲线图"
     >
       {yTicks.map((value) => (
         <g key={`y-${value}`}>
@@ -252,14 +253,14 @@ function qualityRow(label: string, quality: StreamQuality) {
   return (
     <tr key={label}>
       <td>
-        <strong>{label}</strong>
+        <strong>{streamLabel(label)}</strong>
         <div>
           <TruthBadge truth={quality.truth} />
         </div>
       </td>
       <td className="mono">{quality.samples}</td>
       <td className="mono">{rate === null ? "—" : `${formatNumber(rate, rate >= 10 ? 1 : 2)} Hz`}</td>
-      <td className="mono" title={`${quality.gaps_over_1_5x_median} gap(s) > 1.5× median`}>
+      <td className="mono" title={`${quality.gaps_over_1_5x_median} 个间隔 > 1.5× 中位数`}>
         {quality.max_gap_s === null ? "—" : `${formatNumber(quality.max_gap_s, 2)} s`}
       </td>
       <td className="mono">
@@ -435,7 +436,7 @@ export function TrajectoryInspector() {
       setNotice(
         imported.duplicate
           ? "示例数据集已存在，已选中原记录。"
-          : "已加载模拟示例：plan / command / feedback 分离，feedback 明确标记 simulated。",
+          : "已加载模拟示例：计划 / 指令 / 反馈三流分离，反馈明确标记为模拟。",
       );
       await refreshList(imported.trajectory_id);
     } catch (caught) {
@@ -479,9 +480,9 @@ export function TrajectoryInspector() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Trajectory Inspector</h1>
+          <h1 className="page-title">轨迹检查</h1>
           <p className="page-subtitle">
-            G2 离线轨迹检查：计划 / 命令 / 反馈三流分离，指标可复算。回放只是数据播放，绝不向硬件发命令。
+            G2 离线轨迹检查：计划 / 指令 / 反馈三流分离，指标可复算。回放只是数据播放，绝不向硬件发命令。
           </p>
         </div>
         <div className="page-actions">
@@ -518,9 +519,9 @@ export function TrajectoryInspector() {
       )}
       {playing && (
         <div className="banner banner-replay">
-          <strong>REPLAY</strong>
+          <strong>回放</strong>
           <span>
-            离线回放进行中：只播放已记录数据，不会向硬件发送任何命令。顶部 Source 显示 REPLAY。
+            离线回放进行中：只播放已记录数据，不会向硬件发送任何命令。顶部来源显示“回放”。
           </span>
         </div>
       )}
@@ -528,7 +529,7 @@ export function TrajectoryInspector() {
       <div className="trajectory-layout">
         <div className="trajectory-main">
           <Card
-            title="Datasets"
+            title="数据集"
             subtitle={`${items.length} 个数据集的摘要；数据来自本机 SQLite`}
             actions={
               <Button variant="ghost" onClick={() => void refreshList()} disabled={busy}>
@@ -547,12 +548,12 @@ export function TrajectoryInspector() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Source</th>
-                      <th>Feedback truth</th>
-                      <th>Samples (p/c/f)</th>
-                      <th>Duration</th>
-                      <th>Tracking</th>
+                      <th>名称</th>
+                      <th>来源</th>
+                      <th>反馈真值</th>
+                      <th>样本数（计划/指令/反馈）</th>
+                      <th>时长</th>
+                      <th>跟踪分析</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -566,7 +567,7 @@ export function TrajectoryInspector() {
                           <strong>{item.name}</strong>
                           <div className="mono ellipsis">{item.trajectory_id}</div>
                         </td>
-                        <td>{item.source}</td>
+                        <td>{originLabel(item.source)}</td>
                         <td>
                           <TruthBadge truth={item.feedback_truth} />
                         </td>
@@ -577,7 +578,7 @@ export function TrajectoryInspector() {
                         <td>
                           <StatusChip
                             tone={item.tracking_available ? "ok" : "warning"}
-                            label={item.tracking_available ? "available" : "unavailable"}
+                            label={item.tracking_available ? "可用" : "不可用"}
                             detail={item.tracking_reason ?? undefined}
                           />
                         </td>
@@ -590,7 +591,7 @@ export function TrajectoryInspector() {
           </Card>
 
           <Card
-            title="Joint curves"
+            title="关节曲线"
             subtitle={
               record
                 ? `${record.name} · ${joint || "—"} · ${preferences.unit}`
@@ -608,7 +609,7 @@ export function TrajectoryInspector() {
                       }
                     />
                     <span className="series-dot" style={{ background: COLORS[key] }} />
-                    {key}
+                    {streamLabel(key)}
                   </label>
                 ))}
               </div>
@@ -618,7 +619,7 @@ export function TrajectoryInspector() {
               <>
                 <div className="trajectory-controls">
                   <label className="field">
-                    <span>Joint</span>
+                    <span>关节</span>
                     <select
                       className="input"
                       value={joint}
@@ -641,7 +642,7 @@ export function TrajectoryInspector() {
                             borderColor: item.color,
                           }}
                         />
-                        {item.label}
+                        {streamLabel(item.label.toLowerCase())}
                       </span>
                     ))}
                   </div>
@@ -649,14 +650,14 @@ export function TrajectoryInspector() {
                 <TrajectoryChart
                   series={positionSeries}
                   cursor={cursor}
-                  unitLabel={`Position (${preferences.unit})`}
+                  unitLabel={`位置（${preferences.unit}）`}
                 />
                 {tracking?.available ? (
                   <div className="trajectory-error-block">
                     <div className="chart-legend">
                       <span className="legend-item">
                         <span className="legend-swatch" style={{ background: COLORS.error }} />
-                        Tracking error
+                        跟踪误差
                         <TruthBadge truth={tracking.sample_truth} />
                       </span>
                     </div>
@@ -664,14 +665,14 @@ export function TrajectoryInspector() {
                       series={errorSeries}
                       cursor={cursor}
                       height={170}
-                      unitLabel={`Error (${preferences.unit})`}
+                      unitLabel={`误差（${preferences.unit}）`}
                       baseline={0}
                     />
                   </div>
                 ) : (
                   <div className="banner banner-warning">
-                    <strong>Tracking error unavailable</strong>
-                    <span>{tracking?.reason ?? "feedback stream is missing"}</span>
+                    <strong>跟踪误差不可用</strong>
+                    <span>{tracking?.reason ?? "缺少反馈流"}</span>
                   </div>
                 )}
               </>
@@ -683,7 +684,7 @@ export function TrajectoryInspector() {
           </Card>
 
           <Card
-            title="Replay"
+            title="回放"
             subtitle="客户端播放；不调用运动接口，不写事件，不访问 ROS"
             actions={
               <div className="button-row">
@@ -711,10 +712,10 @@ export function TrajectoryInspector() {
               <>
                 <div className="replay-readout">
                   <MetricValue
-                    label="Cursor"
+                    label="游标"
                     value={formatNumber(cursor, 3)}
                     unit="s"
-                    hint={`range ${formatNumber(range.min, 2)}–${formatNumber(range.max, 2)} s`}
+                    hint={`范围 ${formatNumber(range.min, 2)}–${formatNumber(range.max, 2)} s`}
                   />
                   {(["planned", "commanded", "feedback"] as SampleStream[]).map((key) => {
                     const held = values?.[key].value;
@@ -722,7 +723,7 @@ export function TrajectoryInspector() {
                       <div key={key} className="replay-value">
                         <span className="replay-value-label">
                           <span className="series-dot" style={{ background: COLORS[key] }} />
-                          {key}
+                          {streamLabel(key)}
                         </span>
                         <span className="mono">
                           {formatNumber(held === null || held === undefined ? null : held * scale, preferences.decimals)}{" "}
@@ -739,7 +740,7 @@ export function TrajectoryInspector() {
                   max={1}
                   step={0.0005}
                   value={(cursor - range.min) / span}
-                  aria-label="replay cursor"
+                  aria-label="回放游标"
                   onChange={(event) => {
                     setPlaying(false);
                     setCursor(range.min + Number(event.target.value) * span);
@@ -756,12 +757,12 @@ export function TrajectoryInspector() {
         </div>
 
         <aside className="trajectory-side">
-          <Card title="Tracking metrics" subtitle="planned 与 feedback 的逐关节误差">
+          <Card title="跟踪指标" subtitle="计划与反馈的逐关节误差">
             {record && tracking?.available && selectedJointMetrics ? (
               <>
                 <div className="metric-row">
                   <MetricValue
-                    label="Max |error|"
+                    label="最大 |误差|"
                     value={formatNumber(selectedJointMetrics.max_abs_error_rad * scale, preferences.decimals)}
                     unit={preferences.unit}
                     tone="warning"
@@ -772,7 +773,7 @@ export function TrajectoryInspector() {
                     unit={preferences.unit}
                   />
                   <MetricValue
-                    label="Final error"
+                    label="终点误差"
                     value={formatNumber(selectedJointMetrics.final_error_rad * scale, preferences.decimals)}
                     unit={preferences.unit}
                   />
@@ -781,10 +782,10 @@ export function TrajectoryInspector() {
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Joint</th>
-                        <th>Max</th>
+                        <th>关节</th>
+                        <th>最大</th>
                         <th>RMSE</th>
-                        <th>Final</th>
+                        <th>终点</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -804,25 +805,25 @@ export function TrajectoryInspector() {
                   </table>
                 </div>
                 <p className="hint">
-                  {tracking.samples_compared} 个对齐样本 · 单位 {preferences.unit} · truth=
-                  {tracking.sample_truth}
+                  {tracking.samples_compared} 个对齐样本 · 单位 {preferences.unit} · 真值=
+                  {truthLabel(tracking.sample_truth)}
                 </p>
               </>
             ) : record ? (
               <div className="banner banner-warning">
-                <strong>Unavailable</strong>
-                <span>{tracking?.reason ?? "feedback stream is missing"}</span>
+                <strong>不可用</strong>
+                <span>{tracking?.reason ?? "缺少反馈流"}</span>
               </div>
             ) : (
               <EmptyState title="未选择数据集">指标来自后端分析，CSV 可独立复算。</EmptyState>
             )}
           </Card>
 
-          <Card title="Command fidelity" subtitle="planned 与 commanded 的差异">
+          <Card title="指令保真度" subtitle="计划与指令的差异">
             {fidelity?.available && fidelity.aggregate ? (
               <div className="metric-row">
                 <MetricValue
-                  label="Max |error|"
+                  label="最大 |误差|"
                   value={formatNumber(fidelity.aggregate.max_abs_error_rad * scale, preferences.decimals)}
                   unit={preferences.unit}
                 />
@@ -832,27 +833,27 @@ export function TrajectoryInspector() {
                   unit={preferences.unit}
                 />
                 <MetricValue
-                  label="Worst final"
+                  label="最差终点"
                   value={formatNumber(fidelity.aggregate.max_abs_final_error_rad * scale, preferences.decimals)}
                   unit={preferences.unit}
                 />
               </div>
             ) : (
-              <p className="muted">{fidelity?.reason ?? "commanded stream is missing"}</p>
+              <p className="muted">{fidelity?.reason ?? "缺少指令流"}</p>
             )}
           </Card>
 
-          <Card title="Sampling quality" subtitle="采样率、间隔与丢样（各流独立）">
+          <Card title="采样质量" subtitle="采样率、间隔与丢样（各流独立）">
             {record ? (
               <div className="table-wrap">
                 <table className="data-table quality-table">
                   <thead>
                     <tr>
-                      <th>Stream</th>
-                      <th>Samples</th>
-                      <th>Rate</th>
-                      <th>Max gap</th>
-                      <th>Dropout</th>
+                      <th>数据流</th>
+                      <th>样本数</th>
+                      <th>采样率</th>
+                      <th>最大间隔</th>
+                      <th>丢样率</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -867,22 +868,22 @@ export function TrajectoryInspector() {
             )}
           </Card>
 
-          <Card title="Dataset" subtitle="来源、时间基准与可追溯哈希">
+          <Card title="数据集" subtitle="来源、时间基准与可追溯哈希">
             {record ? (
               <div className="kv-list">
                 <KeyValue label="ID">{record.trajectory_id}</KeyValue>
-                <KeyValue label="Created">{record.created_at}</KeyValue>
-                <KeyValue label="Source">{record.source}</KeyValue>
-                <KeyValue label="Analysis">{record.analysis_version}</KeyValue>
+                <KeyValue label="创建时间">{record.created_at}</KeyValue>
+                <KeyValue label="来源">{originLabel(record.source)}</KeyValue>
+                <KeyValue label="分析版本">{record.analysis_version}</KeyValue>
                 <KeyValue label="SHA-256">
                   <span className="mono" title={record.dataset_sha256}>
                     {record.dataset_sha256.slice(0, 16)}…{record.dataset_sha256.slice(-8)}
                   </span>
                 </KeyValue>
-                <KeyValue label="Timebase">{record.dataset.timebase}</KeyValue>
-                <KeyValue label="Executor">
+                <KeyValue label="时间基准">{record.dataset.timebase}</KeyValue>
+                <KeyValue label="执行器">
                   {record.dataset.executor
-                    ? `${record.dataset.executor.status} (${record.dataset.executor.truth})`
+                    ? `${stageLabel(record.dataset.executor.status)} (${truthLabel(record.dataset.executor.truth)})`
                     : "—"}
                 </KeyValue>
               </div>
@@ -891,7 +892,7 @@ export function TrajectoryInspector() {
             )}
           </Card>
 
-          <Card title="Exports" subtitle="CSV 含对齐样本与误差，可独立复算">
+          <Card title="导出" subtitle="CSV 含对齐样本与误差，可独立复算">
             {record ? (
               <div className="button-row export-row">
                 <a
@@ -906,7 +907,7 @@ export function TrajectoryInspector() {
                   href={api.trajectoryExportUrl(record.trajectory_id, "csv", "commanded")}
                   download
                 >
-                  命令 CSV
+                  指令 CSV
                 </a>
                 <a
                   className="button button-secondary"
@@ -924,7 +925,7 @@ export function TrajectoryInspector() {
             )}
           </Card>
 
-          <Card title="Notes" subtitle="分析假设与限制">
+          <Card title="说明" subtitle="分析假设与限制">
             {record ? (
               <>
                 <ul className="note-list">

@@ -72,43 +72,43 @@ class LeaseManager:
     def heartbeat(self, lease_id: str, session_id: str, ttl_s: int | None = None) -> LeaseCheck:
         with self._lock:
             if self._lease is None:
-                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "no active control lease")
+                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "没有活动控制权租约")
             if self._lease.lease_id != lease_id:
-                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "lease_id does not match")
+                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "lease_id 不匹配")
             if self._lease.session_id != session_id:
-                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "lease owned by another session")
+                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "租约属于其他会话")
             if self._expired(self._lease):
                 self._lease = None
-                return LeaseCheck(False, ErrorCode.LEASE_EXPIRED.value, "control lease expired")
+                return LeaseCheck(False, ErrorCode.LEASE_EXPIRED.value, "控制权租约已过期")
             ttl = ttl_s or self._lease.ttl_s
             self._lease.ttl_s = ttl
             self._lease.expires_monotonic = self._clock() + ttl
             self._lease.expires_at = _iso_after(ttl)
-            return LeaseCheck(True, None, "lease renewed", self._lease)
+            return LeaseCheck(True, None, "租约已续期", self._lease)
 
     def release(self, lease_id: str, session_id: str) -> LeaseCheck:
         with self._lock:
             if self._lease is None:
-                return LeaseCheck(True, None, "no active lease")
+                return LeaseCheck(True, None, "没有活动租约")
             if self._lease.lease_id != lease_id or self._lease.session_id != session_id:
-                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "lease does not belong to this session")
+                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "租约不属于此会话")
             self._lease = None
-            return LeaseCheck(True, None, "lease released")
+            return LeaseCheck(True, None, "租约已释放")
 
     def check(self, lease_id: str | None, session_id: str | None) -> LeaseCheck:
         with self._lock:
             if not lease_id or not session_id:
-                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "control lease is required")
+                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "需要控制权租约")
             if self._lease is None:
-                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "no active control lease")
+                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "没有活动控制权租约")
             if self._lease.lease_id != lease_id:
-                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "lease_id does not match")
+                return LeaseCheck(False, ErrorCode.NO_LEASE.value, "lease_id 不匹配")
             if self._lease.session_id != session_id:
-                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "lease owned by another session")
+                return LeaseCheck(False, ErrorCode.LEASE_CONFLICT.value, "租约属于其他会话")
             if self._expired(self._lease):
                 self._lease = None
-                return LeaseCheck(False, ErrorCode.LEASE_EXPIRED.value, "control lease expired")
-            return LeaseCheck(True, None, "lease valid", self._lease)
+                return LeaseCheck(False, ErrorCode.LEASE_EXPIRED.value, "控制权租约已过期")
+            return LeaseCheck(True, None, "租约有效", self._lease)
 
     def revoke(self, reason: str = "revoked") -> None:
         with self._lock:

@@ -80,25 +80,25 @@ class SafetySupervisor:
             "gateway_online",
             "网关在线",
             connection.gateway_online,
-            "mock adapter (no ROS process)" if state.mode.value == "mock" else "gateway probe",
+            "Mock 适配器（无 ROS 进程）" if state.mode.value == "mock" else "网关探针",
         )
         add(
             "driver_online",
             "Driver 在线",
             connection.driver_online,
-            "mock driver (no vendor node)" if state.mode.value == "mock" else "driver probe",
+            "Mock 驱动（无厂商节点）" if state.mode.value == "mock" else "驱动探针",
         )
 
         if state.mode.value == "mock":
             feedback_ok = True
-            feedback_detail = "simulated data; not hardware feedback"
+            feedback_detail = "模拟数据；不是硬件反馈"
         else:
             ages = [j.sample_age_ms for j in state.joints if j.sample_age_ms is not None]
             feedback_ok = bool(ages) and max(ages) <= self.mapping.safety.feedback_max_age_ms
             feedback_detail = (
-                f"max sample age {max(ages)} ms (limit {self.mapping.safety.feedback_max_age_ms} ms)"
+                f"最大样本时延 {max(ages)} ms（阈值 {self.mapping.safety.feedback_max_age_ms} ms）"
                 if ages
-                else "no feedback samples"
+                else "没有反馈样本"
             )
         add(
             "feedback_fresh",
@@ -119,16 +119,16 @@ class SafetySupervisor:
 
         mapping_verified = self.mapping.verified or supervised_motion
         if self.mapping.verified:
-            mapping_detail = "limits verified"
+            mapping_detail = "限位已验证"
         elif supervised_motion:
             step = motion_limits.max_step_rad if motion_limits else "?"
             mapping_detail = (
-                "provisional limits accepted under supervised commissioning "
-                f"(single joint, max step {step} rad)"
+                "受监督调试下接受暂定限位"
+                f"（单关节，最大步长 {step} rad）"
             )
         else:
             mapping_detail = (
-                "provisional limits accepted for Mock; blocked for hardware motion"
+                "Mock 接受暂定限位；硬件运动被阻止"
             )
         add(
             "mapping_verified",
@@ -151,8 +151,8 @@ class SafetySupervisor:
                 "受监督调试模式",
                 True,
                 (
-                    "operator acknowledgement present; "
-                    f"single joint, max step {step} rad, duration >= {floor} s"
+                    "操作员确认已提供；"
+                    f"单关节，最大步长 {step} rad，时长 >= {floor} s"
                 ),
                 blocking=False,
                 severity=Severity.WARNING,
@@ -164,10 +164,10 @@ class SafetySupervisor:
                 "姿态接管",
                 True,
                 (
-                    "whole five-joint pose or one gripper command; "
-                    f"velocity <= {motion_limits.max_velocity_rad_s} rad/s; "
-                    "FK workspace + table + low-pose yaw gate active; "
-                    "no self-collision model"
+                    "整组五关节姿态或单条夹爪命令；"
+                    f"速度 <= {motion_limits.max_velocity_rad_s} rad/s；"
+                    "FK 工作区 + 桌面 + 低位偏航门禁生效；"
+                    "无自碰撞模型"
                 ),
                 blocking=False,
                 severity=Severity.WARNING,
@@ -187,7 +187,7 @@ class SafetySupervisor:
                 "control_lease",
                 "控制权租约",
                 True,
-                "not required for preview",
+                "预览不需要租约",
                 blocking=False,
                 severity=Severity.INFO,
             )
@@ -197,23 +197,23 @@ class SafetySupervisor:
             "no_active_fault",
             "活动故障",
             not active,
-            "no active fault" if not active else "; ".join(f.code for f in active),
+            "无活动故障" if not active else "; ".join(f.code for f in active),
         )
 
         add(
             "not_executing",
             "执行互锁",
             not executing,
-            "idle" if not executing else "motion is already executing",
+            "空闲" if not executing else "已有运动在执行",
         )
 
         hardware_motion = state.capabilities.hardware_motion
         if state.mode.value == "mock":
-            motion_detail = "mock only"
+            motion_detail = "仅 Mock"
         elif hardware_motion:
-            motion_detail = f"gateway motion enabled; mode={state.capabilities.motion_mode}"
+            motion_detail = f"网关运动已启用；mode={state.capabilities.motion_mode}"
         else:
-            motion_detail = "hardware_motion=false (G1 read-only)"
+            motion_detail = "hardware_motion=false（运动未启用）"
         add(
             "hardware_motion_enabled",
             "硬件运动能力",

@@ -9,6 +9,9 @@ offline/analysis tooling, the G6 supervised write path, the G7 five-joint
 pose + gripper takeover, the G8 camera-to-task takeover and the G8.1 bounded
 chassis approach. One run now covers the base approach, the 7 arm phases and
 the put-back, with dense S-curve waypoints at the measured 4.0/20 envelope.
+The operator UI and its explanations are **Chinese**; protocol codes
+(`Completed`, `commanded`, `LIVE`, …) stay visible in tooltips/details so the
+screen still cross-references logs, CSVs and evidence bundles.
 Hardware motion
 still requires `ARMPI_HARDWARE_MOTION=1`; G6 adds the fixed single-joint
 acknowledgement and G7/G8 use a separate pose acknowledgement plus a pose-mode

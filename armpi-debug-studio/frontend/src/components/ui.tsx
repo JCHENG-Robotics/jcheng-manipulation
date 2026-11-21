@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { sourceLabel, truthLabel, validityLabel } from "../labels";
 
 export type Tone =
   | "ok"
@@ -50,18 +51,14 @@ export function StatusChip({ tone, label, detail }: { tone: Tone; label: string;
 
 export function SourceBadge({ source }: { source: "LIVE" | "SIMULATION" | "REPLAY" }) {
   const tone: Tone = source === "SIMULATION" ? "simulation" : source === "REPLAY" ? "replay" : "ok";
-  return <span className={`source-badge source-${tone}`}>{source}</span>;
+  return (
+    <span className={`source-badge source-${tone}`} title={`source=${source}`}>
+      {sourceLabel(source)}
+    </span>
+  );
 }
 
 export function TruthBadge({ truth }: { truth: string }) {
-  const label =
-    truth === "simulated"
-      ? "simulated"
-      : truth === "commanded"
-        ? "commanded"
-        : truth === "measured" || truth === "measured_on_demand"
-          ? "measured"
-          : "unknown";
   const tone: Tone =
     truth === "simulated"
       ? "simulation"
@@ -70,13 +67,13 @@ export function TruthBadge({ truth }: { truth: string }) {
         : truth === "commanded"
           ? "warning"
           : "neutral";
-  return <StatusChip tone={tone} label={label} detail={`truth=${truth}`} />;
+  return <StatusChip tone={tone} label={truthLabel(truth)} detail={`truth=${truth}`} />;
 }
 
 export function ValidityBadge({ validity }: { validity: string }) {
   const tone: Tone =
     validity === "valid" ? "ok" : validity === "stale" ? "warning" : validity === "invalid" ? "fault" : "neutral";
-  return <StatusChip tone={tone} label={validity} />;
+  return <StatusChip tone={tone} label={validityLabel(validity)} detail={`validity=${validity}`} />;
 }
 
 export function MetricValue({
@@ -106,14 +103,14 @@ export function MetricValue({
 
 export function DataAge({ ageMs, maxAgeMs }: { ageMs: number | null; maxAgeMs?: number }) {
   if (ageMs === null) {
-    return <StatusChip tone="neutral" label="Unavailable" />;
+    return <StatusChip tone="neutral" label="不可用" />;
   }
   const stale = maxAgeMs !== undefined && ageMs > maxAgeMs;
   return (
     <StatusChip
       tone={stale ? "fault" : "ok"}
       label={ageMs < 1000 ? `${Math.round(ageMs)} ms` : `${(ageMs / 1000).toFixed(1)} s`}
-      detail={stale ? `older than ${maxAgeMs} ms` : "fresh"}
+      detail={stale ? `超过 ${maxAgeMs} ms` : "新鲜"}
     />
   );
 }

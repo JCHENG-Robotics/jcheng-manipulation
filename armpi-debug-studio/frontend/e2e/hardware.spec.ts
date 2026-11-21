@@ -21,15 +21,15 @@ test.describe("Hardware mode (read-only gateway)", () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "总览", level: 1 })).toBeVisible();
   });
 
   test("shows LIVE measured battery/camera and command-cache joint state", async ({
     page,
     request,
   }) => {
-    await expect(page.getByText("LIVE", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("SIMULATION", { exact: true })).toHaveCount(0);
+    await expect(page.locator(".topbar .source-badge")).toHaveText("实机");
+    await expect(page.getByText("模拟", { exact: true })).toHaveCount(0);
 
     const health = await (await request.get("/api/health")).json();
     expect(health.mode).toBe("hardware");
@@ -52,15 +52,15 @@ test.describe("Hardware mode (read-only gateway)", () => {
     expect((await snapshot.body()).byteLength).toBeGreaterThan(100);
 
     const camera = page.locator("section", {
-      has: page.getByRole("heading", { name: "Camera · RGB" }),
+      has: page.getByRole("heading", { name: "相机 · RGB" }),
     });
-    await expect(camera.locator('img[alt="ArmPi camera"]')).toBeVisible();
-    await expect(camera).toContainText("measured");
+    await expect(camera.locator('img[alt="ArmPi 相机"]')).toBeVisible();
+    await expect(camera).toContainText("实测");
 
     const battery = page.locator("section", {
-      has: page.getByRole("heading", { name: "Battery · 2S" }),
+      has: page.getByRole("heading", { name: "电池 · 2S" }),
     });
-    await expect(battery).toContainText("measured");
+    await expect(battery).toContainText("实测");
 
     const state = await (await request.get("/api/state")).json();
     expect(state.joints).toHaveLength(5);

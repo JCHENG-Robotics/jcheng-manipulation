@@ -16,6 +16,7 @@ import {
   TruthBadge,
 } from "../components/ui";
 import { formatAge, formatAngle, formatNumber } from "../format";
+import { jointTypeLabel, tfStatusLabel, truthLabel } from "../labels";
 import { usePreferences } from "../store/robotStore";
 
 type Point3 = [number, number, number];
@@ -144,7 +145,7 @@ function KinematicView({
       className="kinematic-svg"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="URDF kinematic model"
+      aria-label="URDF 运动学模型"
     >
       <g>{gridLines}</g>
       {frames.map((frame) => {
@@ -247,7 +248,7 @@ function KinematicView({
         );
       })}
       <text x={12} y={20} className="visual-scale-label">
-        scale ≈ {formatNumber(scale * 0.1, 1)} px / 100 mm
+        比例 ≈ {formatNumber(scale * 0.1, 1)} px / 100 mm
       </text>
     </svg>
   );
@@ -361,14 +362,14 @@ export function VisualWorkbench() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Visual Workbench</h1>
+          <h1 className="page-title">可视化工作台</h1>
           <p className="page-subtitle">
             G4 只读可视化：URDF 前向运动学、相机与标定/TF 警示。渲染层不进入运动或安全控制链。
           </p>
         </div>
         <div className="page-actions">
           {visual && <SourceBadge source={visual.source_label} />}
-          <StatusChip tone={tfTone} label={`TF ${tfStatus}`} />
+          <StatusChip tone={tfTone} label={`TF ${tfStatusLabel(tfStatus)}`} detail={tfStatus} />
           <Button variant="secondary" onClick={() => void refreshReferences()} disabled={busy}>
             刷新引用
           </Button>
@@ -394,13 +395,13 @@ export function VisualWorkbench() {
           <div className="banner banner-warning">
             <strong>只读可视化</strong>
             <span>
-              模型帧是 URDF + 当前关节状态（truth={visual.tf.joint_truth}）的前向运动学，不是实时
+              模型帧是 URDF + 当前关节状态（真值={truthLabel(visual.tf.joint_truth)}）的前向运动学，不是实时
               tf2。渲染失败不会影响安全门禁、控制权或运动链路。
             </span>
           </div>
           {visual.warnings.length > 0 && (
             <div className="banner banner-warning">
-              <strong>Model warnings</strong>
+              <strong>模型警告</strong>
               <ul className="warning-list">
                 {visual.warnings.slice(0, 8).map((warning) => (
                   <li key={warning}>{warning}</li>
@@ -412,12 +413,13 @@ export function VisualWorkbench() {
           <div className="visual-layout">
             <div className="visual-main">
               <Card
-                title="Kinematic model"
-                subtitle={`${visual.urdf.robot_name ?? "URDF"} · ${visual.tf.frames.length} frames · ${visual.tf.source} · live=${visual.tf.live}`}
-                actions={<StatusChip tone="neutral" label={`truth ${visual.tf.joint_truth}`} />}              >
+                title="运动学模型"
+                subtitle={`${visual.urdf.robot_name ?? "URDF"} · ${visual.tf.frames.length} 个框架 · ${visual.tf.source} · live=${visual.tf.live}`}
+                actions={<StatusChip tone="neutral" label={`真值 ${truthLabel(visual.tf.joint_truth)}`} detail={`truth=${visual.tf.joint_truth}`} />}
+              >
                 <div className="visual-controls">
                   <label className="field">
-                    <span>Yaw {yaw}°</span>
+                    <span>偏航 {yaw}°</span>
                     <input
                       className="range"
                       type="range"
@@ -428,7 +430,7 @@ export function VisualWorkbench() {
                     />
                   </label>
                   <label className="field">
-                    <span>Pitch {pitch}°</span>
+                    <span>俯仰 {pitch}°</span>
                     <input
                       className="range"
                       type="range"
@@ -445,7 +447,7 @@ export function VisualWorkbench() {
                         checked={showAxes}
                         onChange={(event) => setShowAxes(event.target.checked)}
                       />
-                      joint axes
+                      关节轴
                     </label>
                     <label className="series-toggle">
                       <input
@@ -453,7 +455,7 @@ export function VisualWorkbench() {
                         checked={showLabels}
                         onChange={(event) => setShowLabels(event.target.checked)}
                       />
-                      frame labels
+                      框架标签
                     </label>
                     <label className="series-toggle">
                       <input
@@ -461,7 +463,7 @@ export function VisualWorkbench() {
                         checked={showFrustum}
                         onChange={(event) => setShowFrustum(event.target.checked)}
                       />
-                      camera frustum
+                      相机视锥
                     </label>
                   </div>
                 </div>
@@ -475,31 +477,31 @@ export function VisualWorkbench() {
                   showFrustum={showFrustum}
                 />
                 <div className="chart-legend visual-legend">
-                  <span className="legend-item"><span className="legend-swatch visual-bone-swatch" /> URDF link</span>
-                  <span className="legend-item"><span className="legend-swatch visual-camera-swatch" /> measured hand-eye</span>
+                  <span className="legend-item"><span className="legend-swatch visual-bone-swatch" /> URDF 连杆</span>
+                  <span className="legend-item"><span className="legend-swatch visual-camera-swatch" /> 实测手眼</span>
                   <span className="legend-item"><span className="legend-swatch visual-axis-x-swatch" /> x</span>
                   <span className="legend-item"><span className="legend-swatch visual-axis-y-swatch" /> y</span>
                   <span className="legend-item"><span className="legend-swatch visual-axis-z-swatch" /> z</span>
-                  <span className="legend-item">axes 35 mm · frustum 80 mm</span>
+                  <span className="legend-item">轴长 35 mm · 视锥 80 mm</span>
                 </div>
                 <p className="hint">
-                  基座为 base_link；视角是等轴投影，只用于结构检查。模型/命令/实测的 truth 必须以下方表格与顶栏为准。
+                  基座为 base_link；视角是等轴投影，只用于结构检查。模型/指令/实测的真值必须以下方表格与顶栏为准。
                 </p>
               </Card>
 
               <div className="visual-lower-grid">
                 <Card
-                  title="Joints and limits"
-                  subtitle="URDF 与 provisional 映射并列；超出限位会标红"
+                  title="关节与限位"
+                  subtitle="URDF 与已验证映射并列；超出限位会标红"
                 >
                   <div className="table-wrap">
                     <table className="data-table visual-table">
                       <thead>
                         <tr>
-                          <th>Joint</th>
-                          <th>Position</th>
-                          <th>Limits ({preferences.unit})</th>
-                          <th>Limit / status</th>
+                          <th>关节</th>
+                          <th>位置</th>
+                          <th>限位 ({preferences.unit})</th>
+                          <th>限位 / 状态</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -507,11 +509,11 @@ export function VisualWorkbench() {
                           <tr key={joint.name} className={joint.within_limits === false ? "row-fault" : ""}>
                             <td>
                               <strong>{joint.name}</strong>
-                              <div className="muted">{joint.type}</div>
+                              <div className="muted">{jointTypeLabel(joint.type)}</div>
                             </td>
                             <td className="mono">
                               {joint.position_rad === null
-                                ? "Unavailable"
+                                ? "不可用"
                                 : formatAngle(joint.position_rad, preferences.unit, preferences.decimals)}
                               <div className="muted">{joint.position_source}</div>
                             </td>
@@ -525,11 +527,11 @@ export function VisualWorkbench() {
                             </td>
                             <td>
                               <div className="muted">
-                                {joint.limit_source === "software_config" ? "mapping" : joint.limit_source}
+                                {joint.limit_source === "software_config" ? "映射" : joint.limit_source}
                               </div>
                               <StatusChip
                                 tone={joint.verified ? "ok" : "warning"}
-                                label={joint.verified ? "verified" : "provisional"}
+                                label={joint.verified ? "已验证" : "暂定"}
                               />
                               <StatusChip
                                 tone={
@@ -541,10 +543,10 @@ export function VisualWorkbench() {
                                 }
                                 label={
                                   joint.within_limits === null
-                                    ? "unknown"
+                                    ? "未知"
                                     : joint.within_limits
-                                      ? "in limits"
-                                      : "OUT OF LIMIT"
+                                      ? "限位内"
+                                      : "超出限位"
                                 }
                               />
                             </td>
@@ -555,15 +557,15 @@ export function VisualWorkbench() {
                   </div>
                 </Card>
 
-                <Card title="Frames" subtitle="名称、父级与模型位置（mm）">
+                <Card title="坐标框架" subtitle="名称、父级与模型位置（mm）">
                   <div className="table-wrap frame-table">
                     <table className="data-table visual-table">
                       <thead>
                         <tr>
-                          <th>Frame</th>
-                          <th>Parent</th>
-                          <th>Position (mm)</th>
-                          <th>Source</th>
+                          <th>框架</th>
+                          <th>父级</th>
+                          <th>位置 (mm)</th>
+                          <th>来源</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -571,7 +573,7 @@ export function VisualWorkbench() {
                           <tr key={frame.name}>
                             <td>
                               <strong>{frame.name}</strong>
-                              {frame.nominal && <span className="muted"> nominal</span>}
+                              {frame.nominal && <span className="muted"> 标称</span>}
                             </td>
                             <td className="mono">{frame.parent ?? "—"}</td>
                             <td className="mono">
@@ -591,54 +593,54 @@ export function VisualWorkbench() {
 
             <aside className="visual-side">
               <Card
-                title="Camera · RGB"
-                subtitle={camera ? `${camera.topic} · ${camera.frame}` : "camera status unavailable"}
+                title="相机 · RGB"
+                subtitle={camera ? `${camera.topic} · ${camera.frame}` : "相机状态不可用"}
                 actions={camera && <TruthBadge truth={camera.truth} />}
               >
                 {camera?.available ? (
                   <div className="camera-frame visual-camera-frame">
                     {cameraFailed ? (
-                      <div className="camera-fallback">snapshot unavailable</div>
+                      <div className="camera-fallback">快照不可用</div>
                     ) : (
                       <img
                         key={cameraTick}
                         src={api.cameraSnapshotUrl(cameraTick)}
-                        alt="ArmPi camera"
+                        alt="ArmPi 相机"
                         onError={() => setCameraFailed(true)}
                       />
                     )}
                     <div className="visual-camera-overlay">
                       <span className="visual-frame-label">{camera.frame}</span>
                       <span className="visual-frame-warning">
-                        body frame · PnP use {camera.optical_frame ?? "optical frame"}
+                        机身框架 · PnP 使用 {camera.optical_frame ?? "光学框架"}
                       </span>
                       <span className="visual-frame-meta">
                         {camera.width}×{camera.height} · {formatNumber(camera.fps, 1)} fps ·{" "}
-                        {camera.encoding ?? "—"} · age {formatAge(camera.sample_age_ms)}
+                        {camera.encoding ?? "—"} · 时延 {formatAge(camera.sample_age_ms)}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <EmptyState title="Camera Unavailable">
+                  <EmptyState title="相机不可用">
                     没有可显示的相机帧；不填充模拟正常值。
                   </EmptyState>
                 )}
 
                 {camera && (
                   <div className="kv-list visual-camera-meta">
-                    <KeyValue label="Resolution">
+                    <KeyValue label="分辨率">
                       {camera.width && camera.height ? `${camera.width}×${camera.height}` : "—"}
                     </KeyValue>
-                    <KeyValue label="Encoding">{camera.encoding ?? "—"}</KeyValue>
-                    <KeyValue label="Frame age">{formatAge(camera.sample_age_ms)}</KeyValue>
-                    <KeyValue label="Truth">{camera.truth}</KeyValue>
-                    <KeyValue label="Frame source">{camera.frame ?? "—"} (body)</KeyValue>
-                    <KeyValue label="TF status">{camera.tf_status ?? visual.tf.status}</KeyValue>
-                    <KeyValue label="TF frames">
-                      {camera.tf_frames?.length ? camera.tf_frames.join(", ") : "none"}
+                    <KeyValue label="编码">{camera.encoding ?? "—"}</KeyValue>
+                    <KeyValue label="帧时延">{formatAge(camera.sample_age_ms)}</KeyValue>
+                    <KeyValue label="真值">{truthLabel(camera.truth)}</KeyValue>
+                    <KeyValue label="框架来源">{camera.frame ?? "—"}（机身）</KeyValue>
+                    <KeyValue label="TF 状态">{tfStatusLabel(camera.tf_status ?? visual.tf.status)}</KeyValue>
+                    <KeyValue label="TF 框架">
+                      {camera.tf_frames?.length ? camera.tf_frames.join(", ") : "无"}
                     </KeyValue>
-                    <KeyValue label="Detection">Unavailable (no live detector)</KeyValue>
-                    <KeyValue label="Optical frame">{camera.optical_frame ?? "Unavailable"}</KeyValue>
+                    <KeyValue label="检测">不可用（无实时检测器）</KeyValue>
+                    <KeyValue label="光学框架">{camera.optical_frame ?? "不可用"}</KeyValue>
                   </div>
                 )}
                 {camera && camera.warnings.length > 0 && (
@@ -652,7 +654,7 @@ export function VisualWorkbench() {
                 <div className="camera-note-row">
                   <input
                     className="input"
-                    placeholder="reference note (e.g. pre-run sample)"
+                    placeholder="引用备注（如：运行前采样）"
                     value={note}
                     maxLength={500}
                     onChange={(event) => setNote(event.target.value)}
@@ -670,17 +672,17 @@ export function VisualWorkbench() {
                 </p>
               </Card>
 
-              <Card title="Camera calibration" subtitle="测量外参，不是实时 TF">
+              <Card title="相机标定" subtitle="测量外参，不是实时 TF">
                 {camera ? (
                   <>
                     <div className="kv-list">
-                      <KeyValue label="Optical frame">{camera.optical_frame ?? "Unavailable"}</KeyValue>
-                      <KeyValue label="Body frame">{camera.frame ?? "—"}</KeyValue>
-                      <KeyValue label="Parent">{camera.calibration.parent_link ?? "—"}</KeyValue>
-                      <KeyValue label="Version">
+                      <KeyValue label="光学框架">{camera.optical_frame ?? "不可用"}</KeyValue>
+                      <KeyValue label="机身框架">{camera.frame ?? "—"}</KeyValue>
+                      <KeyValue label="父级">{camera.calibration.parent_link ?? "—"}</KeyValue>
+                      <KeyValue label="版本">
                         {camera.calibration.calibration_version || "—"}
                       </KeyValue>
-                      <KeyValue label="Translation">
+                      <KeyValue label="平移">
                         {camera.calibration.translation_m
                           .map((value) => (value * 1000).toFixed(1))
                           .join(", ")}{" "}
@@ -692,11 +694,11 @@ export function VisualWorkbench() {
                           .join(", ")}{" "}
                         °
                       </KeyValue>
-                      <KeyValue label="Truth">
+                      <KeyValue label="真值">
                         <TruthBadge truth={camera.calibration.truth} />
                       </KeyValue>
                     </div>
-                    <p className="hint">{camera.calibration.calibration_source || "source unavailable"}</p>
+                    <p className="hint">{camera.calibration.calibration_source || "来源不可用"}</p>
                     <ul className="note-list">
                       {camera.calibration.notes.map((item) => (
                         <li key={item}>{item}</li>
@@ -708,9 +710,9 @@ export function VisualWorkbench() {
                 )}
               </Card>
 
-              <Card title="Model source" subtitle="可追溯的 URDF 与审计状态">
+              <Card title="模型来源" subtitle="可追溯的 URDF 与审计状态">
                 <div className="kv-list">
-                  <KeyValue label="Path">
+                  <KeyValue label="路径">
                     <span className="mono visual-path">{visual.urdf.path}</span>
                   </KeyValue>
                   <KeyValue label="SHA-256">
@@ -720,36 +722,36 @@ export function VisualWorkbench() {
                         : "—"}
                     </span>
                   </KeyValue>
-                  <KeyValue label="Verified">
+                  <KeyValue label="验证">
                     <StatusChip
                       tone={visual.urdf.verified ? "ok" : "warning"}
-                      label={visual.urdf.verified ? "verified" : "provisional"}
+                      label={visual.urdf.verified ? "已验证" : "暂定"}
                     />
                   </KeyValue>
-                  <KeyValue label="Links / joints">
+                  <KeyValue label="连杆 / 关节">
                     {visual.urdf.links} / {visual.urdf.joints}
                   </KeyValue>
-                  <KeyValue label="TF status">
-                    <StatusChip tone={tfTone} label={visual.tf.status} />
+                  <KeyValue label="TF 状态">
+                    <StatusChip tone={tfTone} label={tfStatusLabel(visual.tf.status)} detail={visual.tf.status} />
                   </KeyValue>
-                  <KeyValue label="TF source">
-                    {visual.tf.source} (live={visual.tf.live ? "yes" : "no"})
+                  <KeyValue label="TF 来源">
+                    {visual.tf.source}（live={visual.tf.live ? "是" : "否"}）
                   </KeyValue>
-                  <KeyValue label="TF truth">{visual.tf.truth}</KeyValue>
-                  <KeyValue label="TF gateway">
-                    {visual.tf.gateway_status ?? "—"} · {visual.tf.dynamic_edges ?? 0} dyn /{" "}
-                    {visual.tf.static_edges ?? 0} static
+                  <KeyValue label="TF 真值">{visual.tf.truth}</KeyValue>
+                  <KeyValue label="TF 网关">
+                    {visual.tf.gateway_status ?? "—"} · {visual.tf.dynamic_edges ?? 0} 动态 /{" "}
+                    {visual.tf.static_edges ?? 0} 静态
                   </KeyValue>
-                  <KeyValue label="TF max age">
+                  <KeyValue label="TF 最大时延">
                     {formatAge(visual.tf.max_tf_age_ms ?? null)}
                   </KeyValue>
-                  <KeyValue label="Joint truth">{visual.tf.joint_truth}</KeyValue>
-                  <KeyValue label="Sample age">{formatAge(visual.tf.max_sample_age_ms)}</KeyValue>
+                  <KeyValue label="关节真值">{visual.tf.joint_truth}</KeyValue>
+                  <KeyValue label="样本时延">{formatAge(visual.tf.max_sample_age_ms)}</KeyValue>
                 </div>
-                <p className="hint">{visual.urdf.source_note || "No source note."}</p>
+                <p className="hint">{visual.urdf.source_note || "无来源说明。"}</p>
               </Card>
 
-              <Card title="Saved references" subtitle={`${references.length} 条元数据引用`}>
+              <Card title="已保存引用" subtitle={`${references.length} 条元数据引用`}>
                 {references.length === 0 ? (
                   <EmptyState title="还没有引用">
                     在相机卡片填写备注并保存；不会保存图像文件。
@@ -759,11 +761,11 @@ export function VisualWorkbench() {
                     <table className="data-table">
                       <thead>
                         <tr>
-                          <th>Created</th>
-                          <th>Truth</th>
-                          <th>Calibration</th>
+                          <th>创建时间</th>
+                          <th>真值</th>
+                          <th>标定</th>
                           <th>TF</th>
-                          <th>Note</th>
+                          <th>备注</th>
                         </tr>
                       </thead>
                       <tbody>
