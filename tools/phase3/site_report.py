@@ -151,7 +151,7 @@ def render(rows, capabilities, attempts=None):
     search = sum(1 for item in capabilities
                  if item['search_yaw_rad'] not in (None, 0.0))
     lines = [
-        '# 24-site session — capability and outcome table',
+        '# 24-pair session — capability and outcome table',
         '',
         '- pairs: {}; sidecar attempts: {}; retries: {}'.format(
             pairs, records, records - pairs),
@@ -166,10 +166,13 @@ def render(rows, capabilities, attempts=None):
         '|---|---|---|---|---:|---:|---:|---:|---|---|---:|---|',
     ]
     for row in rows:
-        site_rb = '{} / {:+.0f}'.format(
-            _fmt(row['site_radius_m'], '{:.2f}'),
-            row['site_bearing_deg']
-            if row['site_bearing_deg'] is not None else 0.0)
+        if row['site_radius_m'] is None:
+            site_rb = 'random'
+        else:
+            site_rb = '{} / {:+.0f}'.format(
+                _fmt(row['site_radius_m'], '{:.2f}'),
+                row['site_bearing_deg']
+                if row['site_bearing_deg'] is not None else 0.0)
         initial_rb = '{} / {:+.1f}'.format(
             _fmt(row['initial_radius_m'], '{:.3f}'),
             row['initial_bearing_deg']

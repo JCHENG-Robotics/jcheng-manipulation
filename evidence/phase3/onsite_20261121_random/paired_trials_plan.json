@@ -1,0 +1,538 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-21T01:26:44.201734+00:00",
+  "seed": 17,
+  "n_pairs": 24,
+  "pairs": [
+    {
+      "pair_id": "p020",
+      "object_pose_fixture": "r20",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p023",
+      "object_pose_fixture": "r23",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p003",
+      "object_pose_fixture": "r03",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p002",
+      "object_pose_fixture": "r02",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p013",
+      "object_pose_fixture": "r13",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p011",
+      "object_pose_fixture": "r11",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p008",
+      "object_pose_fixture": "r08",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p019",
+      "object_pose_fixture": "r19",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p024",
+      "object_pose_fixture": "r24",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p005",
+      "object_pose_fixture": "r05",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p021",
+      "object_pose_fixture": "r21",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p007",
+      "object_pose_fixture": "r07",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p016",
+      "object_pose_fixture": "r16",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p001",
+      "object_pose_fixture": "r01",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p015",
+      "object_pose_fixture": "r15",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p004",
+      "object_pose_fixture": "r04",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p009",
+      "object_pose_fixture": "r09",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p018",
+      "object_pose_fixture": "r18",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p006",
+      "object_pose_fixture": "r06",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p022",
+      "object_pose_fixture": "r22",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p012",
+      "object_pose_fixture": "r12",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p010",
+      "object_pose_fixture": "r10",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    },
+    {
+      "pair_id": "p014",
+      "object_pose_fixture": "r14",
+      "order": [
+        "intervention",
+        "baseline"
+      ]
+    },
+    {
+      "pair_id": "p017",
+      "object_pose_fixture": "r17",
+      "order": [
+        "baseline",
+        "intervention"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "sequence": 1,
+      "pair_id": "p020",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r20"
+    },
+    {
+      "sequence": 2,
+      "pair_id": "p020",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r20"
+    },
+    {
+      "sequence": 3,
+      "pair_id": "p023",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r23"
+    },
+    {
+      "sequence": 4,
+      "pair_id": "p023",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r23"
+    },
+    {
+      "sequence": 5,
+      "pair_id": "p003",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r03"
+    },
+    {
+      "sequence": 6,
+      "pair_id": "p003",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r03"
+    },
+    {
+      "sequence": 7,
+      "pair_id": "p002",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r02"
+    },
+    {
+      "sequence": 8,
+      "pair_id": "p002",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r02"
+    },
+    {
+      "sequence": 9,
+      "pair_id": "p013",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r13"
+    },
+    {
+      "sequence": 10,
+      "pair_id": "p013",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r13"
+    },
+    {
+      "sequence": 11,
+      "pair_id": "p011",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r11"
+    },
+    {
+      "sequence": 12,
+      "pair_id": "p011",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r11"
+    },
+    {
+      "sequence": 13,
+      "pair_id": "p008",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r08"
+    },
+    {
+      "sequence": 14,
+      "pair_id": "p008",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r08"
+    },
+    {
+      "sequence": 15,
+      "pair_id": "p019",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r19"
+    },
+    {
+      "sequence": 16,
+      "pair_id": "p019",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r19"
+    },
+    {
+      "sequence": 17,
+      "pair_id": "p024",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r24"
+    },
+    {
+      "sequence": 18,
+      "pair_id": "p024",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r24"
+    },
+    {
+      "sequence": 19,
+      "pair_id": "p005",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r05"
+    },
+    {
+      "sequence": 20,
+      "pair_id": "p005",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r05"
+    },
+    {
+      "sequence": 21,
+      "pair_id": "p021",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r21"
+    },
+    {
+      "sequence": 22,
+      "pair_id": "p021",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r21"
+    },
+    {
+      "sequence": 23,
+      "pair_id": "p007",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r07"
+    },
+    {
+      "sequence": 24,
+      "pair_id": "p007",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r07"
+    },
+    {
+      "sequence": 25,
+      "pair_id": "p016",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r16"
+    },
+    {
+      "sequence": 26,
+      "pair_id": "p016",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r16"
+    },
+    {
+      "sequence": 27,
+      "pair_id": "p001",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r01"
+    },
+    {
+      "sequence": 28,
+      "pair_id": "p001",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r01"
+    },
+    {
+      "sequence": 29,
+      "pair_id": "p015",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r15"
+    },
+    {
+      "sequence": 30,
+      "pair_id": "p015",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r15"
+    },
+    {
+      "sequence": 31,
+      "pair_id": "p004",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r04"
+    },
+    {
+      "sequence": 32,
+      "pair_id": "p004",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r04"
+    },
+    {
+      "sequence": 33,
+      "pair_id": "p009",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r09"
+    },
+    {
+      "sequence": 34,
+      "pair_id": "p009",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r09"
+    },
+    {
+      "sequence": 35,
+      "pair_id": "p018",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r18"
+    },
+    {
+      "sequence": 36,
+      "pair_id": "p018",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r18"
+    },
+    {
+      "sequence": 37,
+      "pair_id": "p006",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r06"
+    },
+    {
+      "sequence": 38,
+      "pair_id": "p006",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r06"
+    },
+    {
+      "sequence": 39,
+      "pair_id": "p022",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r22"
+    },
+    {
+      "sequence": 40,
+      "pair_id": "p022",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r22"
+    },
+    {
+      "sequence": 41,
+      "pair_id": "p012",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r12"
+    },
+    {
+      "sequence": 42,
+      "pair_id": "p012",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r12"
+    },
+    {
+      "sequence": 43,
+      "pair_id": "p010",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r10"
+    },
+    {
+      "sequence": 44,
+      "pair_id": "p010",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r10"
+    },
+    {
+      "sequence": 45,
+      "pair_id": "p014",
+      "trial_order": 1,
+      "method": "intervention",
+      "object_pose_fixture": "r14"
+    },
+    {
+      "sequence": 46,
+      "pair_id": "p014",
+      "trial_order": 2,
+      "method": "baseline",
+      "object_pose_fixture": "r14"
+    },
+    {
+      "sequence": 47,
+      "pair_id": "p017",
+      "trial_order": 1,
+      "method": "baseline",
+      "object_pose_fixture": "r17"
+    },
+    {
+      "sequence": 48,
+      "pair_id": "p017",
+      "trial_order": 2,
+      "method": "intervention",
+      "object_pose_fixture": "r17"
+    }
+  ]
+}

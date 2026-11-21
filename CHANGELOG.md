@@ -3,6 +3,45 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 random-placement 24-pair trial (pre-registered)
+
+### Added
+
+- `tools/phase3/random_region.py`: the pre-registered random-placement region
+  (radius 0.25-0.55 m, bearing -20..+25 deg), the operator placement rule,
+  and the seeded pair/method plan with fixtures `r01`...`r24`.
+- `tools/phase3/random_site_session.py`: the session runner. Per pair it
+  prompts for a fresh operator-random point, uses the locator chain
+  wrist-wide -> `joint1` yaw sweep -> chassis D435i, checks the realized
+  point against the region, drives the base into the 0.226-0.234 m band,
+  runs the two validated methods, and returns home. The front-camera
+  capture/copy/measure path and the `--precheck` mode are new.
+- `docs/phase3/RANDOM_SITE_DESIGN.md` and
+  `evidence/phase3/onsite_20261121_random/`: the pre-registration, region,
+  plan (seed 17) and hashes, written before data.
+- `site_report.py` renders a random site as `random` and uses the realized
+  initial point for the radius/bearing columns.
+- Tests: `test_random_region.py` and `test_random_site_session.py`,
+  including the region check, the locator fallback order and a 48-record dry
+  run.
+
+### Changed
+
+- `paired_trial_session.ROBOT_TOOLS` installs `ext_cam_capture.py` for the
+  front-camera locator.
+- `site_diversity_session.SiteSession` now has `_locate_initial`,
+  `_locate_after` and `_validate_initial` hooks; the fixed-fan runner keeps
+  the wide/yaw behavior and the random runner adds the front camera and the
+  region check.
+- The fixed 24-mark fan design, layout and plan are **superseded before
+  data**; the evidence directory has no trial records.
+
+### Status
+
+- **Pre-registered, not run.** No random-placement trial has been performed.
+  The front-camera far-field precheck (0.55 m at -20/+25 deg) must pass
+  before the 48-trial session.
+
 ## [Unreleased] — 2026-11-20 documentation progress reconciliation
 
 ### Changed

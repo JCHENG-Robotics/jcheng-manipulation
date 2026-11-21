@@ -112,6 +112,17 @@ def test_radius_bearing_and_blank_inputs(tmp_path):
     assert 'pairs: 0' in markdown
 
 
+def test_a_random_site_row_shows_random(tmp_path):
+    approaches = tmp_path / 'approaches.jsonl'
+    record = _approach('p001', 'r01')
+    record['site'] = {'random': True, 'site_id': 'r01'}
+    _write(approaches, [record])
+    markdown, _, _ = site_report.build_report(
+        str(approaches), str(tmp_path / 'missing.jsonl'))
+    assert '| p001 | r01 | random |' in markdown
+    assert '0.412 / +14.0' in markdown
+
+
 def test_a_missing_final_point_is_not_approached(tmp_path):
     approaches = tmp_path / 'approaches.jsonl'
     _write(approaches, [_approach('p001', 's01', final=False)])

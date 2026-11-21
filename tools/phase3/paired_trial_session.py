@@ -55,7 +55,7 @@ DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
 ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
                'low_config_grasp_validate.py', 'fast_motion.py',
                'motion_profile.py', 'vendor_servo_map.py',
-               'base_pulse_vector.py')
+               'base_pulse_vector.py', 'ext_cam_capture.py')
 
 
 def now_iso():

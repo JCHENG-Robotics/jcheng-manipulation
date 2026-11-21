@@ -197,6 +197,35 @@ class SiteSession(base.Session):
         self.robot.move_to_pose(self.view_pose, tag='{}_view'.format(tag))
         return None, False, report, 0.0
 
+    def _locate_initial(self, tag):
+        """Locate the cube for the pair's first sighting.
+
+        Returns ``(point, valid, report, locator)``. The base runner uses the
+        wide view-pose measurement and the joint1 yaw sweep; a subclass may
+        add a pose-independent front-camera fallback.
+        """
+        point, valid, report = self._wide_measure(tag)
+        if point is not None:
+            return point, valid, report, 'wrist_view'
+        point, valid, report, yaw = self._search(tag)
+        self.approach['search_yaw_rad'] = yaw
+        return point, valid, report, (
+            'wrist_yaw' if point is not None else 'none')
+
+    def _locate_after(self, tag):
+        """Locate the cube after a base pulse."""
+        point, valid, report = self._wide_measure(tag)
+        if point is not None:
+            return point, valid, report, 'wrist_view'
+        point, valid, report, yaw = self._search(tag)
+        self.approach['search_yaw_rad'] = yaw
+        return point, valid, report, (
+            'wrist_yaw' if point is not None else 'none')
+
+    def _validate_initial(self, point, report, site, tag, locator):
+        """Hook: accept the first sighting (a subclass may reject a point)."""
+        return point
+
     def _strict_measure(self, tag):
         """Measure the cube at the view pose with the placement gate."""
         pulses = self.robot.pulses()
@@ -226,7 +255,7 @@ class SiteSession(base.Session):
         pulse = self.robot.base_pulse(
             vx, vy, self.args.base_duty, duration)
         time.sleep(BASE_COAST_S)
-        after, _valid, _report = self._wide_measure(
+        after, _valid, _report, locator = self._locate_after(
             '{}_after'.format(tag))
         record = {
             'kind': kind,
@@ -238,6 +267,7 @@ class SiteSession(base.Session):
             'point_before': [float(value) for value in point],
             'point_after': (None if after is None
                             else [float(value) for value in after]),
+            'locator': locator,
             'subscribers_matched': pulse.get('subscribers_matched'),
             'wall_s': round(time.monotonic() - started, 3),
         }
@@ -263,15 +293,13 @@ class SiteSession(base.Session):
                 'site': site, 'approach': self.approach}
             return
         self.robot.move_to_pose(self.view_pose, tag=tag)
-        point, valid, report = self._wide_measure(tag)
-        if point is None:
-            point, valid, report, yaw = self._search(tag)
-            self.approach['locator'] = 'wrist_yaw'
-            self.approach['search_yaw_rad'] = yaw
+        point, valid, report, locator = self._locate_initial(tag)
+        self.approach['locator'] = locator
         if point is None:
             raise RuntimeError(
-                'site {}: no cube found at the view pose or in the yaw '
-                'sweep'.format(site['site_id']))
+                'site {}: no cube found by the locator chain'.format(
+                    site['site_id']))
+        point = self._validate_initial(point, report, site, tag, locator)
         self.approach['initial_point'] = [
             float(value) for value in point]
         self.approach['initial_valid'] = bool(valid)
@@ -283,13 +311,9 @@ class SiteSession(base.Session):
                 break
             self.approach['base_pulses'].append(record)
             if point is None:
-                point, valid, report, yaw = self._search(
-                    '{}_b{}'.format(tag, index))
-                self.approach['search_yaw_rad'] = yaw
-                if point is None:
-                    raise RuntimeError(
-                        'site {}: cube lost after base pulse {}'.format(
-                            site['site_id'], index + 1))
+                raise RuntimeError(
+                    'site {}: cube lost after base pulse {}'.format(
+                        site['site_id'], index + 1))
         # The final grasp needs the validated joint1 ~ 0 view.
         if abs(self.approach['search_yaw_rad']) > 1e-9:
             self.robot.move_to_pose(

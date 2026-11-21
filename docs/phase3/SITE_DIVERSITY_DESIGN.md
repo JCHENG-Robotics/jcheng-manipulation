@@ -1,5 +1,10 @@
 # 24-site paired trial — pre-registered design
 
+> **Superseded before data (2026-11-21).** The user replaced the fixed
+> 24-mark fan with operator-random placements in a sensor-covered region.
+> See [RANDOM_SITE_DESIGN.md](RANDOM_SITE_DESIGN.md). The fixed fan was never
+> run; its evidence directory has no trial records.
+>
 > Written **before** the first 24-site trial. Any change after data collection
 > starts is recorded as a deviation at the bottom of this file.
 >

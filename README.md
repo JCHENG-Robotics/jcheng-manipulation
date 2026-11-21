@@ -21,7 +21,7 @@
 [Objectives](#objectives-and-contributions) ·
 [Key results](#key-results-measured-on-hardware) ·
 [Architecture](#system-architecture) · [Repository layout](#repository-layout) ·
-[Status](#project-status-2026-11-20) ·
+[Status](#project-status-2026-11-21) ·
 [Deliverables](#capstone-deliverables-checklist) · [Quick start](#quick-start) ·
 [Method](#experimental-method) · [Failure taxonomy](#failure-taxonomy-measured) ·
 [Safety](#safety-and-operating-envelope) ·
@@ -45,7 +45,7 @@
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
 | **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; the pre-registered **24-pair** trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049); the completed error budget has translation **RSS 13.33 mm** (bounds fail 6 mm) while the empirical placement mean is **3.08 mm**; S-curve motion cuts grasp+put-back from **11.67 s to 8.94 s**; a chassis D435i agrees with the wrist camera to **2.58 mm** in x/y |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
-| **Status** | 2026-11-20. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
+| **Status** | 2026-11-21. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
 ## Abstract
 
@@ -85,8 +85,10 @@ with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
 11.67 s to 8.94 s, and two later runs that added an in-view grasp (4.77 s /
 4.44 s, 0.92 mm landing) and a far-cube run at 0.464 m which reversed the base
 home while holding the cube (11.06 mm placement error against the fitted
-target; the return itself remains open-loop). A pre-registered 24-site paired
-follow-up has not yet been run.
+target; the return itself remains open-loop). A random-placement 24-pair
+follow-up was pre-registered on 2026-11-21: the operator places the cube at a
+fresh haphazard point in the sensor-covered region before every pair; the
+fixed 24-mark fan was superseded before data and never run.
 
 ## Objectives and contributions
 
@@ -256,7 +258,8 @@ evidence/
 ├── phase2/onsite_20261120 # dual-camera, fast motion, throughput v2
 ├── phase3/onsite_20261119 # first paired trial, repeatability, backlash, envelope
 ├── phase3/onsite_20261120 # execution/placement/fixture, completed budget
-├── phase3/onsite_20261120_sites # 24-site pre-registration (not run)
+├── phase3/onsite_20261120_sites # fixed-fan pre-registration (superseded, not run)
+├── phase3/onsite_20261121_random # random-placement 24-pair pre-registration (not run)
 └── studio_g*/             # G2–G6 test and hardware evidence
 ros2_ws/src/
 ├── armpi_ultra_description/    # 5-DoF xacro + gripper + camera frames
@@ -273,14 +276,14 @@ tools/
 ├── humble_moveit/         # Humble Docker MoveIt/RViz for the real robot
 ├── phase1/                # live hardware baseline helpers
 ├── phase2/                # calibration, segmentation, grasp, fast motion, limits, safety
-├── phase3/                # paired-trial, fast-motion, site-diversity runners
+├── phase3/                # paired-trial, fast-motion, site-diversity and random-placement runners
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
-## Project status (2026-11-20)
+## Project status (2026-11-21)
 
 Hardware results are as of 2026-11-20; this document was synchronized with the
-roadmap, changelog and acceptance report on 2026-11-20. Status convention:
+roadmap, changelog and acceptance report on 2026-11-21. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
@@ -301,7 +304,7 @@ separately.
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
 | Measurement protocols | **Implemented; error-budget sources measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; rotation-tolerance and visual-displacement runners added, hardware runs pending |
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trials | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); 24-site layout + seed-17 plan committed, not run |
+| Paired trials | **First physical trial complete (2026-11-19); random-placement 24-pair follow-up pre-registered (2026-11-21)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); the fixed 24-mark fan was superseded before data by the operator-random region + seed-17 plan, not run |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
@@ -339,8 +342,9 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
       grasp+put-back 11.67 s → 8.94 s, aligned auto-base landing 2.22 mm;
       four real-cube runs at 4.0/20, including a far-cube return-home run
       (grasp 4.76 s, 11.06 mm landing vs the fitted target)
-- [ ] 24-site paired follow-up — pre-registered 2026-11-20 (layout, seed-17
-      plan, runner and 48-record dry run); hardware session not run
+- [ ] Random-placement 24-pair follow-up — pre-registered 2026-11-21 (region,
+      seed-17 plan, wrist/yaw/front-camera locator and 48-record dry run); the
+      fixed 24-mark fan was superseded before data; hardware session not run
 
 ## Quick start
 
@@ -418,8 +422,10 @@ required sequence is documented in:
   frames plus the chassis-front D435i mount, calibration, services and limits.
 - [`docs/phase2/FAST_MOTION.md`](docs/phase2/FAST_MOTION.md) — S-curve profile,
   measured settles and the 4.0/20 envelope.
-- [`docs/phase3/SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md)
-  — pre-registered 24-site paired follow-up.
+- [`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md)
+  — pre-registered random-placement 24-pair follow-up; the earlier
+  [`SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md) fixed fan
+  was superseded before data.
 
 The 2026-11-19 grasp runs used `tools/phase2/real_moveit_execute.py`,
 `tools/phase2/object_segment_rgbd.py`, `tools/phase2/depth_plane_fit.py` and
@@ -620,9 +626,11 @@ supervised runners.
   measured a 32.1 mm home error that needed one correction pulse to reach
   9.4 mm, so the far-run landing is a base-frame placement error, not a home
   error. An earlier 5.45 s run used the previous 3.0/12 default.
-- **The 24-site follow-up is pre-registered but not run.** Its capability and
-  method outcomes are predictions, not results; the 2026-11-19 single-fixture
-  trial remains the only paired hardware evidence.
+- **The random-placement follow-up is pre-registered but not run.** Its
+  capability and method outcomes are predictions, not results; the 2026-11-19
+  single-fixture trial remains the only paired hardware evidence. The
+  chassis D435i far-field locator (0.46-0.55 m) is the newest, least-validated
+  link; the pre-session check must pass before the 48-trial session.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
@@ -650,7 +658,7 @@ Every quantitative statement in this README traces to one of these bundles:
 | Grasp search | [`evidence/armpi_grasp/20261116/`](evidence/armpi_grasp/20261116/) |
 | On-site safety / limits | [`evidence/phase2/onsite_20261118/`](evidence/phase2/onsite_20261118/) |
 | Real grasps / reach | [`evidence/phase2/onsite_20261119/`](evidence/phase2/onsite_20261119/), [`evidence/phase2/onsite_20261120/`](evidence/phase2/onsite_20261120/) (dual-camera, fast motion, throughput) |
-| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) (24-site pre-registration); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
+| Reliability analysis | [`evidence/phase3/onsite_20261119/`](evidence/phase3/onsite_20261119/README.md) (paired trial, repeatability, backlash, tolerance grid, yaw envelope, error budget); [`evidence/phase3/onsite_20261120/`](evidence/phase3/onsite_20261120/README.md) (execution, placement, fixture, completed budget); [`evidence/phase3/onsite_20261121_random/`](evidence/phase3/onsite_20261121_random/README.md) (random-placement 24-pair pre-registration; the fixed-fan [`onsite_20261120_sites/`](evidence/phase3/onsite_20261120_sites/README.md) was superseded before data); framework baseline [`evidence/phase3/session4_20261117/`](evidence/phase3/session4_20261117/) |
 | Joint limits | [`evidence/phase2/onsite_20261119/joint_limits/`](evidence/phase2/onsite_20261119/joint_limits/README.md) |
 | Clock / network | [`docs/hardware/ros_environment.md`](docs/hardware/ros_environment.md), [`docs/hardware/network_access.md`](docs/hardware/network_access.md) |
 | Studio G1–G6 | [`evidence/studio_gateway/`](evidence/studio_gateway/), [`studio_g2/`](evidence/studio_g2/), [`studio_g3/`](evidence/studio_g3/), [`studio_g4/`](evidence/studio_g4/), [`studio_g5/`](evidence/studio_g5/), [`studio_g6/`](evidence/studio_g6/) |
@@ -690,8 +698,10 @@ up separately. `evidence/README.md` explains what is tracked.
 - [Paired trials](docs/phase3/PAIRED_TRIALS.md) — recorder, randomization and
   analysis; the design is pre-registered in
   [PAIRED_TRIAL_DESIGN.md](docs/phase3/PAIRED_TRIAL_DESIGN.md).
-- [24-site follow-up](docs/phase3/SITE_DIVERSITY_DESIGN.md) — pre-registered
-  site-diversity design, layout, envelope guard and analysis.
+- [Random-placement 24-pair trial](docs/phase3/RANDOM_SITE_DESIGN.md) —
+  pre-registered 2026-11-21 region, locator chain, envelope guard and analysis.
+  The earlier [fixed-fan design](docs/phase3/SITE_DIVERSITY_DESIGN.md) was
+  superseded before data.
 - [Host/DDS benchmark](docs/phase3/HOST_BENCHMARK.md) — read-only metrics and
   camera-rate correction.
 - [Camera mount](docs/hardware/camera_mount.md) — Aurora wrist camera plus the
@@ -729,17 +739,19 @@ same evidence also shows what is not yet solved: the error is corrected, not
 modelled outside the measured envelope; the completed bound budget
 (13.325 mm RSS) fails the 6 mm tolerance even though the empirical placement
 mean (3.080 mm) fits, so the tail and the rotation gate are the open risks;
-the 24-site follow-up is pre-registered but not run; and the result is a
-within-fixture effect, not a population reliability claim. Those are the
+the random-placement follow-up is pre-registered but not run; and the result is
+a within-fixture effect, not a population reliability claim. Those are the
 concrete next steps.
 
 ## Roadmap
 
-**Next (highest priority).** Run the pre-registered **24-site paired trial**
-(24 pairs / 48 trials, four radii × six bearings, seed-17 plan already
-committed). It tests whether the 12/24 → 24/24 effect and the
-locate/approach chain survive site diversity. The pre-session checks at `s21`
-and `s24` must pass before the session starts.
+**Next (highest priority).** Run the pre-registered **random-placement
+24-pair trial** (24 pairs / 48 trials, operator-random point per pair in
+r 0.25-0.55 m / bearing -20..+25 deg, seed-17 plan already committed). It
+tests whether the 12/24 → 24/24 effect and the locate/approach chain survive
+unknown placements. The front-camera far-field precheck at the 0.55 m far
+corners must pass before the session starts; the fixed 24-mark fan was
+superseded before data and is not run.
 
 **Then.** Address the dominant error-budget term, **gripper placement**
 (74.7 % of the translation RSS): investigate the 11.5 mm tail and measure the

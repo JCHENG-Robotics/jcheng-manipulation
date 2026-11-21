@@ -27,7 +27,7 @@ README, changelog and acceptance report on 2026-11-20.
 | Calibration and visual grasping | **Validated: 3/5 first series and 24/24 in the paired trial; dual-camera PASS; D435i calibrated** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 2.7 mm / 0.42°; front D435i 903.5 px / 0.371 px and 31.6° extrinsic; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; 24-pair trial 12/24 vs 24/24; D435i agreed to 2.58 mm x/y and verified one grip + put-back |
 | Fast motion | **Validated on hardware (four real-cube runs at 4.0/20)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm; later in-view/far runs grasped in 4.77/4.76 s, and `--return-home` reversed a 245.3 mm approach while holding the cube (11.06 mm landing vs the fitted target) |
 | Error budget and tolerance envelope | **Framework implemented; budget complete, bound gates fail** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); all sources measured, including execution **5.386 mm / 1.495° max**, placement **11.514 mm max / 3.080 mm mean** and fixture **14.815 mm radial max**; translation **RSS 13.325 mm** (fail) / worst case **24.014 mm** (fail vs 6 mm); rotation **RSS 1.858°** (pass) / worst **3.322°** (fail vs the provisional 2° gate); dominant translation term is now `gripper_placement` (74.7 %), hand-eye is 6.1 %; empirical corrected placement mean **3.080 mm** (RMS 4.082 mm) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trial framework | **First physical trial complete (2026-11-19); 24-site follow-up pre-registered (2026-11-20)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); four deviations documented; 24-site layout + seed-17 plan committed, not run |
+| Paired trial framework | **First physical trial complete (2026-11-19); random-placement 24-pair follow-up pre-registered (2026-11-21)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); four deviations documented; the fixed 24-mark fan was superseded before data by the operator-random region + seed-17 plan, not run |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
 | ArmPi Debug Studio | **Implemented through G6; motion off by default** | read-only gateway + G2/G3/G4/G5; 93 backend + 47 gateway tests; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); `mapping_verified=true` for the operating envelope; D435i aux feed on the Dashboard; no e-stop |
 | Clock sync | **Implemented and verified** | laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
@@ -81,8 +81,10 @@ hardware trial measured the intervention: baseline 12/24 vs corrected 24/24
 11.67 s to 8.94 s. Two later runs extended the same chain to a cube at
 0.464 m, with two closed-loop base pulses to the grasp band and a reverse
 pulse home while the cube was still held (landing 11.06 mm against the fitted
-target; the return remains open-loop). A 24-site paired follow-up was
-pre-registered (not run).
+target; the return remains open-loop). A random-placement 24-pair follow-up
+was pre-registered on 2026-11-21: the operator places the cube at a fresh
+haphazard point in the sensor-covered region before every pair; the fixed
+24-mark fan was superseded before data (not run).
 Detailed checklist:
 [`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
 
@@ -377,14 +379,17 @@ reduces the placement error by 2.19 mm among dual-success pairs. The earlier
 five unpaired grasps (3/5) remain feasibility evidence. Because a baseline miss
 has no release landing, the binary outcome is the primary test.
 
-**Pre-registered follow-up (2026-11-20):** the 24-site paired trial tests
-whether the same effect and the locate/approach chain survive site diversity.
-Each pair gets its own pre-registered floor site (four radii x six bearings,
-0.30-0.45 m), the base is driven closed-loop into the 0.226-0.234 m band, and
-the runner returns home between pairs. The design, 24-site layout and seeded
-plan (seed 17) are written before data
-([`docs/phase3/SITE_DIVERSITY_DESIGN.md`](docs/phase3/SITE_DIVERSITY_DESIGN.md));
-the hardware session is pending.
+**Pre-registered follow-up (2026-11-21):** the random-placement 24-pair trial
+tests whether the same effect and the locate/approach chain survive unknown
+placements. Before every pair the operator puts the cube at a fresh,
+haphazard point inside the sensor-covered region (radius 0.25-0.55 m, bearing
+-20..+25 deg); the robot locates it with the wrist wide measurement, a
+`joint1` yaw sweep or the chassis D435i, drives the base closed-loop into the
+0.226-0.234 m band, runs the two methods and returns home. The design, region,
+seed-17 plan and hashes are written before data
+([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md));
+the front-camera far-field precheck and the hardware session are pending. The
+earlier fixed 24-mark fan was superseded before data and never run.
 
 ## 11. Safety
 

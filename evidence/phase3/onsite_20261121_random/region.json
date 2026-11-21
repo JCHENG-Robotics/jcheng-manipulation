@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-21T01:26:44.200141+00:00",
+  "n_pairs": 24,
+  "seed": 17,
+  "fixture_prefix": "r",
+  "fixtures": [
+    "r01",
+    "r02",
+    "r03",
+    "r04",
+    "r05",
+    "r06",
+    "r07",
+    "r08",
+    "r09",
+    "r10",
+    "r11",
+    "r12",
+    "r13",
+    "r14",
+    "r15",
+    "r16",
+    "r17",
+    "r18",
+    "r19",
+    "r20",
+    "r21",
+    "r22",
+    "r23",
+    "r24"
+  ],
+  "region": {
+    "min_radius_m": 0.25,
+    "max_radius_m": 0.55,
+    "min_bearing_deg": -20.0,
+    "max_bearing_deg": 25.0
+  },
+  "placement_rule": {
+    "operator_random": true,
+    "min_separation_m": 0.03,
+    "instructions": "Before every pair the operator places the cube at a new, haphazard point inside the region. Do not reuse a previous spot, do not line the points up, and keep at least 30 mm from the previous realized point. The measured point, not the operator intent, is the recorded site."
+  },
+  "locators": [
+    "wrist_view",
+    "wrist_yaw",
+    "front_camera"
+  ],
+  "coverage": {
+    "wrist_view_max_radius_m": 0.46,
+    "front_camera": {
+      "role": "far locator (0.46-0.55 m) and fallback",
+      "note": "The far bearing bounds follow the calibrated D435i far-field fan from the home pose. Its top-face measurement is used only to drive the base into the wrist band; the final grasp target is always the validated wrist measurement."
+    },
+    "note": "A random point outside this region has no locator from the home pose, so it is excluded by the placement rule rather than recorded as a grasp failure."
+  }
+}

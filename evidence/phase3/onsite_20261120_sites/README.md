@@ -1,5 +1,12 @@
 # 24-site paired trial — pre-registered artifacts
 
+> **Superseded before data on 2026-11-21.** The fixed 24-mark fan was
+> replaced by operator-random placements in a sensor-covered region; see
+> [`docs/phase3/RANDOM_SITE_DESIGN.md`](../../../docs/phase3/RANDOM_SITE_DESIGN.md)
+> and [`../onsite_20261121_random/`](../onsite_20261121_random/). This
+> directory contains no trial records; the layout and plan below are kept for
+> the pre-registration history.
+>
 > Status: **pre-registered on 2026-11-20; no trial has been run.** These files
 > fix the sites, the randomization and the analysis before data collection.
 > Do not edit them after the first valid record; use
@@ -22,6 +29,7 @@ safety rules and analysis are in
 | `site_report.md` | — | Capability/outcome table rendered from the two JSONL files |
 | `analysis.json`, `analysis.md` | — | Created by the paired analysis after the session |
 | `session_*.log` | — | Operator terminal log, including any aborted locate/approach attempt |
+| `session_20261121_0917.log` | — | Pre-session start of the superseded fixed-fan runner: the arm reached the view pose and the runner was stopped before any placement or trial; no trial record |
 
 The hashes are the pre-registration. If a layout or plan file is regenerated,
 its `created_at` field changes and the hash must be updated before the first
