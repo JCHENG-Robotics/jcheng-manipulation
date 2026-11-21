@@ -121,6 +121,40 @@ def _localize_gateway_note(note: str) -> str:
         return f"最新动态 TF 边已过期 {age} ms。"
     return note
 
+
+_LOCATE_REASON_LABELS = {
+    "y_out_of_region": "横向超出定位窗口",
+    "x_out_of_region": "前后超出定位范围",
+    "too_few_points": "点太少",
+    "too_wide": "横向尺寸过大",
+    "partial_top_view": "顶面不完整",
+}
+
+
+def _locate_rejection_text(report: dict[str, Any]) -> str:
+    """Explain why the segmenter did not accept a cluster."""
+    rejection = report.get("rejection")
+    if isinstance(rejection, dict) and rejection.get("reason"):
+        reason = str(rejection["reason"])
+        return _LOCATE_REASON_LABELS.get(reason, reason)
+    details = report.get("segmentation", {}).get("cluster_details", [])
+    parts: list[str] = []
+    for cluster in details:
+        if not isinstance(cluster, dict) or cluster.get("ok"):
+            continue
+        why = [str(item) for item in cluster.get("why", []) if item]
+        if not why:
+            continue
+        readable = [
+            _LOCATE_REASON_LABELS.get(item, item) for item in why
+        ]
+        centroid = (cluster.get("bounds") or {}).get("centroid")
+        text = "、".join(readable)
+        if centroid:
+            text += f"，中心 [{', '.join(f'{float(v):.3f}' for v in centroid)}] m"
+        parts.append(text)
+    return "；".join(parts[:3]) if parts else "没有可用的木块候选"
+
 KNOWN_DEFECTS = [
     {
         "id": "B-01",
@@ -2372,14 +2406,10 @@ class RobotService:
                 )
             measured, accepted = cube_point(report)
             if measured is None or not accepted:
-                reason = (
-                    report.get("rejection", {}).get("reason")
-                    if isinstance(report.get("rejection"), dict)
-                    else report.get("error")
-                ) or "no usable cube point"
+                reason = _locate_rejection_text(report)
                 return self._task_invalid(
                     "LOCATE_FAILED",
-                    f"the segmenter did not return a usable grasp point: {reason}",
+                    f"定位失败：没有可用的木块点（{reason}）",
                     view_joints=view.joints,
                     locate=report,
                     current=current,

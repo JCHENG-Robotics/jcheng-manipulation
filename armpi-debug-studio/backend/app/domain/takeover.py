@@ -620,7 +620,7 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             ransac_iterations=int(locate_raw.get("ransac_iterations", 800)),
             ransac_points=int(locate_raw.get("ransac_points", 40000)),
             x_range_m=x_range,
-            y_range_m=float(locate_raw.get("y_range_m", 0.09)),
+            y_range_m=float(locate_raw.get("y_range_m", 0.15)),
             max_xy_m=float(locate_raw.get("max_xy_m", 0.09)),
             min_height_m=float(locate_raw.get("min_height_m", 0.020)),
             max_height_m=float(locate_raw.get("max_height_m", 0.070)),

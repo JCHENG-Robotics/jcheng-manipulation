@@ -25,7 +25,7 @@ from app.domain.takeover import load_takeover_config
 from app.domain.visual import compute_frames, load_urdf
 from app.main import create_app
 from app.persistence.store import EventStore
-from app.service import RobotService
+from app.service import RobotService, _locate_rejection_text
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TAKEOVER_PATH = PROJECT_ROOT / "configs" / "takeover.yaml"
@@ -109,6 +109,61 @@ def test_cube_box_detects_the_floor_cube() -> None:
     )
     assert cube_box_present(report, np.array([0.23, 0.0, -0.040])) is True
     assert cube_box_present(report, np.array([0.10, 0.0, -0.040])) is False
+
+
+def _offset_floor_cloud(cx: float = 0.426, cy: float = -0.100) -> np.ndarray:
+    """Floor plus a 40 mm cube offset laterally from the tool-down axis."""
+    x = np.linspace(0.10, 0.55, 300)
+    y = np.linspace(-0.20, 0.20, 260)
+    xx, yy = np.meshgrid(x, y)
+    floor = np.column_stack(
+        [xx.ravel(), yy.ravel(), np.full(xx.size, -0.080)]
+    )
+    side = np.linspace(cx - 0.020, cx + 0.020, 40)
+    cube_y = np.linspace(cy - 0.020, cy + 0.020, 40)
+    tx, ty = np.meshgrid(side, cube_y)
+    top = np.column_stack([tx.ravel(), ty.ravel(), np.full(tx.size, -0.040)])
+    rng = np.random.default_rng(3)
+    return np.vstack([floor + rng.normal(0, 0.0004, floor.shape), top])
+
+
+def test_lateral_100mm_cube_is_located_for_the_chassis_approach() -> None:
+    # The 2026-11-21 real capture had a valid 39 mm cube at
+    # (0.426, -0.100, -0.057): every gate passed except the 0.09 m y window.
+    params = LocateParams(
+        ransac_iterations=300,
+        ransac_points=20000,
+        x_range_m=(0.15, 0.55),
+        y_range_m=0.15,
+    )
+    report = segment_floor_cube(_offset_floor_cloud(), np.eye(4), params)
+    point, accepted = cube_point(report)
+    assert accepted is True
+    assert point is not None
+    assert point[0] == pytest.approx(0.426, abs=0.004)
+    assert point[1] == pytest.approx(-0.100, abs=0.004)
+    assert report["segmentation"]["cluster_details"][0]["ok"] is True
+
+
+def test_lateral_100mm_cube_is_rejected_by_the_old_window() -> None:
+    params = LocateParams(
+        ransac_iterations=300,
+        ransac_points=20000,
+        x_range_m=(0.15, 0.55),
+        y_range_m=0.09,
+    )
+    report = segment_floor_cube(_offset_floor_cloud(), np.eye(4), params)
+    point, accepted = cube_point(report)
+    assert accepted is False
+    assert point is None
+    text = _locate_rejection_text(report)
+    assert "横向超出定位窗口" in text
+    assert "-0.100" in text
+
+
+def test_takeover_locate_window_covers_the_lateral_approach(takeover) -> None:
+    assert takeover.task is not None
+    assert takeover.task.locate.y_range_m == pytest.approx(0.15)
 
 
 def test_fit_matches_the_recorded_2026_11_20_run(urdf) -> None:

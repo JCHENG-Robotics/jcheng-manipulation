@@ -147,7 +147,13 @@ is labelled `verification: open_loop` and the camera re-measurement is the only
 confirmation. The gateway caps every pulse; the run caps the loop; the arm
 stays at the view during the pulse. The approach is a translation (the mecanum
 strafe handles a lateral offset); a base yaw is not implemented, so a cube
-outside the lateral window is rejected rather than driven to.
+outside the lateral window is rejected rather than driven to. The locate
+window is **±150 mm in y** (2026-11-21): a valid 39 mm cube at
+`(0.426, -0.100, -0.057) m` was previously rejected as `y_out_of_region`
+because the old window was ±90 mm; it now returns `APPROACH_REQUIRED` with a
+lateral pulse. The locate failure message names the rejected cluster's gates,
+so a genuinely bad placement is actionable instead of just
+`no usable cube point`.
 
 Historical live evidence (2026-11-21, 13-step plan): cube at `x = 0.357 m` ->
 two pulses (2.0 s / 98 mm nominal -> 94 mm actual; 0.68 s / 33 mm -> ~42 mm) ->

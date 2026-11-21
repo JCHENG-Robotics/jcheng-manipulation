@@ -13,7 +13,16 @@ All notable changes to this project are documented here. Format based on
   --takeover` 默认把相机路由到只读网关 8765（`CAMERA_GATEWAY_PORT=8765`），
   姿态网关 8766 保持 `--no-aux-camera --camera-topic /armpi_pose_camera_off`；
   主相机与辅助相机都从 8765 取图，UVC 辅助设备不再与运动网关争用。
-  新增 `backend/tests/test_camera_routing.py`（4 项），后端共 **140 passed**。
+  新增 `backend/tests/test_camera_routing.py`（4 项路由测试）。
+
+### Fixed
+
+- **G8 定位横向窗口：** `task.locate.y_range_m` 从 0.09 m 放宽到 0.15 m。
+  2026-11-21 实际点云里的 39 mm 木块位于 `(0.426, -0.100, -0.057) m`，
+  所有几何门禁都通过，只因横向超出 ±90 mm 被报 `LOCATE_FAILED`；现在会返回
+  `APPROACH_REQUIRED` 并给出横向底盘脉冲。`LOCATE_FAILED` 的文案同时列出被拒
+  簇的门禁原因和中心点（例如“横向超出定位窗口，中心 […] m”），不再只有
+  `no usable cube point`。新增定位窗口与拒绝原因测试，后端 **143 passed**。
 
 ### Changed
 

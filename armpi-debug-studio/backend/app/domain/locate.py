@@ -43,7 +43,7 @@ class LocateParams:
     ransac_iterations: int = 800
     ransac_points: int = 40000
     x_range_m: tuple[float, float] = (0.15, 0.32)
-    y_range_m: float = 0.09
+    y_range_m: float = 0.15
     max_xy_m: float = 0.09
     min_height_m: float = 0.020
     max_height_m: float = 0.070
