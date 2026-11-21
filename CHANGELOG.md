@@ -3,6 +3,52 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 documentation unification
+
+Documentation only; no new hardware claims. The README pair, ROADMAP,
+acceptance report and this changelog were re-synchronized on the 2026-11-21
+baseline (Studio G7/G8/G8.1 + the G8 fast path, and the completed
+random-placement 24-pair trial).
+
+### Fixed
+
+- **Both READMEs:** test counts corrected to **144 backend / 80 gateway**
+  (the contribution list and quick start still said 125/72; the English status
+  row said 136/80). The Chinese README gained the missing
+  random-placement and G8 fast-path key-result rows, and both status tables
+  now record the camera feeds routed through the read-only gateway and the
+  Chinese operator UI.
+- **One error-budget baseline:** the partial 2026-11-19 row (RSS 3.995 mm,
+  4/7 sources) was removed from both key-result tables; the table keeps the
+  completed 2026-11-20 budget (RSS 13.325 mm, bound gates fail, empirical
+  placement mean 3.080 mm) as the single status baseline.
+- **README deliverables:** removed a duplicated "Random-placement 24-pair
+  follow-up" bullet; the Chinese checklist now carries the same "fixed
+  24-mark fan was superseded before data" note as the English one.
+- **ROADMAP:** the Studio row no longer says "widened locate region
+  0.15–0.55 m"; it records the actual locate window (`x 0.15–0.55 m`,
+  `y ±0.15 m`) and the 30 mm minimum top extent that accepts a 34.6 mm visible
+  top. §10 no longer says the new-flow session is "starting"; the trial
+  completed all 24 pairs. §7's status date and the 2026-11-21 follow-up were
+  aligned with the status table.
+- **Acceptance report (`docs/phase0/PHASE0_ACCEPTANCE.md`):** §1 is now the
+  2026-11-21 verdict — Studio G1–G8.1 + the G8 fast path at 144/80 tests, and
+  the random-placement follow-up **Pass** (9/24 vs 24/24, McNemar
+  p = 6.1×10⁻⁵). The old "24-site pre-registered, not run" row and the §6 gap
+  table were replaced with the completed outcome. The Phase 0 mock checklist
+  (§2) is unchanged.
+- **Sibling contradiction (`docs/phase3/PAIRED_TRIALS.md`):** the site-diversity
+  bullet no longer says "the hardware session has not run yet"; it records the
+  fixed fan as superseded before data and the completed 2026-11-21
+  random-placement outcome. The fixed-fan design stays as history.
+
+### Verification
+
+- Re-collected instead of copied: `backend/tests` → **144**, `ros2_gateway/tests`
+  → **80**; Playwright suites unchanged (10 mock + 3 pose/task + 3 hardware).
+- `git diff --check` clean; relative links in the changed documents resolve;
+  the README TOC anchors were re-checked. No evidence file was modified.
+
 ## [Unreleased] — 2026-11-21 Studio 中文化 + 进度一致性
 
 ### Added

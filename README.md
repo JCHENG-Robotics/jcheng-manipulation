@@ -148,8 +148,8 @@ was discarded (D1).
    probe to the mechanical stops, and tooling that avoids the vendor node's
    negative-register crash.
 8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
-   runner, measurement runner, read-only host/DDS benchmark, and a G1–G8 debug
-   studio with 125 backend + 72 gateway tests.
+   runner, measurement runner, read-only host/DDS benchmark, and a G1–G8.1
+   debug studio with the G8 fast path (144 backend + 80 gateway tests).
 9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
@@ -195,7 +195,7 @@ was discarded (D1).
 | Grasp execution, 20 grasps | commanded vs bus-servo at the grasp pose: **4.220 mm / 1.069° mean**, **5.386 mm / 1.495° max** | [`trial_report`](evidence/phase3/onsite_20261120/trial_report.md) |
 | Gripper placement, 20 put-backs | landing − pre-grasp: **3.080 mm mean, RMS 4.082 mm, max 11.514 mm**; mean bias **(−0.99, +1.63) mm** | [`trial_report`](evidence/phase3/onsite_20261120/trial_report.md) |
 | Object-fixture pose, 20 placements | radial **5.057 mm RMS / 14.815 mm max** on the tape; per-axis SD **5.112 / 0.884 / 0.362 mm** | [`fixture_report`](evidence/phase3/onsite_20261120/fixture_report.md) |
-| Completed error budget (2026-11-20) | translation **RSS 13.325 mm / worst 24.014 mm** vs 6 mm; rotation **RSS 1.858° / worst 3.322°** vs the provisional 2°; fixture-inclusive **19.926 mm**; empirical placement mean **3.080 mm** inside 6 mm | [`error_budget.md`](evidence/phase3/onsite_20261120/error_budget.md) |
+| Completed error budget (2026-11-20) | translation **RSS 13.325 mm / worst 24.014 mm** vs 6 mm; rotation **RSS 1.858° / worst 3.322°** vs the provisional 2°; fixture-inclusive **19.926 mm**; empirical placement mean **3.080 mm** inside 6 mm; dominant terms placement 74.7 % and execution rotation 64.7 % | [`error_budget.md`](evidence/phase3/onsite_20261120/error_budget.md) |
 | Grasp working radius | finger-pad radius **205–210 mm**; `joint1` yaw range **±103.2° (206°)** | [`evidence/phase2/onsite_20261119/reach/`](evidence/phase2/onsite_20261119/reach/) |
 | Out-of-view search + base round trip | cube found with a **+16° `joint1` yaw** at **0.469 m**; **0.325 m** closed-loop base approach; grasp + 150 mm lift; return to **9.4 mm** (floor-landmark check); release **1.1 mm** (robot frame) | [`evidence/phase2/onsite_20261119/search_and_return/`](evidence/phase2/onsite_20261119/search_and_return/) |
 | Dual-camera grasp, first attempt (2026-11-20) | chassis D435i measured the cube in `base_link` within **2.58 mm** (x/y) of the wrist at the view pose; the validated target `C_view + e` was kept because `e` is a low-config execution correction, not a measurement bias; **grip + put-back** verified by both cameras, **3.65 mm** planar return (front-camera estimate) | [`evidence/phase2/onsite_20261120/dual_grasp/`](evidence/phase2/onsite_20261120/dual_grasp/README.md) |
@@ -208,7 +208,6 @@ was discarded (D1).
 | Studio G8.1 chassis approach (2026-11-21) | a cube placed at **x 0.357 m** (outside the arm's reach and the old locate region) was brought into the band by **two bounded base pulses** (2.0 s / 98 mm nominal → **94 mm actual**; 0.68 s / 33 mm → ~42 mm), then the 13-step task gripped it (`close_grip` raw **412**, `held: true`, landing **+0.5 mm x**); the base is open-loop (`verification: open_loop`) with the camera closing the loop; the gateway caps duty ≤10 and ≤2 s | [`evidence/studio_g81/20261121/`](evidence/studio_g81/20261121/README.md) |
 | Studio G8 task takeover (2026-11-21) | one command plans a **13-step task from the live point cloud** (locate → grasp → lift → grip verify → put-back → return) and runs it with bus-verified steps; measured point `(0.2247, 0.0019, −0.0489) m`, target radius **0.2384 m** (direct-grasp band), fit j4 **−0.350**, grasp actual `504/339/930/421/499`; `close_grip` stalls at **raw 416** on the cube, grip verify `held: true`, put-back landing **+3.6 mm x / +0.2 mm y / +0.4 mm z**; the Aurora's **min-range sphere (~0.251 m)** clips the near top face (23 mm visible), so the centre is rebuilt from the intact far edge with the measured 39.4 mm cube (`TOP_CLIPPED_RECOVERED`) | [`evidence/studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
 | Studio G8 fast path (2026-11-21) | **7 phases**, one dense S-curve per arm phase (4.0 rad/s / 20 rad/s²), fast gripper timings (0.35/0.5/0.45 s), and the **base approach inside the run**; real run **5.466 s commanded / 13.46 s wall** (the 13-step single-point plan was 33.56 s), `close_pre` 309, `close_grip` 414, `held: true`, landing **+2.22 mm x / −0.46 mm y / +1.06 mm z** (2.27 mm planar); the first attempt exposed a missing `fast` flag in the adapter payload (gateway rejected `close_pre` before publication) | [`evidence/studio_g8_fast/20261121/`](evidence/studio_g8_fast/20261121/README.md) |
-| Error budget (2026-11-19, partial: 4/7 translation sources) | translation **RSS 3.995 mm** (pass) / worst **7.114 mm** (fail) vs the measured **6 mm** tolerance; rotation **RSS 1.103° / worst 1.827°** vs the provisional 2° gate (both pass); hand–eye is 68 % of the translation RSS; execution, placement and fixture were still unmeasured | [`error_budget_envelope.md`](evidence/phase3/onsite_20261119/error_budget_envelope.md) |
 
 ## System architecture
 
@@ -318,10 +317,10 @@ separately.
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trials | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement 24 pairs: free by-eye spots with a base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; the secondary home release error (+2.12 mm, anchor = corrected target) is descriptive, not an accuracy gain; baseline `MISS` 14 + `NO_GRIP` 1 (grip lost on the return); D1/D2 discards recorded; the pre-grasp gap fix (reused final measurement) is post-data tooling only |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
-| Debug Studio | **G1–G8.1 implemented + the G8 fast path; tests pass** | 136 backend + 80 gateway; 10 mock + 3 hardware + 3 pose-scope Playwright; G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); the min-range clip recovery rebuilds a clipped top from the far edge; D435i aux feed on the Dashboard; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback |
+| Debug Studio | **G1–G8.1 implemented + the G8 fast path; tests pass** | 144 backend + 80 gateway; 10 mock + 3 hardware + 3 pose-scope Playwright; G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); the min-range clip recovery rebuilds a clipped top from the far edge; a 34.6 mm visible top is accepted and a lateral cube triggers the bounded base approach; D435i aux feed on the Dashboard, and the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
-| Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m |
+| Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) is camera-closed but still open-loop |
 
 Legacy learning track: the Panda pick-and-place demo (`arm_moveit_demo`) and
 the M2.2 2-DOF controller profiles (`arm_description`) are archived learning
@@ -344,9 +343,6 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
       gate remains provisional
 - [x] Paired hardware trial with statistical power (2026-11-19): 24 pairs,
       McNemar p = 0.00049, paired placement improvement 2.19 mm (p = 0.0063)
-- [x] Random-placement 24-pair follow-up (2026-11-21): free by-eye spots with
-      a base approach, baseline 9/24 vs intervention 24/24 (McNemar
-      p = 6.1×10⁻⁵); the home release metric is reported descriptively
 - [x] Low-configuration model calibration (2026-11-19) — joint offsets rejected,
       constant base-frame offset supported inside the measured envelope
 - [x] Formal mechanical joint-limit survey and `mapping_verified=true`
@@ -391,7 +387,7 @@ python -m pytest -q \
   tools/phase3/tests \
   tools/phase4/tests
 
-# debug studio: backend 125, gateway 72, mock Playwright 10, pose/task Playwright 3
+# debug studio: backend 144, gateway 80, mock Playwright 10, pose/task Playwright 3
 cd armpi-debug-studio/backend && pytest
 cd ../ros2_gateway && pytest
 cd ../frontend && npm run test:e2e

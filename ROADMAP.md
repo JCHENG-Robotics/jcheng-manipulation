@@ -34,9 +34,9 @@ verified on the hardware the same day: 5.466 s commanded / 13.46 s wall,
 | Error budget and tolerance envelope | **Framework implemented; budget complete, bound gates fail** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); all sources measured, including execution **5.386 mm / 1.495° max**, placement **11.514 mm max / 3.080 mm mean** and fixture **14.815 mm radial max**; translation **RSS 13.325 mm** (fail) / worst case **24.014 mm** (fail vs 6 mm); rotation **RSS 1.858°** (pass) / worst **3.322°** (fail vs the provisional 2° gate); dominant translation term is now `gripper_placement` (74.7 %), hand-eye is 6.1 %; empirical corrected placement mean **3.080 mm** (RMS 4.082 mm) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trial framework | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement: free by-eye spots + base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; home release error (+2.12 mm, anchor = corrected target) descriptive only; D1/D2 discards recorded; the fixed 24-mark fan was superseded before data, not run |
 | Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
-| ArmPi Debug Studio | **Implemented through G8.1 + the G8 fast path; motion off by default** | read-only gateway + G2/G3/G4/G5; 136 backend + 80 gateway tests + 3 pose-scope Playwright; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); **G7 pose takeover** real view→grasp→view + gripper sequence bus-verified (low pose within 4 pulses; gripper settled 184/645); **G8 task takeover**: live point cloud → locate → deep-family fit → 13-step task → grip verify → put-back, **verified on hardware** (target radius 0.2384 m, grasp actual 504/339/930/421/499, `close_grip` stalled at raw 416, put-back landing 3.6 mm), including a **min-range clip recovery** for the Aurora's ~0.25 m cutoff; **G8.1 bounded chassis approach**: `APPROACH_REQUIRED` plan + `POST /chassis/pulse` (duty ≤10, ≤2 s, open-loop) closed by the camera, a far cube at 0.357 m brought to 0.221 m in two pulses and grasped (landing 0.5 mm); **G8 fast task path**: 7 phases, dense S-curves at 4.0 rad/s / 20 rad/s² with per-segment gateway validation, base approach inside the run — **hardware-verified** (5.466 s commanded / 13.46 s wall, `close_grip` 414, landing 2.27 mm); **widened locate region 0.15–0.55 m**; `/servo_states` is a command cache, not measured feedback; `mapping_verified=true`; D435i aux feed on the Dashboard; no e-stop, no self-collision model |
+| ArmPi Debug Studio | **Implemented through G8.1 + the G8 fast path; motion off by default** | read-only gateway + G2/G3/G4/G5; 144 backend + 80 gateway tests + 3 pose-scope Playwright; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); **G7 pose takeover** real view→grasp→view + gripper sequence bus-verified (low pose within 4 pulses; gripper settled 184/645); **G8 task takeover**: live point cloud → locate → deep-family fit → 13-step task → grip verify → put-back, **verified on hardware** (target radius 0.2384 m, grasp actual 504/339/930/421/499, `close_grip` stalled at raw 416, put-back landing 3.6 mm), including a **min-range clip recovery** for the Aurora's ~0.25 m cutoff; **G8.1 bounded chassis approach**: `APPROACH_REQUIRED` plan + `POST /chassis/pulse` (duty ≤10, ≤2 s, open-loop) closed by the camera, a far cube at 0.357 m brought to 0.221 m in two pulses and grasped (landing 0.5 mm); **G8 fast task path**: 7 phases, dense S-curves at 4.0 rad/s / 20 rad/s² with per-segment gateway validation, base approach inside the run — **hardware-verified** (5.466 s commanded / 13.46 s wall, `close_grip` 414, landing 2.27 mm); **locate window x 0.15–0.55 m / y ±0.15 m** with a **30 mm minimum top extent** (a 34.6 mm visible top is accepted after the 2026-11-21 fix); the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; `/servo_states` is a command cache, not measured feedback; `mapping_verified=true`; D435i aux feed on the Dashboard; no e-stop, no self-collision model |
 | Clock sync | **Implemented and verified** | laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
-| Mobile base | **Open-loop only; duty-20 auto-approach validated** | four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m |
+| Mobile base | **Open-loop only; duty-20 auto-approach validated** | four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) is camera-closed but still open-loop |
 
 By 2026-11-20 the live robot runs the vendor Humble core stack in
 `ArmPiUltra`; the workstation runs Humble MoveIt/RViz in Docker. The Aurora 930
@@ -241,14 +241,20 @@ fiducial detection
 → grasp verification
 ```
 
-**Status (2026-11-20): real execution validated on 3/5 first-series attempts,
+**Status (2026-11-21): real execution validated on 3/5 first-series attempts,
 then 24/24 with the constant correction.** Passes 1–2 and 5 completed
 pick–lift–place on a 39.4 mm cube; passes 3–4 failed and measured a
 configuration-dependent FK/hand–eye error of −8.0/−15.3/−5.8 mm at the low
 grasp pose. Pass 5 corrected it with one AprilTag observation and succeeded
 (TCP +0.0993 m, object ≈148 mm). The pre-registered 24-pair trial then
 measured the corrected method against the raw target: 12/24 → 24/24
-(McNemar p = 0.00049). The real trials used markerless RGB-D segmentation
+(McNemar p = 0.00049). The 2026-11-21 random-placement follow-up repeated the
+effect on free by-eye spots with a base approach: **9/24 → 24/24** (McNemar
+p = 6.1×10⁻⁵; the home release metric is descriptive). The same chain became
+the Studio G8 takeover (live point cloud → locate → deep-family fit → 13-step
+task → grip verify → put-back, hardware-verified), extended by G8.1's bounded
+open-loop chassis approach and the 7-phase G8 fast path (13.46 s wall,
+2.27 mm landing). The real trials used markerless RGB-D segmentation
 rather than a fiducial marker; the fiducial bridge remains mock-validated.
 A 2026-11-20 dual-camera run used the chassis D435i as an independent
 `base_link` observer: it agreed with the wrist camera to **2.58 mm** in x/y,
@@ -397,11 +403,11 @@ the 0.226-0.234 m band it grasps directly, otherwise it drives the base
 closed-loop into the band. After a held grip it **carries the cube back to the
 start and releases it there**; the operator takes it from the start and
 re-places it at the same spot for the second method. The design, reference
-envelope, seed-17 plan and hashes are written before data
+envelope, seed-17 plan and hashes were written before data
 ([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md)).
 The free near/far warm-up passed; one old-flow attempt (site put-back) was
-discarded (D1) and the new-flow session is starting. The earlier fixed
-24-mark fan was superseded before data and never run.
+discarded (D1) and the new-flow session then completed all 24 pairs. The
+earlier fixed 24-mark fan was superseded before data and never run.
 
 ## 11. Safety
 

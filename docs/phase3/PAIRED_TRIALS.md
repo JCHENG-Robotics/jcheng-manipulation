@@ -18,6 +18,12 @@
 > export and an Experiment Lab page. See
 > [`armpi-debug-studio/docs/g3-experiment-lab.md`](../../armpi-debug-studio/docs/g3-experiment-lab.md).
 > It has no hardware trial data either.
+>
+> **Update (2026-11-21):** the random-placement 24-pair follow-up completed
+> (baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1e-05**; the
+> secondary home-release error is descriptive only). The fixed 24-mark fan was
+> superseded before data and never run. See
+> [`RANDOM_SITE_DESIGN.md`](RANDOM_SITE_DESIGN.md).
 
 ## First physical result (2026-11-19)
 
@@ -148,10 +154,12 @@ and
   small.
 - **Safety layer and joint limits**: active and measured before repeated
   motion.
-- **Site diversity**: pre-registered 2026-11-20 as the 24-site follow-up
-  (one floor site per pair, four radii × six bearings, seed-17 plan); the
-  hardware session has not run yet. See
-  [`SITE_DIVERSITY_DESIGN.md`](SITE_DIVERSITY_DESIGN.md).
+- **Site diversity**: the fixed 24-mark fan was pre-registered on 2026-11-20
+  and then superseded before data (never run). The random-placement design
+  replaced it and completed 24 pairs on 2026-11-21 (baseline 9/24 vs
+  intervention 24/24, McNemar p = 6.1e-05). See
+  [`RANDOM_SITE_DESIGN.md`](RANDOM_SITE_DESIGN.md); the fixed-fan design is
+  kept as history in [`SITE_DIVERSITY_DESIGN.md`](SITE_DIVERSITY_DESIGN.md).
 
 ## Limitations
 
