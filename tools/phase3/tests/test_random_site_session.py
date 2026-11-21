@@ -180,5 +180,7 @@ def test_dry_run_writes_48_records(tmp_path):
     approaches = [
         json.loads(line) for line in
         open(tmp_path / 'approaches.jsonl', encoding='utf-8')]
-    assert len(approaches) == 24
+    assert len(approaches) == 48
+    assert approaches[0]['trial_order'] == 1
+    assert approaches[1]['trial_order'] == 2
     assert 'return_home' in approaches[0]['approach']

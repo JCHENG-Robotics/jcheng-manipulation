@@ -1,7 +1,10 @@
 # Random-placement 24-pair trial — pre-registered design
 
-> Written **before** the first random-placement trial. Any change after data
-> collection starts is recorded as a deviation at the bottom of this file.
+> Written **before** the first random-placement trial; the free-placement
+> change was pre-data. One old-flow attempt (the site put-back) was then
+> discarded (D1, Section 11); the **home-return flow** in this file is the
+> protocol for the valid data. Any change after the first valid new-flow
+> record is recorded as a deviation at the bottom of this file.
 >
 > Pre-registered: 2026-11-21, on the ArmPi Ultra floor setup. Operator present;
 > all motion supervised.
@@ -127,16 +130,19 @@ The final grasp target always comes from the **strict wrist measurement in the
 band** (placement gate 30-50 mm height and extents). The front camera can
 never supply the grasp target.
 
-## 5. Procedure per pair
+## 5. Procedure per trial (two trials per pair)
 
-1. The runner prints the pair. The operator places the cube by eye at a new
-   spot in the forward workspace (no measuring) and presses Enter.
+For each of a pair's two methods, back to back at the same realized spot:
+
+1. **Trial A.** The runner prints the pair; the operator places the cube by
+   eye at a new spot in the forward workspace (no measuring) and presses
+   Enter.
 2. The arm moves to the validated view pose
    `[0, 0.2574, -1.18773, -1.70, -0.01676]`.
 3. **Locate** with the chain above. The realized point is reported and its
    region membership is recorded descriptively; there is **no** placement gate
-   and no re-place prompt. If the locator finds no point, the pair aborts
-   before any trial and the operator moves the cube a little closer/centred.
+   and no re-place prompt. If the locator finds no point, the trial aborts
+   before any motion and the operator moves the cube a little closer/centred.
 4. **Approach or direct grasp.** If the measured point is already inside the
    0.226-0.234 m band, no pulse is sent and the robot grasps directly (the
    near case). Otherwise closed-loop base pulses (vector duty 20) drive toward
@@ -148,17 +154,24 @@ never supply the grasp target.
    2026-11-19 paired trial gripped 24/24 with the intervention over measured
    points x 0.2169-0.2388 m and |joint1| <= 0.142 rad across both methods).
    Up to 2 base trims; still outside means abort before any grasp.
-6. **Trial A** (the plan's first method); the validated
-   `low_config_grasp_validate.py` sequence, grip check in the 40 mm cube box,
-   put-back and landing gates. The operator re-places the cube on the **same
-   realized spot** for **Trial B**.
-7. **Return home** by the reverse of the commanded translation with the same
-   `duty * 4.9 mm/s` model that sized the outbound pulses; the speed scale
-   cancels. The residual is absorbed by the next pair's locator chain. This is
-   not a localization claim.
+6. **Grasp and return home with the cube.** The validated
+   `low_config_grasp_validate.py` sequence and the grip check in the 40 mm cube
+   box. If held, the base **drives the reverse of the commanded approach while
+   holding the cube** (the 2026-11-20 far-run return: 245.3 mm reversed,
+   11.06 mm landing against the fitted target), then the arm lowers and
+   releases the cube **at the start**. The operator picks it up there. If the
+   trial missed, the base returns empty and the cube stays at the spot; the
+   operator adjusts it there for Trial B.
+7. **Trial B.** The operator takes the cube from the start (held case) or
+   adjusts it at the spot (miss case) and places it at the **same spot**; the
+   base approach is repeated from the start. The second trial has the same
+   locate/approach/grasp/return-home/release sequence.
+8. After both trials the base is at the start; the next pair's placement
+   begins there. The sidecar records one locate/approach/return record per
+   trial (two per completed pair).
 
 The runner writes the approach sidecar (`approaches.jsonl`) **and** the
-validated paired-trial records. The final `stop` after a pair (including an
+validated paired-trial records. The final `stop` after a trial (including an
 aborted one) always drives the reverse home pulse with the arm wherever the
 abort left it; the operator keeps clear and the power switch reachable.
 
@@ -169,15 +182,15 @@ abort left it; the operator keeps clear and the power switch reachable.
 | Located | the locator chain returns a cube point before the first base pulse | capability (descriptive) |
 | Inside reference envelope | the first measured point is inside the radius/bearing guide | descriptive (not a gate) |
 | Direct grasp | the first measured point is already inside the 0.226-0.234 m band, so no base pulse is sent | descriptive (near case) |
-| Approached | the strict final measurement passes and the empirical envelope passes | capability (descriptive; a pair is attempted only then) |
+| Approached | the strict final measurement passes and the empirical envelope passes | capability (descriptive; a trial is attempted only then) |
 | Grasp success | after the close and rise, the cube's 40 mm floor box is empty | **primary** (paired) |
-| Placement error | for a held cube, the xy landing displacement from the pre-grasp measurement | secondary (paired, continuous) |
+| Home release error | for a held cube, the xy landing displacement from the fitted release target (nominal TCP) after the base returns home; it measures the release precision at the start, not a put-back at the original spot | secondary (paired, continuous) |
 | Failure code | `MISS`, `NO_GRIP`, `AMBIGUOUS` | descriptive |
-| Approach cost | locator used, initial radius/bearing, base pulses, final x/|joint1|, wall time | descriptive |
+| Approach cost | locator used, initial radius/bearing, base pulses, final x/|joint1|, wall time, per trial | descriptive |
 
-**Capability failure handling.** A point that cannot be located or approached
-after one operator retry is a capability failure; the pair is not recorded as
-a grasp trial, the reason is in `approaches.jsonl`, and the pair is excluded
+**Capability failure handling.** A trial that cannot be located or approached
+after one operator retry is a capability failure; it is not recorded as a
+grasp trial, the reason is in `approaches.jsonl`, and the pair is excluded
 from the paired grasp analysis with `n_complete` reported. It is never
 silently dropped and never converted into a `MISS`.
 
@@ -197,9 +210,13 @@ Analysis:
 - `armpi_analysis.paired_trials analyze` on the completed pairs: exact McNemar;
   Wilson intervals; paired continuous difference with a seeded bootstrap 95 %
   interval, exact sign test, Cohen's `dz`; order split.
-- `tools/phase3/site_report.py`: the capability table (pairs, sidecar
-  attempts, retries, located/approached, locator, pulse count, realized
+- `tools/phase3/site_report.py`: the capability table (pairs, approach
+  records one per trial, located/approached, locator, pulse count, realized
   radius/bearing, final envelope, abort reason).
+- The paired continuous outcome is the **home release error** (the landing
+  vs the fitted release target after the return), not the original site
+  put-back; it is reported only when both methods held the cube. The primary
+  success comparison is unchanged.
 - The realized placement distribution (radius and bearing of the first
   measured points) is reported descriptively. It is not a seeded sample and
   is not claimed to be uniform; the operator's draws are the randomisation.
@@ -214,6 +231,12 @@ Analysis:
   mid-motion, the runner's `finally` still drives the reverse home pulse with
   the arm wherever the abort left it; that pulse is a horizontal translation
   away from the cube; the operator keeps clear.
+- **The return home while holding the cube** is the 2026-11-20 far-run path
+  (245.3 mm reversed with the cube held, 11.06 mm landing against the fitted
+  target). The base reverses with the arm at the view pose; the arm then
+  lowers and releases at the start. The operator stays clear of the arm path
+  and picks the cube up only after the release. The base return is open-loop
+  (centimetre-level), not a localization.
 - The base moves toward the cube, not the operator; the operator stays behind
   or at the side.
 - Adopted EEPROM-bounded joint limits; base vector duty <= 20; a pulse <= 3 s;
@@ -264,6 +287,15 @@ and writes the front-camera measurement JSONs to `front/`.
 - **The radius/bearing envelope is a guide, not the whole floor.** A point
   much farther or wider may be unlocatable from the home pose; the operator
   then moves it a little closer. No coordinate is measured by the operator.
+- **The continuous outcome is the home release error.** The cube is released
+  at the start, not at the original spot, so the 2026-11-19 site put-back
+  metric does not apply. The home release error measures the release precision
+  at the start; the primary success comparison is unchanged. The two methods'
+  fits differ slightly, so the release targets differ slightly.
+- **One old-flow trial precedes this protocol.** Before the operator requested
+  the home-return flow, one intervention trial was recorded with the site
+  put-back (success, 4.38 mm). It is preserved in the discarded file and
+  excluded; `p020` restarts under this flow (D1).
 - **One cube, one operator, one session, one battery state.** The cube is the
   same 39.4 mm wooden cube; the lighting and operator are fixed.
 - **Site count vs power.** The 24 placements are for coverage, not a power
@@ -271,11 +303,18 @@ and writes the front-camera measurement JSONs to `front/`.
 
 ## 11. Deviations
 
-None: no random-placement trial has been run yet. A **pre-data** change (for
-example the free-placement amendment below) is not a deviation: it updates
-the region, rule and evidence hashes and records the reason in the evidence
-README, still before the first valid record. After the first valid record, any
-change is listed here chronologically.
+**D1 — 2026-11-21, the home-return release flow.** The first recorded trial
+(`p020` / intervention, success, 4.38 mm) used the site put-back: the robot
+released the cube at the measured spot. The operator then asked for the robot
+to carry the cube back to the start and release it there, so the operator can
+recover it at the start and re-place it at the same spot for the second
+method. The trial is preserved in
+`discarded_site_release_attempt.jsonl` (with the aborted baseline attempt and
+the old approach records in `discarded_site_release_approaches.jsonl`) and is
+**not** part of the new-flow analysis. `p020` restarts from its first method
+under the home-return flow. The data collection before this change is one
+discarded attempt, not a valid pair. The change is also recorded in the
+evidence README.
 
 **Pre-data amendment (2026-11-21, before any trial).** The operator asked for
 free placement without measuring. The fixed far precheck points and the
@@ -294,16 +333,23 @@ file before data; its evidence directory has no trials.
   reference envelope in
   `evidence/phase3/onsite_20261121_random/region.json`.
 - Runner: `tools/phase3/random_site_session.py` (subclasses the validated
-  `paired_trial_session.Session`; the grasp/grip/landing/recorder path is
-  unchanged).
+  `paired_trial_session.Session`; the grasp/grip/recorder path is the
+  validated one; the runner adds the per-trial approach, the return home while
+  holding the cube, and the release at the start).
 - Plan: `evidence/phase3/onsite_20261121_random/paired_trials_plan.json`
   (seed 17, fixtures r01...r24, generated before data).
 - Trials: `evidence/phase3/onsite_20261121_random/trials.jsonl`;
-  sidecar: `approaches.jsonl`; front-camera measurement JSONs: `front/`.
+  sidecar: `approaches.jsonl` (one record per trial); front-camera
+  measurement JSONs: `front/`.
+- Discarded (excluded from analysis):
+  `discarded_site_release_attempt.jsonl` (the one old-flow trial),
+  `discarded_site_release_approaches.jsonl` (its approach records).
 - Session log: `evidence/phase3/onsite_20261121_random/session_*.log`.
 
 Precheck (free near/far warm-up; no coordinates, no base motion, no trial)::
 
+    source /opt/ros/jazzy/setup.bash
+    source ros2_ws/install/setup.bash
     sg docker -c "python3 tools/phase3/random_site_session.py --precheck \
         --region evidence/phase3/onsite_20261121_random/region.json \
         --plan evidence/phase3/onsite_20261121_random/paired_trials_plan.json \
@@ -311,6 +357,8 @@ Precheck (free near/far warm-up; no coordinates, no base motion, no trial)::
 
 On-site::
 
+    source /opt/ros/jazzy/setup.bash
+    source ros2_ws/install/setup.bash
     sg docker -c "python3 tools/phase3/random_site_session.py \
         --region evidence/phase3/onsite_20261121_random/region.json \
         --plan evidence/phase3/onsite_20261121_random/paired_trials_plan.json \

@@ -86,9 +86,11 @@ with the wrist camera), S-curve motion that cut the grasp+put-back cycle from
 4.44 s, 0.92 mm landing) and a far-cube run at 0.464 m which reversed the base
 home while holding the cube (11.06 mm placement error against the fitted
 target; the return itself remains open-loop). A random-placement 24-pair
-follow-up was pre-registered on 2026-11-21: the operator places the cube at a
-fresh haphazard point in the sensor-covered region before every pair; the
-fixed 24-mark fan was superseded before data and never run.
+follow-up was pre-registered on 2026-11-21: the operator places the cube by
+eye (no measuring) at a fresh point in the sensor-covered region; after a
+held grip the robot carries the cube back to the start and releases it there
+between the two trials. The fixed 24-mark fan was superseded before data and
+never run; one old-flow attempt was discarded (D1).
 
 ## Objectives and contributions
 
@@ -304,7 +306,7 @@ separately.
 | Safety layer | **Implemented; mock-validated + hardware veto** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks; table-plane clearance; D435i collision box (MoveIt only); no e-stop or brake |
 | Measurement protocols | **Implemented; error-budget sources measured** | 30-visit repeatability 0.449 mm RMS / 1.017 mm max; backlash 1.117 mm; 46-grasp tolerance grid (±9 mm opening axis); 20-grasp execution 5.386 mm / 1.495° max; 20-put-back placement 11.514 mm max / 3.080 mm mean; 20-placement fixture 14.815 mm radial max; rotation-tolerance and visual-displacement runners added, hardware runs pending |
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trials | **First physical trial complete (2026-11-19); random-placement 24-pair follow-up pre-registered (2026-11-21)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); the fixed 24-mark fan was superseded before data by the operator-random region + seed-17 plan, not run |
+| Paired trials | **First physical trial complete (2026-11-19); random-placement 24-pair follow-up pre-registered (2026-11-21); new-flow session starting** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063); the fixed 24-mark fan was superseded before data by the free-placement region + seed-17 plan; after a held grip the robot carries the cube back to the start between trials; one old-flow attempt discarded (D1), no valid new-flow result yet |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
 | Debug Studio | **G1–G6 implemented; tests pass** | 93 backend + 47 gateway; 10 mock + 3 hardware Playwright; G5 moving capture; G6 supervised path verified without motion; D435i aux feed on the Dashboard |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
@@ -626,11 +628,14 @@ supervised runners.
   measured a 32.1 mm home error that needed one correction pulse to reach
   9.4 mm, so the far-run landing is a base-frame placement error, not a home
   error. An earlier 5.45 s run used the previous 3.0/12 default.
-- **The random-placement follow-up is pre-registered but not run.** Its
-  capability and method outcomes are predictions, not results; the 2026-11-19
-  single-fixture trial remains the only paired hardware evidence. The
-  chassis D435i far-field locator (0.46-0.55 m) is the newest, least-validated
-  link; the pre-session check must pass before the 48-trial session.
+- **The random-placement follow-up is starting under the home-return flow.**
+  Its capability and method outcomes are predictions, not results; the
+  2026-11-19 single-fixture trial remains the only paired hardware evidence.
+  One old-flow attempt was discarded (D1); no valid new-flow result exists.
+  The continuous outcome in the new flow is the home release error, not the
+  site put-back. The chassis D435i far-field locator (0.46-0.55 m) is the
+  newest, least-validated link; the free near/far warm-up passed, but the
+  in-run locator chain remains the test.
 - **Absolute depth at 48° is biased.** RGB and depth disagree by ~40–50 mm at
   the oblique view; table-down and depth-plane estimates are the reliable
   references.
@@ -751,8 +756,10 @@ with no measuring, anywhere in the forward workspace; the r 0.25-0.55 m /
 bearing -20..+25 deg envelope is a guide; seed-17 plan committed). It tests
 whether the 12/24 → 24/24 effect and the locate/approach chain survive
 unknown placements. If the cube is already in the 0.226-0.234 m band the robot
-grasps directly; otherwise it drives the base toward it. The free near/far
-far-camera warm-up must pass before the session; the fixed 24-mark fan was
+grasps directly; otherwise it drives the base toward it. After a held grip it
+carries the cube back to the start and releases it there between the two
+trials, so the operator recovers it at the start. The free near/far warm-up
+passed; one old-flow attempt was discarded (D1). The fixed 24-mark fan was
 superseded before data and is not run.
 
 **Then.** Address the dominant error-budget term, **gripper placement**

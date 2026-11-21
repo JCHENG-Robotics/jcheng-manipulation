@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-21 home-return between the two trials
+
+### Changed
+
+- **Trial flow:** after a held grip the robot now drives the base **back to
+  the start while holding the cube** (the reverse-model return validated on
+  2026-11-20: 245.3 mm reversed, 11.06 mm landing against the fitted target)
+  and releases it at the start. The operator takes it from there and places
+  it at the same spot for the second method. A miss returns empty and leaves
+  the cube at the spot.
+- `paired_trial_session.Session` gained the `_before_release` hook and
+  `release_anchor`: the site flow keeps the pre-grasp anchor; the free-
+  placement flow measures the **home release error** against the fitted TCP.
+- `random_site_session.run` now runs a locate/approach per trial, with the
+  operator prompt for place / re-place; `approaches.jsonl` records one
+  approach/return per trial (two per completed pair); `site_report.py`
+  reports "approach records" instead of "retries".
+- The operator prompts are Chinese and require no measuring.
+
+### Data
+
+- **D1:** the first old-flow trial (`p020 / intervention`, success, 4.38 mm,
+  site put-back) and its approach records are preserved in
+  `discarded_site_release_attempt.jsonl` and
+  `discarded_site_release_approaches.jsonl` and excluded. `p020` restarts
+  under the home-return flow. No valid new-flow trial has been recorded yet.
+
 ## [Unreleased] — 2026-11-21 random-placement 24-pair trial (pre-registered)
 
 ### Added

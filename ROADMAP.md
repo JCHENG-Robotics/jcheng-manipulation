@@ -386,11 +386,14 @@ in the forward workspace (no measuring; the radius 0.25-0.55 m / bearing
 -20..+25 deg envelope is a guide). The robot locates it with the wrist wide
 measurement, the chassis D435i or a `joint1` yaw sweep; if it is already in
 the 0.226-0.234 m band it grasps directly, otherwise it drives the base
-closed-loop into the band, runs the two methods and returns home. The design,
-reference envelope, seed-17 plan and hashes are written before data
-([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md));
-the free far-field warm-up and the hardware session are pending. The earlier
-fixed 24-mark fan was superseded before data and never run.
+closed-loop into the band. After a held grip it **carries the cube back to the
+start and releases it there**; the operator takes it from the start and
+re-places it at the same spot for the second method. The design, reference
+envelope, seed-17 plan and hashes are written before data
+([`docs/phase3/RANDOM_SITE_DESIGN.md`](docs/phase3/RANDOM_SITE_DESIGN.md)).
+The free near/far warm-up passed; one old-flow attempt (site put-back) was
+discarded (D1) and the new-flow session is starting. The earlier fixed
+24-mark fan was superseded before data and never run.
 
 ## 11. Safety
 

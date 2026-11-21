@@ -438,6 +438,8 @@ class SiteSession(base.Session):
 
     def return_home(self, pair_id):
         """Drive back along the reverse of the commanded approach."""
+        if self.approach.get('return_home', {}).get('done'):
+            return
         started = time.monotonic()
         net = self._net_base_travel()
         distance = float(np.linalg.norm(net))
@@ -446,10 +448,13 @@ class SiteSession(base.Session):
             'distance_m': distance,
             'pulses': [],
             'wall_s': 0.0,
+            'done': False,
         }
         if distance < 0.005:
+            self.approach['return_home']['done'] = True
             return
         if self.args.dry_run:
+            self.approach['return_home']['done'] = True
             return
         direction = -net / distance
         remaining = distance
@@ -476,8 +481,17 @@ class SiteSession(base.Session):
             time.sleep(BASE_COAST_S)
         self.approach['return_home']['wall_s'] = round(
             time.monotonic() - started, 3)
+        self.approach['return_home']['done'] = True
 
-    def _write_approach(self, pair_id, site):
+    def _before_release(self, entry, fit, grasp_report):
+        """Return the base home while holding the cube; release at home."""
+        self.return_home(entry['pair_id'])
+        if self.approach.get('return_home') is not None:
+            self.approach['return_home']['while_holding'] = True
+        print('  夹着木块回到起点；将在起点放下。', flush=True)
+        return True
+
+    def _write_approach(self, pair_id, site, entry=None):
         """Append the locate/approach/return sidecar record."""
         record = {
             'pair_id': pair_id,
@@ -485,6 +499,9 @@ class SiteSession(base.Session):
             'approach': self.approach,
             'recorded_at': base.now_iso(),
         }
+        if entry is not None:
+            record['trial_order'] = int(entry['trial_order'])
+            record['method'] = entry['method']
         os.makedirs(
             os.path.dirname(self.approaches_path) or '.', exist_ok=True)
         with open(self.approaches_path, 'a', encoding='utf-8') as handle:

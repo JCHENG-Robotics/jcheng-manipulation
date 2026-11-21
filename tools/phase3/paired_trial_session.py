@@ -287,6 +287,19 @@ def placement_quality(report, min_height=0.030, max_height=0.050,
     return True, 'ok'
 
 
+def release_anchor(point, fit, moved_home):
+    """Return the reference point for the release displacement.
+
+    The site flow measures the put-back at the cube's original spot, so the
+    anchor is the pre-grasp measurement. The home flow carries the cube back
+    to the start and releases there, where the original floor spot no longer
+    applies; the release precision is measured against the fitted TCP.
+    """
+    if moved_home:
+        return np.asarray(fit['tcp'], dtype=np.float64)
+    return np.asarray(point, dtype=np.float64)
+
+
 def cube_box_present(report, point, radius=0.04, min_height=0.01):
     """Return True when a cluster sits in the box around the expected cube.
 
@@ -395,6 +408,15 @@ class Session:
                 pulses = self.robot.pulses()
         return None, report
 
+    def _before_release(self, entry, fit, grasp_report):
+        """Hook: move the robot before the release; return True if moved.
+
+        The base runner does not move (the validated site put-back). The
+        free-placement runner returns the base home while holding the cube
+        and releases there.
+        """
+        return False
+
     def trial(self, entry, prompt=True):
         """Run one trial and append its record.
 
@@ -462,7 +484,8 @@ class Session:
             self._record(entry, success=False, error_mm=None,
                          failure_code=code, notes=notes)
             return False
-        self._operator_note('木块已夹住；手臂会把它放回')
+        self._operator_note('木块已夹住；手臂会把它带回起点放下')
+        moved_home = self._before_release(entry, fit, grasp_report)
         release_report = self.robot.release(
             fit['joints'], self.view_pose, tag)
         land_pulses = [
@@ -480,15 +503,19 @@ class Session:
                 'landing measurement rejected ({}); the trial is not '
                 'recorded, re-place the cube and re-run it'.format(
                     land_reason if landing is not None else 'no point'))
-        error_mm = float(np.linalg.norm((landing - point)[:2]) * 1000.0)
+        anchor = release_anchor(point, fit, moved_home)
+        error_mm = float(np.linalg.norm((landing - anchor)[:2]) * 1000.0)
         notes['landing'] = [float(v) for v in landing]
         notes['landing_measured'] = bool(valid)
+        notes['release_frame'] = 'home' if moved_home else 'site'
+        notes['release_target'] = [float(v) for v in anchor]
         notes['landing_height_mm'] = float(
             (land_report.get('selected') or {}).get(
                 'height_above_floor_m', 0.0)) * 1000.0
         self._record(entry, success=True, error_mm=error_mm,
                      failure_code=None, notes=notes)
-        print('  已夹住并放回；落点误差 {:.2f} mm'.format(error_mm))
+        print('  已夹住并在{}放下；释放误差 {:.2f} mm'.format(
+            '起点' if moved_home else '原地', error_mm))
         return True
 
     def _operator_note(self, text):

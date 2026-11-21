@@ -55,7 +55,7 @@ def _write(path, records):
             handle.write(json.dumps(record) + '\n')
 
 
-def test_latest_attempt_wins_and_retries_are_counted(tmp_path):
+def test_latest_attempt_wins_and_records_are_counted(tmp_path):
     approaches = tmp_path / 'approaches.jsonl'
     trials = tmp_path / 'trials.jsonl'
     _write(approaches, [
@@ -82,7 +82,7 @@ def test_latest_attempt_wins_and_retries_are_counted(tmp_path):
     assert capabilities[0]['approached'] is True
     assert capabilities[1]['located'] is False
     assert capabilities[1]['approached'] is False
-    assert 'pairs: 2; sidecar attempts: 3; retries: 1' in markdown
+    assert 'pairs: 2; approach records: 3' in markdown
     assert 'located (last attempt): 1/2' in markdown
     assert 'approached (inside the empirical envelope): 1/2' in markdown
 
@@ -98,7 +98,7 @@ def test_the_last_attempt_does_not_resurrect_a_failed_pair(tmp_path):
     markdown, rows, _ = site_report.build_report(str(approaches), str(trials))
     assert rows[0]['state'].startswith('aborted:')
     assert rows[0]['intervention'] == '—'
-    assert 'retries: 1' in markdown
+    assert 'approach records: 2' in markdown
 
 
 def test_radius_bearing_and_blank_inputs(tmp_path):

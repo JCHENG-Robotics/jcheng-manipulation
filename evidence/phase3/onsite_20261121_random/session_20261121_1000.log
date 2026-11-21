@@ -1,0 +1,27 @@
+正在移动到 view pose ...
+手臂已在 view pose。
+24 对未完成，共 24 对
+放置方式：你随便放，不用量、不用贴点；尽量放在机器人前方（大约 0.25–0.55 m、方位约 -20…+25°，只是参考）。近的机器人直接夹，远的会先开过去再夹。
+
+### 第 p020 对（1/24），随机点 r20
+  请把木块随手放在机器人前方一个新位置（不用量、不用贴点；不要每次都放同一个点），然后按 Enter ...   已找到木块（腕相机（view pose））：测得点 x=+0.392, y=+0.015 m，半径 0.393 m，方位 +2.2°
+  底盘 approach 脉冲 vx=+0.996 vy=+0.093 1.67 s
+  已通过 1 次底盘脉冲把木块带入夹取带。
+  回程脉冲 vx=-0.996 vy=-0.093 1.67 s
+Traceback (most recent call last):
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 485, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 477, in main
+    session.run()
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/random_site_session.py", line 388, in run
+    self.locate_and_approach(site, pair_id)
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase3/site_diversity_session.py", line 341, in locate_and_approach
+    fit = grasp_joint_fit.fit(target)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase2/grasp_joint_fit.py", line 68, in fit
+    kinematics = kinematics or Kinematics()
+                               ^^^^^^^^^^^^
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/tools/phase2/grasp_joint_fit.py", line 39, in __init__
+    from armpi_grasp_planner.reachability import ArmKinematics
+ModuleNotFoundError: No module named 'armpi_grasp_planner'

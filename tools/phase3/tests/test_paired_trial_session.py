@@ -136,3 +136,17 @@ def test_dry_run_writes_an_analyzable_dataset(tmp_path):
     analysis = paired_trials.analyze(records)
     assert analysis['methods']['intervention']['successes'] == 2
     assert analysis['methods']['baseline']['successes'] == 0
+
+
+def test_release_anchor_uses_the_fit_tcp_at_home():
+    """The home release is compared with the fitted TCP, not the site."""
+    fit = {'tcp': [0.2420, 0.0027, -0.0364]}
+    anchor = session.release_anchor([0.50, 0.10, -0.05], fit, True)
+    assert np.allclose(anchor, [0.2420, 0.0027, -0.0364])
+
+
+def test_release_anchor_uses_the_pre_grasp_point_at_the_site():
+    """The validated single-fixture flow keeps the original put-back anchor."""
+    fit = {'tcp': [0.2420, 0.0027, -0.0364]}
+    anchor = session.release_anchor([0.50, 0.10, -0.05], fit, False)
+    assert np.allclose(anchor, [0.50, 0.10, -0.05])

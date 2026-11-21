@@ -184,6 +184,31 @@ def test_return_home_drives_the_reverse_command(tmp_path, monkeypatch):
     expected = 0.098 * 1000.0 / (20.0 * 4.9)
     assert call['duration'] == pytest.approx(expected, rel=1e-6)
     assert site_session.approach['return_home']['pulses']
+    assert site_session.approach['return_home']['done'] is True
+    # The run's finally calls return_home again; the base is already home.
+    site_session.return_home('p001')
+    assert len(site_session.robot.calls) == 1
+
+
+def test_before_release_returns_home_while_holding(tmp_path):
+    args = _args(tmp_path)
+    site_session = session.SiteSession(args)
+    site_session.approach = {'base_pulses': [
+        {'vx': 1.0, 'vy': 0.0, 'duty': 20.0, 'duration': 1.0,
+         'nominal_travel_mm': 109.89, 'subscribers_matched': 1},
+    ]}
+    calls = []
+
+    def fake_return_home(pair_id):
+        calls.append(pair_id)
+        site_session.approach['return_home'] = {
+            'done': True, 'pulses': [{'vx': -1.0}]}
+
+    site_session.return_home = fake_return_home
+    fired = site_session._before_release({'pair_id': 'p001'}, {}, {})
+    assert fired is True
+    assert calls == ['p001']
+    assert site_session.approach['return_home']['while_holding'] is True
 
 
 def test_an_aborted_pair_still_returns_the_base_home(tmp_path):

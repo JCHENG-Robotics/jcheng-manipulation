@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Render the 24-site capability and paired outcome table.
+"""Render the 24-pair capability and paired outcome table.
 
-The site-diversity runner writes two append-only files:
+The session runner writes two append-only files:
 
-- ``approaches.jsonl``: one locate/approach/return record per attempted pair,
-  including an ``error`` when the pair aborted;
+- ``approaches.jsonl``: one locate/approach/return record per **trial**
+  (a complete pair has two), including an ``error`` when the trial aborted;
 - ``trials.jsonl``: the paired-trial records from the validated recorder.
 
-This tool joins them on ``pair_id``, takes the **last** approach attempt per
+This tool joins them on ``pair_id``, takes the **last** approach record per
 pair, and writes a markdown table plus a capability summary. It is a reporting
 tool: it does not move the robot, does not change the records, and does not
 recompute the paired statistics (those come from
@@ -141,7 +141,8 @@ def render(rows, capabilities, attempts=None):
     """Return the markdown report.
 
     ``rows`` has one last-attempt row per pair; ``attempts`` is the number of
-    raw sidecar records, i.e. pairs plus retries.
+    raw sidecar records (the free-placement flow writes one per trial, so a
+    complete pair has two).
     """
     pairs = len({row['pair_id'] for row in rows})
     records = len(rows) if attempts is None else attempts
@@ -153,8 +154,8 @@ def render(rows, capabilities, attempts=None):
     lines = [
         '# 24-pair session — capability and outcome table',
         '',
-        '- pairs: {}; sidecar attempts: {}; retries: {}'.format(
-            pairs, records, records - pairs),
+        '- pairs: {}; approach records: {} (one per trial)'.format(
+            pairs, records),
         '- located (last attempt): {}/{}; approached (inside the empirical '
         'envelope): {}/{}'.format(located, pairs, approached, pairs),
         '- yaw-search rescues: {}; aborted last attempts: {}'.format(

@@ -364,6 +364,14 @@ class RandomSiteSession(sites.SiteSession):
     # -- session loops ---------------------------------------------------
     def run(self):
         """Run every pending pair with a fresh random placement."""
+        try:
+            import armpi_grasp_planner  # noqa: F401
+        except ImportError as error:
+            raise SystemExit(
+                '缺少 armpi_grasp_planner，抓取拟合无法运行。请先执行：\n'
+                '  source /opt/ros/jazzy/setup.bash\n'
+                '  source ros2_ws/install/setup.bash\n'
+                '然后重新启动 session。') from error
         self.prepare()
         pending = self._pending_pairs()
         print('{} 对未完成，共 {} 对'.format(
@@ -376,29 +384,39 @@ class RandomSiteSession(sites.SiteSession):
               '近的机器人直接夹，远的会先开过去再夹。'.format(
                   region['min_bearing_deg'], region['max_bearing_deg']))
         for index, (pair_id, entries, site) in enumerate(pending):
-            self.extra_notes = {}
-            self.approach = {}
             print('\n### 第 {} 对（{}/{}），随机点 {}'.format(
                 pair_id, index + 1, len(pending), site['site_id']))
-            if not self.args.dry_run:
-                input('  请把木块随手放在机器人前方一个新位置'
-                      '（不用量、不用贴点；不要每次都放同一个点），然后按 '
-                      'Enter ... ')
-            try:
-                self.locate_and_approach(site, pair_id)
-                for entry_index, entry in enumerate(entries):
-                    if entry_index > 0 and not self.args.dry_run:
-                        input('  请把木块放回同一个位置，然后按 '
+            previous_held = None
+            for entry in entries:
+                self.extra_notes = {}
+                self.approach = {}
+                if not self.args.dry_run:
+                    if entry['trial_order'] == 1:
+                        input('  请把木块随手放在机器人前方一个新位置'
+                              '（不用量、不用贴点；不要每次都放同一个点），'
+                              '然后按 Enter ... ')
+                    elif previous_held is True:
+                        input('  第一次已完成，木块已带回起点。请把它从'
+                              '起点拿回同一个位置（大概原处），然后按 '
                               'Enter ... ')
-                    self.trial(entry, prompt=False)
-            except Exception as exc:
-                self.approach['error'] = str(exc)
-                raise
-            finally:
+                    elif previous_held is False:
+                        input('  第一次没有夹住，木块还在上一个位置。请把'
+                              '它放回同一个位置（大概原处），然后按 '
+                              'Enter ... ')
+                    else:
+                        input('  请把木块放回上一次的位置（大概原处），'
+                              '然后按 Enter ... ')
                 try:
-                    self.return_home(pair_id)
+                    self.locate_and_approach(site, pair_id)
+                    previous_held = self.trial(entry, prompt=False)
+                except Exception as exc:
+                    self.approach['error'] = str(exc)
+                    raise
                 finally:
-                    self._write_approach(pair_id, site)
+                    try:
+                        self.return_home(pair_id)
+                    finally:
+                        self._write_approach(pair_id, site, entry)
 
     def precheck(self):
         """Free near/far warm-up of the locator chain; no base motion."""
