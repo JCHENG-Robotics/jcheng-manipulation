@@ -186,10 +186,12 @@ class RandomSiteSession(sites.SiteSession):
                     remote=remote)
         try:
             base.run_command(
-                ['ssh', self.robot.host, copy], 60, 'front camera copy')
+                self.robot.ssh_prefix() + [self.robot.host, copy],
+                60, 'front camera copy')
             base.run_command(
-                ['scp', '-r',
-                 '{}:{}'.format(self.robot.host, host_remote), local],
+                self.robot.scp_prefix() + [
+                    '-r', '{}:{}'.format(self.robot.host, host_remote),
+                    local],
                 60, 'front camera scp')
         except Exception as error:  # noqa: BLE001 - reported by the caller
             print('  前相机图像拷贝失败：{}'.format(error), flush=True)
@@ -201,8 +203,9 @@ class RandomSiteSession(sites.SiteSession):
                 pass
             try:
                 base.run_command(
-                    ['ssh', self.robot.host,
-                     'sudo rm -rf {}'.format(host_remote)],
+                    self.robot.ssh_prefix() + [
+                        self.robot.host,
+                        'sudo rm -rf {}'.format(host_remote)],
                     30, 'front host cleanup')
             except Exception:  # noqa: BLE001 - best effort
                 pass

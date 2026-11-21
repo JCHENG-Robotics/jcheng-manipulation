@@ -52,6 +52,7 @@ from armpi_analysis import paired_trials  # noqa: E402
 ARM_JOINTS = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
 DEFAULT_VIEW_POSE = [0.0, 0.2574, -1.18773, -1.70, -0.01676]
 DEFAULT_CORRECTION_MM = [13.7, 3.9, 8.9]
+DEFAULT_SSH_IDENTITY = '~/.ssh/id_ed25519_armpi'
 #: Wider region for the home landing: the cube released at the start can sit
 #: slightly outside the default view-pose region; a cube pushed out of the
 #: grip box during the grasp is still absent and is recorded as NO_GRIP.
@@ -86,11 +87,30 @@ def run_command(command, timeout, what):
 
 
 class RobotLink:
-    """The robot's vendor container over SSH."""
+    """The robot's vendor container over SSH.
 
-    def __init__(self, host, container):
+    The robot hosts two keys: the interactive ``id_ed25519_armpi`` and the
+    forced-command ``id_ed25519_armpi_clock`` used by the laptop clock-sync
+    timer. If both are in the SSH agent, ``ssh pi@...`` may offer the clock
+    key first and run the clock's ``get|set`` script instead of the command.
+    The explicit identity below makes every robot command unambiguous.
+    """
+
+    def __init__(self, host, container, identity=None):
         self.host = host
         self.container = container
+        self.identity = os.path.expanduser(
+            identity or DEFAULT_SSH_IDENTITY)
+
+    def ssh_prefix(self):
+        """Return the ssh command prefix with the interactive identity."""
+        return ['ssh', '-o', 'BatchMode=yes', '-o', 'IdentitiesOnly=yes',
+                '-i', self.identity]
+
+    def scp_prefix(self):
+        """Return the scp command prefix with the interactive identity."""
+        return ['scp', '-o', 'BatchMode=yes', '-o', 'IdentitiesOnly=yes',
+                '-i', self.identity]
 
     def exec(self, arguments, timeout=90.0):
         """Run one command in the robot container and return stdout."""
@@ -99,7 +119,7 @@ class RobotLink:
         remote = 'sudo docker exec -u ubuntu {} /bin/zsh -c {}'.format(
             self.container, shlex.quote(inner))
         return run_command(
-            ['ssh', self.host, remote], timeout,
+            self.ssh_prefix() + [self.host, remote], timeout,
             'robot command {}'.format(arguments[0]))
 
     def install_tools(self, local_tools):
@@ -112,7 +132,7 @@ class RobotLink:
                 self.container, shlex.quote(inner))
             with open(local, 'rb') as handle:
                 completed = subprocess.run(
-                    ['ssh', self.host, remote], stdin=handle,
+                    self.ssh_prefix() + [self.host, remote], stdin=handle,
                     capture_output=True, timeout=30)
             if completed.returncode != 0:
                 raise RuntimeError('copy {} failed: {}'.format(
@@ -359,7 +379,8 @@ class Session:
         self.view_pose = [float(v) for v in args.view_pose.split(',')]
         self.plan = self._load_plan()
         self.done = self._load_done()
-        self.robot = RobotLink(args.robot, args.robot_container)
+        self.robot = RobotLink(
+            args.robot, args.robot_container, args.robot_identity)
         self.humble = HumbleLink(
             args.humble_container, args.hand_eye_container, REPO)
         self.counter = 0
@@ -639,6 +660,9 @@ def build_parser():
         help='hand-eye path inside the Humble container')
     parser.add_argument('--robot', default='pi@10.42.0.218')
     parser.add_argument('--robot-container', default='ArmPiUltra')
+    parser.add_argument(
+        '--robot-identity', default=DEFAULT_SSH_IDENTITY,
+        help='interactive SSH key for the robot (not the clock-sync key)')
     parser.add_argument('--humble-container', default='armpi-humble')
     parser.add_argument('--max-trials', type=int, default=0)
     parser.add_argument(
