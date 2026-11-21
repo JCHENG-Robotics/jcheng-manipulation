@@ -226,6 +226,10 @@ class SiteSession(base.Session):
         """Hook: accept the first sighting (a subclass may reject a point)."""
         return point
 
+    def _recover_missing(self, site, tag):
+        """Hook: operator-assisted retry after the locator chain misses."""
+        return None, False, None
+
     def _strict_measure(self, tag):
         """Measure the cube at the view pose with the placement gate."""
         pulses = self.robot.pulses()
@@ -295,6 +299,9 @@ class SiteSession(base.Session):
         self.robot.move_to_pose(self.view_pose, tag=tag)
         point, valid, report, locator = self._locate_initial(tag)
         self.approach['locator'] = locator
+        if point is None:
+            point, valid, report = self._recover_missing(site, tag)
+            locator = self.approach.get('locator', locator)
         if point is None:
             raise RuntimeError(
                 '随机点 {}：定位链没有找到木块'.format(

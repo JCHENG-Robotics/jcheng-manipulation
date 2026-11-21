@@ -37,6 +37,12 @@ All notable changes to this project are documented here. Format based on
   `p011` abort after 10 new-flow trials (5 complete pairs) had been recorded;
   the resume starts at `p011`.
 
+- A **locate miss** with the cube visible in the colour image but outside the
+  segmenter's 3-D region (wide region `x 0.15-0.60`, `|y| <= 0.40`; front box
+  `x 0.212-0.565`) now prompts the operator to move it to about 0.3-0.5 m,
+  centred, and retries up to 2 before aborting. This fixed the `p024` miss
+  after 16 new-flow trials (8 complete pairs); the resume starts at `p024`.
+
 ### Data
 
 - **D1:** the first old-flow trial (`p020 / intervention`, success, 4.38 mm,

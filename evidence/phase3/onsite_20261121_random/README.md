@@ -130,8 +130,18 @@ release; the placement gates passed but the code required a full top view.
 The trial was not recorded, the cube was at the start, and the session
 stopped. The runner now accepts a clipped-but-cube-sized home landing as a
 success with `landing_partial` (biased release error) and prints the real
-segmenter reason. The 10 trial records and their approach records are kept;
-the resume starts at `p011`.
+segmenter reason.
+
+The resumed session then reached **16 trials = 8 complete pairs**. At `p024`
+(the 4th of the resumed pending pairs) the locate chain (wrist wide, front
+camera, eight yaw steps) found no point even though the cube was visible in
+the colour image. The cube was outside the segmenter's **3-D region** (the
+wide region is `x 0.15-0.60`, `|y| <= 0.40`; the front box `x 0.212-0.565`),
+i.e. too far, too close or too wide. The trial was not recorded; the robot
+was at the start and the cube at the operator's spot. The runner now prompts
+the operator to move the cube to about 0.3-0.5 m, centred, and retries the
+locate up to 2 before aborting. The 16 trial records and their approach
+records are kept; the resume starts at `p024`.
 
 ## After the session
 

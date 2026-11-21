@@ -141,8 +141,11 @@ For each of a pair's two methods, back to back at the same realized spot:
    `[0, 0.2574, -1.18773, -1.70, -0.01676]`.
 3. **Locate** with the chain above. The realized point is reported and its
    region membership is recorded descriptively; there is **no** placement gate
-   and no re-place prompt. If the locator finds no point, the trial aborts
-   before any motion and the operator moves the cube a little closer/centred.
+   and no re-place prompt. If the locator finds no point, the cube is usually
+   visible in the image but outside the segmenter's 3-D region (farther than
+   x 0.60 m, closer than 0.15 m, or wider than |y| 0.40 m); the runner prompts
+   the operator to move it to about 0.3-0.5 m, centred, and retries up to 2.
+   A second failure aborts the trial before any motion.
 4. **Approach or direct grasp.** If the measured point is already inside the
    0.226-0.234 m band, no pulse is sent and the robot grasps directly (the
    near case). Otherwise closed-loop base pulses (vector duty 20) drive toward
@@ -198,10 +201,11 @@ abort left it; the operator keeps clear and the power switch reachable.
 | Approach cost | locator used, initial radius/bearing, base pulses, final x/|joint1|, wall time, per trial | descriptive |
 
 **Capability failure handling.** A trial that cannot be located or approached
-after one operator retry is a capability failure; it is not recorded as a
-grasp trial, the reason is in `approaches.jsonl`, and the pair is excluded
-from the paired grasp analysis with `n_complete` reported. It is never
-silently dropped and never converted into a `MISS`.
+after the two prompted operator retries when the cube was outside the 3-D
+region is a capability failure; it is not recorded as a grasp trial, the
+reason is in `approaches.jsonl`, and the pair is excluded from the paired
+grasp analysis with `n_complete` reported. It is never silently dropped and
+never converted into a `MISS`.
 
 The binary success is primary because a baseline miss has no release landing
 to measure, exactly as in the 2026-11-19 design.
@@ -323,6 +327,11 @@ and writes the front-camera measurement JSONs to `front/`.
   release error is biased and must not be read as a millimetre-grade placement
   value. A rejected landing always prints the segmenter's real reason (the
   p003 lesson).
+- **A cube in the image can be outside the 3-D region.** The segmenter filters
+  the point cloud by `x 0.15-0.60`, `|y| <= 0.40` (wide region) and the front
+  box `x 0.212-0.565`; a cube farther, closer or wider is visible in the
+  colour image but has no point. The retry prompt tells the operator to move
+  it to about 0.3-0.5 m; the guide is not a sensor guarantee.
 - **One cube, one operator, one session, one battery state.** The cube is the
   same 39.4 mm wooden cube; the lighting and operator are fixed.
 - **Site count vs power.** The 24 placements are for coverage, not a power

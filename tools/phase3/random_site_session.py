@@ -326,6 +326,24 @@ class RandomSiteSession(sites.SiteSession):
         self.approach['realized_inside_region'] = bool(inside)
         return point
 
+    def _recover_missing(self, site, tag):
+        """Let the operator move a too-far/too-wide cube and retry."""
+        for attempt in range(2):
+            input('  没找到木块。如果画面里看得到它，通常是放得太远/太近/'
+                  '太偏；请把它移到机器人前方约 0.3–0.5 m、居中一点，'
+                  '然后按 Enter 重试 ... ')
+            self.robot.move_to_pose(
+                self.view_pose, tag='{}_retry'.format(tag))
+            self.approach['search_yaw_rad'] = 0.0
+            point, valid, report, locator = self._locate_initial(
+                '{}_retry{}'.format(tag, attempt))
+            if point is not None:
+                self.approach['locator'] = locator
+                print('  重试后找到木块（{}）。'.format(
+                    LOCATOR_ZH.get(locator, locator)), flush=True)
+                return point, valid, report
+        return None, False, None
+
     def _dry_approach(self, site):
         """Build a synthetic random approach record for the dry run."""
         index = int(site['site_id'][1:])
