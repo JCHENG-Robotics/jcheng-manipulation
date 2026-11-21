@@ -92,10 +92,13 @@ subscriber and then publishes four zero messages. A pulse can take up to
 
 `--no-aux-camera --camera-topic /armpi_pose_camera_off` keeps the motion
 instance from decoding frames it does not need; the 8765 instance still serves
-the camera. The pose page does not use the camera, so a takeover-mode Dashboard
-reports the camera panels as unavailable. If you want the pose gateway to serve
-the main camera too, omit the camera-off flag (this adds one JPEG encoder on the
-Pi); keep the aux camera on the read-only instance. Record the PID:
+both cameras. From 2026-11-21 the Studio routes camera endpoints separately:
+start it with `ARMPI_CAMERA_GATEWAY_URL=http://10.42.0.218:8765` (the
+`--takeover` start script does this automatically), so the Dashboard shows the
+main and aux feeds from 8765 while motion stays on 8766. The aux UVC device is
+exclusive, so it must stay on the read-only instance. Omitting the camera-off
+flag on 8766 is possible but adds a JPEG encoder on the Pi and is no longer
+needed for a takeover-mode Dashboard. Record the PID:
 
 ```bash
 ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \

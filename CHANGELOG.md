@@ -5,6 +5,16 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased] — 2026-11-21 Studio 中文化 + 进度一致性
 
+### Added
+
+- **相机网关路由（Studio）：** `ARMPI_CAMERA_GATEWAY_URL` /
+  `ARMPI_CAMERA_GATEWAY_TOKEN` 可选；设置后 `/camera/*` 与 `/aux-camera/*`
+  走独立网关，运动/状态仍走 `ARMPI_GATEWAY_URL`。`tools/studio/start_studio.sh
+  --takeover` 默认把相机路由到只读网关 8765（`CAMERA_GATEWAY_PORT=8765`），
+  姿态网关 8766 保持 `--no-aux-camera --camera-topic /armpi_pose_camera_off`；
+  主相机与辅助相机都从 8765 取图，UVC 辅助设备不再与运动网关争用。
+  新增 `backend/tests/test_camera_routing.py`（4 项），后端共 **140 passed**。
+
 ### Changed
 
 - **Debug Studio 全中文界面：** 导航、页面标题、表头、状态标签、按钮、提示与解释

@@ -245,6 +245,11 @@ Useful environment variables:
 | `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required for any supervised hardware motion (`ARMPI_HARDWARE_MOTION=1`); the joint mapping itself is verified from 2026-11-19 |
 | `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only, direct Ethernet) or `:8766` (supervised); WiFi is not reachable after the 2026-11-18 lockdown |
 | `ARMPI_GATEWAY_TOKEN` | unset | shared token; never commit it |
+| `ARMPI_CAMERA_GATEWAY_URL` | falls back to `ARMPI_GATEWAY_URL` | optional camera-only gateway; set to `http://10.42.0.218:8765` in pose takeover so `/camera/*` and `/aux-camera/*` come from the read-only instance while motion stays on 8766 |
+| `ARMPI_CAMERA_GATEWAY_TOKEN` | falls back to `ARMPI_GATEWAY_TOKEN` | token for the camera gateway; both instances use the same token file |
+
+`tools/studio/start_studio.sh --takeover` sets `CAMERA_GATEWAY_PORT=8765`
+automatically; override it only if the read-only gateway moves.
 
 ### Frontend
 

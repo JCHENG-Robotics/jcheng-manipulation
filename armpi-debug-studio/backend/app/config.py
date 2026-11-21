@@ -52,6 +52,8 @@ class Settings:
     takeover_config_path: Path = DEFAULT_TAKEOVER
     gateway_url: str | None = None
     gateway_token: str | None = None
+    camera_gateway_url: str | None = None
+    camera_gateway_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
     visual_model_path: Path = DEFAULT_VISUAL_MODEL
     api_version: str = "0.1.0"
@@ -71,6 +73,14 @@ class Settings:
         mapping_path = Path(os.getenv("ARMPI_JOINT_MAPPING", str(DEFAULT_MAPPING)))
         gateway_url = os.getenv("ARMPI_GATEWAY_URL") or None
         gateway_token = os.getenv("ARMPI_GATEWAY_TOKEN") or None
+        # The pose/motion gateway deliberately keeps its camera off, while the
+        # persistent read-only gateway owns the cameras (the UVC aux device is
+        # exclusive). Allow a separate camera gateway; both gateways share the
+        # same token file unless an explicit camera token is supplied.
+        camera_gateway_url = os.getenv("ARMPI_CAMERA_GATEWAY_URL") or None
+        camera_gateway_token = (
+            os.getenv("ARMPI_CAMERA_GATEWAY_TOKEN") or gateway_token
+        ) if camera_gateway_url else None
         ack = (os.getenv("ARMPI_SUPERVISED_MOTION_ACK") or "").strip()
 
         raw_scope = (os.getenv("ARMPI_MOTION_SCOPE", "step") or "step").strip().lower()
@@ -138,6 +148,8 @@ class Settings:
             takeover_config_path=takeover_config_path,
             gateway_url=gateway_url,
             gateway_token=gateway_token,
+            camera_gateway_url=camera_gateway_url,
+            camera_gateway_token=camera_gateway_token,
             urdf_path=Path(os.getenv("ARMPI_URDF_PATH", str(DEFAULT_URDF))),
             visual_model_path=Path(
                 os.getenv("ARMPI_VISUAL_MODEL", str(DEFAULT_VISUAL_MODEL))

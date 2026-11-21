@@ -62,6 +62,10 @@ _GATEWAY_NOTE_LABELS = {
         "未安装 cv_bridge；帧由 numpy 回退解码。"
     ),
     "No battery message received yet.": "尚未收到电池消息。",
+    "ROS colour topic from ext_cam_node (single UVC owner); depth and IR need librealsense.": (
+        "ex_cam_node 提供的 ROS 彩色话题（UVC 唯一持有者）；"
+        "深度和 IR 需要 librealsense。"
+    ),
 }
 
 
@@ -80,6 +84,8 @@ class HardwareAdapter(RobotAdapter):
         clock: Callable[[], float] | None = None,
         gateway_url: str | None = None,
         gateway_token: str | None = None,
+        camera_gateway_url: str | None = None,
+        camera_gateway_token: str | None = None,
         motion_enabled: bool = False,
         supervised: bool = False,
         motion_scope: str = "step",
@@ -89,6 +95,17 @@ class HardwareAdapter(RobotAdapter):
         self._clock = clock or time.monotonic
         self._gateway = (
             GatewayClient(gateway_url, token=gateway_token) if gateway_url else None
+        )
+        # The motion gateway (pose instance) may keep its camera off; the
+        # persistent read-only gateway owns the exclusive UVC aux device. Route
+        # camera endpoints separately when configured.
+        self._camera_gateway = (
+            GatewayClient(
+                camera_gateway_url,
+                token=camera_gateway_token or gateway_token,
+            )
+            if camera_gateway_url
+            else self._gateway
         )
         self.motion_enabled = bool(motion_enabled and gateway_url)
         self.supervised = bool(supervised and self.motion_enabled)
@@ -264,12 +281,12 @@ class HardwareAdapter(RobotAdapter):
     def _camera_from_gateway(
         self, path: str, *, default_topic: str, label: str
     ) -> CameraStatus:
-        if self._gateway is None:
+        if self._camera_gateway is None:
             return self._camera_unavailable(
-                "未配置 ARMPI_GATEWAY_URL", topic=default_topic
+                "未配置相机网关或 ARMPI_GATEWAY_URL", topic=default_topic
             )
         try:
-            data = self._gateway.get_json(path)
+            data = self._camera_gateway.get_json(path)
         except GatewayError as exc:
             return self._camera_unavailable(str(exc), topic=default_topic)
         try:
@@ -305,10 +322,10 @@ class HardwareAdapter(RobotAdapter):
         )
 
     def camera_snapshot(self) -> tuple[bytes, str] | None:
-        if self._gateway is None:
+        if self._camera_gateway is None:
             return None
         try:
-            return self._gateway.get_bytes("/camera/snapshot")
+            return self._camera_gateway.get_bytes("/camera/snapshot")
         except GatewayError:
             return None
 
@@ -318,10 +335,10 @@ class HardwareAdapter(RobotAdapter):
         )
 
     def aux_camera_snapshot(self) -> tuple[bytes, str] | None:
-        if self._gateway is None:
+        if self._camera_gateway is None:
             return None
         try:
-            return self._gateway.get_bytes("/aux-camera/snapshot")
+            return self._camera_gateway.get_bytes("/aux-camera/snapshot")
         except GatewayError:
             return None
 

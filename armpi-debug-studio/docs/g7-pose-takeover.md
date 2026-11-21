@@ -221,8 +221,12 @@ are affected; see the evidence README.
 - The gateway motion JSON must be regenerated from `takeover.yaml` whenever
   the mapping or the contract changes; it now carries `verification=true`.
 - **The pose gateway is camera-free** in the verified deployment (`--no-aux-camera
-  --camera-topic /armpi_pose_camera_off`), so a takeover-mode Dashboard reports
-  the camera and aux camera as unavailable. The 8765 read-only instance keeps
-  serving them; the pose page itself does not need the camera. Camera routing
-  for a task-level takeover is a G8 decision, and omitting the camera-off flag
-  is possible at the cost of one more JPEG encoder on the Pi.
+  --camera-topic /armpi_pose_camera_off`); the 8765 read-only instance keeps
+  serving both cameras. Since 2026-11-21 the Studio supports a separate
+  **camera gateway**: `ARMPI_CAMERA_GATEWAY_URL` routes `/camera/*` and
+  `/aux-camera/*` to 8765 while motion stays on 8766. `tools/studio/start_studio.sh
+  --takeover` sets it automatically (`CAMERA_GATEWAY_PORT=8765`), so a
+  takeover-mode Dashboard shows the main and aux camera feeds without making
+  the motion gateway decode frames. Omitting the camera-off flag on 8766 is
+  still possible but no longer required and costs one more JPEG encoder on
+  the Pi.

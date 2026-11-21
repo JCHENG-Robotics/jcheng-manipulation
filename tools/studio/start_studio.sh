@@ -25,6 +25,7 @@ PORT="${PORT:-8000}"
 HOST="${HOST:-127.0.0.1}"
 ROBOT_HOST="${ROBOT_HOST:-10.42.0.218}"   # direct Ethernet (the only inbound path since 2026-11-18)
 GATEWAY_PORT="${GATEWAY_PORT:-}"
+CAMERA_GATEWAY_PORT="${CAMERA_GATEWAY_PORT:-}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519_armpi}"
 SSH_USER="${SSH_USER:-pi}"
 CONTAINER="${CONTAINER:-ArmPiUltra}"
@@ -49,6 +50,7 @@ Options:
 Environment:
   PORT (8000), HOST (127.0.0.1), ROBOT_HOST (10.42.0.218, direct Ethernet)
   GATEWAY_PORT (8765, or 8766 with --takeover), SSH_KEY, SSH_USER (pi),
+  CAMERA_GATEWAY_PORT (8765 with --takeover; camera-only gateway),
   CONTAINER (ArmPiUltra), ARMPI_GATEWAY_TOKEN,
   ARMPI_TAKEOVER_ACK (required by --takeover), DB_PATH, LOG
 EOF
@@ -66,9 +68,10 @@ done
 
 if [[ "$TAKEOVER" == "1" ]]; then
     GATEWAY_PORT="${GATEWAY_PORT:-8766}"
-    # The pose gateway disables the camera on purpose; the read-only 8765
-    # instance keeps serving it. Never start a second vision.launch.py here.
-    START_CAMERA=0
+    # The pose gateway is motion-only; the persistent read-only 8765 instance
+    # owns both cameras (the UVC aux device is exclusive). Route camera
+    # endpoints to it instead of disabling the Dashboard.
+    CAMERA_GATEWAY_PORT="${CAMERA_GATEWAY_PORT:-8765}"
     if [[ "$MODE" != "hardware" ]]; then
         echo "--takeover is a hardware mode option" >&2
         exit 2
@@ -139,7 +142,23 @@ else
     echo "gateway ok"
 
     # 3. Camera ---------------------------------------------------------
-    if echo "$health" | grep -q '"camera_ready": *true'; then
+    # In takeover mode the motion gateway (8766) is camera-free; the
+    # persistent read-only gateway (8765) serves both cameras.
+    CAMERA_GATEWAY_PORT="${CAMERA_GATEWAY_PORT:-$GATEWAY_PORT}"
+    step "camera gateway http://$ROBOT_HOST:$CAMERA_GATEWAY_PORT"
+    camera_health=""
+    for _ in $(seq 1 10); do
+        camera_health="$(curl -s -m 4 --noproxy '*' -H "X-Armpi-Token: $TOKEN" \
+            "http://$ROBOT_HOST:$CAMERA_GATEWAY_PORT/health" || true)"
+        [[ -n "$camera_health" ]] && break
+        sleep 1
+    done
+    if [[ -z "$camera_health" ]]; then
+        echo "WARN: camera gateway unreachable; camera panels will be unavailable"
+    elif ! echo "$camera_health" | grep -q '"status": *"ok"'; then
+        echo "WARN: camera gateway health is not ok: $camera_health"
+    fi
+    if echo "$camera_health" | grep -q '"camera_ready": *true'; then
         echo "camera already publishing"
     elif [[ "$START_CAMERA" == "1" ]]; then
         step "camera: no publisher, starting vision.launch.py"
@@ -153,7 +172,7 @@ else
         ready=0
         for _ in $(seq 1 20); do
             status="$(curl -s -m 4 --noproxy '*' -H "X-Armpi-Token: $TOKEN" \
-                "http://$ROBOT_HOST:$GATEWAY_PORT/camera/status" || true)"
+                "http://$ROBOT_HOST:$CAMERA_GATEWAY_PORT/camera/status" || true)"
             if echo "$status" | grep -q '"available": *true'; then ready=1; break; fi
             sleep 2
         done
@@ -170,6 +189,8 @@ else
     export ARMPI_MODE=hardware
     export ARMPI_GATEWAY_URL="http://$ROBOT_HOST:$GATEWAY_PORT"
     export ARMPI_GATEWAY_TOKEN="$TOKEN"
+    export ARMPI_CAMERA_GATEWAY_URL="http://$ROBOT_HOST:$CAMERA_GATEWAY_PORT"
+    export ARMPI_CAMERA_GATEWAY_TOKEN="$TOKEN"
     export DB_PATH="$DB_PATH"
     if [[ "$TAKEOVER" == "1" ]]; then
         export ARMPI_HARDWARE_MOTION=1
