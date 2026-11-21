@@ -374,8 +374,16 @@ class FastMover(Node):
                 'final': samples[-1][1] if samples else None}
 
     def gripper_wait(self, pulse, duration, tol=3, timeout=1.5):
-        """Send one gripper command and wait until the register stops."""
+        """Send one gripper command and wait until the register stops.
+
+        The timeout must cover the commanded interpolation: with a long
+        duration the vendor servo tracks the ramp slowly (measured about
+        100 pulses/s, so a full open from the gripper grip takes ~3 s). The
+        old fixed 1.5 s gave up halfway and reported a partial open as if it
+        were the final position (the 2026-11-21 p015 release stall).
+        """
         started = time.monotonic()
+        timeout = max(timeout, duration + 1.0)
         self.gripper_send(pulse, duration)
         settled, samples = self.wait_settled(
             ['gripper'], tol=tol, timeout=timeout,

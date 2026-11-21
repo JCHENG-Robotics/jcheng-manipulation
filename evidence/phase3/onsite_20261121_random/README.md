@@ -23,6 +23,7 @@
 | `approaches.jsonl` | — | One locate/approach/return record per trial (two per completed pair), including aborts |
 | `discarded_site_release_attempt.jsonl` | — | The one old-flow intervention trial (site put-back), excluded (D1) |
 | `discarded_site_release_approaches.jsonl` | — | Its approach/abort records, excluded (D1) |
+| `discarded_release_stall_trial.jsonl` | — | The false `NO_GRIP` at `p015` / intervention: the cube stayed in the fingers because the release open stopped at 421, excluded (D2) |
 | `front/` | — | Front-camera measurement JSONs used by the far locator (and the precheck) |
 | `site_report.md` | — | Capability/outcome table rendered from the two JSONL files |
 | `analysis.json`, `analysis.md` | — | Paired analysis after the session |
@@ -162,7 +163,16 @@ zsh-environment relaunch of only `ros_robot_controller` restored the bus
 (`init_finish` then a read of `503,596,833,113,500`), the arm was re-homed
 to the view pose and the gripper opened. That makes **27 trials = 13
 complete pairs plus a partial `p001`**; the log is
-`session_20261121_1350.log`. The resume starts at `p001` (intervention).
+`session_20261121_1350.log`. The resumed session then completed `p001`
+(intervention held, 12.41 mm); at `p015` / intervention the grip held but
+the release gripper open stopped at register 421 after the tool's 0.45 s
+interpolation, so the cube stayed between the fingers and the start landing
+found nothing. The operator saw the cube still held, so the `NO_GRIP`
+record is a false negative: it is preserved in
+`discarded_release_stall_trial.jsonl` (D2) and excluded, and `p015` restarts
+from its first method. The release now commands
+`--release-open-duration 3.5` and records `release_open_register`. **28
+valid trials = 14 complete pairs**; `p015` is pending.
 
 ## After the session
 
@@ -181,8 +191,8 @@ python3 tools/phase3/site_report.py \
 
 The paired continuous outcome is the **home release error** (the landing vs
 the fitted release target after the return home); the 2026-11-19 site put-back
-metric is not used in this flow. The `discarded_site_release_*` files are
-excluded.
+metric is not used in this flow. The `discarded_site_release_*` files and
+`discarded_release_stall_trial.jsonl` are excluded.
 
 Record the capability summary (located/approached, approach records, aborts,
 realized point distribution) in this README, and add the outcome to

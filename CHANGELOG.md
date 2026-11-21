@@ -61,6 +61,17 @@ All notable changes to this project are documented here. Format based on
   the view pose with the gripper open. **27 trials = 13 complete pairs plus
   a partial `p001`**; the log is `session_20261121_1350.log`, the resume
   starts at `p001` (intervention).
+- The release gripper open stalled at register 421: the tool's 0.45 s
+  interpolation default never reached the open register (~183) and the cube
+  stayed between the fingers, so `p015` / intervention was recorded as a
+  false `NO_GRIP`. That record is preserved in
+  `discarded_release_stall_trial.jsonl` (D2) and excluded; `p015` restarts.
+  The release now commands `--release-open-duration 3.5` (the servo tracks
+  at about 100 pulses/s), `fast_motion.gripper_wait` extends its timeout to
+  cover the commanded duration, and the runner records
+  `release_open_register` and warns the operator above 230. The session then
+  completed `p001` (intervention held, 12.41 mm), reaching **28 valid trials
+  = 14 complete pairs**.
 
 ### Data
 

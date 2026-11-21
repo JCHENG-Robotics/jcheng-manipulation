@@ -62,6 +62,14 @@ LANDING_WIDE_REGION = ('--x-range', '0.12,0.45', '--y-range', '0.22',
 #: a landing farther than this from the start release target means the cube was
 #: not actually carried home (a false grip), not a release repeatability tail.
 HOME_RELEASE_MAX_MM = 60.0
+#: Release gripper open: the vendor servo tracks the commanded interpolation at
+#: about 100 pulses/s, so a full open from the grip (~550) to open (~183) needs
+#: about 3 s. The tool's old 0.45 s default stopped at ~420 and the cube stayed
+#: in the fingers (2026-11-21 p015), so the release would read as NO_GRIP.
+RELEASE_OPEN_DURATION_S = 3.5
+#: A release whose open register stays above this (open reads ~183) means the
+#: fingers never cleared the cube; the trial is flagged for the operator.
+RELEASE_OPEN_MAX_REGISTER = 230
 ROBOT_TOOLS = ('bus_pulses.py', 'move_to_pose.py',
                'low_config_grasp_validate.py', 'fast_motion.py',
                'motion_profile.py', 'vendor_servo_map.py',
@@ -194,11 +202,17 @@ class RobotLink:
                    '--verify-pose=' + ','.join('{:.6f}'.format(v)
                                                for v in view_pose),
                    '--release-only', '--output', output,
+                   '--release-open-duration={:.3f}'.format(
+                       RELEASE_OPEN_DURATION_S),
                    '--i-have-clear-workspace'], timeout=180)
         report = self.read_json(output)
         if not report.get('ok'):
             raise RuntimeError('release sequence failed: {}'.format(
                 report.get('error')))
+        for step in report.get('steps') or []:
+            if step.get('step') == 'open':
+                report['release_open_register'] = step.get('register')
+                break
         return report
 
     def read_json(self, path):
@@ -518,6 +532,13 @@ class Session:
         moved_home = self._before_release(entry, fit, grasp_report)
         release_report = self.robot.release(
             fit['joints'], self.view_pose, tag)
+        open_register = release_report.get('release_open_register')
+        notes['release_open_register'] = open_register
+        if (open_register is not None
+                and open_register > RELEASE_OPEN_MAX_REGISTER):
+            self._operator_note(
+                '释放时夹爪只开到 {}，可能还夹着木块；请检查'.format(
+                    open_register))
         land_pulses = [
             release_report['pulses_at_verify'][str(servo)]
             for servo in (6, 5, 4, 3, 2)

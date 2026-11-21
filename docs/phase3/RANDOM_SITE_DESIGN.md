@@ -352,6 +352,19 @@ under the home-return flow. The data collection before this change is one
 discarded attempt, not a valid pair. The change is also recorded in the
 evidence README.
 
+**D2 — 2026-11-21, the release gripper open duration.** At `p015` /
+intervention the grip held, but the release open used the tool's 0.45 s
+interpolation default: the register stopped at 421 (open reads about 183)
+and the cube stayed between the fingers, so the start landing found no cube
+and the trial was recorded as `NO_GRIP`. The operator saw the cube still in
+the gripper. The trial is preserved in
+`discarded_release_stall_trial.jsonl` and excluded; `p015` restarts from its
+first method. The release now commands `--release-open-duration 3.5` (the
+servo tracks at about 100 pulses/s) and the runner records
+`release_open_register` and warns the operator when it stays above 230. This
+changes only the release open timing, not the grasp, the release target or
+any measurement.
+
 **Pre-data amendment (2026-11-21, before any trial).** The operator asked for
 free placement without measuring. The fixed far precheck points and the
 region re-place gate were removed: the operator now places the cube by eye
