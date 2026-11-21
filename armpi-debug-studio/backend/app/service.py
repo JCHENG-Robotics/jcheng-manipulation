@@ -95,6 +95,32 @@ from .safety.validation import validate_targets
 
 IDEMPOTENCY_TTL_S = 300
 
+# The gateway is a separate process/package; keep its evidence notes intact but
+# show the operator a Chinese explanation. Unknown notes pass through unchanged.
+_GATEWAY_NOTE_LABELS = {
+    "TF is published by robot nodes. Dynamic transforms may be derived "
+    "from commanded joint states, not encoder feedback.": (
+        "TF 由机器人节点发布；动态变换可能由指令关节状态推导，不是编码器反馈。"
+    ),
+    "Only /tf_static has been received; dynamic links are not live.": (
+        "只收到 /tf_static；动态连杆不是实时值。"
+    ),
+    "No /tf or /tf_static message has been received.": (
+        "尚未收到 /tf 或 /tf_static 消息。"
+    ),
+}
+
+
+def _localize_gateway_note(note: str) -> str:
+    if note in _GATEWAY_NOTE_LABELS:
+        return _GATEWAY_NOTE_LABELS[note]
+    prefix = "Newest dynamic TF edge is "
+    suffix = " ms old."
+    if note.startswith(prefix) and note.endswith(suffix):
+        age = note[len(prefix) : -len(suffix)]
+        return f"最新动态 TF 边已过期 {age} ms。"
+    return note
+
 KNOWN_DEFECTS = [
     {
         "id": "B-01",
@@ -911,15 +937,17 @@ class RobotService:
             warnings.extend(live_result["issues"])
             if live_result["unresolved"]:
                 warnings.append(
-                    f"{len(live_result['unresolved'])} TF edge(s) are outside "
-                    f"the {model.root_link} root and were ignored."
+                    f"有 {len(live_result['unresolved'])} 条 TF 边不在 "
+                    f"{model.root_link} 根节点下，已忽略。"
                 )
             gateway_notes = live_tf.get("notes")
             if isinstance(gateway_notes, list):
-                warnings.extend(str(note) for note in gateway_notes)
+                warnings.extend(
+                    _localize_gateway_note(str(note)) for note in gateway_notes
+                )
             warnings.append(
-                "Live TF snapshot from gateway: dynamic transforms may derive "
-                "from commanded joint states, not encoder feedback."
+                "来自网关的实时 TF 快照：动态变换可能由指令关节状态推导，"
+                "不是编码器反馈。"
             )
 
         live_by_name: dict[str, dict[str, Any]] = {}
@@ -1009,19 +1037,19 @@ class RobotService:
             tf_truth = "measured_tf"
             if gateway_status == "static_only":
                 warnings.append(
-                    "Only /tf_static is live; dynamic link frames fall back to "
-                    "the URDF where the static graph does not reach."
+                    "只有 /tf_static 是实时的；静态图未覆盖的动态连杆框架"
+                    "回退到 URDF。"
                 )
             if gateway_status == "stale":
                 warnings.append(
-                    "Live TF is stale (newest dynamic edge "
-                    f"{live_tf.get('freshest_age_ms')} ms)."
+                    "实时 TF 已过期（最新动态边 "
+                    f"{live_tf.get('freshest_age_ms')} ms）。"
                 )
             missing_live = sorted(model_names - set(live_by_name))
             if missing_live:
                 warnings.append(
-                    f"{len(missing_live)} model frame(s) are not in live TF and "
-                    "use URDF FK: " + ", ".join(missing_live[:6])
+                    f"有 {len(missing_live)} 个模型框架不在实时 TF 中，"
+                    "使用 URDF FK：" + ", ".join(missing_live[:6])
                 )
         camera_block["tf_status"] = tf_status
 

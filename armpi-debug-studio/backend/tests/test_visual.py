@@ -246,7 +246,7 @@ def test_visual_snapshot_prefers_live_tf(service) -> None:
     assert frames["camera_optical_calibrated"]["source"] == "live_tf"
     assert snapshot["camera"]["tf_status"] == "live"
     assert "camera_optical_calibrated" in snapshot["camera"]["tf_frames"]
-    assert any("Live TF snapshot" in warning for warning in snapshot["warnings"])
+    assert any("来自网关的实时 TF 快照" in warning for warning in snapshot["warnings"])
 
 
 def test_missing_urdf_returns_invalid_not_crash(tmp_path: Path, settings: Settings) -> None:

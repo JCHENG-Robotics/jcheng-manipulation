@@ -49,6 +49,25 @@ from ..domain.models import (
 from .base import AdapterError, DispatchResult, HardwareMotionDisabled, RobotAdapter
 from .gateway import GatewayClient, GatewayError
 
+# Gateway evidence notes are kept in the payload but shown with a Chinese
+# explanation; notes we do not know pass through unchanged.
+_GATEWAY_NOTE_LABELS = {
+    "aux camera is disabled (--no-aux-camera).": (
+        "辅助相机已禁用（--no-aux-camera）。"
+    ),
+    "opencv is not available in this Python environment.": (
+        "该 Python 环境没有 OpenCV。"
+    ),
+    "cv_bridge is not installed; frames were decoded with the numpy fallback.": (
+        "未安装 cv_bridge；帧由 numpy 回退解码。"
+    ),
+    "No battery message received yet.": "尚未收到电池消息。",
+}
+
+
+def _localize_gateway_note(note: str) -> str:
+    return _GATEWAY_NOTE_LABELS.get(note, note)
+
 
 class HardwareAdapter(RobotAdapter):
     mode = Mode.HARDWARE
@@ -234,7 +253,10 @@ class HardwareAdapter(RobotAdapter):
                 topic=str(data.get("topic", "/ros_robot_controller/battery")),
                 received_at=str(data.get("received_at") or utc_now_iso()),
                 sample_age_ms=self._optional_int(data.get("sample_age_ms")),
-                notes=[str(item) for item in data.get("notes", [])],
+                notes=[
+                    _localize_gateway_note(str(item))
+                    for item in data.get("notes", [])
+                ],
             )
         except (TypeError, ValueError, KeyError) as exc:
             return self._battery_unavailable(f"invalid gateway battery payload: {exc}")
@@ -244,7 +266,7 @@ class HardwareAdapter(RobotAdapter):
     ) -> CameraStatus:
         if self._gateway is None:
             return self._camera_unavailable(
-                "ARMPI_GATEWAY_URL is not configured", topic=default_topic
+                "未配置 ARMPI_GATEWAY_URL", topic=default_topic
             )
         try:
             data = self._gateway.get_json(path)
@@ -265,7 +287,10 @@ class HardwareAdapter(RobotAdapter):
                 last_frame_at=str(data["last_frame_at"]) if data.get("last_frame_at") else None,
                 sample_age_ms=self._optional_int(data.get("sample_age_ms")),
                 frame_count=int(data.get("frame_count", 0)),
-                notes=[str(item) for item in data.get("notes", [])],
+                notes=[
+                    _localize_gateway_note(str(item))
+                    for item in data.get("notes", [])
+                ],
             )
         except (TypeError, ValueError, KeyError) as exc:
             return self._camera_unavailable(
