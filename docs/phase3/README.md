@@ -12,8 +12,8 @@
 > 6 mm / 2° bound gates (translation RSS 13.325 mm, rotation RSS 1.858°); the
 > empirical placement mean (3.080 mm) is inside 6 mm. The 2° rotation gate is
 > still provisional. The 2026-11-21 random-placement pre-registration
-> supersedes the fixed 24-mark fan before data; the random session has not
-> been run.
+> supersedes the fixed 24-mark fan before data; the random session is in
+> progress (18 trials = 9/24 pairs).
 
 Session 4 of the remote work plan covers R11 (error-budget framework), R12
 (paired-trial recorder), R13 (distributed host/DDS benchmark) and R15
@@ -40,7 +40,7 @@ Session 4 of the remote work plan covers R11 (error-budget framework), R12
 | Pure-Python CI | **Added** | flake8 + pytest for the analysis package, measurement protocol and phase-4 tools |
 | Real paired grasp trials | **Complete (2026-11-19)** | 24 pairs / 48 trials: baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; paired placement improvement 2.19 mm (p = 0.0063); four deviations recorded |
 | 24-site fixed-fan follow-up | **Superseded before data (2026-11-21)** | 24 pre-marked sites, layout/plan (seed 17) and runner were prepared but never run; replaced by the random-placement design |
-| Random-placement 24-pair trial | **Pre-registered (2026-11-21); in progress (8/24 pairs)** | 24 pairs, operator places the cube by eye (no measuring); the r 0.25-0.55 m / bearing -20..+25 deg envelope is a guide; direct grasp when already in the 0.226-0.234 m band, otherwise wrist -> front camera -> yaw sweep locate + base approach; after a held grip the robot carries the cube back to the start and releases it there between the two trials. 16 new-flow trials (8 complete pairs) recorded; a clipped start top view is accepted as `landing_partial`; a locate miss with the cube outside the segmenter's 3-D region now prompts an operator move-and-retry. One old-flow attempt discarded (D1) |
+| Random-placement 24-pair trial | **Pre-registered (2026-11-21); in progress (8/24 pairs)** | 24 pairs, operator places the cube by eye (no measuring); the r 0.25-0.55 m / bearing -20..+25 deg envelope is a guide; direct grasp when already in the 0.226-0.234 m band, otherwise wrist -> front camera -> yaw sweep locate + base approach; after a held grip the robot carries the cube back to the start and releases it there between the two trials. 18 new-flow trials (9 complete pairs) recorded; a clipped start top view is accepted as `landing_partial`; a locate miss with the cube outside the segmenter's 3-D region now prompts an operator move-and-retry; the `p005` approach oscillated and its wrist measurement merged with the fingers, so that trial aborted before any record and the resume starts at `p005`. One old-flow attempt discarded (D1) |
 | Gripper tolerance envelope | **Measured (2026-11-19)** | 46 grasps; opening axis [-6, +12] mm (±9 mm about +3 mm), `x`/`z` pass at ±9 mm; conservative budget tolerance 6 mm |
 | Execution, placement, fixture | **Measured (2026-11-20)** | 20/20 put-backs; execution 4.220 mm / 1.069° mean (5.386 mm / 1.495° max); placement 3.080 mm mean, 11.514 mm max; fixture 5.057 mm RMS, 14.815 mm radial max; three off-tape and two clipped-landing deviations kept as discarded evidence |
 | Rotation tolerance / visual displacement | **Runners added (2026-11-20), not run** | `rotation_tolerance_run.py` sweeps relative cube yaw on `joint5`; `visual_displacement_run.py` uses a seeded steel-ruler grid with a nuisance ruler yaw. Both have unit tests and dry runs, no hardware data yet |

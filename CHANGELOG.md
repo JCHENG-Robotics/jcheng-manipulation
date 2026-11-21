@@ -42,6 +42,15 @@ All notable changes to this project are documented here. Format based on
   `x 0.212-0.565`) now prompts the operator to move it to about 0.3-0.5 m,
   centred, and retries up to 2 before aborting. This fixed the `p024` miss
   after 16 new-flow trials (8 complete pairs); the resume starts at `p024`.
+- The resumed session completed `p024` (baseline `MISS`, intervention held,
+  16.04 mm home release error), then reached **18 trials = 9 complete
+  pairs**. At `p005` the four-pulse closed-loop approach oscillated and the
+  final wrist cluster merged with the gripper fingers (y extent 59.2 mm >
+  50), so the measurement was rejected three times; the trial was not
+  recorded and the operator stopped the session. The aborted trial's
+  approach and its single 3.0 s reverse-home pulse (`done: false`, about
+  104 mm short of home) are in `approaches.jsonl`; the resume starts at
+  `p005`.
 
 ### Data
 
@@ -49,7 +58,9 @@ All notable changes to this project are documented here. Format based on
   site put-back) and its approach records are preserved in
   `discarded_site_release_attempt.jsonl` and
   `discarded_site_release_approaches.jsonl` and excluded. `p020` restarts
-  under the home-return flow. No valid new-flow trial has been recorded yet.
+  under the home-return flow. The home-return flow has since recorded 18
+  valid trials (9 complete pairs); the `p005` attempt aborted before a
+  record.
 
 ## [Unreleased] — 2026-11-21 random-placement 24-pair trial (pre-registered)
 

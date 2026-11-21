@@ -140,8 +140,17 @@ wide region is `x 0.15-0.60`, `|y| <= 0.40`; the front box `x 0.212-0.565`),
 i.e. too far, too close or too wide. The trial was not recorded; the robot
 was at the start and the cube at the operator's spot. The runner now prompts
 the operator to move the cube to about 0.3-0.5 m, centred, and retries the
-locate up to 2 before aborting. The 16 trial records and their approach
-records are kept; the resume starts at `p024`.
+locate up to 2 before aborting.
+
+After that fix `p024` completed (baseline `MISS`, intervention held, 16.04 mm
+home release error). At `p005` the four-pulse closed-loop approach oscillated
+(2.99 s, 0.2 s, 3.0 s, 0.2 s) and the final wrist cluster merged with the
+gripper fingers (y extent 59.2 mm > 50), so the measurement was rejected
+three times; the trial was not recorded and the operator stopped the
+session. The resumed session therefore reached **18 trials = 9 complete
+pairs**. The aborted trial's approach and its single 3.0 s reverse-home pulse
+(`done: false`, about 104 mm short of home) are kept in `approaches.jsonl`;
+the session log is `session_20261121_1200.log`. The resume starts at `p005`.
 
 ## After the session
 
