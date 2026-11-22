@@ -15,8 +15,10 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   arm/chassis commands while latched.
 - CI step for `armpi_safety/test/test_policy.py`,
   `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`.
-- `TaskOperations` mixin (`backend/app/application/task_ops.py`) holding the G8
-  task planning/verify methods; `service.py` is 3,351 → ~2,767 lines.
+- `TaskOperations`, `ExperimentOperations`, `TrajectoryOperations` and
+  `MotionOperations` mixins (`backend/app/application/*_ops.py`) holding the G8
+  task, experiment, trajectory and motion orchestration; `service.py` is
+  3,351 → ~1,680 lines.
 - `COLCON_IGNORE` for the archived `arm_basics` and `arm_moveit_demo` packages.
 
 ### Fixed
