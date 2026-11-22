@@ -15,6 +15,9 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   arm/chassis commands while latched.
 - `tools/phase3/_bootstrap.py`: the ten phase-3 runners now share one
   `sys.path` bootstrap instead of repeating two or three inserts per file.
+- Gateway `telemetry_format.py`: pure battery and TF health formatting helpers
+  moved out of `GatewayNode`; five unit tests cover the thresholds and ages.
+- CI flake8 now covers `tools/phase3`, and the bootstrap has a unit test.
 - Gateway `CameraCache` (`camera_cache.py`): frame decode, JPEG snapshot and FPS
   window moved out of `GatewayNode`; pure unit tests cover the cache.
 - CI step for `armpi_safety/test/test_policy.py`,
