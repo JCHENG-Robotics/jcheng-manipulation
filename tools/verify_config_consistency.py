@@ -41,6 +41,45 @@ VIEW_POSE_FILES = (
     "tools/phase3/visual_displacement_run.py",
 )
 
+CANONICAL_ARM_JOINTS = (
+    "joint1",
+    "joint2",
+    "joint3",
+    "joint4",
+    "joint5",
+)
+CANONICAL_SERVO_IDS = {
+    "joint1": 6,
+    "joint2": 5,
+    "joint3": 4,
+    "joint4": 3,
+    "joint5": 2,
+}
+ARM_JOINT_FILES = (
+    "armpi-debug-studio/ros2_gateway/armpi_debug_gateway/motion.py",
+    "armpi-debug-studio/ros2_gateway/armpi_debug_gateway/"
+    "trajectory_capture.py",
+    "armpi-debug-studio/backend/app/domain/takeover.py",
+    "armpi-debug-studio/backend/app/domain/task.py",
+    "ros2_ws/src/armpi_safety/armpi_safety/policy.py",
+    "ros2_ws/src/armpi_grasp_planner/armpi_grasp_planner/evaluator.py",
+    "tools/phase2/vendor_servo_map.py",
+    "tools/phase2/bus_pulses.py",
+    "tools/phase2/chessboard_capture.py",
+)
+SERVO_ID_FILES = (
+    "armpi-debug-studio/ros2_gateway/armpi_debug_gateway/motion.py",
+    "armpi-debug-studio/ros2_gateway/armpi_debug_gateway/"
+    "trajectory_capture.py",
+    "tools/phase2/vendor_servo_map.py",
+    "tools/phase2/bus_pulses.py",
+    "tools/phase2/chessboard_capture.py",
+)
+GRIPPER_ID_FILES = (
+    "armpi-debug-studio/ros2_gateway/armpi_debug_gateway/motion.py",
+    "armpi-debug-studio/backend/app/domain/takeover.py",
+)
+
 CORRECTION_FILES = (
     "tools/phase2/low_config_model_fit.py",
     "tools/phase3/execution_fixture_run.py",
@@ -60,6 +99,9 @@ class Report:
     )
     fast_motion: dict[str, float] = field(default_factory=dict)
     view_poses: dict[str, tuple[float, ...]] = field(default_factory=dict)
+    arm_joints: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    servo_ids: dict[str, dict[str, int]] = field(default_factory=dict)
+    gripper_servo_ids: dict[str, int] = field(default_factory=dict)
     issues: list[str] = field(default_factory=list)
 
 
@@ -280,6 +322,46 @@ def view_pose(path: Path) -> tuple[float, ...]:
     raise ValueError(f"{path}: DEFAULT_VIEW_POSE not found")
 
 
+def module_literal(path: Path, name: str) -> Any:
+    """Return a module-level literal assignment by name."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for node in tree.body:
+        target = None
+        value = None
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            target = node.target
+            value = node.value
+        if isinstance(target, ast.Name) and target.id == name:
+            if value is None:
+                raise ValueError(f"{path}: {name} has no value")
+            return ast.literal_eval(value)
+    raise ValueError(f"{path}: {name} not found")
+
+
+def arm_joints(path: Path) -> tuple[str, ...]:
+    value = module_literal(path, "ARM_JOINTS")
+    if not isinstance(value, (list, tuple)):
+        raise ValueError(f"{path}: ARM_JOINTS must be a sequence")
+    return tuple(str(item) for item in value)
+
+
+def servo_ids(path: Path) -> dict[str, int]:
+    value = module_literal(path, "SERVO_IDS")
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}: SERVO_IDS must be a mapping")
+    return {str(key): int(item) for key, item in value.items()}
+
+
+def gripper_servo_id(path: Path) -> int:
+    value = module_literal(path, "GRIPPER_SERVO_ID")
+    if not isinstance(value, int):
+        raise ValueError(f"{path}: GRIPPER_SERVO_ID must be an int")
+    return value
+
+
 def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
     report = Report()
     paths = {
@@ -375,6 +457,66 @@ def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
                     f"{reference_path}={reference}"
                 )
 
+    for relative in ARM_JOINT_FILES:
+        path = root / relative
+        if not path.is_file():
+            report.issues.append(f"missing arm-joint source: {path}")
+            continue
+        try:
+            joints = arm_joints(path)
+        except (ValueError, SyntaxError) as exc:
+            report.issues.append(str(exc))
+            continue
+        report.arm_joints[relative] = joints
+        if joints != CANONICAL_ARM_JOINTS:
+            report.issues.append(
+                f"ARM_JOINTS mismatch: {relative}={joints} vs "
+                f"{CANONICAL_ARM_JOINTS}"
+            )
+
+    for relative in SERVO_ID_FILES:
+        path = root / relative
+        if not path.is_file():
+            report.issues.append(f"missing servo-id source: {path}")
+            continue
+        try:
+            ids = servo_ids(path)
+        except (ValueError, SyntaxError) as exc:
+            report.issues.append(str(exc))
+            continue
+        report.servo_ids[relative] = ids
+        for joint, expected in CANONICAL_SERVO_IDS.items():
+            if ids.get(joint) != expected:
+                report.issues.append(
+                    f"SERVO_IDS mismatch: {relative}[{joint}]="
+                    f"{ids.get(joint)} vs {expected}"
+                )
+        extra = set(ids) - set(CANONICAL_SERVO_IDS) - {"gripper"}
+        if extra:
+            report.issues.append(
+                f"SERVO_IDS has unknown joints in {relative}: {sorted(extra)}"
+            )
+        if "gripper" in ids and ids["gripper"] != 1:
+            report.issues.append(
+                f"SERVO_IDS gripper in {relative}={ids['gripper']} vs 1"
+            )
+
+    for relative in GRIPPER_ID_FILES:
+        path = root / relative
+        if not path.is_file():
+            report.issues.append(f"missing gripper-id source: {path}")
+            continue
+        try:
+            value = gripper_servo_id(path)
+        except (ValueError, SyntaxError) as exc:
+            report.issues.append(str(exc))
+            continue
+        report.gripper_servo_ids[relative] = value
+        if value != 1:
+            report.issues.append(
+                f"GRIPPER_SERVO_ID mismatch: {relative}={value} vs 1"
+            )
+
     # The G8 task preset must stay inside the adopted joint2/joint3 bounds.
     try:
         takeover_data = yaml.safe_load(
@@ -433,6 +575,12 @@ def main(argv: list[str] | None = None) -> int:
                 path: list(value)
                 for path, value in report.view_poses.items()
             },
+            "arm_joints": {
+                path: list(value)
+                for path, value in report.arm_joints.items()
+            },
+            "servo_ids": report.servo_ids,
+            "gripper_servo_ids": report.gripper_servo_ids,
             "issues": report.issues,
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
@@ -446,6 +594,9 @@ def main(argv: list[str] | None = None) -> int:
                 "CONFIG OK: 5 joints agree across xacro / MoveIt / safety / "
                 "mapping / vendor; the fast-motion defaults match "
                 f"task.fast; {len(report.view_poses)} view poses agree; "
+                f"{len(report.arm_joints)} arm-joint, "
+                f"{len(report.servo_ids)} servo-id and "
+                f"{len(report.gripper_servo_ids)} gripper-id sources agree; "
                 "the constant correction agrees in "
                 f"{len(report.corrections)} sources"
             )
