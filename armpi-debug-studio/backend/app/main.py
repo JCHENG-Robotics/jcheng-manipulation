@@ -67,7 +67,10 @@ class SPAStaticFiles(StaticFiles):
 
 async def _ticker(service: RobotService) -> None:
     while True:
-        service.tick()
+        # The adapter talks to the gateway over blocking urllib. Keep that
+        # timeout off the event loop; sync HTTP handlers already run in the
+        # AnyIO worker pool, so the ticker must not be the only blocking path.
+        await asyncio.to_thread(service.tick)
         await asyncio.sleep(0.05)
 
 

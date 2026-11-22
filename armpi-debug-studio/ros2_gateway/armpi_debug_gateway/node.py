@@ -26,7 +26,7 @@ from rclpy.qos import (
     qos_profile_sensor_data,
 )
 from sensor_msgs.msg import Image, JointState
-from std_msgs.msg import UInt16
+from std_msgs.msg import Bool, UInt16
 
 from .aux_camera import UvcCamera
 from .chassis import (
@@ -130,6 +130,7 @@ class GatewayNode(Node):
         self._chassis_pub = None
         self._chassis_lock = threading.Lock()
         self._chassis_busy = False
+        self._safety_stop_latched = False
         if motion_enabled:
             if ServosPosition is None or ServoPosition is None:
                 raise RuntimeError(
@@ -206,6 +207,14 @@ class GatewayNode(Node):
         self.create_subscription(UInt16, battery_topic, self._on_battery, 10)
         self.create_subscription(Image, camera_topic, self._on_image, qos_profile_sensor_data)
         self.create_subscription(JointState, joint_state_topic, self._on_joint_state, 10)
+        # armpi_safety publishes a latched Bool at 5 Hz. TRANSIENT_LOCAL makes
+        # the gateway see the last state even if it starts after the supervisor.
+        self.create_subscription(
+            Bool,
+            "safety_stop",
+            self._on_safety_stop,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL),
+        )
         # Single-owner mode: the aux camera may follow a ROS topic instead of
         # opening the UVC device itself (the robot-side ext_cam_node owns it).
         aux_topic = getattr(self._aux_camera, "ros_topic", None) if self._aux_camera else None
@@ -285,6 +294,30 @@ class GatewayNode(Node):
             )
 
     # ------------------------------------------------------------- callbacks
+    def _on_safety_stop(self, message: Bool) -> None:
+        """Latch the supervisor stop and publish a hold when it trips."""
+        active = bool(message.data)
+        was_latched = self._safety_stop_latched
+        self._safety_stop_latched = active
+        if self._guard is not None:
+            self._guard.set_safety_stop(active)
+        if not active:
+            if was_latched:
+                self.get_logger().info("safety_stop cleared by armpi_safety")
+            return
+        if was_latched:
+            return
+        self.get_logger().error("safety_stop latched by armpi_safety")
+        if not self.motion_enabled:
+            return
+        try:
+            self.stop_motion({"command_id": "safety_stop"})
+            self.get_logger().error(
+                "safety_stop: hold command published; physical stop is not confirmed"
+            )
+        except MotionRejected as exc:
+            self.get_logger().error(f"safety_stop: hold command failed: {exc}")
+
     def _on_battery(self, message: UInt16) -> None:
         with self._lock:
             self._battery_mv = int(message.data)
@@ -796,6 +829,7 @@ class GatewayNode(Node):
             "pointcloud_last_capture": self.pointcloud_status_payload(),
             "motion_enabled": self.motion_enabled,
             "motion_state": self._motion_state(),
+            "safety_stop": self._safety_stop_latched,
             "chassis_enabled": self.chassis_enabled,
             "chassis": (
                 self._motion_config.chassis.to_public_dict()
@@ -973,6 +1007,12 @@ class GatewayNode(Node):
         The pulse is serialised with a lock and requires a matched subscriber
         (the vendor watchdog drops a command with no consumer).
         """
+        if self._safety_stop_latched:
+            raise ChassisRejected(
+                "SAFETY_STOP",
+                "the safety supervisor has latched a stop; reset it before motion",
+                http_status=409,
+            )
         if self._chassis_pub is None or self._motion_config is None:
             raise ChassisRejected(
                 "CHASSIS_DISABLED",

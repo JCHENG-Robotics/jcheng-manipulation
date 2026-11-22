@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Read-only consistency check for ArmPi limits and calibration constants.
 
-The same physical joint limits are consumed by four independent files, and the
-constant low-configuration correction is repeated in several runners and the
-Studio takeover config.  A drift between them is a safety defect (the
-2026-11-19 joint2 incident) and a reproducibility defect.  This module checks
-that the sources agree; it never writes or commands anything.
+The same physical joint limits are consumed by several independent files,
+including the phase-2 tool-side ``vendor_servo_map.py``, and the constant
+low-configuration correction is repeated in several runners and the Studio
+takeover config.  A drift between them is a safety defect (the 2026-11-19
+joint2 incident) and a reproducibility defect.  This module checks that the
+sources agree; it never writes or commands anything.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ MOVEIT = "ros2_ws/src/armpi_ultra_moveit_config/config/joint_limits.yaml"
 SAFETY = "ros2_ws/src/armpi_safety/config/safety_limits.yaml"
 MAPPING = "armpi-debug-studio/configs/joint_mapping.yaml"
 TAKEOVER = "armpi-debug-studio/configs/takeover.yaml"
+VENDOR = "tools/phase2/vendor_servo_map.py"
 
 CORRECTION_FILES = (
     "tools/phase2/low_config_model_fit.py",
@@ -101,6 +103,32 @@ def safety_limits(path: Path) -> dict[str, tuple[float, float]]:
             _float(entry.get("lower"), f"{joint}.lower"),
             _float(entry.get("upper"), f"{joint}.upper"),
         )
+    return limits
+
+
+def vendor_limits(path: Path) -> dict[str, tuple[float, float]]:
+    """Load the phase-2 ADOPTED_BOUNDS and convert them to radians."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_vendor_servo_map_for_consistency", path
+    )
+    if spec is None or spec.loader is None:
+        raise ValueError(f"{path}: cannot load module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    limits: dict[str, tuple[float, float]] = {}
+    for joint in JOINTS:
+        low, high = module.ADOPTED_BOUNDS[joint]
+        hard_low, hard_high = module.HARD_BOUNDS[joint]
+        if not hard_low <= low <= high <= hard_high:
+            raise ValueError(
+                f"{joint}: adopted {low}..{high} outside hard "
+                f"{hard_low}..{hard_high}"
+            )
+        a = module.pulse_to_rad(joint, low)
+        b = module.pulse_to_rad(joint, high)
+        limits[joint] = (min(a, b), max(a, b))
     return limits
 
 
@@ -188,6 +216,7 @@ def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
         "moveit": root / MOVEIT,
         "safety": root / SAFETY,
         "mapping": root / MAPPING,
+        "vendor": root / VENDOR,
     }
     parsed: dict[str, dict[str, tuple[float, float]]] = {}
     for name, path in paths.items():
@@ -201,8 +230,10 @@ def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
                 parsed[name] = moveit_limits(path)
             elif name == "safety":
                 parsed[name] = safety_limits(path)
-            else:
+            elif name == "mapping":
                 parsed[name] = mapping_limits(path)
+            else:
+                parsed[name] = vendor_limits(path)
         except (ValueError, KeyError) as exc:
             report.issues.append(f"{path}: {exc}")
 
@@ -300,7 +331,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(
                 "CONFIG OK: 5 joints agree across xacro / MoveIt / safety / "
-                "mapping; the constant correction agrees in "
+                "mapping / vendor; the constant correction agrees in "
                 f"{len(report.corrections)} sources"
             )
     return 1 if report.issues else 0

@@ -361,6 +361,14 @@ def test_task_api_plan_and_verify(tmp_path, mapping, clock, takeover) -> None:
         assert stale.status_code == 409
         assert stale.json()["error"]["code"] == "TASK_PLAN_STALE"
 
+        stop = client.post("/api/motion/stop", json={"session_id": "api-task"})
+        assert stop.status_code == 200, stop.text
+        after_stop = client.post(
+            "/api/task/verify", json={"plan_id": plan["plan_id"]}
+        )
+        assert after_stop.status_code == 409
+        assert after_stop.json()["error"]["code"] == "TASK_NOT_PLANNED"
+
 
 def _clipped_cloud(center_x: float = 0.231, cutoff_m: float = 0.240) -> np.ndarray:
     """A floor cube whose top near edge is inside the sensor's min range."""

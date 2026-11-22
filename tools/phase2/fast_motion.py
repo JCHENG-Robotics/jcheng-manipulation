@@ -206,7 +206,7 @@ class FastMover(Node):
         start = self.measured_joints()
         times, points, info = motion_profile.plan_move(
             start, target, vmax, amax, dt)
-        warnings = check_waypoints(points)
+        warnings = check_waypoints(points, strict_adopted=('joint2',))
         if not self.arm.wait_for_server(timeout_sec=10.0):
             raise RuntimeError('arm action server unavailable')
 
