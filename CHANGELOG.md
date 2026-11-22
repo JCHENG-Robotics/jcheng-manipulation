@@ -3,6 +3,39 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-11-22 offline safety/structure hardening
+
+Offline only; no hardware motion and no new algorithms. Follow-up to the
+2026-11-21 feature-freeze batch, merged as `43647bc` (fix `d93288e`).
+
+### Added
+
+- Studio gateway `/safety_stop` consumer: transient-local `Bool` subscription,
+  `MotionGuard` latch, hold on the rising edge, and `SAFETY_STOP` (409) for new
+  arm/chassis commands while latched.
+- CI step for `armpi_safety/test/test_policy.py`,
+  `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`.
+- `TaskOperations` mixin (`backend/app/application/task_ops.py`) holding the G8
+  task planning/verify methods; `service.py` is 3,351 → ~2,767 lines.
+- `COLCON_IGNORE` for the archived `arm_basics` and `arm_moveit_demo` packages.
+
+### Fixed
+
+- `vendor_servo_map.py` joint2: hard 830 → **795**, adopted 810 → **775**;
+  `fast_motion.py` treats a joint2 adopted-bound breach as an error.
+- `verify_config_consistency.py` now includes `vendor_servo_map.py` as a fifth
+  limit source, so this drift class fails CI.
+- Backend ticker runs in `asyncio.to_thread`; `HardwareAdapter` serializes
+  gateway state mutations with an `RLock`; `_last_task_plan` is invalidated on
+  stop/reset; the idempotency cache prunes on write as well as read.
+
+### Documentation
+
+- `docs/phase2/MOTION_WRITE_PATHS.md` and `SAFETY_LAYER.md` now describe the
+  gateway consumer and explicitly limit `safety_stop` to the Studio path.
+- `docs/hardware/measured_joint_limits.md` marks the 2026-11-18 810-pulse
+  joint2 table as historical and points to the current 775-pulse value.
+
 ## [Unreleased] — 2026-11-21 feature-freeze hardening (offline)
 
 Offline only; no hardware motion and no new algorithms. This is the first

@@ -29,7 +29,7 @@ The design separates:
 | `armpi_safety/validate_trajectory` | `arm_interfaces/srv/ValidateTrajectory` | validate a planned trajectory; returns `approved`, `code`, `violations`, JSON report |
 | `armpi_safety/reset_stop` | `std_srvs/srv/Trigger` | clear a latched state fault when the current state is valid |
 | `armpi_safety/safety_status` | `std_msgs/String` (5 Hz) | JSON watchdog/validation status |
-| `armpi_safety/safety_stop` | `std_msgs/Bool` (transient local) | fail-safe stop flag; true when the state is invalid or a fault is latched |
+| `armpi_safety/safety_stop` | `std_msgs/Bool` (transient local) | latched stop flag; true when the state is invalid or a fault is latched. Consumed by the Studio gateway since 2026-11-22; still advisory for the fast CLI and raw-bus paths |
 
 The service request carries `moveit_msgs/RobotTrajectory` and an optional
 start-state threshold. Nothing in the node publishes a controller command.
@@ -56,6 +56,12 @@ A **real state fault latches** the stop: once stale/out-of-range/non-finite
 state is seen, `safety_stop` stays true until `reset_stop` succeeds and the
 current state is valid. A rejected **plan** is a veto, not a robot fault; it does
 not latch the stop.
+
+Since 2026-11-22 (`43647bc`), the Studio gateway subscribes this flag, latches
+its `MotionGuard`, publishes a hold command on the rising edge and refuses new
+arm/chassis commands while latched. This makes the flag authoritative for the
+Studio gateway path only; `fast_motion.py` and the raw-bus scripts still do not
+consume it. The hardware round trip is still pending.
 
 ## Configuration
 
