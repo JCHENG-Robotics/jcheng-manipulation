@@ -19,7 +19,7 @@ gateway with a velocity cap and an FK workspace/table gate. There is no e-stop.
 The vendor SDK/Driver are referenced read-only and are **not** copied into this
 directory.
 
-**Current verification (2026-11-22):** 144 backend tests, 81 gateway tests and
+**Current verification (2026-11-22):** 144 backend tests, 89 gateway tests and
 16 Playwright tests (10 mock + 3 hardware + 3 pose/task). The dated status
 notes below preserve the counts at the time they were written.
 

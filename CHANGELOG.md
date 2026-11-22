@@ -6,7 +6,8 @@ All notable changes to this project are documented here. Format based on
 ## [Unreleased] — 2026-11-22 offline safety/structure hardening
 
 Offline only; no hardware motion and no new algorithms. Follow-up to the
-2026-11-21 feature-freeze batch, merged as `43647bc` (fix `d93288e`).
+2026-11-21 feature-freeze batch: the safety fixes merged as `43647bc`
+(`d93288e`), with the structure follow-ups merged through `4d5b488`.
 
 ### Added
 
@@ -19,7 +20,8 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   moved out of `GatewayNode`; five unit tests cover the thresholds and ages.
 - CI flake8 now covers `tools/phase3`, and the bootstrap has a unit test.
 - Gateway `CameraCache` (`camera_cache.py`): frame decode, JPEG snapshot and FPS
-  window moved out of `GatewayNode`; pure unit tests cover the cache.
+  window moved out of `GatewayNode`; pure unit tests cover the cache. With the
+  telemetry extraction this takes `GatewayNode` from 1,302 to 1,196 lines.
 - CI step for `armpi_safety/test/test_policy.py`,
   `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`, and
   `armpi_fiducial_localizer/test/test_detector.py` / `test_frames.py`.
@@ -27,7 +29,7 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   `MotionOperations`, `VisualOperations` and `DiagnosticsOperations` mixins
   (`backend/app/application/*_ops.py`) holding the G8 task, experiment,
   trajectory, motion, visual and diagnostics orchestration; `service.py` is
-  3,351 → ~1,022 lines.
+  3,351 → 1,022 lines.
 - `COLCON_IGNORE` for the archived `arm_basics` and `arm_moveit_demo` packages.
 
 ### Fixed
@@ -49,6 +51,25 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   gateway consumer and explicitly limit `safety_stop` to the Studio path.
 - `docs/hardware/measured_joint_limits.md` marks the 2026-11-18 810-pulse
   joint2 table as historical and points to the current 775-pulse value.
+- README, README.zh-CN, ROADMAP, the Studio README and
+  `docs/phase0/PHASE0_ACCEPTANCE.md` re-synchronized to the 2026-11-22
+  offline-only baseline: hardware results stay 2026-11-21, gateway tests
+  81 → 89, and the Studio scope reads G1–G8.1.
+
+### Verification
+
+- Studio backend: **144 passed**; gateway: **89 passed** (81 → 89 with the
+  `CameraCache` and `telemetry_format` tests).
+- Pure-Python offline suites (`armpi_analysis`, `tools/phase2/3/4`,
+  `tools/tests`): **274 passed / 7 skipped**.
+- Safety, planner and fiducial unit tests (`test_policy`, `test_joint_limits`,
+  `test_candidates`, `test_detector`, `test_frames`): **57 passed**.
+- `tools/verify_config_consistency.py`: `CONFIG OK` — 5 joints agree across
+  xacro / MoveIt / safety / mapping / vendor, the fast-motion defaults match
+  `task.fast`, 5 view poses agree, 9 arm-joint / 5 servo-id / 2 gripper-id
+  sources agree, and the constant correction agrees in 6 sources.
+- Playwright: 10 mock + 3 hardware + 3 pose/task tests collected (the hardware
+  suite needs the robot and is not run offline).
 
 ## [Unreleased] — 2026-11-21 feature-freeze hardening (offline)
 

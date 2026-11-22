@@ -21,7 +21,7 @@
 [Objectives](#objectives-and-contributions) ·
 [Key results](#key-results-measured-on-hardware) ·
 [Architecture](#system-architecture) · [Repository layout](#repository-layout) ·
-[Status](#project-status-2026-11-21) ·
+[Status](#project-status-2026-11-22) ·
 [Deliverables](#capstone-deliverables-checklist) · [Quick start](#quick-start) ·
 [Method](#experimental-method) · [Failure taxonomy](#failure-taxonomy-measured) ·
 [Safety](#safety-and-operating-envelope) ·
@@ -45,7 +45,7 @@
 | **Core question** | How accurately can a low-cost 5-DoF arm with a wrist-mounted camera manipulate tabletop objects when every transform, limit and failure mode is measured rather than assumed? |
 | **Headline result** | Autonomous pick–lift–place of an unmarked 39.4 mm cube; the pre-registered **24-pair** trial raised grasp success from **12/24 to 24/24** (McNemar p = 0.00049), and the 2026-11-21 **random-placement** 24-pair follow-up on free by-eye spots repeated it at **9/24 vs 24/24** (p = 6.1×10⁻⁵); the completed error budget has translation **RSS 13.33 mm** (bounds fail 6 mm) while the empirical placement mean is **3.08 mm**; S-curve motion cuts grasp+put-back from **11.67 s to 8.94 s**; a chassis D435i agrees with the wrist camera to **2.58 mm** in x/y |
 | **Evidence** | 20+ evidence bundles: session logs, calibration datasets, servo/bus records, Studio test reports and machine-readable JSON |
-| **Status** | 2026-11-21. Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
+| **Status** | 2026-11-22 (hardware results 2026-11-21; the 2026-11-22 batch is offline hardening only). Hardware motion is supervised; joint mapping is `verified: true` for the operating envelope after the formal survey; the robot has no e-stop or brake |
 
 ## Abstract
 
@@ -149,7 +149,7 @@ was discarded (D1).
    negative-register crash.
 8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
    runner, measurement runner, read-only host/DDS benchmark, and a G1–G8.1
-   debug studio with the G8 fast path (144 backend + 81 gateway tests).
+   debug studio with the G8 fast path (144 backend + 89 gateway tests).
 9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
@@ -248,7 +248,7 @@ RGB-D frame
 ## Repository layout
 
 ```text
-armpi-debug-studio/        # G1–G6 console (FastAPI + React) + read-only/supervised gateway
+armpi-debug-studio/        # G1–G8.1 console (FastAPI + React) + read-only/supervised gateway
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, decisions
@@ -291,10 +291,14 @@ tools/
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
-## Project status (2026-11-21)
+## Project status (2026-11-22)
 
 Hardware results are as of 2026-11-21; this document was synchronized with the
-roadmap, changelog and evidence on 2026-11-21. Status convention:
+roadmap, changelog and acceptance report on 2026-11-22. The 2026-11-22 batch is
+offline only: Studio backend/gateway structure extraction, a `/safety_stop`
+consumer in the gateway, config-consistency checks extended to the fast-motion
+defaults and view poses, and the duplicated joint/servo-id table check.
+Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
@@ -317,7 +321,7 @@ separately.
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trials | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement 24 pairs: free by-eye spots with a base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; the secondary home release error (+2.12 mm, anchor = corrected target) is descriptive, not an accuracy gain; baseline `MISS` 14 + `NO_GRIP` 1 (grip lost on the return); D1/D2 discards recorded; the pre-grasp gap fix (reused final measurement) is post-data tooling only |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
-| Debug Studio | **G1–G8.1 implemented + the G8 fast path; tests pass** | 144 backend + 81 gateway; 10 mock + 3 hardware + 3 pose-scope Playwright; G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); the min-range clip recovery rebuilds a clipped top from the far edge; a 34.6 mm visible top is accepted and a lateral cube triggers the bounded base approach; D435i aux feed on the Dashboard, and the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback |
+| Debug Studio | **G1–G8.1 implemented + the G8 fast path; tests pass** | 144 backend + 89 gateway; 10 mock + 3 hardware + 3 pose-scope Playwright; G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); the min-range clip recovery rebuilds a clipped top from the far edge; a 34.6 mm visible top is accepted and a lateral cube triggers the bounded base approach; D435i aux feed on the Dashboard, and the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback; the 2026-11-22 gateway latches `/safety_stop` for Studio arm/chassis commands (hardware round trip pending) |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
 | Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) is camera-closed but still open-loop |
@@ -388,7 +392,7 @@ PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
   tools/phase4/tests \
   tools/tests
 
-# debug studio: backend 144, gateway 81, mock Playwright 10, pose/task Playwright 3
+# debug studio: backend 144, gateway 89, mock Playwright 10, hardware 3, pose/task 3
 cd armpi-debug-studio/backend
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
