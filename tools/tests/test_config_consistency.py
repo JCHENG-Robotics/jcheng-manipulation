@@ -23,6 +23,17 @@ def test_current_repo_is_consistent():
     assert set(report.view_poses) == set(v.VIEW_POSE_FILES)
     reference = next(iter(report.view_poses.values()))
     assert all(pose == reference for pose in report.view_poses.values())
+    assert set(report.arm_joints) == set(v.ARM_JOINT_FILES)
+    assert all(
+        joints == v.CANONICAL_ARM_JOINTS
+        for joints in report.arm_joints.values()
+    )
+    assert set(report.servo_ids) == set(v.SERVO_ID_FILES)
+    for ids in report.servo_ids.values():
+        for joint, expected in v.CANONICAL_SERVO_IDS.items():
+            assert ids[joint] == expected
+    assert set(report.gripper_servo_ids) == set(v.GRIPPER_ID_FILES)
+    assert all(value == 1 for value in report.gripper_servo_ids.values())
 
 
 def test_compare_limits_reports_a_mismatch():
@@ -79,3 +90,19 @@ def test_view_pose_parser_rejects_wrong_length(tmp_path):
     path.write_text("DEFAULT_VIEW_POSE = [0.0, 1.0]\n")
     with pytest.raises(ValueError):
         v.view_pose(path)
+
+
+def test_arm_joint_and_servo_id_parsers(tmp_path):
+    path = tmp_path / "constants.py"
+    path.write_text(
+        "ARM_JOINTS = ('joint1', 'joint2', 'joint3', 'joint4', 'joint5')\n"
+        "SERVO_IDS = {'joint1': 6, 'joint2': 5, 'joint3': 4, "
+        "'joint4': 3, 'joint5': 2, 'gripper': 1}\n"
+        "GRIPPER_SERVO_ID = 1\n"
+    )
+    assert v.arm_joints(path) == v.CANONICAL_ARM_JOINTS
+    ids = v.servo_ids(path)
+    for joint, expected in v.CANONICAL_SERVO_IDS.items():
+        assert ids[joint] == expected
+    assert ids["gripper"] == 1
+    assert v.gripper_servo_id(path) == 1
