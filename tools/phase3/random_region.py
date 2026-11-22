@@ -33,7 +33,6 @@ import argparse
 from datetime import datetime, timezone
 import json
 import os
-import sys
 
 SCHEMA_VERSION = 1
 DEFAULT_N_PAIRS = 24
@@ -45,9 +44,8 @@ DEFAULT_MAX_BEARING_DEG = 25.0
 DEFAULT_MIN_SEPARATION_M = 0.03
 FIXTURE_PREFIX = 'r'
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(REPO, 'ros2_ws', 'src', 'armpi_analysis'))
+from _bootstrap import bootstrap  # noqa: E402
+bootstrap()
 
 
 def fixture_id(index):

@@ -38,12 +38,8 @@ import time
 
 import numpy as np
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-TOOLS = os.path.join(REPO, 'tools')
-sys.path.insert(0, os.path.join(TOOLS, 'phase2'))
-sys.path.insert(0, os.path.join(TOOLS, 'phase3'))
-sys.path.insert(0, os.path.join(REPO, 'ros2_ws', 'src', 'armpi_analysis'))
+from _bootstrap import TOOLS, REPO, bootstrap  # noqa: E402
+bootstrap()
 
 import grasp_joint_fit  # noqa: E402
 import paired_trial_session as session  # noqa: E402

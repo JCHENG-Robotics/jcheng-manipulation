@@ -37,9 +37,8 @@ import sys
 
 import numpy as np
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(REPO, 'tools', 'phase2'))
+from _bootstrap import REPO, bootstrap  # noqa: E402
+bootstrap()
 
 import low_config_model_fit as model_fit  # noqa: E402
 

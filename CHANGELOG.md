@@ -13,6 +13,8 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
 - Studio gateway `/safety_stop` consumer: transient-local `Bool` subscription,
   `MotionGuard` latch, hold on the rising edge, and `SAFETY_STOP` (409) for new
   arm/chassis commands while latched.
+- `tools/phase3/_bootstrap.py`: the ten phase-3 runners now share one
+  `sys.path` bootstrap instead of repeating two or three inserts per file.
 - Gateway `CameraCache` (`camera_cache.py`): frame decode, JPEG snapshot and FPS
   window moved out of `GatewayNode`; pure unit tests cover the cache.
 - CI step for `armpi_safety/test/test_policy.py`,

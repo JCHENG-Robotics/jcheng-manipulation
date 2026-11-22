@@ -47,11 +47,8 @@ import time
 
 import numpy as np
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(REPO, 'tools', 'phase2'))
-sys.path.insert(0, os.path.join(REPO, 'tools', 'phase3'))
-sys.path.insert(0, os.path.join(REPO, 'ros2_ws', 'src', 'armpi_analysis'))
+from _bootstrap import bootstrap  # noqa: E402
+bootstrap()
 
 import fast_motion_e2e  # noqa: E402
 import grasp_joint_fit  # noqa: E402
