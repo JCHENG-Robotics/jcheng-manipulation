@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import threading
 import time
-from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
@@ -29,6 +28,7 @@ from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import Bool, UInt16
 
 from .aux_camera import UvcCamera
+from .camera_cache import CameraCache
 from .chassis import (
     CHASSIS_TOPIC,
     DISCOVERY_TIMEOUT_S,
@@ -37,7 +37,7 @@ from .chassis import (
     ChassisRejected,
     plan_chassis_pulse,
 )
-from .imaging import cv2, image_to_bgr, np
+from .imaging import cv2
 from .motion import (
     GRIPPER_INIT_PULSE,
     GRIPPER_JOINT,
@@ -168,15 +168,6 @@ class GatewayNode(Node):
         self._battery_at: float | None = None
         self._battery_wall: str | None = None
 
-        self._frame_jpeg: bytes | None = None
-        self._frame_at: float | None = None
-        self._frame_wall: str | None = None
-        self._frame_width: int | None = None
-        self._frame_height: int | None = None
-        self._frame_encoding: str | None = None
-        self._frame_times: deque[float] = deque(maxlen=30)
-        self._frame_count = 0
-
         self._joints: dict[str, dict[str, Any]] = {}
         self._joints_at: float | None = None
         self._joints_wall: str | None = None
@@ -203,6 +194,14 @@ class GatewayNode(Node):
                 "cv_bridge is not installed; using the numpy fallback for "
                 "bgr8/rgb8/mono8 camera frames"
             )
+
+        self._camera_cache = CameraCache(
+            topic=camera_topic,
+            jpeg_quality=self._jpeg_quality,
+            bridge=self._bridge,
+            now_iso=utc_now_iso,
+            logger=self.get_logger(),
+        )
 
         self.create_subscription(UInt16, battery_topic, self._on_battery, 10)
         self.create_subscription(Image, camera_topic, self._on_image, qos_profile_sensor_data)
@@ -552,31 +551,7 @@ class GatewayNode(Node):
             offer(message)
 
     def _on_image(self, message: Image) -> None:
-        if cv2 is None:
-            return
-        try:
-            if self._bridge is not None:
-                frame = self._bridge.imgmsg_to_cv2(message, desired_encoding="bgr8")
-            else:
-                frame = image_to_bgr(message)
-            ok, encoded = cv2.imencode(
-                ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), self._jpeg_quality]
-            )
-        except Exception as exc:  # noqa: BLE001 - a bad frame must not kill the node
-            self.get_logger().warning(f"camera frame conversion failed: {exc}")
-            return
-        if not ok:
-            return
-        now = time.monotonic()
-        with self._lock:
-            self._frame_jpeg = encoded.tobytes()
-            self._frame_at = now
-            self._frame_wall = utc_now_iso()
-            self._frame_width = int(message.width)
-            self._frame_height = int(message.height)
-            self._frame_encoding = str(message.encoding)
-            self._frame_times.append(now)
-            self._frame_count += 1
+        self._camera_cache.on_image(message)
 
     # --------------------------------------------------------------- helpers
     @staticmethod
@@ -584,14 +559,6 @@ class GatewayNode(Node):
         if at is None:
             return None
         return max(0, int((time.monotonic() - at) * 1000.0))
-
-    def _fps_locked(self) -> float:
-        if len(self._frame_times) < 2:
-            return 0.0
-        span = self._frame_times[-1] - self._frame_times[0]
-        if span <= 0:
-            return 0.0
-        return (len(self._frame_times) - 1) / span
 
     # ---------------------------------------------------------------- payload
     def battery_payload(self) -> dict[str, Any]:
@@ -637,52 +604,10 @@ class GatewayNode(Node):
         }
 
     def camera_status_payload(self) -> dict[str, Any]:
-        with self._lock:
-            has_frame = self._frame_jpeg is not None
-            at = self._frame_at
-            wall = self._frame_wall
-            width = self._frame_width
-            height = self._frame_height
-            encoding = self._frame_encoding
-            fps = self._fps_locked()
-            count = self._frame_count
-        age_ms = self._age_ms(at)
-        available = has_frame and age_ms is not None and age_ms < 3000
-        if available:
-            validity = "valid"
-            truth = "measured"
-        elif has_frame:
-            validity = "stale"
-            truth = "measured"
-        else:
-            validity = "unavailable"
-            truth = "unknown"
-        notes = []
-        if cv2 is None:
-            notes.append("opencv is not available in this Python environment.")
-        elif self._bridge is None:
-            notes.append(
-                "cv_bridge is not installed; frames were decoded with the numpy fallback."
-            )
-        return {
-            "available": available,
-            "truth": truth,
-            "validity": validity,
-            "source": "armpi_debug_gateway",
-            "topic": self._camera_topic,
-            "width": width,
-            "height": height,
-            "encoding": encoding,
-            "fps": round(fps, 1),
-            "last_frame_at": wall,
-            "sample_age_ms": age_ms,
-            "frame_count": count,
-            "notes": notes,
-        }
+        return self._camera_cache.status_payload()
 
     def camera_snapshot(self) -> bytes | None:
-        with self._lock:
-            return self._frame_jpeg
+        return self._camera_cache.snapshot()
 
     def aux_camera_status_payload(self) -> dict[str, Any]:
         """UVC color stream of the off-arm D435i (not a ROS topic)."""
