@@ -9,16 +9,20 @@
 > Freeze recommendation: treat the Studio gateway as the supported operator
 > path and label the CLI runners **research-only**. The Board decision is still
 > pending; this document does not change behavior.
+>
+> **Update 2026-11-22 (`43647bc`):** `/safety_stop` is now consumed by the
+> Studio gateway; it is still not consumed by the fast CLI or the raw-bus
+> scripts. The path inventory and the remaining freeze rules below still apply.
 
 ## Path inventory
 
 | # | Path | Entry points | Guard | Limits / verification |
 |---|---|---|---|---|
 | 1 | MoveIt CLI | `tools/phase2/real_moveit_execute.py`, `tools/phase2/execute_plan_json.py` | `/armpi_safety/validate_trajectory` (required) | `armpi_safety/config/safety_limits.yaml`: position bounds, **1.2 rad/s**, **0.5 rad/s²**, start-state, workspace, table plane, duration/points |
-| 2 | Fast CLI | `tools/phase2/fast_motion.py`, `tools/phase3/fast_motion_e2e.py` | **None from `armpi_safety`**; the S-curve profile and a measured bus-servo settle are the only guards | `vmax=4.0 rad/s`, `amax=20 rad/s²`; per-move bus settle (≤3 counts in 0.12 s) |
+| 2 | Fast CLI | `tools/phase2/fast_motion.py`, `tools/phase3/fast_motion_e2e.py` | **None from `armpi_safety`**; the S-curve profile, a strict joint2 adopted-bound check (775 pulse) and a measured bus-servo settle are the only guards | `vmax=4.0 rad/s`, `amax=20 rad/s²`; per-move bus settle (≤3 counts in 0.12 s) |
 | 3 | Studio G6 step | Studio backend → gateway `/motion/dispatch`; gateway must run with `--enable-motion` | Gateway motion policy: single-joint step cap, duration floor, lease/token, per-command limit check, bus verification (±8 pulses) | Limits come from `joint_mapping.yaml`; `takeover.yaml` sets the pose-mode velocity cap |
 | 4 | Studio G7 pose | Studio backend → gateway pose scope; G7 presets/editor | Gateway pose gate: FK workspace/table, joint/preset checks, velocity cap, bus verification | `takeover.yaml`: `max_velocity_rad_s: 0.5`; TCP-only, no self-collision model |
-| 5 | Studio G8 task / fast | Studio backend → `/api/task/plan` + `/api/motion/execute`; gateway profile | Gateway profile policy: peak joint velocity, acceleration, segment length, max points, total duration, start tolerance, bus verification; base pulse caps | `takeover.yaml` `task.profile`: **4.0 rad/s / 20 rad/s²**, descent 0.6, final 0.35, release descent 1.4; `max_points 400`; `max_total_duration_s 6.0` |
+| 5 | Studio G8 task / fast | Studio backend → `/api/task/plan` + `/api/motion/execute`; gateway profile | Gateway profile policy: peak joint velocity, acceleration, segment length, max points, total duration, start tolerance, bus verification; base pulse caps | `takeover.yaml` `task.fast`: **4.0 rad/s / 20 rad/s²**, descent 0.6, final 0.35, release descent 1.4; `max_points 400`; `max_total_duration_s 6.0` |
 | 6 | Chassis pulse | Gateway `/chassis/pulse`; only with the chassis block enabled | Gateway chassis policy: duty cap, wheel cap, duration window, finite values, direction signs | G8.1 deployment caps duty at **10** and duration at **2.0 s**; open loop, no odometry |
 
 ## What this means
@@ -30,9 +34,12 @@
   trajectories directly to `/arm_controller/follow_joint_trajectory`. Its
   4.0/20 envelope would be rejected by `armpi_safety` (1.2/0.5) if it were on
   that path; it is not, by design.
-- **`safety_stop` has no consumer.** `armpi_safety` publishes a transient-local
-  `std_msgs/Bool` on `safety_stop`, but no executor subscribes. Treat it as
-  **advisory** until an executor treats it as authoritative.
+- **`safety_stop` is consumed by the Studio gateway, not by the fast CLI.**
+  `armpi_safety` publishes a transient-local `std_msgs/Bool`; since 2026-11-22
+  the gateway subscribes it, latches `MotionGuard`, publishes a hold on the
+  rising edge and refuses new arm/chassis commands while latched. `fast_motion.py`
+  and the raw-bus scripts still ignore it, so treat it as authoritative only on
+  the Studio gateway path until the hardware round trip is confirmed.
 - **No path has a self-collision model or an e-stop.** The checks are TCP-only
   and nominal-FK; the physical stop is power/support and a person.
 - **The table plane is base-relative.** Any chassis pulse invalidates the
@@ -47,8 +54,9 @@
    runners are research-only and must not be presented as production.
 3. No release note may say "the safety veto covers all motion". Say which path
    was used and which guard applied.
-4. Before `v1.0.0`, either wire `safety_stop` into an executor or rename it to
-   an advisory signal; do not keep the "fail-safe" wording.
+4. `safety_stop` is wired into the Studio gateway (`43647bc`); before `v1.0.0`
+   confirm the round trip on hardware and decide whether the fast CLI must also
+   consume it. Do not call it a plant-wide e-stop.
 5. Any change to `safety_limits.yaml` or `takeover.yaml` must pass
    `python3 tools/verify_config_consistency.py` and a supervised smoke test.
 

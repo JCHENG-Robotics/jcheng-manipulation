@@ -138,6 +138,12 @@ harmless.
 
 ### Adopted commandable limits (2026-11-18)
 
+> **Historical record — superseded 2026-11-19.** This table is the 2026-11-18
+> adoption, including joint2 high **810 pulse / 1.2985 rad**. The formal survey
+> tightened joint2 high to **775 pulse / 1.1519 rad**; the current source is
+> [`docs/phase2/JOINT_LIMITS.md`](../phase2/JOINT_LIMITS.md). Keep this table
+> for history; do not use its joint2 high value.
+
 The URDF and `joint_limits.yaml` now use EEPROM limit − 20 pulses
 (0.0838 rad = 4.8°), with the measured joint2 low stop instead of the
 EEPROM bound:
