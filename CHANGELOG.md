@@ -14,7 +14,8 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   `MotionGuard` latch, hold on the rising edge, and `SAFETY_STOP` (409) for new
   arm/chassis commands while latched.
 - CI step for `armpi_safety/test/test_policy.py`,
-  `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`.
+  `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`, and
+  `armpi_fiducial_localizer/test/test_detector.py` / `test_frames.py`.
 - `TaskOperations`, `ExperimentOperations`, `TrajectoryOperations`,
   `MotionOperations`, `VisualOperations` and `DiagnosticsOperations` mixins
   (`backend/app/application/*_ops.py`) holding the G8 task, experiment,
