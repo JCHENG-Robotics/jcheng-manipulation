@@ -2,9 +2,10 @@
 """Read-only consistency check for ArmPi limits and calibration constants.
 
 The same physical joint limits are consumed by several independent files,
-including the phase-2 tool-side ``vendor_servo_map.py``, and the constant
+including the phase-2 tool-side ``vendor_servo_map.py``; the constant
 low-configuration correction is repeated in several runners and the Studio
-takeover config.  A drift between them is a safety defect (the 2026-11-19
+takeover config; and the fast-motion defaults / phase-3 view pose are copied
+across runners.  A drift between them is a safety defect (the 2026-11-19
 joint2 incident) and a reproducibility defect.  This module checks that the
 sources agree; it never writes or commands anything.
 """
@@ -12,6 +13,7 @@ sources agree; it never writes or commands anything.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import re
 import sys
@@ -29,6 +31,15 @@ SAFETY = "ros2_ws/src/armpi_safety/config/safety_limits.yaml"
 MAPPING = "armpi-debug-studio/configs/joint_mapping.yaml"
 TAKEOVER = "armpi-debug-studio/configs/takeover.yaml"
 VENDOR = "tools/phase2/vendor_servo_map.py"
+FAST_MOTION = "tools/phase2/fast_motion.py"
+
+VIEW_POSE_FILES = (
+    "tools/phase3/execution_fixture_run.py",
+    "tools/phase3/fast_motion_e2e.py",
+    "tools/phase3/gripper_envelope_run.py",
+    "tools/phase3/paired_trial_session.py",
+    "tools/phase3/visual_displacement_run.py",
+)
 
 CORRECTION_FILES = (
     "tools/phase2/low_config_model_fit.py",
@@ -47,6 +58,8 @@ class Report:
     corrections: dict[str, tuple[float, float, float]] = field(
         default_factory=dict
     )
+    fast_motion: dict[str, float] = field(default_factory=dict)
+    view_poses: dict[str, tuple[float, ...]] = field(default_factory=dict)
     issues: list[str] = field(default_factory=list)
 
 
@@ -209,6 +222,64 @@ def takeover_correction(path: Path) -> tuple[float, float, float]:
             _float(raw[2], "correction_mm[2]"))
 
 
+def fast_motion_defaults(path: Path) -> dict[str, float]:
+    """Parse the fast_motion CLI defaults that mirror task.fast."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found: dict[str, float] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr != "add_argument" or not node.args:
+            continue
+        flag = node.args[0]
+        if not isinstance(flag, ast.Constant):
+            continue
+        if flag.value not in {"--vmax", "--amax"}:
+            continue
+        for keyword in node.keywords:
+            if keyword.arg != "default":
+                continue
+            if not isinstance(keyword.value, ast.Constant):
+                continue
+            found[str(flag.value)] = float(keyword.value.value)
+    missing = {"--vmax", "--amax"} - set(found)
+    if missing:
+        raise ValueError(f"{path}: missing defaults for {sorted(missing)}")
+    return {
+        "vmax_rad_s": found["--vmax"],
+        "amax_rad_s2": found["--amax"],
+    }
+
+
+def view_pose(path: Path) -> tuple[float, ...]:
+    """Parse a DEFAULT_VIEW_POSE list/tuple or comma-separated string."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if (
+            not isinstance(target, ast.Name)
+            or target.id != "DEFAULT_VIEW_POSE"
+        ):
+            continue
+        value = ast.literal_eval(node.value)
+        if isinstance(value, str):
+            parts = [float(item) for item in value.split(",")]
+        elif isinstance(value, (list, tuple)):
+            parts = [float(item) for item in value]
+        else:
+            raise ValueError(f"{path}: unsupported DEFAULT_VIEW_POSE")
+        if len(parts) != 5:
+            raise ValueError(f"{path}: DEFAULT_VIEW_POSE must have 5 values")
+        return tuple(parts)
+    raise ValueError(f"{path}: DEFAULT_VIEW_POSE not found")
+
+
 def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
     report = Report()
     paths = {
@@ -267,6 +338,43 @@ def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
                     f"correction mismatch: {path}={value} vs {reference}"
                 )
 
+    try:
+        takeover_data = yaml.safe_load(
+            (root / TAKEOVER).read_text(encoding="utf-8")
+        ) or {}
+        fast = (takeover_data.get("task") or {}).get("fast") or {}
+        defaults = fast_motion_defaults(root / FAST_MOTION)
+        report.fast_motion = defaults
+        for key in ("vmax_rad_s", "amax_rad_s2"):
+            expected = _float(fast.get(key), f"task.fast.{key}")
+            if abs(defaults[key] - expected) > tolerance:
+                report.issues.append(
+                    f"fast_motion {key}={defaults[key]} vs "
+                    f"takeover task.fast {key}={expected}"
+                )
+    except (ValueError, KeyError, OSError) as exc:
+        report.issues.append(str(exc))
+
+    poses: dict[str, tuple[float, ...]] = {}
+    for relative in VIEW_POSE_FILES:
+        path = root / relative
+        if not path.is_file():
+            report.issues.append(f"missing view-pose source: {path}")
+            continue
+        try:
+            poses[relative] = view_pose(path)
+        except (ValueError, SyntaxError) as exc:
+            report.issues.append(str(exc))
+    report.view_poses = poses
+    if poses:
+        reference_path, reference = next(iter(poses.items()))
+        for path, pose in poses.items():
+            if any(abs(a - b) > tolerance for a, b in zip(pose, reference)):
+                report.issues.append(
+                    f"DEFAULT_VIEW_POSE mismatch: {path}={pose} vs "
+                    f"{reference_path}={reference}"
+                )
+
     # The G8 task preset must stay inside the adopted joint2/joint3 bounds.
     try:
         takeover_data = yaml.safe_load(
@@ -320,6 +428,11 @@ def main(argv: list[str] | None = None) -> int:
                 path: list(value)
                 for path, value in report.corrections.items()
             },
+            "fast_motion": report.fast_motion,
+            "view_poses": {
+                path: list(value)
+                for path, value in report.view_poses.items()
+            },
             "issues": report.issues,
         }
         print(json.dumps(payload, indent=2, sort_keys=True))
@@ -331,7 +444,9 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(
                 "CONFIG OK: 5 joints agree across xacro / MoveIt / safety / "
-                "mapping / vendor; the constant correction agrees in "
+                "mapping / vendor; the fast-motion defaults match "
+                f"task.fast; {len(report.view_poses)} view poses agree; "
+                "the constant correction agrees in "
                 f"{len(report.corrections)} sources"
             )
     return 1 if report.issues else 0
