@@ -28,7 +28,9 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
 - `vendor_servo_map.py` joint2: hard 830 → **795**, adopted 810 → **775**;
   `fast_motion.py` treats a joint2 adopted-bound breach as an error.
 - `verify_config_consistency.py` now includes `vendor_servo_map.py` as a fifth
-  limit source, so this drift class fails CI.
+  limit source, checks `fast_motion.py` 4.0/20 defaults against
+  `takeover.yaml task.fast`, and checks the five `DEFAULT_VIEW_POSE` copies.
+  These drift classes now fail CI.
 - Backend ticker runs in `asyncio.to_thread`; `HardwareAdapter` serializes
   gateway state mutations with an `RLock`; `_last_task_plan` is invalidated on
   stop/reset; the idempotency cache prunes on write as well as read.
