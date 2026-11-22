@@ -37,17 +37,13 @@ import random
 import shlex
 import shutil
 import subprocess
-import sys
 import tarfile
 from datetime import datetime, timezone
 
 import numpy as np
 
-REPO = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(REPO, 'tools', 'phase3'))
-sys.path.insert(0, os.path.join(REPO, 'tools', 'phase2'))
-sys.path.insert(0, os.path.join(REPO, 'ros2_ws', 'src', 'armpi_analysis'))
+from _bootstrap import REPO, bootstrap  # noqa: E402
+bootstrap()
 
 import measurement_protocol  # noqa: E402
 
