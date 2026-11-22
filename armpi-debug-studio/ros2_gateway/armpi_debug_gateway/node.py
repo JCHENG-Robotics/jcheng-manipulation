@@ -48,6 +48,7 @@ from .motion import (
     MotionRejected,
 )
 from .pointcloud_cache import PointCloudRunner
+from .telemetry_format import battery_state, tf_health
 from .trajectory_capture import RADIANS_PER_TICK, pulse_to_rad
 
 try:  # motion messages are only present in the vendor image
@@ -583,19 +584,17 @@ class GatewayNode(Node):
                 "notes": ["No battery message received yet."],
             }
 
-        percent = max(0.0, min(100.0, (voltage_mv - 6400.0) / (8400.0 - 6400.0) * 100.0))
-        status = "critical" if percent < 10.0 else "low" if percent < 25.0 else "ok"
         age_ms = self._age_ms(at)
-        validity = "valid" if age_ms is not None and age_ms < 5000 else "stale"
+        state = battery_state(voltage_mv, age_ms)
         return {
             "available": True,
             "voltage_mv": voltage_mv,
-            "voltage_v": round(voltage_mv / 1000.0, 3),
-            "percent_estimate": round(percent, 1),
+            "voltage_v": state["voltage_v"],
+            "percent_estimate": state["percent_estimate"],
             "cell_count": 2,
-            "status": status,
+            "status": state["status"],
             "truth": "measured",
-            "validity": validity,
+            "validity": state["validity"],
             "source": "armpi_debug_gateway",
             "topic": self._battery_topic,
             "received_at": wall,
@@ -678,56 +677,26 @@ class GatewayNode(Node):
         with self._lock:
             edges = [dict(item) for item in self._tf_edges.values()]
             last_at = self._tf_last_at
-        now = time.monotonic()
-        for edge in edges:
-            edge["age_ms"] = max(
-                0,
-                int((now - float(edge["received_monotonic"])) * 1000.0),
-            )
-            edge.pop("received_monotonic", None)
-        dynamic = [edge for edge in edges if not edge["static"]]
-        static = [edge for edge in edges if edge["static"]]
-        dynamic_ages = [int(edge["age_ms"]) for edge in dynamic]
-        static_ages = [int(edge["age_ms"]) for edge in static]
-        all_ages = [int(edge["age_ms"]) for edge in edges]
-        freshest = min(dynamic_ages) if dynamic_ages else None
-        if not edges:
-            status = "unavailable"
-        elif not dynamic:
-            status = "static_only"
-        elif freshest is not None and freshest <= 500:
-            status = "ok"
-        else:
-            status = "stale"
-        notes = [
-            "TF is published by robot nodes. Dynamic transforms may be derived "
-            "from commanded joint states, not encoder feedback.",
-        ]
-        if status == "static_only":
-            notes.append("Only /tf_static has been received; dynamic links are not live.")
-        elif status == "stale":
-            notes.append(f"Newest dynamic TF edge is {freshest} ms old.")
-        elif status == "unavailable":
-            notes.append("No /tf or /tf_static message has been received.")
+        summary = tf_health(edges, time.monotonic())
         return {
-            "available": bool(edges),
-            "status": status,
-            "truth": "measured_tf" if edges else "unknown",
+            "available": bool(summary["transforms"]),
+            "status": summary["status"],
+            "truth": "measured_tf" if summary["transforms"] else "unknown",
             "source": "tf2_topics",
             "topics": {"tf": self._tf_topic, "tf_static": self._tf_static_topic},
             "generated_at": utc_now_iso(),
             "last_at_monotonic": last_at,
-            "dynamic_edges": len(dynamic),
-            "static_edges": len(static),
-            "freshest_age_ms": freshest,
+            "dynamic_edges": summary["dynamic_edges"],
+            "static_edges": summary["static_edges"],
+            "freshest_age_ms": summary["freshest_age_ms"],
             # Static edges are latched and legitimately old after startup;
             # report dynamic and static maxima separately. ``max_age_ms`` is
             # kept for compatibility and is the all-edge maximum.
-            "max_age_ms": max(all_ages) if all_ages else None,
-            "max_dynamic_age_ms": max(dynamic_ages) if dynamic_ages else None,
-            "max_static_age_ms": max(static_ages) if static_ages else None,
-            "transforms": edges,
-            "notes": notes,
+            "max_age_ms": summary["max_age_ms"],
+            "max_dynamic_age_ms": summary["max_dynamic_age_ms"],
+            "max_static_age_ms": summary["max_static_age_ms"],
+            "transforms": summary["transforms"],
+            "notes": summary["notes"],
         }
 
     def health_payload(self) -> dict[str, Any]:

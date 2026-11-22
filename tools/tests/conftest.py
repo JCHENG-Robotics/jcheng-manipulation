@@ -8,6 +8,7 @@ ROOT = TOOLS.parent
 for relative in (
     "tools",
     "tools/phase2",
+    "tools/phase3",
     "ros2_ws/src/armpi_analysis",
     "armpi-debug-studio/backend",
 ):
