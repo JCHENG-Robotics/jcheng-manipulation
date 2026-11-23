@@ -50,9 +50,15 @@
 > **Update (2026-11-23, gateway hardware validation):** the `/safety_stop`
 > round trip (latch, hold, 409, clear) and joint2 500→539→500 were validated on
 > the real arm; the command cache was resynced to the actual bus before any
-> move, and the arm was recovered to the initial pose. `armpi_safety` is not
-> installed in the slim container, so the stop test used a fake Bool. See
-> [`evidence/studio_validation_20261123/`](../evidence/studio_validation_20261123/README.md).
+> move, and the arm was recovered to the initial pose. `armpi_safety` was not
+> installed at the time, so the initial stop test used a fake Bool; the real
+> node was then installed in `/home/ubuntu/shared/safety_ws` and validated
+> (`/safety_status` valid, `reset_stop` success, empty trajectory rejected,
+> current-pose trajectory approved with FK, gateway sees `/safety_stop=false`).
+> See
+> [`evidence/studio_validation_20261123/`](../../evidence/studio_validation_20261123/README.md)
+> and
+> [`evidence/armpi_safety_install_20261123/`](../../evidence/armpi_safety_install_20261123/README.md).
 
 ## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21 + validation 2026-11-23)
 

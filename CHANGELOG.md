@@ -24,6 +24,11 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
 - Gateway `TelemetryCache` (`telemetry_cache.py`): battery, joint, measured,
   actual-bus and TF state moved out of `GatewayNode`; four pure tests cover the
   callbacks and snapshots. `GatewayNode` is now 1,031 lines (from 1,302).
+- `armpi_safety` real node installed in the persistent
+  `/home/ubuntu/shared/safety_ws` overlay (`arm_interfaces`,
+  `armpi_grasp_planner`, `armpi_safety`); `urdf_parser_py` is supplied from
+  `/home/ubuntu/shared/armpi_tools`. See
+  [`evidence/armpi_safety_install_20261123/`](evidence/armpi_safety_install_20261123/README.md).
 - CI step for `armpi_safety/test/test_policy.py`,
   `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`, and
   `armpi_fiducial_localizer/test/test_detector.py` / `test_frames.py`.
@@ -54,9 +59,15 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   (actual 694/500/504/495/501), joint2 500→539→500 bus-verified, and camera /
   battery / TF checks. The `TelemetryCache` gateway was then revalidated on
   8766: `/state` measured_ready, joint2 500→539→501 bus-verified, and
-  `/safety_stop` latch/409/clear. `armpi_safety` is not installed in the slim
-  container, so the stop test used a fake Bool. See
-  [`evidence/studio_validation_20261123/`](evidence/studio_validation_20261123/README.md).
+  `/safety_stop` latch/409/clear. The gateway consumer was first tested with a
+  fake Bool; the real `armpi_safety` node was then installed and validated:
+  `/safety_status` valid, `/safety_stop=false`, `reset_stop` success, empty
+  trajectory rejected, current-pose trajectory approved with
+  `workspace_checked=true`, and the 8766 gateway saw the real node's false
+  stop flag. See
+  [`evidence/studio_validation_20261123/`](evidence/studio_validation_20261123/README.md)
+  and
+  [`evidence/armpi_safety_install_20261123/`](evidence/armpi_safety_install_20261123/README.md).
 
 ### Documentation
 
