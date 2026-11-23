@@ -94,6 +94,21 @@ Studio preview/execute, `duration_s=3.0`:
 - `/state` measured: `joint1 700, joint2–5 500, r_joint 224`; all joints
   `valid`.
 
+## 7. TelemetryCache revalidation
+
+The updated gateway (`telemetry_cache.py`, battery/joint/measured/actual/TF
+state moved out of `GatewayNode`) was deployed to 8766 and started again.
+
+- `/state` measured `joint1 700, joint2–5 500, r_joint 224`, `measured_ready:
+  true`; `/motion/status` reports the same cache.
+- Studio joint2 `500 → 540`: actual **539**, bus verification `bus`; return
+  `540 → 500`: actual **501**.
+- `/safety_stop=true`: latch, hold, dispatch `SAFETY_STOP` (409); `false`
+  cleared. Actual positions unchanged by the hold.
+- Final bus: `r_joint 225, joint1 696, joint2 501, joint3 503, joint4 496,
+  joint5 500`.
+- Gateway tests: **93 passed**; pyflakes clean; `node.py` 1,302 → 1,031 lines.
+
 ## Limitations
 
 - No real `armpi_safety` node was running; the stop test used a fake Bool.
