@@ -1,0 +1,7 @@
+# Pinned Python tooling for the offline test jobs.
+# Keep this file in sync with the versions used by scripts/release_check.sh.
+pytest==9.2.0
+flake8==7.0.0
+PyYAML==6.0.3
+numpy==1.26.4
+opencv-python-headless==4.10.0.84

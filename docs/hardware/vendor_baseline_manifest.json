@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "source_root": "armpi_ultra_ws_clean/src",
+  "source_tree": {
+    "sha256": "f94a236b91423f87d109de39d46bdb1caa7a0c3da5617316dcf3c827c3186371",
+    "files": 221,
+    "bytes": 27207567
+  },
+  "packages": [
+    {
+      "path": "app/package.xml",
+      "name": "app",
+      "version": "0.0.0",
+      "package_xml_sha256": "fe8b7036e52f7fab2687e3b65df7dac0f97a6bf84eea530d98e4cb1d9ae97ec2"
+    },
+    {
+      "path": "bringup/package.xml",
+      "name": "bringup",
+      "version": "0.0.0",
+      "package_xml_sha256": "9d4ac060a913df0ff5776f36b9f5f719ea6fbf01047582a52f2a3d3b9b882c5b"
+    },
+    {
+      "path": "driver/controller/package.xml",
+      "name": "controller",
+      "version": "0.0.0",
+      "package_xml_sha256": "b5ca04717f83e1c140a98640990cba85ba83b70ef5f538cd5af7bd680464f610"
+    },
+    {
+      "path": "driver/kinematics/package.xml",
+      "name": "kinematics",
+      "version": "0.0.0",
+      "package_xml_sha256": "91279c9feb0d82196c44f5843c82570377431b369f3e82a8613a0df3aae1dcdb"
+    },
+    {
+      "path": "driver/kinematics_msgs/package.xml",
+      "name": "kinematics_msgs",
+      "version": "0.0.0",
+      "package_xml_sha256": "6c3f7294ea329d614ee273e9abdf1bfd075c59b2bf6c3c99364c56f7643df8bd"
+    },
+    {
+      "path": "driver/ros_robot_controller/package.xml",
+      "name": "ros_robot_controller",
+      "version": "0.0.0",
+      "package_xml_sha256": "d90a578bce572425d0dc6f75ae60934d014b35bc20177f80c68c6800d68ead28"
+    },
+    {
+      "path": "driver/ros_robot_controller_msgs/package.xml",
+      "name": "ros_robot_controller_msgs",
+      "version": "0.0.0",
+      "package_xml_sha256": "b43ed726e69ce7f4be47693e0327ebcb26facf430477f13766e953c11ecab993"
+    },
+    {
+      "path": "driver/sdk/package.xml",
+      "name": "sdk",
+      "version": "0.0.0",
+      "package_xml_sha256": "7c74df021b51b95e7336a6c07f32dec408514ea8288a2bae570267a59414a863"
+    },
+    {
+      "path": "driver/servo_controller/package.xml",
+      "name": "servo_controller",
+      "version": "0.0.0",
+      "package_xml_sha256": "b60110ce6205d28c5f44d874bd2bda4101d36072fa0de5525815569f44fc760b"
+    },
+    {
+      "path": "driver/servo_controller_msgs/package.xml",
+      "name": "servo_controller_msgs",
+      "version": "0.0.0",
+      "package_xml_sha256": "e8b41f54d45b1a521c68361546cd88daf11b712820a1c36e3dfe262bca451fd4"
+    },
+    {
+      "path": "peripherals/package.xml",
+      "name": "peripherals",
+      "version": "0.0.0",
+      "package_xml_sha256": "09c648b90ba98a9cb069bffc8ec79a28d73593eaa594dae06913c15db7af365a"
+    },
+    {
+      "path": "simulations/armpi_ultra_description/package.xml",
+      "name": "armpi_ultra_description",
+      "version": "0.0.0",
+      "package_xml_sha256": "c212ca3f92c0b77007393f63531040f5faa6124aea9b365636d5d73d78314c3b"
+    }
+  ],
+  "archive": {
+    "path": "/home/jerichocheng/backups/2026-11-16/armpi_ultra_ws_clean_20261115.tar.gz",
+    "sha256": "76b5a4cd379f32845194ccc51c9b4ea357f8f87fc89b8cf823ba9bea811ebfc6"
+  },
+  "note": "Hashes only; the vendor source is private and stays out of the public repository."
+}

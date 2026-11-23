@@ -38,7 +38,11 @@ the real `armpi_safety` install in the persistent safety overlay, and a
 `/safety_stop` round trip and low-speed joint2 check are confirmed. The rc.1
 tag itself predates the full G8 run; the supervised sequence passed after the
 tag on 2026-11-23 (8 phases, 11 bus-verified commands, put-back at 0.236 m
-inside the 0.220–0.255 m band).
+inside the 0.220–0.255 m band). The same batch added a `colcon build/test` CI
+job, exact Python pins, and a vendor source-tree manifest; the target-
+architecture run built 7 packages and ran **118 tests / 0 failures / 1 skip**
+([evidence](evidence/ros_colcon_20261123/README.md)). The CI base image is
+still tag-pinned rather than digest-pinned.
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

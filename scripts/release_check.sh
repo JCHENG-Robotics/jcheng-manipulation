@@ -18,6 +18,9 @@ fi
 echo "== config consistency =="
 python3 tools/verify_config_consistency.py
 
+echo "== vendor baseline manifest =="
+python3 tools/vendor_baseline_manifest.py --check
+
 echo "== analysis + safety + planner + fiducial =="
 PYTHONPATH=packages/jcheng_core:ros2_ws/src/armpi_analysis:ros2_ws/src/armpi_safety:ros2_ws/src/armpi_grasp_planner:ros2_ws/src/armpi_fiducial_localizer \
   python3 -m pytest -q \

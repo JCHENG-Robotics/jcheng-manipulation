@@ -302,8 +302,9 @@ acceptance. The repository is at the **v1.0.0-rc.1** release candidate (tag
 ladder and known limitations in [`RELEASE.md`](RELEASE.md)). The 2026-11-22/23
 batch covers backend/gateway structure extraction, `/safety_stop`
 consumption, shared `jcheng_core` stats/vision primitives, four named
-motion-limit profiles, the real safety node install, the fast-path regression
-and the full 8-phase G8 run. Status convention:
+motion-limit profiles, the real safety node install, the fast-path regression,
+the full 8-phase G8 run, a `colcon build/test` CI job with pinned Python
+tooling, and a vendor source-tree manifest. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
@@ -382,13 +383,19 @@ artifacts. Their evidence is in [`evidence/m2_2_v2/`](evidence/m2_2_v2/) and
 ### Build and test
 
 ```bash
+python3 -m pip install -r requirements/ci.txt
 source /opt/ros/jazzy/setup.bash
 cd ros2_ws
 colcon build --symlink-install
+PYTHONPATH=../packages/jcheng_core:$PYTHONPATH colcon test \
+  --packages-select arm_interfaces armpi_analysis \
+  armpi_fiducial_localizer armpi_grasp_planner armpi_safety \
+  armpi_ultra_description armpi_ultra_moveit_config
+colcon test-result --verbose
 cd ..
 
 # pure-Python CI: error budget, paired trials, benchmark, measurement, segmentation
-PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
+PYTHONPATH=packages/jcheng_core:ros2_ws/src/armpi_analysis python -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_error_budget.py \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \

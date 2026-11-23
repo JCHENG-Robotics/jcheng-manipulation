@@ -358,14 +358,6 @@ def append_record(path, record, plan=None):
     return normalized
 
 
-
-
-
-
-
-
-
-
 def _count_failures(records):
     counts = {}
     for record in records:

@@ -67,8 +67,12 @@
 > chassis pulse, grip verify and a put-back at 0.236 m inside the
 > 0.220–0.255 m band; `/safety_stop=false`. See
 > [`evidence/g8_acceptance_20261123/`](../../evidence/g8_acceptance_20261123/README.md).
-> `v1.0.0` remains gated on a reproducible ROS build; see
-> [`RELEASE.md`](../../RELEASE.md) for the known limitations.
+> The same day's reproducible-build work added `ros-ci.yml`, exact Python
+> pins and a vendor manifest; the target-architecture `colcon build/test` run
+> built 7 packages and ran 118 tests with 0 failures (1 local skip). See
+> [`evidence/ros_colcon_20261123/`](../../evidence/ros_colcon_20261123/README.md).
+> `v1.0.0` remains gated on digest-pinning the CI base image and the
+> remaining P1 operational items; see [`RELEASE.md`](../../RELEASE.md).
 
 ## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21/23)
 

@@ -69,15 +69,32 @@ Evidence: [`evidence/g8_acceptance_20261123/`](evidence/g8_acceptance_20261123/R
 This closes the **full G8 hardware acceptance** part of the `v1.0.0` gate;
 the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 
+### Post-rc.1 reproducible build update (2026-11-23)
+
+- `.github/workflows/ros-ci.yml` builds and tests the seven public ROS
+  packages in a Humble container with an explicit dependency list.
+- A target-architecture run in the `ArmPiUltra` container built 7 packages
+  and ran **118 tests: 0 errors, 0 failures, 1 skipped** (the local `xmllint`
+  schema fetch; CI has network). Evidence:
+  [`evidence/ros_colcon_20261123/`](evidence/ros_colcon_20261123/README.md).
+- `requirements/ci.txt` and the backend `pyproject.toml` pin Python tooling
+  and application dependencies; `requires-python` is capped at `<3.13`.
+- `docs/hardware/vendor_baseline_manifest.json` pins the private vendor
+  source tree (SHA-256) without publishing it; the Dockerfile accepts a
+  digest through `ROS_BASE_IMAGE`.
+- Residual: the CI base image itself is still selected by tag, not by
+  registry digest; Docker Hub was unreachable from the verification host.
+
 ### Known limitations (accepted for rc.1)
 
 - No e-stop, brake, self-collision model, independent encoder or odometry.
 - The fast CLI bypasses `armpi_safety` **by design**; it is an explicit
   `profiles.fast` tier, not the MoveIt veto. The real safety node was not
   fault-injected (state-fault latch is covered by unit tests).
-- Reproducible build is not complete: no ROS `colcon build/test` CI, no
-  Python/Docker/vendor workspace pinning, `>=` Python dependencies, and the
-  vendor workspace is gitignored.
+- Reproducible build: `ros-ci.yml`, exact Python pins and the vendor
+  source-tree manifest are in place; the CI base image is still
+  **tag-pinned** (`ros:humble-ros-base`), not digest-pinned, because Docker
+  Hub was unreachable from the verification host.
 - The Studio backend has no authentication and is localhost-only by policy;
   the gateway token comparison is constant-time; the systemd wrapper runs the
   container entrypoint as root.
@@ -87,7 +104,8 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - The gripper is left open in the validation pose; no automatic boot-time
   homing.
 
-`v1.0.0` requires: a reproducible ROS CI build, closure of the remaining P1
+`v1.0.0` requires: a digest-pinned CI base image (the colcon build/test
+workflow is in place and green on aarch64), closure of the remaining P1
 operational items, and inclusion of the 2026-11-23 full G8 acceptance
 evidence. Do not present rc.1 as a production safety certification.
 

@@ -1,0 +1,17 @@
+# Captured from the live ArmPiUltra container on 2026-11-23
+arch: aarch64
+ROS_DISTRO: humble
+python: 3.10.12
+colcon_core: 0.15.2
+cv2: 4.10.0-dev
+numpy: 1.21.5
+
+packages discovered under ros2_ws/src:
+arm_description  (ros.ament_cmake)        # archived learning profile, not built
+arm_interfaces   (ros.ament_cmake)
+armpi_analysis   (ros.ament_python)
+armpi_fiducial_localizer (ros.ament_python)
+armpi_grasp_planner (ros.ament_python)
+armpi_safety     (ros.ament_python)
+armpi_ultra_description (ros.ament_python)
+armpi_ultra_moveit_config (ros.ament_cmake)

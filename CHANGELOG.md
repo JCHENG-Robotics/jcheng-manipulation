@@ -13,12 +13,26 @@ All notable changes to this project are documented here. Format based on
   band). This closes the full-G8 part of the `v1.0.0` gate.
 - Runtime evidence for the real `armpi_safety` node: valid, unlatched,
   no violations, `/safety_stop=false`.
+- `.github/workflows/ros-ci.yml` — `colcon build` + `colcon test` for the
+  seven public ROS packages in a Humble container; target-architecture
+  evidence in `evidence/ros_colcon_20261123/` (7 packages, 118 tests, 0
+  failures, 1 local skip).
+- `requirements/ci.txt` and `tools/vendor_baseline_manifest.py`; the vendor
+  source tree/archive is pinned by SHA-256 without publishing it.
+
+### Changed
+
+- Backend dependencies are exact pins and `requires-python <3.13`; the
+  Dockerfile accepts a base-image digest through `ROS_BASE_IMAGE`.
+- README test commands include `packages/jcheng_core` and `colcon test`.
 
 ### Fixed
 
 - Backend health reports `api_version` `1.0.0-rc.1` instead of the stale
   `0.1.0`; release manifest component versions use the same
   `1.0.0-rc.1` spelling as the packages.
+- `armpi_analysis/paired_trials.py` had 10 blank lines before
+  `_count_failures` (`E303`), caught by its own ROS lint test.
 
 ## [1.0.0-rc.1] — 2026-11-23
 

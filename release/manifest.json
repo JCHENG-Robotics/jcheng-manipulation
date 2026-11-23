@@ -37,7 +37,7 @@
     "no e-stop, brake, self-collision model, independent encoder or odometry",
     "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
     "real armpi_safety node is a manual process, not a boot service",
-    "no ROS colcon build/test CI, no Python/Docker/vendor workspace pinning",
+    "CI base image is tag-pinned (ros:humble-ros-base), not digest-pinned",
     "backend has no auth and is localhost-only by policy",
     "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
   ],
@@ -45,6 +45,11 @@
     "date": "2026-11-23",
     "evidence": "evidence/g8_acceptance_20261123/",
     "full_g8": "PASS",
+    "reproducible_build": {
+      "evidence": "evidence/ros_colcon_20261123/",
+      "result": "PASS_WITH_RESIDUAL",
+      "summary": "7 packages built; 118 tests, 0 errors, 0 failures, 1 skipped (local xmllint schema fetch); CI base image digest pin outstanding"
+    },
     "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
   },
   "release": "1.0.0-rc.1",

@@ -37,10 +37,16 @@ The live RGB/depth intrinsics come from the camera driver, not from
 | Archive | `~/backups/2026-11-16/armpi_ultra_ws_clean_20261115.tar.gz` |
 | SHA256 | `76b5a4cd379f32845194ccc51c9b4ea357f8f87fc89b8cf823ba9bea811ebfc6` |
 | Manifest | `~/backups/2026-11-16/armpi_ultra_ws_clean_20261115.tar.gz.MANIFEST.md` |
+| Public pin | [`vendor_baseline_manifest.json`](vendor_baseline_manifest.json) — SHA-256 source-tree digest, file/byte counts and per-package `package.xml` hashes |
 | Vendor SDK hash | `369b11dd…` (reference) |
 
 The workspace has no declared license, so it must stay out of the public
-GitHub repository.
+GitHub repository. The manifest publishes hashes only; verify a local copy
+with:
+
+```bash
+python3 tools/vendor_baseline_manifest.py --check
+```
 
 ## Private modifications made for the real-robot stack
 

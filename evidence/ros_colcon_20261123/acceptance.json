@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "blocker": "reproducible ROS build",
+  "result": "PASS_WITH_RESIDUAL",
+  "date": "2026-11-23",
+  "environment": {
+    "arch": "aarch64",
+    "ros_distro": "humble",
+    "python": "3.10.12",
+    "colcon_core": "0.15.2",
+    "container": "ArmPiUltra",
+    "workspace": "/tmp/ros_ci_ws"
+  },
+  "packages": [
+    "arm_interfaces",
+    "armpi_analysis",
+    "armpi_fiducial_localizer",
+    "armpi_grasp_planner",
+    "armpi_safety",
+    "armpi_ultra_description",
+    "armpi_ultra_moveit_config"
+  ],
+  "build": {
+    "packages": 7,
+    "result": "all built"
+  },
+  "tests": {
+    "total": 118,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 1,
+    "skipped_reason": "arm_interfaces xmllint could not fetch the package_format3 schema in the vendor container; the CI job runs it with network access",
+    "per_package_pytest": {
+      "armpi_analysis": 36,
+      "armpi_fiducial_localizer": 18,
+      "armpi_grasp_planner": 34,
+      "armpi_safety": 25,
+      "armpi_ultra_description": "3 (1 skipped)"
+    }
+  },
+  "ci": {
+    "workflow": ".github/workflows/ros-ci.yml",
+    "base_image": "ros:humble-ros-base",
+    "base_image_pinned": false,
+    "explicit_dependencies": true
+  },
+  "pins": {
+    "python_tooling": "requirements/ci.txt",
+    "backend": "armpi-debug-studio/backend/pyproject.toml exact pins + requires-python <3.13",
+    "vendor_source_tree_sha256": "f94a236b91423f87d109de39d46bdb1caa7a0c3da5617316dcf3c827c3186371",
+    "vendor_archive_sha256": "76b5a4cd379f32845194ccc51c9b4ea357f8f87fc89b8cf823ba9bea811ebfc6",
+    "vendor_manifest": "docs/hardware/vendor_baseline_manifest.json"
+  },
+  "fixed": [
+    "armpi_analysis/paired_trials.py E303 (10 blank lines before _count_failures)"
+  ],
+  "residual": [
+    "the CI base image is tag-pinned (ros:humble-ros-base), not digest-pinned; Docker Hub and download.ros.org are unreachable from the verification host"
+  ],
+  "evidence_files": [
+    "README.md",
+    "acceptance.json",
+    "colcon_test_result.txt",
+    "environment.txt",
+    "arm_interfaces/test_results/",
+    "arm_interfaces/Testing/",
+    "armpi_analysis/pytest.xml",
+    "armpi_fiducial_localizer/pytest.xml",
+    "armpi_grasp_planner/pytest.xml",
+    "armpi_safety/pytest.xml",
+    "armpi_ultra_description/pytest.xml"
+  ]
+}

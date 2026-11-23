@@ -1,0 +1,29 @@
+Start testing: Nov 23 01:55 UTC
+----------------------------------------------------------
+1/1 Testing: lint_cmake
+1/1 Test: lint_cmake
+Command: "/usr/bin/python3" "-u" "/opt/ros/humble/share/ament_cmake_test/cmake/run_test.py" "/tmp/ros_ci_ws/build/arm_interfaces/test_results/arm_interfaces/lint_cmake.xunit.xml" "--package-name" "arm_interfaces" "--output-file" "/tmp/ros_ci_ws/build/arm_interfaces/ament_lint_cmake/lint_cmake.txt" "--command" "/opt/ros/humble/bin/ament_lint_cmake" "--xunit-file" "/tmp/ros_ci_ws/build/arm_interfaces/test_results/arm_interfaces/lint_cmake.xunit.xml"
+Directory: /tmp/ros_ci_src/ros2_ws/src/arm_interfaces
+"lint_cmake" start time: Nov 23 01:55 UTC
+Output:
+----------------------------------------------------------
+-- run_test.py: invoking following command in '/tmp/ros_ci_src/ros2_ws/src/arm_interfaces':
+ - /opt/ros/humble/bin/ament_lint_cmake --xunit-file /tmp/ros_ci_ws/build/arm_interfaces/test_results/arm_interfaces/lint_cmake.xunit.xml
+
+No problems found
+-- run_test.py: return code 0
+-- run_test.py: verify result file '/tmp/ros_ci_ws/build/arm_interfaces/test_results/arm_interfaces/lint_cmake.xunit.xml'
+<end of output>
+Test time =   0.53 sec
+----------------------------------------------------------
+Test Passed.
+"lint_cmake" end time: Nov 23 01:55 UTC
+"lint_cmake" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Nov 23 01:55 UTC
+
+lint_cmake =   0.53 sec*proc
+
+linter =   0.53 sec*proc
+
