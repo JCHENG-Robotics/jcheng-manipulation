@@ -141,6 +141,11 @@ def plan_move(
     **segment end points** (the start pose is not repeated): entry ``i`` is the
     pose after ``durations_s[i]`` seconds, and the last entry is exactly
     ``target``.
+
+    A zero displacement is represented as one ``dt_s``-long hold segment at
+    the target, not an empty plan: the gateway rejects a zero-duration
+    segment, and the target equals the start pose. Callers that do not need a
+    hold may skip the command when the displacement is zero.
     """
     validate_params(params)
     names = sorted(start)

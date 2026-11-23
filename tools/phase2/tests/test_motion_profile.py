@@ -75,12 +75,14 @@ def test_long_move_cruises_at_vmax():
     assert math.isclose(total, 2.0 * t_accel + t_cruise)
 
 
-def test_zero_move_has_a_single_point():
-    """No displacement produces no motion points."""
+def test_zero_move_emits_one_hold_segment():
+    """No displacement still yields one dt-long hold segment."""
     times, points, info = profile.plan_move(GRASP, GRASP, 1.2, 6.0)
-    assert times == [0.0]
-    assert points == [GRASP]
-    assert info['total'] == 0.0
+    assert times == [0.0, 0.05]
+    assert points == [GRASP, GRASP]
+    assert info['total'] == 0.05
+    assert info['segments'] == 1
+    assert info['v_peak'] == 0.0
 
 
 def test_segment_shorter_than_the_vendor_floor_is_rejected():

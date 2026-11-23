@@ -82,6 +82,10 @@ def plan_move(start, target, vmax, amax, dt=0.05):
     Returns ``(times, waypoints, info)`` where ``times`` are the segment end
     times from the first point (``times[0] == 0``) and ``info`` reports the
     profile parameters and the peak velocity/acceleration per joint.
+
+    A zero displacement is represented as one ``dt``-long hold segment at the
+    target, not a zero-duration point: the gateway rejects a segment below
+    25 ms, and the target equals the start pose.
     """
     start = [float(value) for value in start]
     target = [float(value) for value in target]
@@ -92,8 +96,8 @@ def plan_move(start, target, vmax, amax, dt=0.05):
     delta = [b - a for a, b in zip(start, target)]
     span = max(abs(value) for value in delta) if delta else 0.0
     if span <= 0.0:
-        return [0.0], [list(start)], {
-            'v_peak': 0.0, 't_accel': 0.0, 't_cruise': 0.0, 'total': 0.0,
+        return [0.0, dt], [list(start), list(target)], {
+            'v_peak': 0.0, 't_accel': 0.0, 't_cruise': 0.0, 'total': dt,
             'span': 0.0, 'peak_velocity': [0.0] * len(start),
             'peak_acceleration': [0.0] * len(start), 'segments': 1,
         }
