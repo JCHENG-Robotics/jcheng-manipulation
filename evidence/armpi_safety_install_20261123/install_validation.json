@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-23",
+  "container": "ArmPiUltra",
+  "overlay": "/home/ubuntu/shared/safety_ws",
+  "host_overlay": "/home/pi/docker/tmp/safety_ws",
+  "packages": [
+    "arm_interfaces",
+    "armpi_grasp_planner",
+    "armpi_safety"
+  ],
+  "build": {
+    "command": "colcon build --symlink-install --packages-select arm_interfaces armpi_grasp_planner armpi_safety",
+    "seconds": 26.7,
+    "packages_finished": 3
+  },
+  "urdf_parser_py": {
+    "source": "/opt/ros/jazzy/lib/python3.12/site-packages/urdf_parser_py",
+    "runtime_path": "/home/ubuntu/shared/armpi_tools",
+    "loaded_via": "PYTHONPATH"
+  },
+  "node": {
+    "name": "/armpi_safety",
+    "running": true,
+    "auto_start_service": false
+  },
+  "topics": {
+    "safety_status": "/safety_status",
+    "safety_stop": "/safety_stop",
+    "validate_trajectory_service": "/armpi_safety/validate_trajectory",
+    "reset_stop_service": "/armpi_safety/reset_stop"
+  },
+  "checks": {
+    "pkg_prefix": "/home/ubuntu/shared/safety_ws/install/armpi_safety",
+    "status_valid": true,
+    "stop": false,
+    "stop_latched": false,
+    "reset_stop_success": true,
+    "empty_trajectory": {
+      "approved": false,
+      "code": "TRAJECTORY_INVALID"
+    },
+    "current_pose_trajectory": {
+      "approved": true,
+      "code": "OK",
+      "workspace_checked": true,
+      "table_checked": true,
+      "points": 2,
+      "duration_s": 1.0
+    },
+    "workspace_fk_log": "workspace FK ready: base_link -> end_effector_link",
+    "gateway_8766_saw_safety_stop_false": true
+  },
+  "limitations": [
+    "real state-fault latch not injected on hardware; covered by unit tests",
+    "no e-stop, brake, self-collision model or independent encoder",
+    "manual process, not a boot service",
+    "8766 stopped after the check; 8765 remains read-only"
+  ]
+}

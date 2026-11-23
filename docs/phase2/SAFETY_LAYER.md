@@ -28,8 +28,11 @@ The design separates:
 |---|---|---|
 | `armpi_safety/validate_trajectory` | `arm_interfaces/srv/ValidateTrajectory` | validate a planned trajectory; returns `approved`, `code`, `violations`, JSON report |
 | `armpi_safety/reset_stop` | `std_srvs/srv/Trigger` | clear a latched state fault when the current state is valid |
-| `armpi_safety/safety_status` | `std_msgs/String` (5 Hz) | JSON watchdog/validation status |
-| `armpi_safety/safety_stop` | `std_msgs/Bool` (transient local) | latched stop flag; true when the state is invalid or a fault is latched. Consumed by the Studio gateway since 2026-11-22; still advisory for the fast CLI and raw-bus paths |
+| `safety_status` | `std_msgs/String` (5 Hz) | JSON watchdog/validation status |
+| `safety_stop` | `std_msgs/Bool` (transient local) | latched stop flag; true when the state is invalid or a fault is latched. Consumed by the Studio gateway since 2026-11-22; still advisory for the fast CLI and raw-bus paths |
+
+The publishers are relative to the root namespace (`/safety_status`,
+`/safety_stop`); the two services use `~/` and are `/armpi_safety/...`.
 
 The service request carries `moveit_msgs/RobotTrajectory` and an optional
 start-state threshold. Nothing in the node publishes a controller command.
@@ -61,8 +64,28 @@ Since 2026-11-22 (`43647bc`), the Studio gateway subscribes this flag, latches
 its `MotionGuard`, publishes a hold command on the rising edge and refuses new
 arm/chassis commands while latched. This makes the flag authoritative for the
 Studio gateway path only; `fast_motion.py` and the raw-bus scripts still do not
-consume it. The hardware round trip was confirmed on 2026-11-23 with a fake Bool
-(the slim container does not install `armpi_safety`).
+consume it. The gateway round trip was first checked with a fake Bool on
+2026-11-23; the **real `armpi_safety` node was then installed** in
+`/home/ubuntu/shared/safety_ws` (container path) and is live with
+`/safety_stop=false`. See
+[`evidence/armpi_safety_install_20261123/`](../../evidence/armpi_safety_install_20261123/README.md).
+
+## Deployment in the slim container
+
+The node is built into a persistent overlay, not the vendor workspace:
+
+```bash
+# inside the container
+source /opt/ros/humble/setup.zsh
+source /home/ubuntu/ros2_ws/install/setup.zsh
+source /home/ubuntu/shared/safety_ws/install/setup.zsh
+export PYTHONPATH=/home/ubuntu/shared/armpi_tools:$PYTHONPATH
+ros2 run armpi_safety safety_supervisor
+```
+
+`urdf_parser_py` (missing from the vendor image) is supplied from the shared
+`armpi_tools` directory. The node is a manual process; it is not a boot
+service.
 
 ## Configuration
 

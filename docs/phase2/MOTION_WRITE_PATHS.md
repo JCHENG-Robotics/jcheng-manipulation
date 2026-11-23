@@ -39,8 +39,9 @@
   the gateway subscribes it, latches `MotionGuard`, publishes a hold on the
   rising edge and refuses new arm/chassis commands while latched. `fast_motion.py`
   and the raw-bus scripts still ignore it, so it is authoritative only on the
-  Studio gateway path; the round trip was confirmed on 2026-11-23 with a fake
-  Bool (`armpi_safety` is not installed in the slim container).
+  Studio gateway path; the round trip was first checked with a fake Bool on
+  2026-11-23, and the real `armpi_safety` node is now installed in
+  `/home/ubuntu/shared/safety_ws` and live with `/safety_stop=false`.
 - **No path has a self-collision model or an e-stop.** The checks are TCP-only
   and nominal-FK; the physical stop is power/support and a person.
 - **The table plane is base-relative.** Any chassis pulse invalidates the
@@ -55,10 +56,12 @@
    runners are research-only and must not be presented as production.
 3. No release note may say "the safety veto covers all motion". Say which path
    was used and which guard applied.
-4. `safety_stop` is wired into the Studio gateway (`43647bc`); the round trip
-   was confirmed on hardware on 2026-11-23 (fake Bool; no real `armpi_safety`
-   in the slim container). The open decision is whether the fast CLI must also
-   consume it. Do not call it a plant-wide e-stop.
+4. `safety_stop` is wired into the Studio gateway (`43647bc`); the real
+   `armpi_safety` node was installed on 2026-11-23 (persistent overlay) and the
+   gateway sees `/safety_stop=false`. The state-fault latch is covered by the
+   safety unit tests but has not been fault-injected on hardware. The open
+   decision is whether the fast CLI must also consume it. Do not call it a
+   plant-wide e-stop.
 5. Any change to `safety_limits.yaml` or `takeover.yaml` must pass
    `python3 tools/verify_config_consistency.py` and a supervised smoke test.
 
