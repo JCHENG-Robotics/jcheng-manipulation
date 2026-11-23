@@ -1,0 +1,19 @@
+{
+  "commanded_samples": 0,
+  "duration_s": 1798.0008810759998,
+  "ended_at": "2026-11-23T10:17:09.923254+00:00",
+  "events": 0,
+  "kind": "readonly_run",
+  "max_gap_s": 1.0164571479999722,
+  "measured_samples": 1799,
+  "mode": "readonly",
+  "ok": true,
+  "require_bus": true,
+  "samples": 1799,
+  "schema_version": 1,
+  "started_at": "2026-11-23T09:47:11.922373+00:00",
+  "truth_counts": {
+    "measured": 1799
+  },
+  "writes": 0
+}

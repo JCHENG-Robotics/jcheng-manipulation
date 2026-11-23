@@ -1,0 +1,24 @@
+== /jcheng/telemetry/state
+Type: jcheng_interfaces/msg/RobotState
+Publisher count: 1
+Node name: jcheng_telemetry
+Node namespace: /
+Endpoint type: PUBLISHER
+== /servo_controller
+Type: servo_controller_msgs/msg/ServosPosition
+Publisher count: 1
+Node name: kinematics
+Node namespace: /
+Endpoint type: PUBLISHER
+Node name: controller_manager
+Node namespace: /
+Endpoint type: SUBSCRIPTION
+== /ros_robot_controller/bus_servo/set_position
+Type: ros_robot_controller_msgs/msg/ServosPosition
+Publisher count: 1
+Node name: servo_manager
+Node namespace: /
+Endpoint type: PUBLISHER
+Node name: ros_robot_controller
+Node namespace: /
+Endpoint type: SUBSCRIPTION

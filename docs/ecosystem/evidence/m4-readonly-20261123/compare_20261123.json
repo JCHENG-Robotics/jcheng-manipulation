@@ -1,0 +1,61 @@
+{
+  "at": "2026-11-23T09:48:38.979031+00:00",
+  "independent_bus_pulses": {
+    "1": 215,
+    "2": 500,
+    "3": 113,
+    "4": 829,
+    "5": 596,
+    "6": 502
+  },
+  "kind": "m4_readonly_comparison",
+  "new_state": {
+    "battery_voltage": 7.665,
+    "gripper_position": 2.0315632493213998,
+    "positions": [
+      0.012566370614359175,
+      0.4021238596594936,
+      -1.3781119773747228,
+      -1.6210618092523335,
+      0.0
+    ],
+    "truth": "measured",
+    "verification": "bus"
+  },
+  "old_gateway": {
+    "measured": {
+      "joint1": {
+        "raw_position": 700,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      },
+      "joint2": {
+        "raw_position": 500,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      },
+      "joint3": {
+        "raw_position": 500,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      },
+      "joint4": {
+        "raw_position": 500,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      },
+      "joint5": {
+        "raw_position": 500,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      },
+      "r_joint": {
+        "raw_position": 500,
+        "source": "/controller_manager/servo_states (command cache)",
+        "truth": "commanded"
+      }
+    },
+    "truth": "commanded"
+  },
+  "schema_version": 1
+}
