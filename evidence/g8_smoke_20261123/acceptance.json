@@ -1,0 +1,340 @@
+{
+  "schema_version": 1,
+  "kind": "supervised_g8_smoke_after_8766_unit_and_backend_auth",
+  "result": "PASS",
+  "date": "2026-11-23",
+  "session": "g8-smoke-20261123-post8766",
+  "run_generated_at": "2026-11-23T02:35:08.195846Z",
+  "approach": {
+    "kind": "chassis_pulse",
+    "vx": 0.999778,
+    "vy": 0.021093,
+    "duty": 10.0,
+    "duration_s": 0.318,
+    "nominal_travel_mm": 15.6,
+    "travel_m": 0.0156,
+    "forward_mm": 15.6,
+    "left_mm": 0.3,
+    "point_m": [
+      0.2455935731321502,
+      0.000328981100061278,
+      -0.042244856108825786
+    ],
+    "target_point_m": [
+      0.23,
+      0.0
+    ]
+  },
+  "plan": {
+    "valid": true,
+    "point_m": [
+      0.228004,
+      0.000211,
+      -0.042867
+    ],
+    "target_m": [
+      0.241704,
+      0.004111,
+      -0.033967
+    ],
+    "fit_joints_rad": [
+      0.02197184665313411,
+      -0.6618,
+      -1.80117,
+      -0.32411026615881217,
+      0.0
+    ]
+  },
+  "phases": [
+    {
+      "command_id": "cmd_0f8aba33fcd4492e",
+      "created_at": "2026-11-23T02:35:12.064730Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 505,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 500,
+        "joint5": 500
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.7120943348136863,
+      "actual_bus_pulses": {
+        "joint1": 503,
+        "joint2": 337,
+        "joint3": 932,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -2,
+        "joint2": -5,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "command_id": "cmd_777969ff77fb4ca9",
+      "created_at": "2026-11-23T02:35:13.321060Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 505,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 458,
+        "joint5": 500
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.3373076667352005,
+      "actual_bus_pulses": {
+        "joint1": 504,
+        "joint2": 337,
+        "joint3": 932,
+        "joint4": 460,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -1,
+        "joint2": -5,
+        "joint3": 2,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "command_id": "cmd_84eaad2a0396413c",
+      "created_at": "2026-11-23T02:35:14.261304Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 505,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 423,
+        "joint5": 500
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.4508634430268643,
+      "actual_bus_pulses": {
+        "joint1": 503,
+        "joint2": 337,
+        "joint3": 932,
+        "joint4": 426,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -2,
+        "joint2": -5,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "command_id": "cmd_b31edf8740e041d1",
+      "created_at": "2026-11-23T02:35:15.191529Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "r_joint": 318
+      },
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.35,
+      "actual_bus_pulses": {
+        "r_joint": 308
+      },
+      "deviations_pulses": {}
+    },
+    {
+      "command_id": "cmd_5aa49a34c1924a29",
+      "created_at": "2026-11-23T02:35:16.413462Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "r_joint": 550
+      },
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.5,
+      "actual_bus_pulses": {
+        "r_joint": 424
+      },
+      "deviations_pulses": {}
+    },
+    {
+      "command_id": "cmd_a3ac5ef4bffa4280",
+      "created_at": "2026-11-23T02:35:17.958201Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.6314500539168413,
+      "actual_bus_pulses": {
+        "joint1": 503,
+        "joint2": 556,
+        "joint3": 794,
+        "joint4": 118,
+        "joint5": 497
+      },
+      "deviations_pulses": {
+        "joint1": 3,
+        "joint2": -5,
+        "joint3": 10,
+        "joint4": -2,
+        "joint5": 1
+      }
+    },
+    {
+      "command_id": "cmd_98ed23eb24a440ee",
+      "created_at": "2026-11-23T02:35:20.214370Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 505,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 458,
+        "joint5": 500
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 1.122548608347083,
+      "actual_bus_pulses": {
+        "joint1": 503,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 452,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -2,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "command_id": "cmd_0271dafb70804863",
+      "created_at": "2026-11-23T02:35:22.064795Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 505,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 423,
+        "joint5": 500
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.24805820001902557,
+      "actual_bus_pulses": {
+        "joint1": 503,
+        "joint2": 339,
+        "joint3": 932,
+        "joint4": 426,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -2,
+        "joint2": -3,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "command_id": "cmd_f955f5557b974a3a",
+      "created_at": "2026-11-23T02:35:22.994067Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "r_joint": 170
+      },
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.45,
+      "actual_bus_pulses": {
+        "r_joint": 173
+      },
+      "deviations_pulses": {}
+    },
+    {
+      "command_id": "cmd_9c2363f34beb4d37",
+      "created_at": "2026-11-23T02:35:24.228647Z",
+      "status": "Completed",
+      "targets_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496
+      },
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.6314500539168413,
+      "actual_bus_pulses": {
+        "joint1": 502,
+        "joint2": 558,
+        "joint3": 792,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations_pulses": {
+        "joint1": 2,
+        "joint2": -3,
+        "joint3": 8,
+        "joint4": -1,
+        "joint5": 1
+      }
+    }
+  ],
+  "grip_verify": {
+    "held": true,
+    "verified": true,
+    "clusters": 0
+  },
+  "postcheck": {
+    "valid": true,
+    "point_m": [
+      0.218571,
+      9.2e-05,
+      -0.051403
+    ],
+    "target_m": [
+      0.232271,
+      0.003992,
+      -0.042503
+    ],
+    "band_m": [
+      0.22,
+      0.255
+    ],
+    "corrected_target_in_band": true
+  },
+  "safety": {
+    "safety_stop": false,
+    "safety_status_valid": true,
+    "stop_latched": false
+  },
+  "pose_unit": {
+    "user": "pi",
+    "group": "docker",
+    "active": "active",
+    "enabled": "disabled"
+  },
+  "motion_sent": true,
+  "note": "This smoke re-ran the full 7-phase G8 after the 8766 systemd unit and backend auth changes; the prior 8-phase acceptance predates them.",
+  "evidence_files": [
+    "g8_smoke.json",
+    "g8_postcheck.json",
+    "runtime.txt",
+    "acceptance.json"
+  ]
+}

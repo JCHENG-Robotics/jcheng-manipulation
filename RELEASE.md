@@ -102,6 +102,9 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - The backend gained an optional `ARMPI_BACKEND_TOKEN`; a non-loopback bind
   is refused at startup without it. The default remains localhost/no token.
   Live token/401/guard checks are in `evidence/backend_auth_20261123/`.
+- A post-change G8 smoke passed on the new 8766 unit and auth code: 7 phases /
+  10 bus-verified commands, one 15.6 mm base pulse, grip verify and post-run
+  locate valid (`evidence/g8_smoke_20261123/`).
 
 ### Known limitations (accepted for rc.1)
 

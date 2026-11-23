@@ -41,7 +41,8 @@
     "evidence/studio_validation_20261123/",
     "evidence/armpi_safety_install_20261123/",
     "evidence/fast_path_regression_20261123/",
-    "evidence/g8_acceptance_20261123/"
+    "evidence/g8_acceptance_20261123/",
+    "evidence/g8_smoke_20261123/"
   ],
   "known_limitations": [
     "no e-stop, brake, self-collision model, independent encoder or odometry",
@@ -64,6 +65,11 @@
       "evidence": "evidence/gateway_service_20261123/",
       "result": "PASS",
       "summary": "8765 runs as pi:docker; the 8766 pose/motion unit is installed but disabled and was verified with an explicit start; the backend has an optional token and refuses a non-loopback bind without it"
+    },
+    "post_8766_smoke": {
+      "evidence": "evidence/g8_smoke_20261123/",
+      "result": "PASS",
+      "summary": "7 phases / 10 bus-verified commands after the 8766 unit and auth changes; one 15.6 mm base pulse; grip verify and post-run locate valid"
     },
     "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
   },

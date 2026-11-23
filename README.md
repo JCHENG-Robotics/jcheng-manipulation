@@ -303,9 +303,10 @@ ladder and known limitations in [`RELEASE.md`](RELEASE.md)). The 2026-11-22/23
 batch covers backend/gateway structure extraction, `/safety_stop`
 consumption, shared `jcheng_core` stats/vision primitives, four named
 motion-limit profiles, the real safety node install, the fast-path regression,
-the full 8-phase G8 run, a digest-pinned `colcon build/test` CI job with
-pinned Python tooling, a vendor source-tree manifest, optional backend token
-auth, and a disabled-by-default 8766 pose/motion unit. Status convention:
+the full 8-phase G8 run, a post-change G8 smoke on the 8766 unit, a
+digest-pinned `colcon build/test` CI job with pinned Python tooling, a vendor
+source-tree manifest, optional backend token auth, and a disabled-by-default
+8766 pose/motion unit. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked

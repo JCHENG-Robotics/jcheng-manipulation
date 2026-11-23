@@ -24,6 +24,7 @@ gitignored or kept private.
 | `armpi_safety_install_20261123/` | Real `armpi_safety` node install and status/reset/validate/FK checks | Real hardware, no motion |
 | `fast_path_regression_20261123/` | 4.0/20 view→upright fast-path regression | Real hardware; supervised motion |
 | `g8_acceptance_20261123/` | Full 8-phase G8 task: one bounded chassis pulse, 11 bus-verified commands, grip verify, put-back | Real hardware; supervised motion |
+| `g8_smoke_20261123/` | Post-8766/backend-auth G8 smoke: one 15.6 mm base pulse, 7 phases / 10 bus-verified commands, put-back checked | Real hardware; supervised motion |
 | `studio_e2e/` | Playwright browser tests | Mock mode |
 
 ## Build / reproducibility evidence

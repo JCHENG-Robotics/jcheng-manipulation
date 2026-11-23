@@ -1,0 +1,35 @@
+# G8 smoke runtime 2026-11-23T02:35:46Z
+## pose unit
+User=pi
+Group=docker
+ActiveState=active
+SubState=running
+disabled
+data: false
+---
+## 8766
+{
+ "status": "ok",
+ "motion_state": "completed",
+ "safety_stop": false,
+ "pointcloud_configured": true
+}
+## 8766 motion/status
+{
+ "state": "completed",
+ "command_id": "cmd_9c2363f34beb4d37",
+ "safety_stop": false
+}
+actual {'joint1': 502, 'joint2': 558, 'joint3': 792, 'joint4': 119, 'joint5': 497}
+## 8765
+{
+ "status": "ok",
+ "camera_ready": true,
+ "safety_stop": false
+}
+## backend
+{
+ "status": "ok",
+ "mode": "hardware",
+ "version": "1.0.0-rc.1"
+}

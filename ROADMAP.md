@@ -46,7 +46,8 @@ digest-pinned and the CI pull/build/test passed. Operations also gained a hardwa
 preflight/runbook, an evidence-manifest check, a non-root gateway installer,
 an installed-but-disabled 8766 pose/motion unit, and optional backend token
 auth with a non-loopback startup guard; the live 8765 service was reinstalled
-as `pi:docker` and verified.
+as `pi:docker` and verified, and a post-change G8 smoke passed on the new
+8766 unit (`evidence/g8_smoke_20261123/`).
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

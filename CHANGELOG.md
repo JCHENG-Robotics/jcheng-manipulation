@@ -28,6 +28,9 @@ All notable changes to this project are documented here. Format based on
   installed disabled and was verified with an explicit start.
 - Optional backend `ARMPI_BACKEND_TOKEN` (HTTP header/query and WebSocket),
   with a startup refusal for a non-loopback bind without a token.
+- Post-change G8 smoke on the new 8766 unit/auth code: 7 phases / 10
+  bus-verified commands, one 15.6 mm base pulse, grip verify and post-run
+  locate valid (`evidence/g8_smoke_20261123/`).
 
 ### Changed
 

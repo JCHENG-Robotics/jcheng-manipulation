@@ -38,6 +38,9 @@ def main() -> int:
     operations = acceptance.get("operations", {})
     if operations.get("evidence"):
         paths.append(operations["evidence"])
+    smoke = acceptance.get("post_8766_smoke", {})
+    if smoke.get("evidence"):
+        paths.append(smoke["evidence"])
 
     problems = []
     for relative in sorted(set(paths)):
