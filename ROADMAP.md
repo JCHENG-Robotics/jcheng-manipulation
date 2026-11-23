@@ -9,122 +9,47 @@
 
 ## Current status (2026-11-23)
 
-Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway/safety/fast
-validation and the post-rc.1 **full G8 acceptance**; this roadmap was
-synchronized with the README pair, changelog and acceptance report. The
-repository is at the **v1.0.0** production baseline (see
-[`RELEASE.md`](RELEASE.md)).
-The Studio G8 **fast task path** (dense S-curves + the base approach inside one
-run) was verified on the hardware on 2026-11-21: 5.466 s commanded / 13.46 s
-wall, `held: true`, landing 2.27 mm planar. The full G8 sequence then passed
-on 2026-11-23 with one bounded chassis approach and 11 bus-verified commands
-([evidence](evidence/g8_acceptance_20261123/README.md)).
+Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway, safety,
+fast-path, full-G8 and post-change-smoke validation. The repository is at the
+**v1.0.0** production baseline; the annotated tag is `v1.0.0` at `b3411e4`
+(see [`RELEASE.md`](RELEASE.md)). The post-tag commits are documentation-only.
 
-The 2026-11-22 batch is **offline only; no new hardware claims**. It starts with
-the safety/structure fixes `43647bc` (`d93288e`) and continues through
-`4d5b488`: tool-side joint2 bound aligned to 775 pulse, `/safety_stop` wired
-into the Studio gateway, safety/planner/fiducial CI gates, ticker moved off the
-event loop, hardware-adapter state locked, backend operations split into
-mixins (`service.py` 3,351 → 1,022 lines), gateway `CameraCache` and
-`telemetry_format` extracted, shared phase-3 `sys.path` bootstrap, duplicated
-joint/servo-id table check, and config consistency extended to the fast-motion
-defaults and view poses. Current verification: **148 backend + 93 gateway
-tests**, 10 mock + 3 hardware + 3 pose/task Playwright, and `CONFIG OK`.
+**Release snapshot**
 
-The 2026-11-23 batch added `TelemetryCache`, shared `jcheng_core` stats/vision
-packages, four named motion-limit profiles (`moveit`, `step`, `pose`, `fast`),
-the real `armpi_safety` install in the persistent safety overlay, and a
-4.0/20 view→upright fast-path regression (`ok`, settle 2 pulses). The
-`/safety_stop` round trip and low-speed joint2 check are confirmed. The rc.1
-tag itself predates the full G8 run; the supervised sequence passed after the
-tag on 2026-11-23 (8 phases, 11 bus-verified commands, put-back at 0.236 m
-inside the 0.220–0.255 m band). The same batch added a `colcon build/test` CI
-job, exact Python pins, and a vendor source-tree manifest; the target-
-architecture run built 7 packages and ran **118 tests / 0 failures / 1 skip**
-([evidence](evidence/ros_colcon_20261123/README.md)); the base image is
-digest-pinned and the CI pull/build/test passed. Operations also gained a hardware
-preflight/runbook, an evidence-manifest check, a non-root gateway installer,
-an installed-but-disabled 8766 pose/motion unit, and optional backend token
-auth with a non-loopback startup guard; the live 8765 service was reinstalled
-as `pi:docker` and verified, and a post-change G8 smoke passed on the new
-8766 unit (`evidence/g8_smoke_20261123/`).
+- **Full G8 acceptance — PASS.** 8 phases / 11 bus-verified commands with one
+  bounded open-loop chassis pulse (`75.3 mm` nominal); put-back independently
+  checked at `0.236 m`, inside the `0.220–0.255 m` band; `/safety_stop=false`.
+  [Evidence](evidence/g8_acceptance_20261123/README.md).
+- **Post-change smoke — PASS.** After the 8766 systemd unit and backend auth
+  changes: 7 phases / 10 bus-verified commands, one `15.6 mm` chassis pulse;
+  corrected put-back target `0.2323 m`; `/safety_stop=false`.
+  [Evidence](evidence/g8_smoke_20261123/README.md).
+- **Reproducible build — PASS.** Digest-pinned `ros-colcon` CI (run
+  `45098657645`) builds 7 public packages; target-architecture run: **118
+  tests, 0 failures, 1 local skip**. [Evidence](evidence/ros_colcon_20261123/README.md).
+- **Operations — PASS.** 8765 runs as `pi:docker`; the 8766 pose/motion unit is
+  installed but disabled; the backend has optional token auth and refuses a
+  non-loopback bind without it. [Preflight](docs/operations/PREFLIGHT.md) /
+  [runbook](docs/operations/RUNBOOK.md).
+
+**Verification:** backend **148**, gateway **93**, `armpi_analysis` **34**,
+safety/planner/fiducial **59**, tools **242 passed / 7 skipped**, `CONFIG OK`,
+vendor SHA and the 9-path evidence manifest OK. `studio` CI run `45100626118`
+and the digest-pinned `ros-colcon` run passed.
+
+### Milestone summary
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|
-| Robot model and TF | **Implemented; live arm/camera TF verified; limits formally surveyed** | 17 links, 16 joints; live `base_link → rgb_camera_link` / `depth_camera_link`; measured optical frame `camera_optical_calibrated`; front `base_link → ext_cam_optical`; all five joints hand-surveyed 2026-11-19, `mapping_verified=true` for the operating envelope |
-| MoveIt 2 constrained planning | **Implemented; mock + real execution validated** | Pilz `PTP` 6D-constrained goal (mock); real execution through Humble Docker MoveIt on 2026-11-18/19; D435i published as a MoveIt collision box |
-| 5-DoF grasp candidate search | **Implemented; mock + real use** | Joint-space sampler: 80 candidates → 40 IK OK → 26 collision-free → 3 PTP plans (mock); the same search fed all five real grasp passes |
-| Fiducial → grasp bridge | **Implemented; mock E2E validated (2026-11-17)** | `target_pose` → TF → grasp search → safety veto; synthetic marker, plan-only; the real grasps used the grasp planner directly, not this bridge |
-| Fiducial target localization | **Implemented; synthetic + real-background validated; physical tag scale check** | AprilTag 36h11; max 1.82 mm / 1.49° synthetic; 15/15 semi-synthetic on real frames, max 1.69 mm / 0.53°; 0 false detections on 8 real frames; physical tag scale 100.67 mm vs 100.0 mm (0.67 %) |
-| Front camera (D435i) | **Validated with limits** | Chassis-front USB 3.0; intrinsics fx = fy 903.5 px / RMS 0.371 px; extrinsic `[0.136, 0.027, 0.038] m`, 31.6° pitch; depth 640×480 Z16 ~62 % valid / 10.6 Hz depth-only; `armpi-rs-depth` + `armpi-ext-cam` boot cleanly; IMU unavailable; depth starts ~0.2 m |
-| Safety supervisor | **Implemented; mock + hardware veto** | state watchdog, joint/velocity/acceleration/start-state/duration/workspace/table-clearance checks; veto service; adopted EEPROM-bounded limits; no e-stop or brake |
-| Measurement protocols | **Implemented; error-budget sources measured on hardware** | 30-visit repeatability **0.449 mm RMS / 1.017 mm max**; backlash **1.117 mm**; 46-grasp tolerance grid **[-6, +12] mm** (±9 mm about +3 mm); 20-grasp execution **5.386 mm / 1.495° max**; 20-put-back placement **11.514 mm max / 3.080 mm mean**; 20-placement fixture **14.815 mm radial max**; rotation-tolerance and visual-displacement runners added, hardware runs pending |
-| 5-DoF task-space policy | **Documented** | `docs/phase0/ARMPI_5DOF_CONSTRAINTS.md` |
-| Hardware baseline | **Captured; all five joints formally surveyed; board probed; D435i added** | Pi/ROS/servo/TF/camera live baseline; joint1 58…957, joint2 186…873 upright / 327…795 low pose, joint3 100…923, joint4 130…882, joint5 122…869 pulse; D435i depth/colour services; IMU, encoders, e-stop, onboard gamepad/SBUS absent |
-| Calibration and visual grasping | **Validated: 3/5 first series and 24/24 in the paired trial; dual-camera PASS; D435i calibrated** | 14-pose chessboard hand-eye 2.94 mm / 0.39°, held-out 3.29 mm / 0.43°; table-down 2.7 mm / 0.42°; front D435i 903.5 px / 0.371 px and 31.6° extrinsic; passes 1–2 and 5 succeeded; passes 3–4 exposed the low-configuration error; 24-pair trial 12/24 vs 24/24; D435i agreed to 2.58 mm x/y and verified one grip + put-back |
-| Fast motion | **Validated on hardware (four real-cube runs at 4.0/20)** | Jerk-limited S-curve with measured bus-servo settle; grasp+put-back **11.67 s → 8.94 s (−23 %)**; 4.0/20 defaults; duty-20 base 100.2 mm/s; aligned auto-base landing 2.22 mm; later in-view/far runs grasped in 4.77/4.76 s, and `--return-home` reversed a 245.3 mm approach while holding the cube (11.06 mm landing vs the fitted target) |
-| Error budget and tolerance envelope | **Framework implemented; budget complete, bound gates fail** | **measured tolerance 6 mm** (conservative worst side of the ±9 mm opening-axis envelope); all sources measured, including execution **5.386 mm / 1.495° max**, placement **11.514 mm max / 3.080 mm mean** and fixture **14.815 mm radial max**; translation **RSS 13.325 mm** (fail) / worst case **24.014 mm** (fail vs 6 mm); rotation **RSS 1.858°** (pass) / worst **3.322°** (fail vs the provisional 2° gate); dominant translation term is now `gripper_placement` (74.7 %), hand-eye is 6.1 %; empirical corrected placement mean **3.080 mm** (RMS 4.082 mm) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
-| Paired trial framework | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement: free by-eye spots + base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; home release error (+2.12 mm, anchor = corrected target) descriptive only; D1/D2 discards recorded; the fixed 24-mark fan was superseded before data, not run |
-| Host/DDS benchmark | **Implemented, read-only hardware snapshot** | laptop + Pi host metrics, 20 Hz state, ~12 Hz camera cross-host, 0.24 ms ping; one snapshot, no load sweep |
-| ArmPi Debug Studio | **Implemented through G8.1 + the G8 fast path; motion off by default** | read-only gateway + G2/G3/G4/G5; 148 backend + 93 gateway tests; 10 mock + 3 hardware + 3 pose/task Playwright; G6 supervised single-joint write path verified on hardware with no motion (measured delta 0.0 rad); **G7 pose takeover** real view→grasp→view + gripper sequence bus-verified (low pose within 4 pulses; gripper settled 184/645); **G8 task takeover**: live point cloud → locate → deep-family fit → 13-step task → grip verify → put-back, **verified on hardware** (target radius 0.2384 m, grasp actual 504/339/930/421/499, `close_grip` stalled at raw 416, put-back landing 3.6 mm), including a **min-range clip recovery** for the Aurora's ~0.25 m cutoff; **G8.1 bounded chassis approach**: `APPROACH_REQUIRED` plan + `POST /chassis/pulse` (duty ≤10, ≤2 s, open-loop) closed by the camera, a far cube at 0.357 m brought to 0.221 m in two pulses and grasped (landing 0.5 mm); **G8 fast task path**: 7 phases, dense S-curves at 4.0 rad/s / 20 rad/s² with per-segment gateway validation, base approach inside the run — **hardware-verified** (5.466 s commanded / 13.46 s wall, `close_grip` 414, landing 2.27 mm); **locate window x 0.15–0.55 m / y ±0.15 m** with a **30 mm minimum top extent** (a 34.6 mm visible top is accepted after the 2026-11-21 fix); the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; `/servo_states` is a command cache, not measured feedback; `/safety_stop` is latched for Studio arm/chassis commands (hardware-confirmed 2026-11-23); `mapping_verified=true`; D435i aux feed on the Dashboard; no e-stop, no self-collision model |
-| Clock sync | **Implemented and verified** | laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
-| Mobile base | **Open-loop only; duty-20 auto-approach validated** | four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) is camera-closed but still open-loop |
-
-By 2026-11-20 the live robot runs the vendor Humble core stack in
-`ArmPiUltra`; the workstation runs Humble MoveIt/RViz in Docker. The Aurora 930
-publishes RGB at about 12 Hz cross-host (`bgr8`) and depth at 8.2 Hz
-in-container (`mono16`, mm); an in-container RGB subscriber undercounts to
-~8 Hz, so the cross-host number is the sensor rate. The chessboard hand-eye is
-**validated** with 14 poses and measured bus-servo joint angles: 2.94 mm /
-0.39° board-pose scatter, a 3.29 mm / 0.43° held-out final base and
-3.41 mm / 0.44° leave-one-out std; a table-down 15-pose re-fit gives 2.7 mm /
-0.42°. The measured body→optical adapter (89.798°, `[5.4, 10.1, -27.4] mm`) is
-published as `camera_optical_calibrated`. The 24-pose set selected offline from
-14,176 evaluated poses (3,093 feasible) remains planned, not executed.
-
-A chassis-front RealSense D435i was added on 2026-11-20: USB 3.0, colour UVC
-1280×720, depth 640×480 Z16 through a patched librealsense (the kernel lacks
-`CONFIG_HID_SENSOR_HUB`, so the IMU is unavailable). Its refined intrinsics are
-fx = fy 903.5 px (RMS 0.371 px) and its chassis extrinsic is
-`[0.136, 0.027, 0.038] m`, 31.6° pitch. `armpi-rs-depth` and `armpi-ext-cam`
-boot with `NRestarts=0`, and the camera is published as a MoveIt collision box.
-In the first dual-camera grasp it agreed with the wrist camera to **2.58 mm**
-in x/y and verified the grip and put-back, while the validated target kept the
-constant correction because `e` proved to be an execution offset, not a
-measurement bias.
-
-Real visual grasping ran on 2026-11-18/19. Five markerless pick–lift–place
-attempts were made on a 39.4 mm cube; three succeeded. Passes 1–2 established
-the pipeline (≈149 mm lift; return within 6.6 mm / 8°). Passes 3–4 failed and
-measured a configuration-dependent FK/hand–eye error of −8.0/−15.3/−5.8 mm at
-the low grasp pose; pass 5 corrected it with a single AprilTag observation and
-succeeded (TCP +0.0993 m, object ≈148 mm). The gripper stroke was re-measured
-to 2.22 rad after the original open value proved to be a binding stall. Joint
-limits were formally surveyed on 2026-11-19 and adopted from the servo EEPROM
-with a 20-pulse margin (joint2's high bound tightened to 775), and the live
-stack was reloaded on 2026-11-20 so move_group, `armpi_safety` and the Studio
-backend all use 775. The controller board probe found only battery, six bus
-servos, four open-loop motor duties, buzzer and LEDs — no IMU, encoders,
-e-stop or onboard gamepad.
-The error budget is now complete: repeatability (0.449 mm RMS / 1.017 mm max),
-backlash (1.117 mm), a 46-grasp tolerance envelope (±9 mm, conservative 6 mm)
-and the 2026-11-20 terms (execution 5.386 mm / 1.495° max, placement
-11.514 mm max / 3.080 mm mean, fixture 14.815 mm radial max) are all measured.
-The bound aggregate fails the 6 mm gate (RSS 13.325 mm); the empirical
-corrected placement mean (3.080 mm) is inside it. A pre-registered 24-pair
-hardware trial measured the intervention: baseline 12/24 vs corrected 24/24
-(McNemar p = 0.00049) and a 2.19 mm paired placement improvement
-(p = 0.0063). Fast jerk-limited motion then cut the grasp+put-back cycle from
-11.67 s to 8.94 s. Two later runs extended the same chain to a cube at
-0.464 m, with two closed-loop base pulses to the grasp band and a reverse
-pulse home while the cube was still held (landing 11.06 mm against the fitted
-target; the return remains open-loop). A random-placement 24-pair follow-up
-completed on 2026-11-21: the operator placed the cube at a fresh haphazard
-point before every pair, and the paired effect repeated (baseline 9/24 vs
-intervention 24/24, McNemar p = 6.1×10⁻⁵). The fixed 24-mark fan was
-superseded before data (not run).
-Detailed checklist:
-[`docs/phase0/PHASE0_ACCEPTANCE.md`](docs/phase0/PHASE0_ACCEPTANCE.md).
+| Robot model, TF and joint limits | **Implemented; hardware-surveyed** | 17 links / 16 joints; measured optical frame; all five joints hand-surveyed 2026-11-19, `mapping_verified=true`; stops are pose-dependent self-collision limits |
+| MoveIt 2 and grasp search | **Implemented; mock + real execution** | Pilz `PTP`, KDL full-pose IK, joint-space sampler (80 candidates → 3 plans); the same search fed every real grasp pass |
+| Calibration, fiducial and front camera | **Validated with limits** | Hand-eye 2.94 mm / 0.39° (held-out 3.29 mm / 0.43°); D435i intrinsics 903.5 px / RMS 0.371 px; depth starts ~0.2 m; IMU unavailable |
+| Real visual grasping and paired trials | **Validated; 3/5 first series, 24/24 after correction** | 2026-11-19 fixed trial 12/24 → 24/24 (p = 0.00049); 2026-11-21 random trial 9/24 → 24/24 (p = 6.1×10⁻⁵); dual-camera PASS (2.58 mm x/y) |
+| Fast motion and G8 | **Validated on hardware** | 4.0/20 S-curves, grasp+put-back 11.67 → 8.94 s; fast G8 13.46 s wall / 2.27 mm landing; full G8 8 phases / 11 commands, put-back 0.236 m; smoke 7 phases / 10 commands |
+| Error budget | **Complete; bound gates fail** | Translation RSS 13.325 mm / worst 24.014 mm; rotation RSS 1.858° / worst 3.322°; empirical corrected placement mean 3.080 mm |
+| Safety and operations | **Validated with constraints** | Watchdog/trajectory veto and real `armpi_safety`; no e-stop/brake; 8765 `pi:docker`; 8766 unit installed disabled; backend token optional, no token on localhost |
+| Debug Studio | **G1–G8.1 + full G8; tests pass** | 148 backend + 93 gateway; CI suite 10 mock + 3 hardware + 3 pose/task Playwright (release rerun: 10 mock + 3 token-mode dashboard); full G8, post-change smoke, digest CI and ops evidence |
+| Mobile base | **Open-loop only** | No encoders/IMU/odometry; G8.1 bounded approach is camera-closed but open-loop; any base move invalidates the table calibration |
 
 ## 1. Technical Goal
 

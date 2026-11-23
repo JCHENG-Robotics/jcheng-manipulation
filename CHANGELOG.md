@@ -50,6 +50,16 @@ unit, optional backend token auth and the post-change G8 smoke.
 - `armpi_analysis/paired_trials.py` had 10 blank lines before
   `_count_failures` (`E303`), caught by its own ROS lint test.
 
+### Verification
+
+- Backend **148**; gateway **93**; `armpi_analysis` **34**;
+  safety/planner/fiducial **59**; tools **242 passed / 7 skipped**;
+  `CONFIG OK`; vendor source/archive SHA and the 9-path evidence manifest OK.
+- Digest-pinned `ros-colcon` run `45098657645`: 7 packages, 118 tests,
+  0 failures, 1 local skip; `studio` CI run `45100626118` passed.
+- Full G8: 8 phases / 11 bus-verified commands, put-back 0.236 m; smoke:
+  7 phases / 10 commands, corrected put-back target 0.2323 m.
+
 ## [1.0.0-rc.1] — 2026-11-23
 
 First tagged release candidate. Feature-freeze baseline `v0.9.0-ff` is the
@@ -81,7 +91,7 @@ safety hardware validation. See [`RELEASE.md`](RELEASE.md) and
 
 ### Verification
 
-- backend 148; gateway 93; `armpi_analysis` 34; safety/planner/fiducial 59;
+- backend 144; gateway 93; `armpi_analysis` 34; safety/planner/fiducial 59;
   tools 242 passed / 7 skipped; `CONFIG OK`; hardware evidence in
   `evidence/studio_validation_20261123/`,
   `evidence/armpi_safety_install_20261123/` and
@@ -92,15 +102,16 @@ safety hardware validation. See [`RELEASE.md`](RELEASE.md) and
 - No e-stop, brake, self-collision model, independent encoder or odometry.
 - The fast CLI bypasses `armpi_safety` by design (explicit `profiles.fast`).
 - No ROS `colcon` CI and no Python/Docker/vendor pinning; the backend is
-  localhost-only with no auth. `v1.0.0` remains gated on a full G8 hardware
-  acceptance and a reproducible build.
+  localhost-only with no auth. At rc.1 time, `v1.0.0` was still gated on a
+  full G8 hardware acceptance and a reproducible build.
 
 > Superseded: `v1.0.0` shipped on 2026-11-23 with those gates closed; see
 > [`[1.0.0]`](#100--2026-11-23). The rc.1 limitations above are retained as
 > the historical candidate record.
 
-> Historical note: the dated `[Unreleased]` sections below are the pre-release
-> record. They are retained as-is; rc.1 is the first tagged baseline.
+> Historical note: the dated `[Unreleased]` sections below are pre-rc.1 work
+> logs, retained verbatim. They are **not** current status; use `[1.0.0]`
+> above for the release baseline. `v1.0.0-rc.1` is the first tagged baseline.
 
 ## [Unreleased] — 2026-11-22 offline safety/structure hardening
 
