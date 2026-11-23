@@ -1,7 +1,8 @@
 # M2 执行记录
 
 > 状态：**M2 已完成（2026-11-23）。**
-> PR #3 已由 `JerichoSwaine` 批准并合并；`v0.1.0` 已打 SSH 签名标签。
+> PR #3 已由 `JerichoSwaine` 批准并合并；`v0.1.0` 已打 SSH 签名标签，
+> 并已在 GitHub 显示 **Verified**。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`），未改动。
 
 ## 1. 已完成
@@ -47,12 +48,12 @@
 | Tag target | `33f1293`（与 `main` 一致） |
 | Tag 类型 | SSH 签名 annotated tag |
 | 本地验证 | `Good "git" signature for chengkewei77@gmail.com`；ED25519 fingerprint `SHA256:88tnes5V23WwLptWGXBaitgw4ti0Hb7aiqeT3wJHNlA` |
-| GitHub 验证 | `verified=false, reason=unknown_key`；签名存在，但 SSH key 尚未注册为 GitHub signing key |
+| GitHub 验证 | `verified=true, reason=valid`（2026-11-23T08:43:48Z） |
 | CI | https://github.com/JCHENG-Robotics/jcheng-interfaces/actions/runs/45135205900 |
 
-**说明：** GitHub 的 `unknown_key` 不代表标签未签名；本地 `git tag -v` 已通过。
-要在 GitHub 显示 Verified，需要把 `~/.ssh/id_ed25519.pub` 作为 **Signing Key**
-添加到 GitHub 账户。已有标签无需重打；添加 key 后 GitHub 会重新校验。
+**说明：** 2026-11-23 已把 `~/.ssh/id_ed25519.pub` 注册为 GitHub **Signing Key**；
+`v0.1.0` 无需重打，GitHub 已重新校验为 Verified。`unknown_key` 曾只表示
+签名公钥未注册，不代表标签未签名。
 
 ## 3. 关键设计决定
 
@@ -64,12 +65,13 @@
 6. 错误码统一注册表；旧码通过 `error-code-mapping.v1.json` 映射。
 7. `ContractVersion.contract_hash` 是运行时握手依据；manifest 逐文件哈希可重建。
 
-## 4. 后续（不阻塞 M3）
+## 4. 后续
 
-1. 把 SSH 公钥注册为 GitHub signing key，使 `v0.1.0` 显示 Verified。
-2. 生成 TypeScript 绑定。
-3. 补充 `ros_type_hashes`；`contract_hash` 仍是运行时权威。
-4. 组织主页 PR 仍待打开；不阻塞 M3。
+1. 生成 TypeScript 绑定。
+2. 补充 `ros_type_hashes`；`contract_hash` 仍是运行时权威。
+3. 许可证与第三方依赖审查（pending）；正式采用前必须完成。
+
+组织主页中英文 profile 已合并（PR #2，`16bddf2`），无待办。
 
 ## 5. 未做
 
@@ -89,4 +91,4 @@
 | 15 项测试 | 通过 |
 | `m1-gate` + `m2-contract` | 通过 |
 | PR 合并 | 完成（`33f1293`） |
-| v0.1.0 标签 | 完成（SSH 签名；GitHub Verified 待注册 key） |
+| v0.1.0 标签 | 完成（SSH 签名；GitHub Verified `valid`） |

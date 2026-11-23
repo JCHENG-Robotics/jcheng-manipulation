@@ -1,6 +1,8 @@
 # M3 执行记录
 
-> 状态：**M3 实现完成（2026-11-23）；CI 通过，等待 PR 评审/合并。**
+> 状态：**M3 已完成并合并（2026-11-23）。**
+> PR #2 已由 `JerichoSwaine` 批准、`JerichoCheng` 合并；`main` 为 `40a74ba`，
+> `main` CI 通过；`m3/system-mock` 分支已删除。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`），未改动。
 > 约束：纯 Mock；不连接机器人、不写硬件、不实现 ROS 传输。
 
@@ -33,17 +35,22 @@
 | 锁文件 | `LOCK OK`，含远程 tag 与证据校验 |
 | `m1-gate` | 通过（Mock-only、无硬件访问、无 LICENSE） |
 | `m3-mock` | 通过（Humble 构建 + 场景 + 锁文件） |
+| `main` CI | 通过（run 45139635986） |
 
 ## 3. 分支与 CI
 
 | 项 | 值 |
 |---|---|
 | 仓库 | `JCHENG-Robotics/jcheng-system` |
-| 分支 | `m3/system-mock` |
-| 提交 | `90c3904` |
-| CI | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45138929506 |
+| 分支 | `m3/system-mock`（PR head `90c3904`；已合并并删除） |
+| 合并后 `main` | `40a74ba955ea96bad288b41e38f58e7bbfb94803` |
+| CI（PR） | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45138929506 |
+| CI（`main`） | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45139635986 |
 | `main` 保护 | `m1-gate` + `m3-mock`，1 个 code-owner 批准，管理员受限 |
-| PR | https://github.com/JCHENG-Robotics/jcheng-system/compare/main...m3/system-mock?expand=1 |
+| PR | [#2](https://github.com/JCHENG-Robotics/jcheng-system/pull/2)，批准 `JerichoSwaine`，合并 `JerichoCheng` |
+
+**关于 compare 页面：** `main...m3/system-mock` 显示 “There isn't anything to
+compare” 是预期结果。PR #2 已合并、分支已删除，`main` 已包含 M3；不是漏提交。
 
 ## 4. 关键设计决定
 
@@ -67,12 +74,10 @@
 
 ## 6. 后续
 
-1. `JerichoSwaine` 评审并合并 M3 PR。
-2. 合并后可打 `jcheng-system v0.1.0` 标签（Mock 版本）。
-3. M4：只读机器人接入；域/容器/SROS2/guard 运行时；**不运动**。
-4. M5 起任何真实运动仍需单独、明确的现场授权。
+1. 可打 `jcheng-system v0.1.0` 标签（Mock 版本；尚未打，需单独确认）。
+2. M4：只读机器人接入；域/容器/SROS2/guard 运行时；**不运动**。
+3. M5 起任何真实运动仍需单独、明确的现场授权。
 
 ## 7. 其他待办
 
-- M2 `v0.1.0` 标签的 GitHub Verified 仍待注册 SSH signing key。
-- 组织主页 PR（`docs/bilingual-profile`）仍未打开。
+无。M2 `v0.1.0` 标签已验证；组织主页 PR #2 已合并（`16bddf2`）。
