@@ -84,18 +84,30 @@
 
 **决定（2026-11-23）：采用第二评审人，不采用 break-glass 作为默认路径。**
 
-组织当前只有 `JerichoCheng` 一个账号；GitHub 不允许自我批准 PR。
-M1 的初始提交是在保护开启前推送的。执行方案：
+执行进展：
 
-1. Owner 在网页邀请第二评审人加入组织，或将其加为三个仓库的 `maintain`
-   协作者（当前 fine-grained token 不能邀请组织成员，`/orgs/.../invitations`
-   返回 403）。
-2. 更新三个仓库的 `.github/CODEOWNERS`，加入第二评审人。
-3. 用一个只改文档的测试 PR 验证：第二评审人批准 + `m1-gate` 通过后可以合并。
-4. 记录评审人、PR URL、批准时间与检查结果。
+- 第二评审人：`JerichoSwaine`。
+- 已验证其在三个仓库均为 `maintain`（含 write），满足 CODEOWNERS 的写权限要求。
+- 三个 `governance/add-reviewer` 分支已推送，只改 `.github/CODEOWNERS`：
+  - `.github`：`05b881f`，`m1-gate` 通过（run 45130111511）
+  - `jcheng-interfaces`：`2205761`，`m1-gate` 通过（run 45130120151）
+  - `jcheng-system`：`81d4faf`，`m1-gate` 通过（run 45130128157）
 
-**当前状态（2026-11-23）：等待第二评审人的 GitHub 用户名。**
-在第二评审人就绪前，`main` 不做新改动；不通过关闭保护来绕过评审。
+**首次引导的顺序（重要）：** 当前 `main` 的 CODEOWNERS 仍只列 `@JerichoCheng`。
+如果由 `JerichoCheng` 作者打开这三个 PR，则需要 `@JerichoCheng` 作为 code owner
+批准，而 GitHub 不允许自我批准，会形成死锁。正确顺序是：
+
+1. `JerichoSwaine` 作为作者，从 `governance/add-reviewer` 打开三个 PR。
+2. `JerichoCheng` 作为现有 code owner 批准并合并。
+3. 合并后双方都是 code owner；后续 PR 可由任一方作者 + 另一方批准。
+4. 用 `docs/bilingual-profile` 的 PR 验证新的双评审人模型（作者 `JerichoCheng`，
+   批准 `JerichoSwaine`），再合并组织主页。
+
+这不是 break-glass：保护始终开启，只是把首次 CODEOWNERS 变更的作者与批准人
+分开。
+
+**当前状态：等待 `JerichoSwaine` 打开三个 CODEOWNERS PR。**
+在此之前 `main` 不做新改动；不通过关闭保护来绕过评审。
 
 ### 6.2 组织级设置
 
