@@ -26,7 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: ros:humble-ros-base
+      # Digest of ros:humble-ros-base, taken from the public
+      # personalrobotics/ada_feeding Dockerfile. The CI run is the pull test.
+      image: ros:humble-ros-base@sha256:dfc94c85d8e01f230951b2a85ca5576e08473081c3da5fbbe8f3ab844703b9ba
     env:
       DEBIAN_FRONTEND: noninteractive
       PYTHONUNBUFFERED: "1"
