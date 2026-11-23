@@ -1,7 +1,7 @@
 # M4 执行记录（只读接入，离线部分）
 
 > 状态：**M4 离线实现完成（2026-11-23）；CI 全绿；实机 30 分钟只读验收待单独授权。**
-> 分支：`jcheng-system` 的 `m4/readonly-integration`，提交 `878b7086`。
+> 分支：`jcheng-system` 的 `m4/readonly-integration`，最终提交 `58c8695`。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`）未改动；`v0.1.0` 标签未改动。
 > 约束：**没有连接机器人、没有打开串口、没有发布厂商命令、没有发送任何运动命令。**
 
@@ -44,7 +44,7 @@
 | `m1-gate` | 通过 |
 | `m3-mock` | 通过（M3 未回归） |
 | `m4-readonly` | 通过 |
-| CI run | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45143612118 |
+| CI run | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45144116055 |
 | `main` 保护 | `m1-gate` + `m3-mock` + `m4-readonly`，strict，管理员受限 |
 | 实机 | **未连接、未发送运动命令** |
 
