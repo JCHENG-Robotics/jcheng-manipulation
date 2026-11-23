@@ -9,6 +9,7 @@
   "user": "pi",
   "group": "docker",
   "env_file": "root:docker 0640",
+  "systemd_verify_rc": 0,
   "health": {
     "status": "ok",
     "ros_ready": true,
