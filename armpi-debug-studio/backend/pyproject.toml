@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "armpi-debug-studio-backend"
-version = "1.0.0rc1"
+version = "1.0.0"
 description = "ArmPi Debug Studio G1 Mock-first backend"
 requires-python = ">=3.11,<3.13"
 # Exact pins: the backend is an application, not a reusable library. The

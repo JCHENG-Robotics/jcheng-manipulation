@@ -1,19 +1,20 @@
 # JCHENG Manipulation — release notes
 
-## v1.0.0-rc.1 (2026-11-23)
+## v1.0.0 (2026-11-23)
 
-**This is a release candidate, not production `v1.0.0`.** It is the
-feature-frozen, hardware-validated-on-the-gateway baseline for the JCHENG
-Robotics ecosystem. The full task-level G8 acceptance passed **after** this
-tag (2026-11-23, see below); the reproducible ROS build remains open (see
-known limitations).
+**Production `v1.0.0` baseline** for the JCHENG Robotics ecosystem. It
+includes the feature freeze, the supervised full G8 acceptance, the
+digest-pinned reproducible ROS build, the real safety node, the non-root
+gateway services and the post-change G8 smoke. The platform still has the
+hard safety limits listed below; this is not a safety certification.
 
 ### Tags
 
 | Tag | Commit | Meaning |
 |---|---|---|
 | `v0.9.0-ff` | `30799df` (2026-11-21) | feature-freeze baseline |
-| `v1.0.0-rc.1` | this commit | release candidate, offline + gateway hardware validation |
+| `v1.0.0-rc.1` | `d9b34b5` (2026-11-23) | release candidate |
+| `v1.0.0` | this commit | production baseline with G8/build/ops acceptance |
 
 ### Supported path
 
@@ -50,10 +51,12 @@ Hardware evidence:
   status/reset/validate/FK.
 - `evidence/fast_path_regression_20261123/` — 4.0/20 view→upright, settle
   2 pulses.
+- `evidence/g8_smoke_20261123/` — post-8766/auth G8 smoke: 7 phases /
+  10 bus-verified commands, one 15.6 mm base pulse, put-back locate valid.
 
-### Post-rc.1 acceptance update (2026-11-23)
+### G8 acceptance included in v1.0.0 (2026-11-23)
 
-A supervised **full G8 task sequence** passed after `v1.0.0-rc.1` was cut:
+A supervised **full G8 task sequence** passed before this release:
 
 - cube at `0.304 m` → one bounded open-loop chassis pulse (`75.3 mm`
   nominal) → re-plan `VALID`;
@@ -67,10 +70,10 @@ A supervised **full G8 task sequence** passed after `v1.0.0-rc.1` was cut:
   `stop_latched=false`, no violations.
 
 Evidence: [`evidence/g8_acceptance_20261123/`](evidence/g8_acceptance_20261123/README.md).
-This closes the **full G8 hardware acceptance** part of the `v1.0.0` gate;
-the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
+This is the **full G8 hardware acceptance** included in `v1.0.0`; the rc.1
+tag predated it, and the v1.0.0 tag includes both.
 
-### Post-rc.1 reproducible build update (2026-11-23)
+### Reproducible build included in v1.0.0 (2026-11-23)
 
 - `.github/workflows/ros-ci.yml` builds and tests the seven public ROS
   packages in a Humble container with an explicit dependency list.
@@ -86,7 +89,7 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
   (`ros:humble-ros-base@sha256:dfc94c85…`); CI run 45098657645 pulled it,
   built the 7 packages and passed.
 
-### Post-rc.1 operations update (2026-11-23)
+### Operations included in v1.0.0 (2026-11-23)
 
 - [`docs/operations/PREFLIGHT.md`](docs/operations/PREFLIGHT.md) and
   [`RUNBOOK.md`](docs/operations/RUNBOOK.md) cover link/clock/gateway/safety
@@ -106,7 +109,7 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
   10 bus-verified commands, one 15.6 mm base pulse, grip verify and post-run
   locate valid (`evidence/g8_smoke_20261123/`).
 
-### Known limitations (accepted for rc.1)
+### Known limitations (accepted for v1.0.0)
 
 - No e-stop, brake, self-collision model, independent encoder or odometry.
 - The fast CLI bypasses `armpi_safety` **by design**; it is an explicit
@@ -121,32 +124,32 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
   proxy. Gateway token comparisons are constant-time. The 8765 host wrapper
   runs as `pi:docker`; the 8766 pose/motion unit is installed but **not
   enabled** and must be started explicitly.
-- The rc.1 tag itself predates the full G8 acceptance; the post-tag run
-  passed on 2026-11-23 (see above). The fast-path regression is one direction
-  only.
+- The full G8 acceptance and the post-change smoke passed before this tag;
+  the fast-path regression is one direction only.
 - The gripper is left open in the validation pose; no automatic boot-time
   homing.
 
-`v1.0.0` has no open engineering blocker: the full G8 acceptance,
-digest-pinned colcon CI, non-root 8765 service, disabled-by-default 8766 unit
-and backend token/non-loopback guard are all in place. It still requires the
-final acceptance sign-off and a v1.0.0 tag decision. Do not present rc.1 as a
-production safety certification.
+`v1.0.0` includes the full G8 acceptance, digest-pinned colcon CI, non-root
+8765 service, disabled-by-default 8766 unit, backend token/non-loopback guard
+and the post-change G8 smoke. It is a production baseline, **not** a safety
+certification; the physical limits above still apply.
 
 ### Upgrade / rollback
 
 ```bash
-git checkout v1.0.0-rc.1
+git checkout v1.0.0
 # backend
 cd armpi-debug-studio/backend
 .venv/bin/pip install -e '.[dev]'
 .venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 # gateway + safety overlay: re-deploy the current package to
-# /home/pi/docker/tmp/armpi_gateway_pose and /home/pi/docker/tmp/safety_ws
+# /home/pi/docker/tmp/armpi_gateway_pose and
+# /home/pi/docker/tmp/armpi_gateway_deploy, and the safety overlay if changed
 ```
 
-Rollback to `v0.9.0-ff` restores the pre-rc freeze baseline; the robot-side
-gateway/safety packages must be re-deployed from that tag as well.
+Rollback to `v1.0.0-rc.1` restores the candidate; rollback to `v0.9.0-ff`
+restores the pre-freeze baseline. Re-deploy the robot-side gateway/safety
+packages from the chosen tag as well.
 
 ### Release gate
 

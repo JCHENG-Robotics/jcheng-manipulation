@@ -58,7 +58,7 @@ class Settings:
     api_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
     visual_model_path: Path = DEFAULT_VISUAL_MODEL
-    api_version: str = "1.0.0-rc.1"
+    api_version: str = "1.0.0"
     schema_version: int = 1
 
     @classmethod

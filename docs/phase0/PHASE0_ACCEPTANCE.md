@@ -60,21 +60,23 @@
 > and
 > [`evidence/armpi_safety_install_20261123/`](../../evidence/armpi_safety_install_20261123/README.md).
 >
-> **Update (2026-11-23, release candidate + acceptance):** the repository is
-> tagged **`v1.0.0-rc.1`** (feature-freeze baseline `v0.9.0-ff` at `30799df`).
-> The tag predates the post-rc.1 **full G8 acceptance**, which passed on
-> 2026-11-23: 8 phases / 11 bus-verified commands, one bounded open-loop
+> **Update (2026-11-23, v1.0.0):** the repository is tagged **`v1.0.0`**
+> (feature-freeze baseline `v0.9.0-ff` at `30799df`; `v1.0.0-rc.1` was the
+> candidate at `d9b34b5`). The release includes the post-rc.1 **full G8
+> acceptance**: 8 phases / 11 bus-verified commands, one bounded open-loop
 > chassis pulse, grip verify and a put-back at 0.236 m inside the
 > 0.220–0.255 m band; `/safety_stop=false`. See
 > [`evidence/g8_acceptance_20261123/`](../../evidence/g8_acceptance_20261123/README.md).
-> The same day's reproducible-build work added `ros-ci.yml`, exact Python
-> pins and a vendor manifest; the target-architecture `colcon build/test` run
-> built 7 packages and ran 118 tests with 0 failures (1 local skip). See
+> The reproducible-build work added `ros-ci.yml`, exact Python pins and a
+> vendor manifest; the target-architecture `colcon build/test` run built 7
+> packages and ran 118 tests with 0 failures (1 local skip). See
 > [`evidence/ros_colcon_20261123/`](../../evidence/ros_colcon_20261123/README.md).
 > The CI image is digest-pinned and run 45098657645 passed. The 8765 service
 > runs as `pi:docker`, the 8766 unit is installed but disabled, and the
-> backend refuses a non-loopback bind without a token. `v1.0.0` has no open
-> engineering blocker; see [`RELEASE.md`](../../RELEASE.md).
+> backend refuses a non-loopback bind without a token. A post-change G8
+> smoke passed on that stack
+> ([`evidence/g8_smoke_20261123/`](../../evidence/g8_smoke_20261123/README.md)).
+> See [`RELEASE.md`](../../RELEASE.md).
 
 ## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21/23)
 

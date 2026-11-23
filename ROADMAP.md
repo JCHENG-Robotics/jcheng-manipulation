@@ -12,7 +12,7 @@
 Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway/safety/fast
 validation and the post-rc.1 **full G8 acceptance**; this roadmap was
 synchronized with the README pair, changelog and acceptance report. The
-repository is at the **v1.0.0-rc.1** release candidate (see
+repository is at the **v1.0.0** production baseline (see
 [`RELEASE.md`](RELEASE.md)).
 The Studio G8 **fast task path** (dense S-curves + the base approach inside one
 run) was verified on the hardware on 2026-11-21: 5.466 s commanded / 13.46 s

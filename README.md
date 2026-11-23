@@ -298,7 +298,7 @@ tools/
 
 Hardware results are as of 2026-11-21, plus the 2026-11-23 gateway, real
 `armpi_safety`, 4.0/20 fast-path validation and the post-rc.1 full G8
-acceptance. The repository is at the **v1.0.0-rc.1** release candidate (tag
+acceptance. The repository is at the **v1.0.0** production baseline (tag
 ladder and known limitations in [`RELEASE.md`](RELEASE.md)). The 2026-11-22/23
 batch covers backend/gateway structure extraction, `/safety_stop`
 consumption, shared `jcheng_core` stats/vision primitives, four named

@@ -3,7 +3,11 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — post-rc.1 acceptance (2026-11-23)
+## [1.0.0] — 2026-11-23
+
+Production baseline. Includes `v1.0.0-rc.1` plus the full G8 acceptance,
+digest-pinned colcon CI, non-root 8765 service, disabled-by-default 8766
+unit, optional backend token auth and the post-change G8 smoke.
 
 ### Added
 
@@ -40,9 +44,9 @@ All notable changes to this project are documented here. Format based on
 
 ### Fixed
 
-- Backend health reports `api_version` `1.0.0-rc.1` instead of the stale
-  `0.1.0`; release manifest component versions use the same
-  `1.0.0-rc.1` spelling as the packages.
+- Backend health reports `api_version` `1.0.0` instead of the stale
+  `0.1.0`; release manifest component versions use the same `1.0.0`
+  spelling as the packages.
 - `armpi_analysis/paired_trials.py` had 10 blank lines before
   `_count_failures` (`E303`), caught by its own ROS lint test.
 

@@ -3,11 +3,11 @@
     ".github/workflows/python-ci.yml": "0624a3f8cffb698cbf1156f0088c09d711687416aab86eb4b592447d51b93b91",
     ".github/workflows/ros-ci.yml": "127e9ec9b8ffdb882e0a58f3cd8d6203139f8a07741e388a4acfea05ddd56878",
     ".github/workflows/studio-ci.yml": "27eb1d70b914edc0500b6cfb30bc077abe8124a273be5df74db3601eeac596b9",
-    "VERSION": "8e3ccfbe492191dbb919be7b4ef3d93bd88f92b1d99532b25ba19c5ad9f1f722",
-    "armpi-debug-studio/backend/pyproject.toml": "0e5cf7e414bf989dc41ac66b867eed8e0a122b0344906fe8402c58d161d9e0d1",
+    "VERSION": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03",
+    "armpi-debug-studio/backend/pyproject.toml": "6e9d07414b86aeb9795126ff07b128755cd405a29bd344f4c4061232dc9246f4",
     "armpi-debug-studio/configs/joint_mapping.yaml": "b91348739261ab3c4bd1f08f6469fae1622f5e8add89c264697faf4b92a8acae",
     "armpi-debug-studio/configs/takeover.yaml": "fadf3498830967901bfad2e06167fb29a6ec7d0446224574aeaa4989f52a70e5",
-    "armpi-debug-studio/frontend/package.json": "087f0c0864108c88d20fae39ace94a71b5bf3fcc9922494440c234acee265ca8",
+    "armpi-debug-studio/frontend/package.json": "e7fa0ae34e99ec5db3eaed864d2d472fb6c4bae32ffde556da0c3dfbfa3ab949",
     "packages/jcheng_core/pyproject.toml": "038bece82e393bc5c152ac882b008ef79cd77331fccb416f18d60961596cd177",
     "requirements/ci.txt": "b22a50ef48c82865558bd322bb0f44e1858b165cc072a05cda48ab554bf71485",
     "ros2_ws/src/armpi_safety/config/safety_limits.yaml": "384def4d272a140e8acd58abcf268a5913698666e8983004d840eb6f091423da"
@@ -19,9 +19,9 @@
     "armpi_safety": "0.1.0",
     "armpi_ultra_moveit_config": "0.3.0",
     "jcheng_core": "0.1.0",
-    "studio_backend": "1.0.0-rc.1",
-    "studio_frontend": "1.0.0-rc.1",
-    "studio_gateway": "1.0.0-rc.1"
+    "studio_backend": "1.0.0",
+    "studio_frontend": "1.0.0",
+    "studio_gateway": "1.0.0"
   },
   "date": "2026-11-23",
   "freeze": {
@@ -49,8 +49,7 @@
     "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
     "real armpi_safety node is a manual process, not a boot service",
     "8766 pose/motion unit is installed but disabled; motion needs an explicit start",
-    "backend defaults to localhost without a token; a non-loopback bind requires ARMPI_BACKEND_TOKEN",
-    "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
+    "backend defaults to localhost without a token; a non-loopback bind requires ARMPI_BACKEND_TOKEN"
   ],
   "post_rc1_acceptance": {
     "date": "2026-11-23",
@@ -73,9 +72,9 @@
     },
     "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
   },
-  "release": "1.0.0-rc.1",
-  "source_commit": "d9b34b5",
-  "tag": "v1.0.0-rc.1",
+  "release": "1.0.0",
+  "source_commit": "40a623e",
+  "tag": "v1.0.0",
   "verification": {
     "armpi_analysis": "34 passed",
     "backend": "148 collected; exit 0",
