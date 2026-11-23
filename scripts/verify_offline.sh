@@ -10,7 +10,7 @@ echo "== config consistency =="
 python3 tools/verify_config_consistency.py
 
 echo "== pure-Python suites =="
-PYTHONPATH=ros2_ws/src/armpi_analysis python3 -m pytest -q \
+PYTHONPATH=packages/jcheng_core:ros2_ws/src/armpi_analysis python3 -m pytest -q \
   ros2_ws/src/armpi_analysis/test/test_error_budget.py \
   ros2_ws/src/armpi_analysis/test/test_paired_trials.py \
   ros2_ws/src/armpi_analysis/test/test_host_benchmark.py \
@@ -22,6 +22,7 @@ if [[ ! -x .venv/bin/python ]]; then
   python3 -m venv .venv
   .venv/bin/pip install --upgrade pip
   .venv/bin/pip install -e '.[dev]'
+  .venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 fi
 .venv/bin/python -m pytest -q
 

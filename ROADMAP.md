@@ -7,12 +7,12 @@
 
 > Technical roadmap: this document tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
-## Current status (2026-11-22)
+## Current status (2026-11-23)
 
-Hardware results are as of 2026-11-21; this roadmap was synchronized with the
-README pair, changelog and acceptance report on 2026-11-22 (random-placement
-paired trial, Studio G7 pose takeover, Studio G8 task takeover and the G8.1
-bounded chassis approach, all real-motion verified with bus-servo completion).
+Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway/safety/fast
+validation; this roadmap was synchronized with the README pair, changelog and
+acceptance report. The repository is at the **v1.0.0-rc.1** release candidate
+(see [`RELEASE.md`](RELEASE.md)).
 The Studio G8 **fast task path** (dense S-curves + the base approach inside one
 run) was verified on the hardware on 2026-11-21: 5.466 s commanded / 13.46 s
 wall, `held: true`, landing 2.27 mm planar.
@@ -23,12 +23,17 @@ the safety/structure fixes `43647bc` (`d93288e`) and continues through
 into the Studio gateway, safety/planner/fiducial CI gates, ticker moved off the
 event loop, hardware-adapter state locked, backend operations split into
 mixins (`service.py` 3,351 → 1,022 lines), gateway `CameraCache` and
-`telemetry_format` extracted (`node.py` 1,302 → 1,196 lines), shared phase-3
-`sys.path` bootstrap, duplicated joint/servo-id table check, and config
-consistency extended to the fast-motion defaults and view poses. Current
-verification: **144 backend + 93 gateway tests**, 10 mock + 3 hardware + 3
-pose/task Playwright, and `CONFIG OK`. The real-robot `/safety_stop` round trip
-and the low-speed joint2 check remain pending.
+`telemetry_format` extracted, shared phase-3 `sys.path` bootstrap, duplicated
+joint/servo-id table check, and config consistency extended to the fast-motion
+defaults and view poses. Current verification: **144 backend + 93 gateway
+tests**, 10 mock + 3 hardware + 3 pose/task Playwright, and `CONFIG OK`.
+
+The 2026-11-23 batch added `TelemetryCache`, shared `jcheng_core` stats/vision
+packages, four named motion-limit profiles (`moveit`, `step`, `pose`, `fast`),
+the real `armpi_safety` install in the persistent safety overlay, and a
+4.0/20 view→upright fast-path regression (`ok`, settle 2 pulses). The
+`/safety_stop` round trip and low-speed joint2 check are confirmed; the full
+G8 task sequence was not rerun for rc.1.
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

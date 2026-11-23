@@ -3,6 +3,54 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0-rc.1] — 2026-11-23
+
+First tagged release candidate. Feature-freeze baseline `v0.9.0-ff` is the
+earlier `30799df`; this candidate adds the offline hardening and the gateway /
+safety hardware validation. See [`RELEASE.md`](RELEASE.md) and
+[`release/manifest.json`](release/manifest.json).
+
+### Added
+
+- Shared `packages/jcheng_core` (`jcheng_stats`, `jcheng_vision`) and the
+  backend/phase-3 bootstrap wiring.
+- `CameraCache` and `TelemetryCache` in the Studio gateway; `GatewayNode` is
+  now 1,031 lines.
+- Four path-bound motion profiles (`moveit`, `step`, `pose`, `fast`) in
+  `safety_limits.yaml`, with checker and runtime enforcement.
+- Real `armpi_safety` node installed in the persistent safety overlay.
+
+### Changed
+
+- Zero displacement is one `dt`-long hold segment in both profile planners.
+- Docs, READMEs, ROADMAP and acceptance report synchronized to the 144/93
+  gateway baseline and the hardware confirmation.
+
+### Fixed
+
+- joint2 hard/adopted bounds 795/775; `/safety_stop` consumer; non-blocking
+  ticker; adapter lock; duplicate stats/vision/joint/servo constants.
+- Gateway token comparison is now constant-time (`hmac.compare_digest`).
+
+### Verification
+
+- backend 144; gateway 93; `armpi_analysis` 34; safety/planner/fiducial 59;
+  tools 242 passed / 7 skipped; `CONFIG OK`; hardware evidence in
+  `evidence/studio_validation_20261123/`,
+  `evidence/armpi_safety_install_20261123/` and
+  `evidence/fast_path_regression_20261123/`.
+
+### Known limitations
+
+- No e-stop, brake, self-collision model, independent encoder or odometry.
+- The fast CLI bypasses `armpi_safety` by design (explicit `profiles.fast`).
+- No ROS `colcon` CI and no Python/Docker/vendor pinning; the backend is
+  localhost-only with no auth. `v1.0.0` remains gated on a full G8 hardware
+  acceptance and a reproducible build.
+
+> Historical note: the dated `[Unreleased]` sections below are the pre-release
+> record. They are retained as-is; rc.1 is the first tagged baseline.
+
 ## [Unreleased] — 2026-11-22 offline safety/structure hardening
 
 Offline only; no hardware motion and no new algorithms. Follow-up to the

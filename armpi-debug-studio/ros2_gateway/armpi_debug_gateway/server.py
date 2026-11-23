@@ -22,6 +22,7 @@ read-only handlers.
 
 from __future__ import annotations
 
+import hmac
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -83,7 +84,12 @@ class GatewayRequestHandler(BaseHTTPRequestHandler):
     def _authorized(self) -> bool:
         if not self.server.token:
             return True
-        return self.headers.get("X-Armpi-Token") == self.server.token
+        supplied = self.headers.get("X-Armpi-Token")
+        if supplied is None:
+            return False
+        return hmac.compare_digest(
+            supplied.encode("utf-8"), self.server.token.encode("utf-8")
+        )
 
     def _json(self, status: int, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")

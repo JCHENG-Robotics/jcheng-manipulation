@@ -292,14 +292,15 @@ tools/
 └── phase4/                # read-only host/DDS benchmark collector
 ```
 
-## Project status (2026-11-22)
+## Project status (2026-11-23)
 
-Hardware results are as of 2026-11-21; this document was synchronized with the
-roadmap, changelog and acceptance report on 2026-11-22. The 2026-11-22 batch is
-offline only: Studio backend/gateway structure extraction, a `/safety_stop`
-consumer in the gateway, config-consistency checks extended to the fast-motion
-defaults and view poses, and the duplicated joint/servo-id table check.
-Status convention:
+Hardware results are as of 2026-11-21, plus the 2026-11-23 gateway, real
+`armpi_safety` and 4.0/20 fast-path validation. The repository is at the
+**v1.0.0-rc.1** release candidate (tag ladder and known limitations in
+[`RELEASE.md`](RELEASE.md)). The 2026-11-22/23 batch covers backend/gateway
+structure extraction, `/safety_stop` consumption, shared `jcheng_core`
+stats/vision primitives, four named motion-limit profiles, the real safety
+node install and the fast-path regression. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked
