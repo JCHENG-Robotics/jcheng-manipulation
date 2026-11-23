@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-23",
+  "robot": "ArmPi Ultra",
+  "host": "10.42.0.218",
+  "container": "ArmPiUltra",
+  "gateways": {
+    "read_only_service": 8765,
+    "pose_motion": 8766,
+    "read_only_validation": 8767
+  },
+  "armpi_safety_installed": false,
+  "safety_stop_test_source": "fake transient-local std_msgs/Bool publisher",
+  "cache_before": {
+    "r_joint": 500,
+    "joint1": 700,
+    "joint2": 500,
+    "joint3": 500,
+    "joint4": 500,
+    "joint5": 500
+  },
+  "actual_before": {
+    "r_joint": 216,
+    "joint1": 504,
+    "joint2": 600,
+    "joint3": 831,
+    "joint4": 105,
+    "joint5": 499
+  },
+  "resync": {
+    "command": "ServosPosition target=actual, duration=2.0, position_unit=pulse",
+    "actual_at_resync": {
+      "r_joint": 224,
+      "joint1": 497,
+      "joint2": 597,
+      "joint3": 830,
+      "joint4": 113,
+      "joint5": 501
+    },
+    "actual_after": {
+      "r_joint": 224,
+      "joint1": 497,
+      "joint2": 597,
+      "joint3": 834,
+      "joint4": 113,
+      "joint5": 501
+    },
+    "cache_after": {
+      "r_joint": 224,
+      "joint1": 497,
+      "joint2": 597,
+      "joint3": 830,
+      "joint4": 113,
+      "joint5": 501
+    }
+  },
+  "safety_stop": {
+    "latched": true,
+    "hold_published": true,
+    "dispatch_code": "SAFETY_STOP",
+    "dispatch_http_status": 409,
+    "cleared": true,
+    "actual_unchanged": true
+  },
+  "recovery": {
+    "duration_s": 10.0,
+    "target_pulses": {
+      "joint1": 700,
+      "joint2": 500,
+      "joint3": 500,
+      "joint4": 500,
+      "joint5": 500
+    },
+    "actual_pulses": {
+      "joint1": 694,
+      "joint2": 500,
+      "joint3": 504,
+      "joint4": 495,
+      "joint5": 501
+    },
+    "start_tcp_m": [0.185315, -0.001336, 0.113706],
+    "target_tcp_m": [0.073222, 0.008135, 0.418465],
+    "start_table_clearance_m": 0.19275,
+    "target_table_clearance_m": 0.20716,
+    "path_samples": 21,
+    "violations": []
+  },
+  "joint2": {
+    "target_540_actual": 539,
+    "target_500_actual": 500,
+    "verification": "bus",
+    "strict_bound_rejection": "joint2 pulse [789, 789] outside adopted (342, 775)"
+  },
+  "camera_telemetry_8767": {
+    "battery": {
+      "voltage_v": 7.739,
+      "percent_estimate": 67.0,
+      "status": "ok",
+      "validity": "valid",
+      "sample_age_ms": 19
+    },
+    "camera": {
+      "width": 640,
+      "height": 400,
+      "encoding": "bgr8",
+      "fps": 5.6,
+      "frame_count": 61,
+      "snapshot_http": 200,
+      "snapshot_bytes": 20025,
+      "snapshot_jpeg": true
+    },
+    "tf": {
+      "status": "ok",
+      "dynamic_edges": 11,
+      "static_edges": 11,
+      "freshest_age_ms": 83,
+      "max_static_age_ms": 10389
+    }
+  },
+  "final_actual_pulses": {
+    "r_joint": 225,
+    "joint1": 695,
+    "joint2": 500,
+    "joint3": 503,
+    "joint4": 495,
+    "joint5": 501
+  },
+  "limitations": [
+    "no real armpi_safety node in the slim container",
+    "fake Bool used for /safety_stop",
+    "no e-stop, brake, self-collision model or independent encoder",
+    "8766 and 8767 stopped after the run; 8765 remains read-only",
+    "arm supported and workspace clear; operator present"
+  ]
+}
