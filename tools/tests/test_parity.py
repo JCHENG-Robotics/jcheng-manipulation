@@ -46,10 +46,15 @@ def test_empty_summary_matches():
     assert experiments._summary([]) == paired_trials._summary([])
 
 
-@pytest.mark.parametrize("fraction", [0.0, 0.025, 0.5, 0.975, 1.0])
-def test_percentile_matches(fraction):
-    assert paired_trials._percentile(VALUES, fraction) == pytest.approx(
-        experiments._percentile(VALUES, fraction), abs=1e-12
+def test_stats_helpers_are_shared_objects():
+    """Both experiment modules now import the same jcheng_stats callables."""
+    assert experiments._summary is paired_trials._summary
+    assert (
+        experiments._bootstrap_mean_ci is paired_trials._bootstrap_mean_ci
+    )
+    assert (
+        experiments._exact_binomial_two_sided
+        is paired_trials._exact_binomial_two_sided
     )
 
 

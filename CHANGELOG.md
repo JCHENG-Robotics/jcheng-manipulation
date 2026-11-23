@@ -24,6 +24,11 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
 - Gateway `TelemetryCache` (`telemetry_cache.py`): battery, joint, measured,
   actual-bus and TF state moved out of `GatewayNode`; four pure tests cover the
   callbacks and snapshots. `GatewayNode` is now 1,031 lines (from 1,302).
+- `packages/jcheng_core` (`jcheng_stats`, `jcheng_vision`): one source for the
+  paired-trial statistics and point-cloud primitives. The duplicate helpers
+  were removed from `domain/experiments.py`, `armpi_analysis/paired_trials.py`,
+  `domain/locate.py` and `tools/phase2/object_segment_rgbd.py`; the backend
+  installs it editable, and the phase-3 bootstrap/CI add its path.
 - `armpi_safety` real node installed in the persistent
   `/home/ubuntu/shared/safety_ws` overlay (`arm_interfaces`,
   `armpi_grasp_planner`, `armpi_safety`); `urdf_parser_py` is supplied from

@@ -31,6 +31,7 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
+          .venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 
       - name: Backend tests
         working-directory: armpi-debug-studio/backend

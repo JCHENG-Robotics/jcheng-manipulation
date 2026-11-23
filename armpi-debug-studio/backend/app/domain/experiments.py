@@ -1,9 +1,10 @@
 """G3 Experiment Lab: experiment definitions, paired trials, and analysis.
 
 The statistical formulas mirror ``ros2_ws/src/armpi_analysis/armpi_analysis/
-paired_trials.py`` (the Phase 3 implementation) so the Studio and ROS tooling
-report the same numbers for the same records. This module is dependency-free
-and does not touch an adapter, ROS, or a serial port.
+paired_trials.py`` (the Phase 3 implementation) through the shared
+``jcheng_stats`` package, so the Studio and ROS tooling report the same
+numbers for the same records. This module does not touch an adapter, ROS, or a
+serial port.
 
 Experiment definitions are immutable and trials are append-only. A pair means
 the same fixture attempted once with ``baseline`` and once with ``intervention``;
@@ -15,9 +16,14 @@ from __future__ import annotations
 import hashlib
 import math
 import random
-import statistics
 from datetime import datetime, timezone
 from typing import Any
+
+from jcheng_stats import (
+    bootstrap_mean_ci as _bootstrap_mean_ci,
+    exact_binomial_two_sided as _exact_binomial_two_sided,
+    summary as _summary,
+)
 
 SCHEMA_VERSION = 1
 ANALYSIS_VERSION = "g3-1"
@@ -481,81 +487,12 @@ def normalize_trial(
 
 
 # --------------------------------------------------------------- statistics
-def _summary(values: list[float]) -> dict[str, Any]:
-    if not values:
-        return {
-            "n": 0,
-            "mean": None,
-            "std": None,
-            "min": None,
-            "max": None,
-            "ci95_mean": None,
-        }
-    count = len(values)
-    mean = statistics.fmean(values)
-    if count > 1:
-        std = statistics.stdev(values)
-        ci95 = 1.96 * std / math.sqrt(count)
-    else:
-        std = 0.0
-        ci95 = 0.0
-    return {
-        "n": count,
-        "mean": mean,
-        "std": std,
-        "min": min(values),
-        "max": max(values),
-        "ci95_mean": ci95,
-    }
 
 
-def _percentile(values: list[float], fraction: float) -> float:
-    ordered = sorted(values)
-    if len(ordered) == 1:
-        return ordered[0]
-    rank = (len(ordered) - 1) * fraction
-    lower = int(math.floor(rank))
-    upper = int(math.ceil(rank))
-    if lower == upper:
-        return ordered[lower]
-    weight = rank - lower
-    return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
 
 
-def _bootstrap_mean_ci(
-    values: list[float], samples: int, seed: int, confidence: float
-) -> dict[str, Any]:
-    if len(values) < 2:
-        mean = values[0] if values else None
-        return {"samples": samples, "seed": seed, "low": mean, "high": mean, "mean": mean}
-    generator = random.Random(seed)
-    draws = []
-    count = len(values)
-    for _ in range(samples):
-        total = 0.0
-        for _ in range(count):
-            total += values[generator.randrange(count)]
-        draws.append(total / count)
-    alpha = (1.0 - confidence) / 2.0
-    return {
-        "samples": samples,
-        "seed": seed,
-        "low": _percentile(draws, alpha),
-        "high": _percentile(draws, 1.0 - alpha),
-        "mean": statistics.fmean(draws),
-    }
 
 
-def _exact_binomial_two_sided(successes: int, failures: int) -> float:
-    total = successes + failures
-    if total == 0:
-        return 1.0
-    tail = min(successes, failures)
-    probability = 0.0
-    for count in range(tail + 1):
-        probability += math.comb(total, count)
-    probability = 2.0 * probability / (2**total)
-    return min(probability, 1.0)
 
 
 def _count_failures(records: list[dict[str, Any]]) -> dict[str, int]:
