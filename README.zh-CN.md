@@ -147,6 +147,7 @@ RGB-D 帧
 
 ```text
 armpi-debug-studio/        # G1–G8.1 控制台（FastAPI + React）+ 只读/受监督网关
+packages/jcheng_core/      # 共享的纯 Python 统计/视觉原语
 docs/
 ├── armpi/                 # PRD + G0 厂商审计
 ├── audit/2026-11-15/      # 源码清单、核对与决策
@@ -273,6 +274,7 @@ PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
 cd armpi-debug-studio/backend
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
+.venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 .venv/bin/pytest
 cd ../ros2_gateway && ../backend/.venv/bin/python -m pytest
 cd ../frontend && npm ci && npx playwright install chromium && npm run test:e2e

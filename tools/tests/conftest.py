@@ -9,6 +9,7 @@ for relative in (
     "tools",
     "tools/phase2",
     "tools/phase3",
+    "packages/jcheng_core",
     "ros2_ws/src/armpi_analysis",
     "armpi-debug-studio/backend",
 ):

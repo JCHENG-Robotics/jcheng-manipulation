@@ -249,6 +249,7 @@ RGB-D frame
 
 ```text
 armpi-debug-studio/        # G1–G8.1 console (FastAPI + React) + read-only/supervised gateway
+packages/jcheng_core/      # shared pure-Python statistics + vision primitives
 docs/
 ├── armpi/                 # PRD + G0 vendor audit
 ├── audit/2026-11-15/      # source inventory, reconciliation, decisions
@@ -396,6 +397,7 @@ PYTHONPATH=ros2_ws/src/armpi_analysis python -m pytest -q \
 cd armpi-debug-studio/backend
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
+.venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 .venv/bin/pytest
 cd ../ros2_gateway && ../backend/.venv/bin/python -m pytest
 cd ../frontend && npm ci && npx playwright install chromium && npm run test:e2e

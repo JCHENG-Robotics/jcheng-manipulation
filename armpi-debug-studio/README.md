@@ -234,6 +234,7 @@ cd backend
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
+pip install -e ../../packages/jcheng_core --no-deps
 uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000
 ```
 

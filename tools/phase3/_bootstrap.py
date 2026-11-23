@@ -17,8 +17,9 @@ REPO = str(TOOLS_DIR.parent)
 TOOLS = str(TOOLS_DIR)
 PHASE2 = str(TOOLS_DIR / "phase2")
 ANALYSIS = str(TOOLS_DIR.parent / "ros2_ws" / "src" / "armpi_analysis")
+SHARED = str(TOOLS_DIR.parent / "packages" / "jcheng_core")
 
-_PATHS = (TOOLS, PHASE2, str(PHASE3_DIR), ANALYSIS)
+_PATHS = (SHARED, TOOLS, PHASE2, str(PHASE3_DIR), ANALYSIS)
 
 
 def bootstrap() -> None:

@@ -3,7 +3,7 @@
 <package format="3">
   <name>armpi_analysis</name>
   <version>0.1.0</version>
-  <description>Dependency-free error-budget, paired-trial and host benchmark tools</description>
+  <description>Pure-Python error-budget, paired-trial and host benchmark tools</description>
   <maintainer email="maintainer@example.invalid">Jericho Cheng</maintainer>
   <license>MIT</license>
 

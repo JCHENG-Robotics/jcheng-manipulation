@@ -47,6 +47,7 @@ jobs:
       - name: Lint the analysis package and offline tools
         run: |
           python -m flake8 \
+            packages/jcheng_core \
             ros2_ws/src/armpi_analysis \
             tools/phase3 \
             tools/phase4 \
@@ -59,7 +60,7 @@ jobs:
 
       - name: Run pure-Python tests
         env:
-          PYTHONPATH: ros2_ws/src/armpi_analysis
+          PYTHONPATH: packages/jcheng_core:ros2_ws/src/armpi_analysis
         run: |
           python -m pytest -q \
             ros2_ws/src/armpi_analysis/test/test_error_budget.py \

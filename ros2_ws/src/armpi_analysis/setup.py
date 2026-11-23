@@ -27,7 +27,7 @@ setup(
     maintainer='Jericho Cheng',
     maintainer_email='maintainer@example.invalid',
     description=(
-        'Dependency-free error-budget, paired-trial and host benchmark tools'
+        'Pure-Python error-budget, paired-trial and host benchmark tools'
     ),
     license='MIT',
     tests_require=['pytest'],

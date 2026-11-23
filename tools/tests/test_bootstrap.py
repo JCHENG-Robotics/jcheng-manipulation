@@ -10,7 +10,12 @@ import _bootstrap
 
 def test_bootstrap_adds_existing_paths_once():
     _bootstrap.bootstrap()
-    for path in (_bootstrap.TOOLS, _bootstrap.PHASE2, _bootstrap.ANALYSIS):
+    for path in (
+        _bootstrap.TOOLS,
+        _bootstrap.PHASE2,
+        _bootstrap.ANALYSIS,
+        _bootstrap.SHARED,
+    ):
         assert path in sys.path
         assert Path(path).is_dir()
 
