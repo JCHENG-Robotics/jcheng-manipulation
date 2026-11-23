@@ -69,10 +69,6 @@ jobs:
             ros-humble-urdfdom-py \
             ros-humble-xacro
 
-      - name: Install the shared pure-Python core
-        run: |
-          python3 -m pip install -e packages/jcheng_core --no-deps
-
       - name: Build the public packages
         shell: bash
         run: |
@@ -90,6 +86,8 @@ jobs:
         run: |
           source /opt/ros/humble/setup.bash
           source install/setup.bash
+          # armpi_analysis imports the shared pure-Python core from the repo.
+          export PYTHONPATH="$GITHUB_WORKSPACE/packages/jcheng_core:$PYTHONPATH"
           PKGS="arm_interfaces armpi_analysis armpi_fiducial_localizer \
             armpi_grasp_planner armpi_safety armpi_ultra_description \
             armpi_ultra_moveit_config"

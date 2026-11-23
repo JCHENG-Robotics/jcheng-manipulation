@@ -63,6 +63,7 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
+          .venv/bin/pip install -e ../../packages/jcheng_core --no-deps
 
       - name: Install the frontend
         working-directory: armpi-debug-studio/frontend
