@@ -1,0 +1,16 @@
+[Unit]
+# Laptop-side gateway that lets the 192.168.5.0/24 LAN reach the robot's
+# direct link (10.42.0.0/24) through this machine.
+Description=ArmPi gateway (192.168.5.0/24 -> 10.42.0.0/24 via USB Ethernet)
+Documentation=file:///usr/local/sbin/laptop-robot-gateway
+After=network-online.target NetworkManager-wait-online.service docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/laptop-robot-gateway up
+ExecStop=/usr/local/sbin/laptop-robot-gateway down
+
+[Install]
+WantedBy=multi-user.target

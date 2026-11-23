@@ -8,11 +8,13 @@
 ```text
 laptop                                    robot (Pi 5)
 enx00e04ca373c7  10.42.0.1  ── cable ──  eth0  10.42.0.218   SSH, DDS, gateway :8765
-wlp4s0           10.51.128.246  ~~~ WiFi ~~~  wlan0 10.51.128.226   outbound only
+wlp4s0           DHCP (192.168.5.x today)  ~~~ WiFi ~~~  wlan0 10.51.128.226  outbound only
 ```
 
 The direct Ethernet link is the **only** way in. Office WiFi is still used by
 the robot for internet access (apt, time sync); its inbound traffic is dropped.
+The laptop's WiFi sits on the same LAN as the second workstation (see
+[Reaching the robot from a second workstation](#reaching-the-robot-from-a-second-workstation-laptop-nat-gateway)).
 
 ## Why
 
@@ -130,6 +132,56 @@ shows the robot topics; both WiFi probes fail.
 reads the token over SSH on that link. The persistent gateway is bound to
 `10.42.0.218` in `/etc/armpi-gateway/gateway.env`. The supervised motion
 instance (port 8766) must also be started with `--host 10.42.0.218`.
+
+## Reaching the robot from a second workstation (laptop NAT gateway)
+
+The robot's direct link is not routable, so a workstation on the office LAN
+reaches it through the laptop, which forwards **and** source-NATs:
+
+```
+ti5robot 192.168.5.31 ──LAN──> laptop wlp4s0 192.168.5.22 ──USB──> robot 10.42.0.218
+```
+
+Because the laptop masquerades to `10.42.0.1`, the robot needs no route of its
+own and no firewall change: its lockdown accepts everything arriving on
+`eth0`. Do not add a static route on the Pi instead — its default route leaves
+via `wlan0`, which the firewall drops.
+
+Laptop (root, installs `/usr/local/sbin/laptop-robot-gateway`, a systemd unit
+and an `ip_forward` drop-in):
+
+```bash
+sudo bash tools/net/install-laptop-gateway.sh
+sudo /usr/local/sbin/laptop-robot-gateway status    # must print "gateway ok"
+```
+
+The status check needs root; non-root `iptables -C` returns EPERM and would
+otherwise look like a missing rule.
+
+Second workstation (NetworkManager, persistent):
+
+```bash
+CON=$(nmcli -t -f NAME,DEVICE connection show --active | awk -F: '$2=="eno1"{print $1; exit}')
+sudo nmcli connection modify "$CON" +ipv4.routes "10.42.0.0/24 192.168.5.22"
+sudo nmcli device reapply eno1     # reapply, not `connection up`: no DHCP bounce
+```
+
+Verify: `ip route get 10.42.0.218` -> `via 192.168.5.22`,
+`ping -c 3 10.42.0.218` -> replies with **`ttl=63`** (exactly one hop, i.e. the
+laptop forwarded it; `ttl=64` means it never left the LAN).
+
+Limitations and failure modes:
+
+- **ROS 2 does not cross this.** DDS discovers over multicast; the remote can
+  SSH, `scp`, and drive the phase scripts, but cannot join the DDS graph. A
+  tunnel that extends the link (or an initial-peers config) would be needed.
+- The robot's lockdown sees every remote session as `10.42.0.1`, so per-source
+  rules cannot distinguish it from the laptop.
+- The laptop's `wlp4s0` address is DHCP; if `192.168.5.22` moves, the remote's
+  route points at nothing. Pin a DHCP reservation, or make the profile static.
+- If the remote pings but SSH hangs, check `ip route get` for a wrong source
+  address or a second route; the laptop's FORWARD rules only match
+  `-s 192.168.5.0/24`.
 
 ## If wireless access is ever needed again
 
