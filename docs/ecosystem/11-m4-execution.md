@@ -112,7 +112,8 @@ M4 节点没有发布任何厂商命令话题，也没有调用任何写服务�
 | 短时只读探针 | `writes=0`、`measured_samples>0`、preflight `ok=true` |
 | `m1-gate` / `m3-mock` / `m4-readonly` | 通过 |
 | M4 PR #3 CI | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45146255614 |
-| M4 修复分支 CI | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45149828614 |
+| M4 修复分支 CI（代码 `4f64df2`） | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45149828614（通过） |
+| M4 修复分支 CI（最终文档提交） | 2026-11-23 两个 run（45154996046、45155929815）均卡在 runner 的 `apt-get`；待 GitHub Actions 网络恢复后重跑 |
 | `main` 保护 | `m1-gate` + `m3-mock` + `m4-readonly`，strict，管理员受限 |
 
 ## 5. 未做 / 待办
@@ -128,7 +129,8 @@ M4 节点没有发布任何厂商命令话题，也没有调用任何写服务�
 ## 6. 后续
 
 1. 打开并合并 `m4/readonly-fixes` 的 PR（4 Hz、token env、关闭守卫），
-   使 `main` 与实际验收代码一致。
+   使 `main` 与实际验收代码一致。代码提交 `4f64df2` 的 CI 已绿；最终文档
+   提交的 CI 因 GitHub runner `apt-get` 卡住，需在 Actions 恢复后重跑。
 2. 合并后再讨论 `jcheng-system v0.2.0` 标签。
 3. 修正相机/TF 只读元数据（可选）：启用相机或改用 `/ext_cam`；
    `/tf_static` 改 TRANSIENT_LOCAL。
