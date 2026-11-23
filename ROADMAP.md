@@ -41,8 +41,8 @@ tag on 2026-11-23 (8 phases, 11 bus-verified commands, put-back at 0.236 m
 inside the 0.220–0.255 m band). The same batch added a `colcon build/test` CI
 job, exact Python pins, and a vendor source-tree manifest; the target-
 architecture run built 7 packages and ran **118 tests / 0 failures / 1 skip**
-([evidence](evidence/ros_colcon_20261123/README.md)). The CI base image is
-still tag-pinned rather than digest-pinned. Operations also gained a hardware
+([evidence](evidence/ros_colcon_20261123/README.md)); the base image is
+digest-pinned and the CI pull/build/test passed. Operations also gained a hardware
 preflight/runbook, an evidence-manifest check, and a non-root gateway
 installer; the live 8765 service was reinstalled as `pi:docker` and verified.
 

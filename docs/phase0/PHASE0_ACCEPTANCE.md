@@ -71,8 +71,9 @@
 > pins and a vendor manifest; the target-architecture `colcon build/test` run
 > built 7 packages and ran 118 tests with 0 failures (1 local skip). See
 > [`evidence/ros_colcon_20261123/`](../../evidence/ros_colcon_20261123/README.md).
-> `v1.0.0` remains gated on digest-pinning the CI base image and the
-> remaining P1 operational items; see [`RELEASE.md`](../../RELEASE.md).
+> The CI image is digest-pinned and run 45098657645 passed. `v1.0.0` remains
+> gated on the remaining P1 operational items; see
+> [`RELEASE.md`](../../RELEASE.md).
 
 ## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21/23)
 

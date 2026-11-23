@@ -1,7 +1,6 @@
-# Pin with --build-arg ROS_BASE_IMAGE=ros:humble-ros-base@sha256:<digest>
-# when a registry digest is available; the tag default keeps local builds
-# working offline.
-ARG ROS_BASE_IMAGE=ros:humble-ros-base
+# Digest pin (pull-tested by .github/workflows/ros-ci.yml). Override with
+# --build-arg ROS_BASE_IMAGE=ros:humble-ros-base only if a local tag is needed.
+ARG ROS_BASE_IMAGE=ros:humble-ros-base@sha256:dfc94c85d8e01f230951b2a85ca5576e08473081c3da5fbbe8f3ab844703b9ba
 FROM ${ROS_BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive

@@ -63,16 +63,18 @@ colcon test-result --verbose
 - `docs/hardware/vendor_baseline_manifest.json` + 
   `tools/vendor_baseline_manifest.py` pin the private vendor source tree and
   its archive by SHA-256 without publishing vendor source.
-- `tools/humble_moveit/Dockerfile` exposes `ROS_BASE_IMAGE` so a digest can be
-  supplied with `--build-arg`.
+- `tools/humble_moveit/Dockerfile` defaults to the same digest and still
+  accepts `--build-arg ROS_BASE_IMAGE=...`.
 
-## Residual
+## CI confirmation
 
-`ros:humble-ros-base` is still selected by tag, not by registry digest: this
-host has no route to Docker Hub or `download.ros.org`, so the digest could not
-be resolved. The workflow contains the exact replacement point
-(`container.image` and `ROS_BASE_IMAGE`), and the tag is recorded here. This is
-the one remaining reproducibility gap; the build/test result itself is green.
+The GitHub `ros-colcon` run for commit `95e4517`
+([run 45098657645](https://github.com/JerichoCheng/jcheng-manipulation/actions/runs/45098657645))
+completed successfully: `Initialize containers` pulled
+`ros:humble-ros-base@sha256:dfc94c85d8e01f230951b2a85ca5576e08473081c3da5fbbe8f3ab844703b9ba`,
+then built and tested all seven packages. The `studio` workflow passed on the
+preceding commit (`a29ad90`). There is no remaining reproducibility gap in the
+build path.
 
 ## Evidence files
 

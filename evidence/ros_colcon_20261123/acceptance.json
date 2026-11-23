@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "blocker": "reproducible ROS build",
-  "result": "PASS_WITH_RESIDUAL",
+  "result": "PASS",
   "date": "2026-11-23",
   "environment": {
     "arch": "aarch64",
@@ -40,9 +40,12 @@
   },
   "ci": {
     "workflow": ".github/workflows/ros-ci.yml",
-    "base_image": "ros:humble-ros-base",
-    "base_image_pinned": false,
-    "explicit_dependencies": true
+    "base_image": "ros:humble-ros-base@sha256:dfc94c85d8e01f230951b2a85ca5576e08473081c3da5fbbe8f3ab844703b9ba",
+    "base_image_pinned": true,
+    "explicit_dependencies": true,
+    "run_id": 45098657645,
+    "head_sha": "95e4517",
+    "result": "success"
   },
   "pins": {
     "python_tooling": "requirements/ci.txt",
@@ -54,9 +57,7 @@
   "fixed": [
     "armpi_analysis/paired_trials.py E303 (10 blank lines before _count_failures)"
   ],
-  "residual": [
-    "the CI base image is tag-pinned (ros:humble-ros-base), not digest-pinned; Docker Hub and download.ros.org are unreachable from the verification host"
-  ],
+  "residual": [],
   "evidence_files": [
     "README.md",
     "acceptance.json",

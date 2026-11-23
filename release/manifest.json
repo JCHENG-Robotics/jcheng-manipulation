@@ -1,8 +1,8 @@
 {
   "checksums_sha256": {
     ".github/workflows/python-ci.yml": "0624a3f8cffb698cbf1156f0088c09d711687416aab86eb4b592447d51b93b91",
-    ".github/workflows/ros-ci.yml": "5f9eac9a5874b7d5d14aaaac6974b75ae9dc28a2f93a6158598f55f8d71a557c",
-    ".github/workflows/studio-ci.yml": "0c016fb1b83a878eaacc87410c4c8e6a3707c49c22a4e6038b795d748e798bf7",
+    ".github/workflows/ros-ci.yml": "127e9ec9b8ffdb882e0a58f3cd8d6203139f8a07741e388a4acfea05ddd56878",
+    ".github/workflows/studio-ci.yml": "27eb1d70b914edc0500b6cfb30bc077abe8124a273be5df74db3601eeac596b9",
     "VERSION": "8e3ccfbe492191dbb919be7b4ef3d93bd88f92b1d99532b25ba19c5ad9f1f722",
     "armpi-debug-studio/backend/pyproject.toml": "0e5cf7e414bf989dc41ac66b867eed8e0a122b0344906fe8402c58d161d9e0d1",
     "armpi-debug-studio/configs/joint_mapping.yaml": "b91348739261ab3c4bd1f08f6469fae1622f5e8add89c264697faf4b92a8acae",
@@ -45,7 +45,6 @@
     "no e-stop, brake, self-collision model, independent encoder or odometry",
     "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
     "real armpi_safety node is a manual process, not a boot service",
-    "CI base image is tag-pinned (ros:humble-ros-base), not digest-pinned",
     "backend has no auth and is localhost-only by policy",
     "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
   ],
@@ -55,8 +54,8 @@
     "full_g8": "PASS",
     "reproducible_build": {
       "evidence": "evidence/ros_colcon_20261123/",
-      "result": "PASS_WITH_RESIDUAL",
-      "summary": "7 packages built; 118 tests, 0 errors, 0 failures, 1 skipped (local xmllint schema fetch); CI base image digest pin outstanding"
+      "result": "PASS",
+      "summary": "7 packages built; 118 tests, 0 errors, 0 failures, 1 skipped (local xmllint schema fetch); digest-pinned CI run 45098657645 passed"
     },
     "operations": {
       "evidence": "evidence/gateway_service_20261123/",

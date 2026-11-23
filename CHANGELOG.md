@@ -13,10 +13,11 @@ All notable changes to this project are documented here. Format based on
   band). This closes the full-G8 part of the `v1.0.0` gate.
 - Runtime evidence for the real `armpi_safety` node: valid, unlatched,
   no violations, `/safety_stop=false`.
-- `.github/workflows/ros-ci.yml` — `colcon build` + `colcon test` for the
-  seven public ROS packages in a Humble container; target-architecture
-  evidence in `evidence/ros_colcon_20261123/` (7 packages, 118 tests, 0
-  failures, 1 local skip).
+- `.github/workflows/ros-ci.yml` — digest-pinned `colcon build` + `colcon
+  test` for the seven public ROS packages; CI run 45098657645 passed on the
+  pinned image, and target-architecture evidence is in
+  `evidence/ros_colcon_20261123/` (7 packages, 118 tests, 0 failures, 1 local
+  skip).
 - `requirements/ci.txt` and `tools/vendor_baseline_manifest.py`; the vendor
   source tree/archive is pinned by SHA-256 without publishing it.
 - `docs/operations/PREFLIGHT.md` and `RUNBOOK.md`; `tools/check_evidence_manifest.py`

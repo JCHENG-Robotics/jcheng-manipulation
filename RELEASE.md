@@ -80,10 +80,10 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - `requirements/ci.txt` and the backend `pyproject.toml` pin Python tooling
   and application dependencies; `requires-python` is capped at `<3.13`.
 - `docs/hardware/vendor_baseline_manifest.json` pins the private vendor
-  source tree (SHA-256) without publishing it; the Dockerfile accepts a
-  digest through `ROS_BASE_IMAGE`.
-- Residual: the CI base image itself is still selected by tag, not by
-  registry digest; Docker Hub was unreachable from the verification host.
+  source tree (SHA-256) without publishing it.
+- The CI base image and the Dockerfile default are digest-pinned
+  (`ros:humble-ros-base@sha256:dfc94c85…`); CI run 45098657645 pulled it,
+  built the 7 packages and passed.
 
 ### Post-rc.1 operations update (2026-11-23)
 
@@ -104,10 +104,9 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - The fast CLI bypasses `armpi_safety` **by design**; it is an explicit
   `profiles.fast` tier, not the MoveIt veto. The real safety node was not
   fault-injected (state-fault latch is covered by unit tests).
-- Reproducible build: `ros-ci.yml`, exact Python pins and the vendor
-  source-tree manifest are in place; the CI base image is still
-  **tag-pinned** (`ros:humble-ros-base`), not digest-pinned, because Docker
-  Hub was unreachable from the verification host.
+- Reproducible build: `ros-ci.yml` is digest-pinned, exact Python pins and
+  the vendor source-tree manifest are in place, and the 2026-11-23 CI run
+  pulled the digest, built 7 packages and passed all tests.
 - The Studio backend has no authentication and is localhost-only by policy;
   use an SSH tunnel for remote access. The gateway token comparison is
   constant-time. The 8765 host wrapper was switched to `pi:docker` and
@@ -119,10 +118,11 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - The gripper is left open in the validation pose; no automatic boot-time
   homing.
 
-`v1.0.0` requires: a digest-pinned CI base image (the colcon build/test
-workflow is in place and green on aarch64), closure of the remaining P1
-operational items, and inclusion of the 2026-11-23 full G8 acceptance
-evidence. Do not present rc.1 as a production safety certification.
+`v1.0.0` requires: closure or explicit acceptance of the remaining P1 items
+(backend authentication policy and the manual 8766 service) and inclusion of
+the 2026-11-23 G8/build/ops evidence. The colcon CI is digest-pinned and green
+on both aarch64 and GitHub. Do not present rc.1 as a production safety
+certification.
 
 ### Upgrade / rollback
 

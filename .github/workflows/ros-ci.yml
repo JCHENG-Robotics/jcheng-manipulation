@@ -4,8 +4,7 @@ name: ros-colcon
 # robot uses. The vendor workspace (armpi_ultra_ws_clean) is intentionally not
 # checked out; only the public packages listed below are built.
 #
-# The base image is pinned by tag here. When a registry digest is available,
-# replace it with `ros:humble-ros-base@sha256:...` so the job cannot drift.
+# The base image is pinned by digest; the 2026-11-23 run pulled it and passed.
 
 on:
   push:
