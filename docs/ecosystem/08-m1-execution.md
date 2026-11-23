@@ -106,8 +106,18 @@
 这不是 break-glass：保护始终开启，只是把首次 CODEOWNERS 变更的作者与批准人
 分开。
 
-**当前状态：等待 `JerichoSwaine` 打开三个 CODEOWNERS PR。**
-在此之前 `main` 不做新改动；不通过关闭保护来绕过评审。
+**进展（2026-11-23）：**
+
+- `.github` PR #1 已由 `JerichoSwaine` 作者打开、`JerichoCheng` 批准并 squash 合并
+  （`746d94c`）。`main` 的 CODEOWNERS 已包含双方。
+- `jcheng-interfaces` PR #1 与 `jcheng-system` PR #1 已由 `JerichoSwaine` 打开，
+  `m1-gate` 成功，但**仍在等待 `JerichoCheng` 的 code-owner 批准**；未批准前不合并。
+- `docs/bilingual-profile` 已从 `main` 更新到 `eb9c5c5`，`m1-gate` 通过
+  （run 45131178687）；PR 尚未创建，因为当前 token 缺 `Pull requests: write`。
+
+**下一步：** `JerichoCheng` 批准 interfaces/system 两个 PR；随后由 `JerichoCheng`
+作者打开 profile PR，`JerichoSwaine` 批准，再合并组织主页。保护全程开启，
+不通过关闭保护来绕过评审。
 
 ### 6.2 组织级设置
 
