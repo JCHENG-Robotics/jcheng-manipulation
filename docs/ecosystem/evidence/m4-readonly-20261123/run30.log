@@ -1,0 +1,3 @@
+[INFO] [1795427231.168893628] [jcheng_telemetry]: read-only gateway listening on http://127.0.0.1:8767
+[INFO] [1795427231.169466665] [jcheng_telemetry]: read-only telemetry started: domain=0 mapping=sha256:f6304d8be3a482202b37db89fc31ad3c4c597c47c5792190542ae966aaff4d5e writes=0
+[INFO] [1795427233.134934960] [jcheng_telemetry]: read-only preflight OK
