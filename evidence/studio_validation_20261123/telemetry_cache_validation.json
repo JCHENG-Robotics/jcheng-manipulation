@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-23",
+  "change": "TelemetryCache extraction from GatewayNode",
+  "offline": {
+    "gateway_tests": "93 passed",
+    "pyflakes": "clean",
+    "node_lines": 1031
+  },
+  "hardware": {
+    "gateway_port": 8766,
+    "state_measured": {
+      "joint1": 700,
+      "joint2": 500,
+      "joint3": 500,
+      "joint4": 500,
+      "joint5": 500,
+      "r_joint": 224
+    },
+    "measured_ready": true,
+    "joint2": {
+      "target_540_actual": 539,
+      "target_500_actual": 501,
+      "verification": "bus"
+    },
+    "safety_stop": {
+      "latched": true,
+      "dispatch_code": "SAFETY_STOP",
+      "dispatch_http_status": 409,
+      "cleared": true,
+      "actual_unchanged": true
+    },
+    "final_bus": {
+      "r_joint": 225,
+      "joint1": 696,
+      "joint2": 501,
+      "joint3": 503,
+      "joint4": 496,
+      "joint5": 500
+    }
+  },
+  "limitations": [
+    "no real armpi_safety node in the slim container",
+    "fake Bool used for /safety_stop",
+    "8766 was stopped after the validation; 8765 remains read-only",
+    "arm supported and workspace clear; operator present"
+  ]
+}

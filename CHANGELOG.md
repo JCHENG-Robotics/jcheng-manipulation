@@ -20,8 +20,10 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   moved out of `GatewayNode`; five unit tests cover the thresholds and ages.
 - CI flake8 now covers `tools/phase3`, and the bootstrap has a unit test.
 - Gateway `CameraCache` (`camera_cache.py`): frame decode, JPEG snapshot and FPS
-  window moved out of `GatewayNode`; pure unit tests cover the cache. With the
-  telemetry extraction this takes `GatewayNode` from 1,302 to 1,196 lines.
+  window moved out of `GatewayNode`; pure unit tests cover the cache.
+- Gateway `TelemetryCache` (`telemetry_cache.py`): battery, joint, measured,
+  actual-bus and TF state moved out of `GatewayNode`; four pure tests cover the
+  callbacks and snapshots. `GatewayNode` is now 1,031 lines (from 1,302).
 - CI step for `armpi_safety/test/test_policy.py`,
   `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`, and
   `armpi_fiducial_localizer/test/test_detector.py` / `test_frames.py`.
@@ -50,8 +52,10 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
 - **2026-11-23 hardware:** updated gateway on 8766/8767; command-cache resync
   (target=actual), `/safety_stop` latch/hold/409/clear, initial-pose recovery
   (actual 694/500/504/495/501), joint2 500→539→500 bus-verified, and camera /
-  battery / TF checks. `armpi_safety` is not installed in the slim container,
-  so the stop test used a fake Bool. See
+  battery / TF checks. The `TelemetryCache` gateway was then revalidated on
+  8766: `/state` measured_ready, joint2 500→539→501 bus-verified, and
+  `/safety_stop` latch/409/clear. `armpi_safety` is not installed in the slim
+  container, so the stop test used a fake Bool. See
   [`evidence/studio_validation_20261123/`](evidence/studio_validation_20261123/README.md).
 
 ### Documentation
