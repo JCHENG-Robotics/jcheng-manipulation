@@ -1,0 +1,17 @@
+# backend token auth live check 2026-11-23T02:24:55Z
+temp_pid=543246 port=8001 mode=mock
+health_no_token=200
+state_no_token=401
+{"error":{"code":"UNAUTHORIZED","message":"missing or invalid X-Armpi-Token"}}
+state_header_token=200
+state_query_token=200
+state_wrong_token=401
+--- non-loopback without token (expect ValueError) ---
+  File "/home/jerichocheng/jcheng/jcheng-manipulation/armpi-debug-studio/backend/app/config.py", line 74, in from_env
+    raise ValueError(
+ValueError: BIND_HOST='0.0.0.0' is not loopback; set ARMPI_BACKEND_TOKEN or keep BIND_HOST=127.0.0.1 and use an SSH tunnel
+--- non-loopback with token (expect token) ---
+0.0.0.0 remote-secret
+--- live backend default (no token configured) ---
+live_health=200
+live_state=200

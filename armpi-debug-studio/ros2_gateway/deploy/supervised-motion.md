@@ -1,9 +1,10 @@
 # Supervised motion gateway (operator procedure)
 
 The persistent `armpi-gateway.service` stays read-only on port **8765**. Motion
-uses a **second, manually started** gateway instance on port **8766** with
-`--enable-motion`. This keeps the systemd service, the hardware Playwright
-suite and the read-only console untouched.
+uses a **second** gateway instance on port **8766** with `--enable-motion`.
+Since 2026-11-23 it is wrapped by `armpi-gateway-pose.service`, which is
+installed but **not enabled**; start it explicitly (see the deploy README).
+The manual commands below remain the fallback/diagnostic path.
 
 > Read [`docs/g6-motion-write-path.md`](../../docs/g6-motion-write-path.md)
 > before running this. The limits are verified for the operating envelope

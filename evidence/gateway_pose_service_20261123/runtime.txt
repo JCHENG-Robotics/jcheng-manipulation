@@ -1,0 +1,61 @@
+# pose/motion gateway systemd evidence 2026-11-23T02:25:53Z
+## unit
+MainPID=99883
+User=pi
+Group=docker
+ActiveState=active
+SubState=running
+is_enabled=disabled
+USER         PID CMD
+pi         99883 docker exec -u ubuntu ArmPiUltra /bin/zsh -lc source ~/.zshrc >/dev/null 2>&1;    source /opt/ros/humble/setup.zsh;    source /home/ubuntu/ros2_ws/install/setup.zsh;    cd /home/ubuntu/shared/armpi_gateway_pose;    exec python3 -m armpi_debug_gateway.main      --host 10.42.0.218 --port 8766      --token-file /home/ubuntu/shared/armpi_gateway_deploy/token      --enable-motion --motion-config /home/ubuntu/shared/armpi_gateway_pose/takeover_limits.json      --pointcloud-topic /depth_cam/depth_registered/points      --no-aux-camera --camera-topic /armpi_pose_camera_off
+root:docker 640 /etc/armpi-gateway/pose.env
+
+## 8766 health
+{
+ "status": "ok",
+ "ros_ready": true,
+ "motion_enabled": true,
+ "motion_state": "idle",
+ "safety_stop": false,
+ "pointcloud_configured": true,
+ "pointcloud_topic": "/depth_cam/depth_registered/points"
+}
+## pointcloud meta
+{
+ "available": true,
+ "topic": "/depth_cam/depth_registered/points",
+ "count": 217348,
+ "sample_age_ms": 0,
+ "frame_id": "depth_camera_link",
+ "layout": "opencv_optical_xyz"
+}
+## motion/status
+{
+ "state": "idle",
+ "mode": "pose",
+ "motion_enabled": true,
+ "safety_stop": false,
+ "max_velocity_rad_s": 0.5
+}
+## 8765 health
+{
+ "status": "ok",
+ "camera_ready": true,
+ "joints_ready": true,
+ "safety_stop": false
+}
+## backend health
+{
+ "status": "ok",
+ "mode": "hardware",
+ "version": "1.0.0-rc.1"
+}
+
+## out-of-limit probe (no publication)
+{
+    "error": {
+        "code": "MOTION_OUT_OF_LIMIT",
+        "message": "r_joint: pulse 2000 outside [170, 700]",
+        "details": {}
+    }
+}

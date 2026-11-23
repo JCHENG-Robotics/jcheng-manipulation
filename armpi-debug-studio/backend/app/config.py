@@ -26,6 +26,7 @@ DEFAULT_URDF = (
 DEFAULT_VISUAL_MODEL = PROJECT_ROOT / "configs" / "visual_model.yaml"
 
 MOTION_SCOPES = {"step", "pose"}
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -54,6 +55,7 @@ class Settings:
     gateway_token: str | None = None
     camera_gateway_url: str | None = None
     camera_gateway_token: str | None = None
+    api_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
     visual_model_path: Path = DEFAULT_VISUAL_MODEL
     api_version: str = "1.0.0-rc.1"
@@ -65,6 +67,15 @@ class Settings:
         if raw_mode not in {Mode.MOCK.value, Mode.HARDWARE.value}:
             raise ValueError(f"ARMPI_MODE must be 'mock' or 'hardware', got {raw_mode!r}")
         resolved_mode = Mode(raw_mode)
+
+        bind_host = (os.getenv("BIND_HOST", "127.0.0.1") or "127.0.0.1").strip()
+        api_token = (os.getenv("ARMPI_BACKEND_TOKEN") or "").strip() or None
+        if bind_host not in LOOPBACK_HOSTS and not api_token:
+            raise ValueError(
+                f"BIND_HOST={bind_host!r} is not loopback; set "
+                "ARMPI_BACKEND_TOKEN or keep BIND_HOST=127.0.0.1 and use an "
+                "SSH tunnel"
+            )
 
         # Hardware motion is impossible in mock mode. In hardware mode it still
         # requires an explicit opt-in; G1 defaults to false.
@@ -135,7 +146,7 @@ class Settings:
         return cls(
             mode=resolved_mode,
             robot_id=os.getenv("ARMPI_ROBOT_ID", "armpi-ultra-01"),
-            bind_host=os.getenv("BIND_HOST", "127.0.0.1"),
+            bind_host=bind_host,
             port=int(os.getenv("PORT", "8000")),
             db_path=Path(db_path or os.getenv("DB_PATH", str(PROJECT_ROOT / "data" / "studio.db"))),
             mapping_path=mapping_path,
@@ -150,6 +161,7 @@ class Settings:
             gateway_token=gateway_token,
             camera_gateway_url=camera_gateway_url,
             camera_gateway_token=camera_gateway_token,
+            api_token=api_token,
             urdf_path=Path(os.getenv("ARMPI_URDF_PATH", str(DEFAULT_URDF))),
             visual_model_path=Path(
                 os.getenv("ARMPI_VISUAL_MODEL", str(DEFAULT_VISUAL_MODEL))

@@ -54,14 +54,16 @@ Required:
 - `pointcloud_configured: true` for a G8 run; check `pointcloud_last_capture`
   is fresh.
 
-Confirm the backend is loopback-only (it has no authentication):
+Confirm the backend is loopback-only. The default has no token; a
+non-loopback bind is refused at startup unless `ARMPI_BACKEND_TOKEN` is set:
 
 ```bash
 ss -ltnp | grep ':8000'
-# must show 127.0.0.1:8000, not 0.0.0.0:8000
+# expected: 127.0.0.1:8000
 ```
 
-For remote access use an SSH tunnel, not a non-loopback bind.
+If it shows `0.0.0.0:8000`, confirm the process has `ARMPI_BACKEND_TOKEN` and
+use an SSH tunnel or TLS reverse proxy; do not expose it directly.
 
 ## 4. Safety node
 

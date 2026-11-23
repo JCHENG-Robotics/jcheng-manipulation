@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "blocker": "backend has no authentication",
+  "result": "PASS",
+  "date": "2026-11-23",
+  "default": {
+    "bind_host": "127.0.0.1",
+    "token_configured": false,
+    "live_health": 200,
+    "live_state": 200
+  },
+  "token_mode": {
+    "env": "ARMPI_BACKEND_TOKEN",
+    "header": "X-Armpi-Token",
+    "query_parameter": "token",
+    "exempt_paths": ["/api/health"],
+    "constant_time_compare": true
+  },
+  "non_loopback_guard": {
+    "without_token": "startup ValueError",
+    "with_token": "accepted"
+  },
+  "frontend": {
+    "env": "VITE_API_TOKEN",
+    "header": true,
+    "websocket_query": true,
+    "csv_export_query": true,
+    "camera_snapshot_query": true
+  },
+  "tests": {
+    "backend": 148,
+    "new_auth_tests": 4,
+    "frontend_build": "pass",
+    "playwright_mock": "10 passed",
+    "playwright_token_dashboard": "3 passed"
+  },
+  "motion_sent": false,
+  "evidence_files": [
+    "README.md",
+    "acceptance.json",
+    "auth_runtime.txt"
+  ]
+}

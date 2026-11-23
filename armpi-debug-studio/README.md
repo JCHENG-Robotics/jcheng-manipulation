@@ -19,7 +19,7 @@ gateway with a velocity cap and an FK workspace/table gate. There is no e-stop.
 The vendor SDK/Driver are referenced read-only and are **not** copied into this
 directory.
 
-**Current verification (2026-11-23):** 144 backend tests, 93 gateway tests and
+**Current verification (2026-11-23):** 148 backend tests, 93 gateway tests and
 16 Playwright tests (10 mock + 3 hardware + 3 pose/task). The dated status
 notes below preserve the counts at the time they were written.
 
@@ -245,7 +245,8 @@ Useful environment variables:
 | `ARMPI_MODE` | `mock` | `mock` or `hardware` |
 | `DB_PATH` | `../data/studio.db` | SQLite event store |
 | `ARMPI_JOINT_MAPPING` | `../configs/joint_mapping.yaml` | mapping file |
-| `BIND_HOST` | `127.0.0.1` | do not expose publicly |
+| `BIND_HOST` | `127.0.0.1` | non-loopback binds require `ARMPI_BACKEND_TOKEN` |
+| `ARMPI_BACKEND_TOKEN` | unset | optional shared token for `/api` and WebSocket auth; required for a non-loopback bind |
 | `ARMPI_HARDWARE_MOTION` | `false` | supervised write path opt-in; requires a gateway URL and token |
 | `ARMPI_SUPERVISED_MOTION_ACK` | unset | fixed phrase `I_HAVE_SUPPORT_AND_A_CLEAR_WORKSPACE`; required for any supervised hardware motion (`ARMPI_HARDWARE_MOTION=1`); the joint mapping itself is verified from 2026-11-19 |
 | `ARMPI_GATEWAY_URL` | unset | e.g. `http://10.42.0.218:8765` (read-only, direct Ethernet) or `:8766` (supervised); WiFi is not reachable after the 2026-11-18 lockdown |
@@ -366,20 +367,34 @@ Open <http://127.0.0.1:5173> on that device. Vite proxies to the tunneled
 
 ### Direct binding (trusted LAN only)
 
-If you explicitly want the backend reachable without a tunnel:
+If you explicitly want the backend reachable without a tunnel, it must use
+the shared token:
 
 ```bash
-uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000
+ARMPI_BACKEND_TOKEN='<long-random-secret>' \
+BIND_HOST=0.0.0.0 PORT=8000 \
+.venv/bin/python -m uvicorn app.main:create_app --factory \
+  --host 0.0.0.0 --port 8000
 ```
 
-Then open `http://<remote-ip>:8000` after building the frontend. Allow TCP 8000
-in the firewall only for the trusted interface. Never port-forward it on the
-public internet; there is no authentication in G1.
+Build the frontend with the same token so it sends `X-Armpi-Token` (and the
+WebSocket/CSV query token):
+
+```bash
+cd ../frontend
+VITE_API_TOKEN='<same-secret>' npm run build
+```
+
+The backend refuses a non-loopback bind without `ARMPI_BACKEND_TOKEN`; this
+is checked at startup, not per request. The token is embedded in the built
+frontend, so terminate TLS at a reverse proxy that you control and never
+port-forward the backend on the public internet. `/api/health` stays
+unauthenticated for liveness; every other `/api` path requires the token.
 
 If you serve the frontend from a different origin and call the API directly
-instead of through the Vite proxy, the G1 CORS allowlist only includes
-`localhost:5173`. Use one of the tunnel/proxy recipes above, or add an explicit
-CORS/authentication review before exposing it.
+instead of through the Vite proxy, the CORS allowlist only includes
+`localhost:5173` and the `X-Armpi-Token` header. Use one of the tunnel/proxy
+recipes above, or add an explicit CORS review before exposing it.
 
 ## Camera and battery
 

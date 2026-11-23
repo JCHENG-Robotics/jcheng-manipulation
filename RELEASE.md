@@ -33,7 +33,7 @@ known limitations).
 
 | Suite | Result |
 |---|---|
-| Studio backend | 144 collected; exit 0 |
+| Studio backend | 148 collected; exit 0 |
 | Studio gateway | 93 passed |
 | `armpi_analysis` | 34 passed |
 | safety + planner + fiducial | 59 passed |
@@ -95,8 +95,12 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - The gateway installer now uses `User=pi` / `Group=docker` for the host
   wrapper; the live 8765 service was reinstalled on 2026-11-23 and verified
   (`evidence/gateway_service_20261123/`).
-- The backend remains localhost-only without authentication; use an SSH
-  tunnel for remote access.
+- `armpi-gateway-pose.service` wraps the 8766 gateway; the installer leaves
+  it disabled and the operator starts it explicitly. It was verified with an
+  explicit start (`evidence/gateway_pose_service_20261123/`).
+- The backend gained an optional `ARMPI_BACKEND_TOKEN`; a non-loopback bind
+  is refused at startup without it. The default remains localhost/no token.
+  Live token/401/guard checks are in `evidence/backend_auth_20261123/`.
 
 ### Known limitations (accepted for rc.1)
 
@@ -107,22 +111,23 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - Reproducible build: `ros-ci.yml` is digest-pinned, exact Python pins and
   the vendor source-tree manifest are in place, and the 2026-11-23 CI run
   pulled the digest, built 7 packages and passed all tests.
-- The Studio backend has no authentication and is localhost-only by policy;
-  use an SSH tunnel for remote access. The gateway token comparison is
-  constant-time. The 8765 host wrapper was switched to `pi:docker` and
-  verified on 2026-11-23; the 8766 pose/motion gateway remains a manual
-  process.
+- The Studio backend defaults to localhost and no token. A non-loopback
+  bind is refused at startup unless `ARMPI_BACKEND_TOKEN` is set; the token
+  is embedded in the built frontend, so remote use needs TLS at a reverse
+  proxy. Gateway token comparisons are constant-time. The 8765 host wrapper
+  runs as `pi:docker`; the 8766 pose/motion unit is installed but **not
+  enabled** and must be started explicitly.
 - The rc.1 tag itself predates the full G8 acceptance; the post-tag run
   passed on 2026-11-23 (see above). The fast-path regression is one direction
   only.
 - The gripper is left open in the validation pose; no automatic boot-time
   homing.
 
-`v1.0.0` requires: closure or explicit acceptance of the remaining P1 items
-(backend authentication policy and the manual 8766 service) and inclusion of
-the 2026-11-23 G8/build/ops evidence. The colcon CI is digest-pinned and green
-on both aarch64 and GitHub. Do not present rc.1 as a production safety
-certification.
+`v1.0.0` has no open engineering blocker: the full G8 acceptance,
+digest-pinned colcon CI, non-root 8765 service, disabled-by-default 8766 unit
+and backend token/non-loopback guard are all in place. It still requires the
+final acceptance sign-off and a v1.0.0 tag decision. Do not present rc.1 as a
+production safety certification.
 
 ### Upgrade / rollback
 

@@ -33,7 +33,9 @@
     "evidence/ros_colcon_20261123/"
   ],
   "ops_evidence": [
-    "evidence/gateway_service_20261123/"
+    "evidence/gateway_service_20261123/",
+    "evidence/gateway_pose_service_20261123/",
+    "evidence/backend_auth_20261123/"
   ],
   "hardware_evidence": [
     "evidence/studio_validation_20261123/",
@@ -45,8 +47,8 @@
     "no e-stop, brake, self-collision model, independent encoder or odometry",
     "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
     "real armpi_safety node is a manual process, not a boot service",
-    "8766 pose/motion gateway is a manual process, not a systemd unit",
-    "backend has no auth and is localhost-only by policy",
+    "8766 pose/motion unit is installed but disabled; motion needs an explicit start",
+    "backend defaults to localhost without a token; a non-loopback bind requires ARMPI_BACKEND_TOKEN",
     "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
   ],
   "post_rc1_acceptance": {
@@ -61,7 +63,7 @@
     "operations": {
       "evidence": "evidence/gateway_service_20261123/",
       "result": "PASS",
-      "summary": "the live 8765 gateway service runs as pi:docker; backend remains localhost-only without auth; 8766 is still manual"
+      "summary": "8765 runs as pi:docker; the 8766 pose/motion unit is installed but disabled and was verified with an explicit start; the backend has an optional token and refuses a non-loopback bind without it"
     },
     "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
   },
@@ -70,7 +72,7 @@
   "tag": "v1.0.0-rc.1",
   "verification": {
     "armpi_analysis": "34 passed",
-    "backend": "144 collected; exit 0",
+    "backend": "148 collected; exit 0",
     "config_consistency": "CONFIG OK; 4 limit profiles",
     "gateway": "93 passed",
     "playwright": "not rerun in this release",

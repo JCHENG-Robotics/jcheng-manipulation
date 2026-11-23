@@ -7,6 +7,7 @@ business actions with structured validation results.
 from __future__ import annotations
 
 import asyncio
+import hmac
 from typing import Any
 
 from fastapi import (
@@ -28,6 +29,17 @@ from ..errors import ServiceError
 from ..service import RobotService
 
 router = APIRouter(prefix="/api")
+
+
+def _ws_authorized(websocket: WebSocket) -> bool:
+    """Check the optional shared token for a WebSocket handshake."""
+    token = websocket.app.state.settings.api_token
+    if not token:
+        return True
+    supplied = websocket.query_params.get("token") or (
+        websocket.headers.get("x-armpi-token") or ""
+    )
+    return hmac.compare_digest(supplied, token)
 
 
 class TargetIn(BaseModel):
@@ -465,6 +477,9 @@ def save_camera_reference(
 
 @router.websocket("/ws/state")
 async def ws_state(websocket: WebSocket) -> None:
+    if not _ws_authorized(websocket):
+        await websocket.close(code=1008)
+        return
     service: RobotService = websocket.app.state.service
     await websocket.accept()
     try:
@@ -484,6 +499,9 @@ async def ws_state(websocket: WebSocket) -> None:
 
 @router.websocket("/ws/events")
 async def ws_events(websocket: WebSocket) -> None:
+    if not _ws_authorized(websocket):
+        await websocket.close(code=1008)
+        return
     service: RobotService = websocket.app.state.service
     try:
         after = int(websocket.query_params.get("after", "0"))

@@ -22,19 +22,27 @@ the read-only gateway but not the vendor stack.
 
 ## Start the pose/motion gateway
 
-The 8766 instance is manual (it owns the point cloud and motion topic):
+The 8766 instance has a systemd unit that is installed but **not enabled**.
+Start it explicitly, only with the validated `takeover_limits.json` present
+and an operator at the robot:
 
 ```bash
-# inside the vendor container
-source /opt/ros/humble/setup.bash
-source /home/ubuntu/ros2_ws/install/setup.bash
-python3 -m armpi_debug_gateway.main \
-  --host 10.42.0.218 --port 8766 --token-file /home/ubuntu/shared/armpi_gateway_deploy/token \
-  --pointcloud-topic /depth_cam/depth_registered/points
+sudo systemctl start armpi-gateway-pose
+systemctl show armpi-gateway-pose -p User -p Group -p ActiveState -p SubState
+curl -fsS -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8766/health
 ```
 
-The camera stays off in this instance; the read-only 8765 gateway owns the
-cameras. Do not start two 8766 instances.
+The unit runs the host wrapper as `pi:docker` and the in-container gateway as
+`ubuntu` with the vendor CycloneDDS environment. The camera stays off in this
+instance; the read-only 8765 gateway owns the cameras. Do not start two 8766
+instances. Stop it when finished:
+
+```bash
+sudo systemctl stop armpi-gateway-pose
+```
+
+The manual fallback is in
+[`armpi-debug-studio/ros2_gateway/deploy/supervised-motion.md`](../../armpi-debug-studio/ros2_gateway/deploy/supervised-motion.md).
 
 ## Start the safety node
 
@@ -61,15 +69,19 @@ ARMPI_MOTION_SCOPE=pose \
 ARMPI_TAKEOVER_ACK='I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE' \
 ARMPI_GATEWAY_URL=http://10.42.0.218:8766 \
 ARMPI_CAMERA_GATEWAY_URL=http://10.42.0.218:8765 \
-ARMPI_GATEWAY_TOKEN="$(cat gateway-token)" \
+ARMPI_GATEWAY_TOKEN="$(cat /path/to/gateway-token)" \
 .venv/bin/python -m uvicorn app.main:create_app --factory \
   --host 127.0.0.1 --port 8000
+
+# Optional for localhost; required for a non-loopback bind:
+# ARMPI_BACKEND_TOKEN='<long-random-secret>'
 ```
 
-The backend is localhost-only by policy and has no authentication. Do not
-bind it to a non-loopback address; use an SSH tunnel for remote access and
-keep the gateway token out of shell history. Backend edits need a restart
-(there is no autoreload).
+The default is localhost-only and needs no token. A non-loopback
+`BIND_HOST` is refused at startup unless `ARMPI_BACKEND_TOKEN` is set; the
+frontend then needs `VITE_API_TOKEN` at build time and a TLS reverse proxy.
+Use an SSH tunnel for ordinary remote access, and keep both tokens out of
+shell history. Backend edits need a restart (there is no autoreload).
 
 ## Normal G8 run
 

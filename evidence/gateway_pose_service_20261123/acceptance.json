@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "blocker": "manual 8766 pose/motion gateway",
+  "result": "PASS",
+  "date": "2026-11-23",
+  "unit": "armpi-gateway-pose.service",
+  "enabled": false,
+  "started_explicitly": true,
+  "user": "pi",
+  "group": "docker",
+  "env_file": "root:docker 0640",
+  "health": {
+    "status": "ok",
+    "ros_ready": true,
+    "motion_enabled": true,
+    "motion_state": "idle",
+    "safety_stop": false,
+    "pointcloud_configured": true,
+    "pointcloud_topic": "/depth_cam/depth_registered/points"
+  },
+  "pointcloud": {
+    "available": true,
+    "count": 217382,
+    "sample_age_ms": 0,
+    "frame_id": "depth_camera_link",
+    "layout": "opencv_optical_xyz"
+  },
+  "motion_status": {
+    "state": "idle",
+    "mode": "pose",
+    "max_velocity_rad_s": 0.5,
+    "safety_stop": false
+  },
+  "out_of_limit_probe": {
+    "result": "MOTION_OUT_OF_LIMIT",
+    "message": "r_joint: pulse 2000 outside [170, 700]",
+    "published": false
+  },
+  "motion_sent": false,
+  "residual": [
+    "the unit is deliberately not enabled at boot; motion needs an explicit operator start",
+    "takeover_limits.json is generated and must be refreshed after limit changes"
+  ],
+  "evidence_files": [
+    "README.md",
+    "acceptance.json",
+    "runtime.txt"
+  ]
+}

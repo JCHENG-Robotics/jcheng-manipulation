@@ -21,10 +21,10 @@ armpi-gateway.service (host systemd)
                     (read-only; motion_enabled=false)
 ```
 
-The systemd service is **always read-only**. The supervised write path uses a
-separate, manually started instance on a second port; see
-[`supervised-motion.md`](supervised-motion.md). The installer does not enable
-motion and does not install a motion limits file.
+The 8765 systemd service is **always read-only**. The supervised write path has
+a separate unit on **8766** (`armpi-gateway-pose.service`). The installer
+installs it but deliberately **does not enable or start it**: motion requires
+an explicit operator start and the validated `takeover_limits.json`.
 
 ## Files
 
@@ -33,7 +33,11 @@ motion and does not install a motion limits file.
 | `armpi-gateway.service` | `/etc/systemd/system/armpi-gateway.service` |
 | `armpi-gateway-run.sh` | `/usr/local/lib/armpi-gateway/armpi-gateway-run.sh` |
 | `gateway.env.example` | `/etc/armpi-gateway/gateway.env` (once) |
+| `armpi-gateway-pose.service` | `/etc/systemd/system/armpi-gateway-pose.service` |
+| `armpi-gateway-pose-run.sh` | `/usr/local/lib/armpi-gateway/armpi-gateway-pose-run.sh` |
+| `pose.env.example` | `/etc/armpi-gateway/pose.env` (once) |
 | `install-gateway.sh` | run from the copied `deploy/` directory |
+| `install-pose-gateway.sh` | run from the copied `deploy/` directory |
 | `rotate-token.sh` | run from the copied `deploy/` directory |
 
 ## Install
@@ -126,6 +130,41 @@ A clean stop logs `received signal 15, shutting down` followed by
 the unit's `ExecStop` runs `pkill -TERM` inside the container before the
 timeout.
 
+## Pose/motion gateway (8766)
+
+The 8766 unit is installed but **not enabled**; start it only when the
+validated `takeover_limits.json` is present and an operator is at the robot.
+
+```bash
+# 1. Put the generated limits JSON in the pose deploy directory (the
+#    installer refuses to install without it):
+#    /home/pi/docker/tmp/armpi_gateway_pose/takeover_limits.json
+
+# 2. Install the unit (idempotent; does not start motion):
+sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/install-pose-gateway.sh
+
+# 3. Start explicitly:
+sudo systemctl start armpi-gateway-pose
+systemctl show armpi-gateway-pose -p User -p Group -p ActiveState -p SubState
+curl -s -H "X-Armpi-Token: $TOKEN" http://10.42.0.218:8766/health
+
+# 4. Stop when finished (do not leave a motion gateway running unattended):
+sudo systemctl stop armpi-gateway-pose
+```
+
+Expected health: `motion_enabled=true`, `motion_mode=pose`,
+`motion_state=idle|completed`, `pointcloud_configured=true`,
+`safety_stop=false`. The unit runs as `pi:docker`; the in-container gateway
+runs as `ubuntu` with the vendor CycloneDDS environment from `~/.zshrc`.
+
+`takeover_limits.json` is generated on the laptop:
+
+```bash
+cd armpi-debug-studio
+backend/.venv/bin/python tools/export_gateway_motion_config.py \
+  --mode pose --out /tmp/takeover_limits.json --overwrite
+```
+
 ## Rotate the token
 
 ```bash
@@ -133,8 +172,10 @@ ssh -i ~/.ssh/id_ed25519_armpi pi@10.42.0.218 \
   'sudo bash /home/pi/docker/tmp/armpi_gateway_pkg/ros2_gateway/deploy/rotate-token.sh'
 ```
 
-The new token is written to the shared token file and not printed. Update the
-backend's `ARMPI_GATEWAY_TOKEN` from that file and restart the backend.
+The new token is written to the shared token file and not printed. If the
+pose unit is active it is restarted to pick up the token; it is never enabled
+at boot. Update the backend's `ARMPI_GATEWAY_TOKEN` from that file and restart
+the backend.
 
 The token file is at `/home/pi/docker/tmp/armpi_gateway_deploy/token` on the
 host and `/home/ubuntu/shared/armpi_gateway_deploy/token` in the container. It

@@ -24,11 +24,15 @@ All notable changes to this project are documented here. Format based on
   validates that released evidence paths exist and have a README.
 - The gateway installer now runs the host wrapper as `pi:docker` instead of
   root; the live 8765 service was reinstalled and verified on 2026-11-23.
+- `armpi-gateway-pose.service` for the 8766 pose/motion gateway; it is
+  installed disabled and was verified with an explicit start.
+- Optional backend `ARMPI_BACKEND_TOKEN` (HTTP header/query and WebSocket),
+  with a startup refusal for a non-loopback bind without a token.
 
 ### Changed
 
 - Backend dependencies are exact pins and `requires-python <3.13`; the
-  Dockerfile accepts a base-image digest through `ROS_BASE_IMAGE`.
+  Dockerfile defaults to the pin-tested base-image digest.
 - README test commands include `packages/jcheng_core` and `colcon test`.
 
 ### Fixed
@@ -70,7 +74,7 @@ safety hardware validation. See [`RELEASE.md`](RELEASE.md) and
 
 ### Verification
 
-- backend 144; gateway 93; `armpi_analysis` 34; safety/planner/fiducial 59;
+- backend 148; gateway 93; `armpi_analysis` 34; safety/planner/fiducial 59;
   tools 242 passed / 7 skipped; `CONFIG OK`; hardware evidence in
   `evidence/studio_validation_20261123/`,
   `evidence/armpi_safety_install_20261123/` and

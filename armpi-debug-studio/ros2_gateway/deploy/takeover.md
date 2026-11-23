@@ -1,9 +1,10 @@
 # Pose takeover gateway (operator procedure)
 
 The persistent `armpi-gateway.service` stays read-only on port **8765**. Pose
-takeover uses a **second, manually started** gateway instance on port **8766**
-with a pose-mode motion config. The read-only console, the hardware Playwright
-suite and the 8765 process stay untouched.
+takeover uses the **8766** instance with a pose-mode motion config, wrapped by
+`armpi-gateway-pose.service` (installed but **not enabled**; start it
+explicitly). The read-only console, the hardware Playwright suite and the 8765
+process stay untouched. The manual commands below remain the fallback path.
 
 > Read [`docs/g7-pose-takeover.md`](../../docs/g7-pose-takeover.md) first.
 > `mapping_verified=true` covers the operating envelope; there is **no e-stop,

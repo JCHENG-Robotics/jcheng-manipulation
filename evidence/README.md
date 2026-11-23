@@ -37,6 +37,8 @@ gitignored or kept private.
 | Path | Content | Scope |
 |---|---|---|
 | `gateway_service_20261123/` | Read-only gateway unit switched from root to `pi:docker`; health checks after the restart | Real robot host; no motion |
+| `gateway_pose_service_20261123/` | 8766 pose/motion unit installed but disabled; explicit start, health and pointcloud verified | Real robot host; no motion |
+| `backend_auth_20261123/` | Optional backend token auth, non-loopback startup guard, test evidence | Laptop backend; no motion |
 
 ## Model / mock / synthetic evidence
 

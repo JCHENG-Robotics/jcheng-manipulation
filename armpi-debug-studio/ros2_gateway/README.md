@@ -149,9 +149,10 @@ Expected:
   against the live robot TF graph on 2026-11-18 (11 dynamic + 8 static edges,
   `base_link→link5` within 0.4 mm of `tf2_echo`).
 - `/motion/dispatch` and `/motion/stop` return `501 NOT_IMPLEMENTED` on the
-  persistent 8765 service. A manually started `--enable-motion` instance on
-  8766 exposes the supervised single-joint G6 path; see
-  [`deploy/supervised-motion.md`](deploy/supervised-motion.md).
+  persistent 8765 service. A separate `armpi-gateway-pose.service` on 8766
+  (installed but **not enabled**) exposes the supervised G6/G7/G8 motion
+  paths; see [`deploy/README.md`](deploy/README.md) and
+  [`deploy/takeover.md`](deploy/takeover.md).
 
 ## Trajectory recorder (G5)
 

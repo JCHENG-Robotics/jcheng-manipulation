@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hmac
 import uuid
 from contextlib import asynccontextmanager
 from typing import Any, Callable
@@ -141,8 +142,38 @@ def create_app(
         ],
         allow_credentials=False,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "Idempotency-Key"],
+        allow_headers=["Content-Type", "Idempotency-Key", "X-Armpi-Token"],
     )
+
+    @app.middleware("http")
+    async def backend_token_guard(request: Request, call_next):
+        """Optional shared-token auth for a non-loopback deployment.
+
+        The default localhost bind has no token and no behavior change. A
+        non-loopback bind is rejected at startup unless ARMPI_BACKEND_TOKEN is
+        set, so there is no unauthenticated remote mode.
+        """
+        token = resolved.api_token
+        if (
+            token
+            and request.method != "OPTIONS"
+            and request.url.path.startswith("/api")
+            and request.url.path != "/api/health"
+        ):
+            supplied = request.headers.get("X-Armpi-Token") or (
+                request.query_params.get("token") or ""
+            )
+            if not hmac.compare_digest(supplied, token):
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "error": {
+                            "code": "UNAUTHORIZED",
+                            "message": "missing or invalid X-Armpi-Token",
+                        }
+                    },
+                )
+        return await call_next(request)
 
     app.include_router(router)
 

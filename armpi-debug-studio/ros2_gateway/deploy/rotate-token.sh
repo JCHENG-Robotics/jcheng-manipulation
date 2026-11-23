@@ -38,6 +38,12 @@ chmod 600 "${TOKEN_FILE}"
 chown 1000:1000 "${TOKEN_FILE}" 2>/dev/null || true
 
 systemctl restart armpi-gateway.service
+# The pose gateway reads the token at startup; restart it only if it is
+# already running. It is never enabled at boot.
+if systemctl is-active --quiet armpi-gateway-pose.service; then
+  systemctl restart armpi-gateway-pose.service
+  echo "restarted armpi-gateway-pose to pick up the new token"
+fi
 
 TOKEN=$(cat "${TOKEN_FILE}")
 deadline=$((SECONDS + 60))

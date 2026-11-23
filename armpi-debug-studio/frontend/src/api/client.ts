@@ -28,6 +28,15 @@ import type {
 } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
+const API_TOKEN = (import.meta.env.VITE_API_TOKEN ?? "").trim();
+
+function withToken(url: string): string {
+  if (!API_TOKEN) {
+    return url;
+  }
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}token=${encodeURIComponent(API_TOKEN)}`;
+}
 
 export class ApiError extends Error {
   code: string;
@@ -98,6 +107,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
+  }
+  if (API_TOKEN && !headers.has("X-Armpi-Token")) {
+    headers.set("X-Armpi-Token", API_TOKEN);
   }
   const response = await fetch(`${API_BASE}${path}`, { ...init, headers });
   const text = await response.text();
@@ -177,10 +189,12 @@ export const api = {
     return request<Peripherals>("/api/peripherals");
   },
   cameraSnapshotUrl(tick: number): string {
-    return `${API_BASE}/api/peripherals/camera/snapshot?t=${tick}`;
+    return withToken(`${API_BASE}/api/peripherals/camera/snapshot?t=${tick}`);
   },
   auxCameraSnapshotUrl(tick: number): string {
-    return `${API_BASE}/api/peripherals/aux-camera/snapshot?t=${tick}`;
+    return withToken(
+      `${API_BASE}/api/peripherals/aux-camera/snapshot?t=${tick}`,
+    );
   },
   async probe(): Promise<ProbeResult> {
     return request<ProbeResult>("/api/diagnostics/probe", { method: "POST" });
@@ -367,10 +381,10 @@ export const api = {
   },
   wsUrl(path: string): string {
     const base = API_BASE || window.location.origin;
-    return `${base.replace(/^http/, "ws")}${path}`;
+    return withToken(`${base.replace(/^http/, "ws")}${path}`);
   },
   exportUrl(): string {
-    return `${API_BASE}/api/events/export.csv`;
+    return withToken(`${API_BASE}/api/events/export.csv`);
   },
   parseState: parseRobotState,
   parseEvent,
