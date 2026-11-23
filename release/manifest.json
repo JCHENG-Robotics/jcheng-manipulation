@@ -45,6 +45,7 @@
     "no e-stop, brake, self-collision model, independent encoder or odometry",
     "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
     "real armpi_safety node is a manual process, not a boot service",
+    "8766 pose/motion gateway is a manual process, not a systemd unit",
     "backend has no auth and is localhost-only by policy",
     "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
   ],

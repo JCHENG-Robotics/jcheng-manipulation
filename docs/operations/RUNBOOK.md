@@ -41,7 +41,7 @@ cameras. Do not start two 8766 instances.
 The real node is a manual process in the persistent overlay:
 
 ```bash
-docker exec -it ArmPiUltra bash
+docker exec -it ArmPiUltra zsh
 source /home/ubuntu/shared/safety_ws/install/setup.zsh
 export PYTHONPATH=/home/ubuntu/shared/armpi_tools:$PYTHONPATH
 ros2 run armpi_safety safety_supervisor
