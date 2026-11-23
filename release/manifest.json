@@ -17,9 +17,9 @@
     "armpi_safety": "0.1.0",
     "armpi_ultra_moveit_config": "0.3.0",
     "jcheng_core": "0.1.0",
-    "studio_backend": "1.0.0rc1",
+    "studio_backend": "1.0.0-rc.1",
     "studio_frontend": "1.0.0-rc.1",
-    "studio_gateway": "1.0.0rc1"
+    "studio_gateway": "1.0.0-rc.1"
   },
   "date": "2026-11-23",
   "freeze": {
@@ -30,7 +30,8 @@
   "hardware_evidence": [
     "evidence/studio_validation_20261123/",
     "evidence/armpi_safety_install_20261123/",
-    "evidence/fast_path_regression_20261123/"
+    "evidence/fast_path_regression_20261123/",
+    "evidence/g8_acceptance_20261123/"
   ],
   "known_limitations": [
     "no e-stop, brake, self-collision model, independent encoder or odometry",
@@ -38,10 +39,16 @@
     "real armpi_safety node is a manual process, not a boot service",
     "no ROS colcon build/test CI, no Python/Docker/vendor workspace pinning",
     "backend has no auth and is localhost-only by policy",
-    "full G7/G8 task sequence not rerun for rc.1"
+    "the rc.1 tag predates the full G8 acceptance; v1.0.0 must include the post-tag evidence"
   ],
+  "post_rc1_acceptance": {
+    "date": "2026-11-23",
+    "evidence": "evidence/g8_acceptance_20261123/",
+    "full_g8": "PASS",
+    "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
+  },
   "release": "1.0.0-rc.1",
-  "source_commit": "8459960",
+  "source_commit": "d9b34b5",
   "tag": "v1.0.0-rc.1",
   "verification": {
     "armpi_analysis": "34 passed",

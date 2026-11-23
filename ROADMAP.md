@@ -10,12 +10,15 @@
 ## Current status (2026-11-23)
 
 Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway/safety/fast
-validation; this roadmap was synchronized with the README pair, changelog and
-acceptance report. The repository is at the **v1.0.0-rc.1** release candidate
-(see [`RELEASE.md`](RELEASE.md)).
+validation and the post-rc.1 **full G8 acceptance**; this roadmap was
+synchronized with the README pair, changelog and acceptance report. The
+repository is at the **v1.0.0-rc.1** release candidate (see
+[`RELEASE.md`](RELEASE.md)).
 The Studio G8 **fast task path** (dense S-curves + the base approach inside one
 run) was verified on the hardware on 2026-11-21: 5.466 s commanded / 13.46 s
-wall, `held: true`, landing 2.27 mm planar.
+wall, `held: true`, landing 2.27 mm planar. The full G8 sequence then passed
+on 2026-11-23 with one bounded chassis approach and 11 bus-verified commands
+([evidence](evidence/g8_acceptance_20261123/README.md)).
 
 The 2026-11-22 batch is **offline only; no new hardware claims**. It starts with
 the safety/structure fixes `43647bc` (`d93288e`) and continues through
@@ -32,8 +35,10 @@ The 2026-11-23 batch added `TelemetryCache`, shared `jcheng_core` stats/vision
 packages, four named motion-limit profiles (`moveit`, `step`, `pose`, `fast`),
 the real `armpi_safety` install in the persistent safety overlay, and a
 4.0/20 view→upright fast-path regression (`ok`, settle 2 pulses). The
-`/safety_stop` round trip and low-speed joint2 check are confirmed; the full
-G8 task sequence was not rerun for rc.1.
+`/safety_stop` round trip and low-speed joint2 check are confirmed. The rc.1
+tag itself predates the full G8 run; the supervised sequence passed after the
+tag on 2026-11-23 (8 phases, 11 bus-verified commands, put-back at 0.236 m
+inside the 0.220–0.255 m band).
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

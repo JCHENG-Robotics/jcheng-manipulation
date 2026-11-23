@@ -1,0 +1,980 @@
+{
+  "schema_version": 1,
+  "kind": "g8_task_run",
+  "generated_at": "2026-11-23T01:39:47.528912Z",
+  "execute": false,
+  "plan": {
+    "schema_version": 1,
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "simulated": false,
+    "point": [
+      0.236019,
+      0.002949,
+      -0.050847
+    ],
+    "target": [
+      0.249719,
+      0.006849,
+      -0.041947
+    ],
+    "correction_mm": [
+      13.7,
+      3.9,
+      8.9
+    ],
+    "fit": {
+      "joints": [
+        0.036019947412791,
+        -0.6618,
+        -1.80117,
+        -0.26016392035836083,
+        0.0
+      ],
+      "tcp": [
+        0.249719489,
+        0.006849122,
+        -0.033260706
+      ],
+      "target": [
+        0.24971948900319665,
+        0.006849121561896371,
+        -0.0419469751623244
+      ],
+      "residual_mm": [
+        -3.1966651548032132e-09,
+        4.3810362889556975e-07,
+        8.6862691623244
+      ],
+      "xy_error_mm": 4.381152911273231e-07,
+      "reach_limited": false
+    },
+    "grasp_joints": {
+      "joint1": 0.03602,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.260164,
+      "joint5": 0.0
+    },
+    "approach_joints": {
+      "joint1": 0.036019947412791,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": 0.0,
+      "joint5": 0.0
+    },
+    "pre_grasp_joints": {
+      "joint1": 0.036019947412791,
+      "joint2": -0.6618,
+      "joint3": -1.80117,
+      "joint4": -0.11016392035836084,
+      "joint5": 0.0
+    },
+    "view_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "lift_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "view_preset": "view_table",
+    "lift_preset": "view_table",
+    "start_joints": {
+      "joint1": 0.020944,
+      "joint2": 0.24295,
+      "joint3": -1.223127,
+      "joint4": -1.59174,
+      "joint5": -0.012566
+    },
+    "start_gripper_rad": -2.220059,
+    "source": "measured_on_demand",
+    "locate": {
+      "cloud": {
+        "points_total": 216240,
+        "points_in_range": 215947,
+        "frame_id": "depth_camera_link",
+        "topic": "/depth_cam/depth_registered/points",
+        "sample_age_ms": 0,
+        "layout": "opencv_optical_xyz"
+      },
+      "floor": {
+        "normal_base": [
+          0.03691482730243911,
+          0.004253262549395769,
+          0.999309363848655
+        ],
+        "offset_base": 0.08178994242447599,
+        "rms_m": 0.0007133406001461857,
+        "inliers": 207828,
+        "z_at_0p24": -0.09071215006726406,
+        "angle_to_z_deg": 2.129547258214859
+      },
+      "segmentation": {
+        "voxel_m": 0.005,
+        "points_above_floor": 7953,
+        "clusters": 2,
+        "cluster_details": [
+          {
+            "label": 0,
+            "bounds": {
+              "points": 4113,
+              "min": [
+                0.47928813721044544,
+                -0.25557691183753317,
+                -0.09581643172970153
+              ],
+              "max": [
+                0.5665204849216239,
+                -0.1878925309432559,
+                -0.06398650993695262
+              ],
+              "size": [
+                0.08723234771117844,
+                0.06768438089427728,
+                0.031829921792748905
+              ],
+              "centroid": [
+                0.5130021256452814,
+                -0.21398966541458034,
+                -0.07711091024183873
+              ]
+            },
+            "height_m": 0.026725640130311437,
+            "ok": false,
+            "why": [
+              "y_out_of_region"
+            ]
+          },
+          {
+            "label": 1,
+            "bounds": {
+              "points": 3840,
+              "min": [
+                0.22042265245641013,
+                -0.017416011154367157,
+                -0.0527187589808045
+              ],
+              "max": [
+                0.25363021544353137,
+                0.02269108959573911,
+                -0.04895497945073288
+              ],
+              "size": [
+                0.03320756298712124,
+                0.04010710075010626,
+                0.0037637795300716204
+              ],
+              "centroid": [
+                0.23601948900319666,
+                0.0029491215618963717,
+                -0.0508469751623244
+              ]
+            },
+            "height_m": 0.04175717061653118,
+            "ok": true,
+            "why": []
+          }
+        ]
+      },
+      "selected": {
+        "points": 3840,
+        "bounds": {
+          "points": 3840,
+          "min": [
+            0.22042265245641013,
+            -0.017416011154367157,
+            -0.0527187589808045
+          ],
+          "max": [
+            0.25363021544353137,
+            0.02269108959573911,
+            -0.04895497945073288
+          ],
+          "size": [
+            0.03320756298712124,
+            0.04010710075010626,
+            0.0037637795300716204
+          ],
+          "centroid": [
+            0.23601948900319666,
+            0.0029491215618963717,
+            -0.0508469751623244
+          ]
+        },
+        "top": {
+          "slab_points": 3840,
+          "slab_thickness_m": 0.005,
+          "centroid": [
+            0.23601948900319666,
+            0.0029491215618963717,
+            -0.0508469751623244
+          ],
+          "normal": [
+            0.038840018442806594,
+            0.022756747755463658,
+            0.9989862778832133
+          ],
+          "tilt_deg": 2.5800836448747835,
+          "yaw_rad": 1.53588974175501,
+          "extent_m": [
+            0.039312928251144595,
+            0.032939061903308114
+          ],
+          "area_m2": 0.0012949309772647623,
+          "z_max": -0.04895497945073288
+        },
+        "height_above_floor_m": 0.03986517490493966,
+        "grasp_point_base": [
+          0.23601948900319666,
+          0.0029491215618963717,
+          -0.0508469751623244
+        ]
+      },
+      "success": true,
+      "previous": {
+        "joint1": {
+          "rad": 0.020944,
+          "raw": 505
+        },
+        "joint2": {
+          "rad": 0.24295,
+          "raw": 558
+        },
+        "joint3": {
+          "rad": -1.223127,
+          "raw": 792
+        },
+        "joint4": {
+          "rad": -1.59174,
+          "raw": 120
+        },
+        "joint5": {
+          "rad": -0.012566,
+          "raw": 497
+        }
+      }
+    },
+    "hand_eye": {
+      "method": "TSAI",
+      "path": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/calibration/20261118/table_down/calibration_table_down_20261118.json",
+      "frame": "link4 -> camera optical (depth_camera_link layout)"
+    },
+    "fast": {
+      "enabled": true,
+      "vmax_rad_s": 4.0,
+      "amax_rad_s2": 20.0,
+      "dt_s": 0.05,
+      "descent_vmax_rad_s": 0.6,
+      "final_vmax_rad_s": 0.35,
+      "release_descent_vmax_rad_s": 1.4,
+      "release_final_vmax_rad_s": 0.8,
+      "gripper_open_duration_s": 0.8,
+      "gripper_preclose_duration_s": 0.35,
+      "gripper_grip_duration_s": 0.5,
+      "gripper_release_open_duration_s": 0.45,
+      "gripper_speed_raw_per_s": 900.0,
+      "gripper_min_duration_s": 0.25,
+      "gripper_settle_s": 0.6,
+      "verify_settle_s": 0.35,
+      "max_total_duration_s": 6.0,
+      "max_points": 400,
+      "mode": "s_curve"
+    },
+    "steps": [
+      {
+        "kind": "pose",
+        "label": "approach",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "approach",
+            "joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": 0.0,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.020944,
+              "joint2": 0.24295,
+              "joint3": -1.223127,
+              "joint4": -1.59174,
+              "joint5": -0.012566
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.036019947412791,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint4",
+                "target_rad": 0.0,
+                "duration_s": 0.7120943348136866
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.7120943348136866
+              }
+            ],
+            "duration_s": 0.7120943348136866,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 15,
+              "total_s": 0.712094
+            },
+            "target_raw": {
+              "joint1": 509,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 500,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.279976,
+                0.007899,
+                -0.015087
+              ],
+              "table_clearance_m": 0.064614,
+              "samples": 21,
+              "start_tcp_m": [
+                0.203946,
+                0.003005,
+                0.12045
+              ],
+              "start_table_clearance_m": 0.199399,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.712094,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "grasp",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "descend",
+            "joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.110164,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": 0.0,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.036019947412791,
+                "duration_s": 0.23073042373444833
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.23073042373444833
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.23073042373444833
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.11016392035836084,
+                "duration_s": 0.23073042373444833
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.23073042373444833
+              }
+            ],
+            "duration_s": 0.23073042373444833,
+            "profile": {
+              "vmax_rad_s": 0.6,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 5,
+              "total_s": 0.23073
+            },
+            "target_raw": {
+              "joint1": 509,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 474,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.267748,
+                0.007477,
+                -0.023741
+              ],
+              "table_clearance_m": 0.055878,
+              "samples": 21,
+              "start_tcp_m": [
+                0.279976,
+                0.007899,
+                -0.015087
+              ],
+              "start_table_clearance_m": 0.064614,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "pose",
+            "label": "grasp",
+            "joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.260164,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.110164,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.036019947412791,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.26016392035836083,
+                "duration_s": 0.45606036429033925
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.45606036429033925
+              }
+            ],
+            "duration_s": 0.45606036429033925,
+            "profile": {
+              "vmax_rad_s": 0.35,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 10,
+              "total_s": 0.45606
+            },
+            "target_raw": {
+              "joint1": 509,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 438,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.249719,
+                0.006849,
+                -0.033261
+              ],
+              "table_clearance_m": 0.046232,
+              "samples": 21,
+              "start_tcp_m": [
+                0.267748,
+                0.007477,
+                -0.023741
+              ],
+              "start_table_clearance_m": 0.055878,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.686791,
+        "status": "pending"
+      },
+      {
+        "kind": "grip",
+        "label": "close",
+        "commands": [
+          {
+            "kind": "grip",
+            "label": "close_pre",
+            "target_rad": -1.6,
+            "from_rad": -2.220059,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -1.6,
+                "duration_s": 0.35
+              }
+            ],
+            "duration_s": 0.35,
+            "target_raw": 318,
+            "fast": true
+          },
+          {
+            "kind": "grip",
+            "label": "close_grip",
+            "target_rad": -0.63,
+            "from_rad": -1.6,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -0.63,
+                "duration_s": 0.5
+              }
+            ],
+            "duration_s": 0.5,
+            "target_raw": 550,
+            "fast": true
+          }
+        ],
+        "duration_s": 0.85,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "lift",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "lift",
+            "joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "from_joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.260164,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.0,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint2",
+                "target_rad": 0.2574,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.18773,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -1.5917,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint5",
+                "target_rad": -0.01676,
+                "duration_s": 0.647043285269389
+              }
+            ],
+            "duration_s": 0.647043285269389,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 13,
+              "total_s": 0.647043
+            },
+            "target_raw": {
+              "joint1": 500,
+              "joint2": 561,
+              "joint3": 784,
+              "joint4": 120,
+              "joint5": 496
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "table_clearance_m": 0.054208,
+              "samples": 21,
+              "start_tcp_m": [
+                0.249719,
+                0.006849,
+                -0.033261
+              ],
+              "start_table_clearance_m": 0.046232,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.647043,
+        "status": "pending"
+      },
+      {
+        "kind": "verify",
+        "label": "grip_verify",
+        "commands": [],
+        "duration_s": 0,
+        "status": "pending",
+        "detail": "fetch a cloud at the view and check the cube box"
+      },
+      {
+        "kind": "mixed",
+        "label": "release",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "release_descend",
+            "joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.110164,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.036019947412791,
+                "duration_s": 1.1681957997625279
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 1.1681957997625279
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 1.1681957997625279
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.11016392035836084,
+                "duration_s": 1.1681957997625279
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 1.1681957997625279
+              }
+            ],
+            "duration_s": 1.1681957997625279,
+            "profile": {
+              "vmax_rad_s": 1.4,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 24,
+              "total_s": 1.168196
+            },
+            "target_raw": {
+              "joint1": 509,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 474,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.267748,
+                0.007477,
+                -0.023741
+              ],
+              "table_clearance_m": 0.055878,
+              "samples": 21,
+              "start_tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "start_table_clearance_m": 0.206871,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "pose",
+            "label": "release_final",
+            "joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.260164,
+              "joint5": 0.0
+            },
+            "from_joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.110164,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.036019947412791,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint2",
+                "target_rad": -0.6618,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.80117,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -0.26016392035836083,
+                "duration_s": 0.25033185307179584
+              },
+              {
+                "joint": "joint5",
+                "target_rad": 0.0,
+                "duration_s": 0.25033185307179584
+              }
+            ],
+            "duration_s": 0.25033185307179584,
+            "profile": {
+              "vmax_rad_s": 0.8,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 6,
+              "total_s": 0.250332
+            },
+            "target_raw": {
+              "joint1": 509,
+              "joint2": 342,
+              "joint3": 930,
+              "joint4": 438,
+              "joint5": 500
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.249719,
+                0.006849,
+                -0.033261
+              ],
+              "table_clearance_m": 0.046232,
+              "samples": 21,
+              "start_tcp_m": [
+                0.267748,
+                0.007477,
+                -0.023741
+              ],
+              "start_table_clearance_m": 0.055878,
+              "start_compliant": true,
+              "violations": []
+            }
+          },
+          {
+            "kind": "grip",
+            "label": "release_open",
+            "target_rad": -2.220059,
+            "from_rad": -0.63,
+            "targets": [
+              {
+                "joint": "r_joint",
+                "target_rad": -2.220058808536787,
+                "duration_s": 0.45
+              }
+            ],
+            "duration_s": 0.45,
+            "target_raw": 170,
+            "fast": true
+          }
+        ],
+        "duration_s": 1.868528,
+        "status": "pending"
+      },
+      {
+        "kind": "pose",
+        "label": "return_view",
+        "commands": [
+          {
+            "kind": "pose",
+            "label": "return_view",
+            "joints": {
+              "joint1": 0.0,
+              "joint2": 0.2574,
+              "joint3": -1.18773,
+              "joint4": -1.5917,
+              "joint5": -0.01676
+            },
+            "from_joints": {
+              "joint1": 0.03602,
+              "joint2": -0.6618,
+              "joint3": -1.80117,
+              "joint4": -0.260164,
+              "joint5": 0.0
+            },
+            "targets": [
+              {
+                "joint": "joint1",
+                "target_rad": 0.0,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint2",
+                "target_rad": 0.2574,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint3",
+                "target_rad": -1.18773,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint4",
+                "target_rad": -1.5917,
+                "duration_s": 0.647043285269389
+              },
+              {
+                "joint": "joint5",
+                "target_rad": -0.01676,
+                "duration_s": 0.647043285269389
+              }
+            ],
+            "duration_s": 0.647043285269389,
+            "profile": {
+              "vmax_rad_s": 4.0,
+              "amax_rad_s2": 20.0,
+              "dt_s": 0.05,
+              "segments": 13,
+              "total_s": 0.647043
+            },
+            "target_raw": {
+              "joint1": 500,
+              "joint2": 561,
+              "joint3": 784,
+              "joint4": 120,
+              "joint5": 496
+            },
+            "pose_check": {
+              "ok": true,
+              "tcp_m": [
+                0.205596,
+                0.000132,
+                0.127738
+              ],
+              "table_clearance_m": 0.054208,
+              "samples": 21,
+              "start_tcp_m": [
+                0.249719,
+                0.006849,
+                -0.033261
+              ],
+              "start_table_clearance_m": 0.046232,
+              "start_compliant": true,
+              "violations": []
+            }
+          }
+        ],
+        "duration_s": 0.647043,
+        "status": "pending"
+      }
+    ],
+    "plan_id": "task_a0637c479a7f455f",
+    "generated_at": "2026-11-23T01:39:49.687871Z",
+    "cloud": {
+      "available": true,
+      "frame_id": "depth_camera_link",
+      "width": 216240,
+      "height": 1,
+      "point_step": 16,
+      "count": 216240,
+      "is_bigendian": false,
+      "stamp_ns": 1795397990572000000,
+      "fields": {
+        "x": {
+          "offset": 0,
+          "datatype": 7
+        },
+        "y": {
+          "offset": 4,
+          "datatype": 7
+        },
+        "z": {
+          "offset": 8,
+          "datatype": 7
+        }
+      },
+      "layout": "opencv_optical_xyz",
+      "captured_at": 1795397990.6228018,
+      "topic": "/depth_cam/depth_registered/points",
+      "wall_time": "2026-11-23T01:39:50.955380Z",
+      "sample_age_ms": 0
+    }
+  },
+  "steps": [],
+  "approach_pulses": [],
+  "verify": null,
+  "ok": true,
+  "error": null
+}

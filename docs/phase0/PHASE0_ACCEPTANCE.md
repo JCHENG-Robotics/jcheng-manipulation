@@ -60,19 +60,23 @@
 > and
 > [`evidence/armpi_safety_install_20261123/`](../../evidence/armpi_safety_install_20261123/README.md).
 >
-> **Update (2026-11-23, release candidate):** the repository is tagged
-> **`v1.0.0-rc.1`** (feature-freeze baseline `v0.9.0-ff` at `30799df`). This
-> does not change the task-level acceptance verdict; it packages the offline
-> hardening and the gateway/safety/fast-path validation. `v1.0.0` remains
-> gated on a supervised full G8 acceptance and a reproducible ROS build; see
+> **Update (2026-11-23, release candidate + acceptance):** the repository is
+> tagged **`v1.0.0-rc.1`** (feature-freeze baseline `v0.9.0-ff` at `30799df`).
+> The tag predates the post-rc.1 **full G8 acceptance**, which passed on
+> 2026-11-23: 8 phases / 11 bus-verified commands, one bounded open-loop
+> chassis pulse, grip verify and a put-back at 0.236 m inside the
+> 0.220–0.255 m band; `/safety_stop=false`. See
+> [`evidence/g8_acceptance_20261123/`](../../evidence/g8_acceptance_20261123/README.md).
+> `v1.0.0` remains gated on a reproducible ROS build; see
 > [`RELEASE.md`](../../RELEASE.md) for the known limitations.
 
-## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21 + validation 2026-11-23)
+## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21/23)
 
-Hardware results are as of 2026-11-21; the 2026-11-22 batch is offline only and
-changes no verdict. The 2026-11-23 gateway validation confirmed the stop and
-joint2 paths but adds no new task-level hardware claim. Verdicts use the
-repository convention:
+Hardware results are as of 2026-11-21 plus the 2026-11-23 post-rc.1 full G8
+acceptance; the 2026-11-22 batch is offline only and changes no verdict. The
+2026-11-23 gateway validation confirmed the stop and joint2 paths, and the
+full G8 run adds the task-level acceptance. Verdicts use the repository
+convention:
 **Pass** = implemented and backed by a command, log or data file in
 `evidence/`; **Partial** = the framework exists but required terms are still
 unmeasured; **Not accepted** = outside the demonstrated scope.
@@ -92,7 +96,7 @@ unmeasured; **Not accepted** = outside the demonstrated scope.
 | Random-placement follow-up | **Pass** | Completed 2026-11-21: 24 pairs on free by-eye spots with a base approach; baseline **9/24** vs intervention **24/24** (McNemar **p = 6.1×10⁻⁵**); 14 `MISS` + 1 `NO_GRIP` (grip lost on the return), all baseline; the home release error (+2.12 mm, anchor = corrected target) is descriptive; the fixed 24-mark fan was superseded before data and never run |
 | Error budget | **Complete; bound gates fail** | All required sources measured (2026-11-20 adds execution 5.386 mm / 1.495° max, placement 11.514 mm max / 3.080 mm mean, fixture 14.815 mm radial max); translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm (RMS 4.082) is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Safety layer | **Pass with constraints** | Watchdog, joint/velocity/acceleration/start-state/duration/workspace checks, table-plane clearance and trajectory veto exercised; D435i collision box (MoveIt only); clock-sync timer holds the Pi ~2 s ahead; **no e-stop or brake**, all motion supervised |
-| Debug Studio | **Pass G1–G8.1 + the G8 fast path** | 144 backend + 93 gateway tests; 10 mock + 3 hardware + 3 pose/task Playwright; G5 moving capture; G6 supervised single-joint path verified without motion; **G7 pose takeover** bus-verified (low pose within 4 pulses, gripper settled 184/645); **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify + put-back) hardware-verified, including the min-range clip recovery; **G8.1 bounded chassis approach** hardware-verified on a far cube; **G8 fast path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) hardware-verified (13.46 s wall, 2.27 mm landing); the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; `/servo_states` is a command cache; `/safety_stop` is latched for Studio arm/chassis commands (hardware-confirmed 2026-11-23); no e-stop, no self-collision model |
+| Debug Studio | **Pass G1–G8.1 + the G8 fast path** | 144 backend + 93 gateway tests; 10 mock + 3 hardware + 3 pose/task Playwright; G5 moving capture; G6 supervised single-joint path verified without motion; **G7 pose takeover** bus-verified (low pose within 4 pulses, gripper settled 184/645); **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify + put-back) hardware-verified, including the min-range clip recovery; **G8.1 bounded chassis approach** hardware-verified on a far cube; **G8 fast path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) hardware-verified (13.46 s wall, 2.27 mm landing); **full G8 acceptance (2026-11-23)** 8 phases / 11 bus-verified commands with one bounded chassis pulse and put-back at 0.236 m; the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; `/servo_states` is a command cache; `/safety_stop` is latched for Studio arm/chassis commands (hardware-confirmed 2026-11-23); no e-stop, no self-collision model |
 | Mobile base | **Not accepted** | Four open-loop motor duties, no encoders/IMU/odometry; any base move invalidates the table calibration; one duty-20 aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) drives the base into the grasp band with camera closure, but remains an assisted open-loop step, not navigation |
 
 **Scope verdict.** The capstone claim is accepted for the measured fixed-base

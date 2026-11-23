@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — post-rc.1 acceptance (2026-11-23)
+
+### Added
+
+- `evidence/g8_acceptance_20261123/` — supervised full G8 task sequence:
+  8 phases / 11 bus-verified commands, one bounded open-loop chassis
+  approach, grip verify, put-back at 0.236 m (inside the 0.220–0.255 m
+  band). This closes the full-G8 part of the `v1.0.0` gate.
+- Runtime evidence for the real `armpi_safety` node: valid, unlatched,
+  no violations, `/safety_stop=false`.
+
+### Fixed
+
+- Backend health reports `api_version` `1.0.0-rc.1` instead of the stale
+  `0.1.0`; release manifest component versions use the same
+  `1.0.0-rc.1` spelling as the packages.
+
 ## [1.0.0-rc.1] — 2026-11-23
 
 First tagged release candidate. Feature-freeze baseline `v0.9.0-ff` is the

@@ -4,8 +4,9 @@
 
 **This is a release candidate, not production `v1.0.0`.** It is the
 feature-frozen, hardware-validated-on-the-gateway baseline for the JCHENG
-Robotics ecosystem. The full task-level acceptance and the reproducible ROS
-build remain open (see known limitations).
+Robotics ecosystem. The full task-level G8 acceptance passed **after** this
+tag (2026-11-23, see below); the reproducible ROS build remains open (see
+known limitations).
 
 ### Tags
 
@@ -49,6 +50,25 @@ Hardware evidence:
 - `evidence/fast_path_regression_20261123/` — 4.0/20 view→upright, settle
   2 pulses.
 
+### Post-rc.1 acceptance update (2026-11-23)
+
+A supervised **full G8 task sequence** passed after `v1.0.0-rc.1` was cut:
+
+- cube at `0.304 m` → one bounded open-loop chassis pulse (`75.3 mm`
+  nominal) → re-plan `VALID`;
+- 8 phases / 11 arm and gripper commands, every terminal event `Completed`
+  with `verification: bus` (gripper commands timed, final bus read back);
+- grip verify `held: true` (empty cube box; the one segmented cluster was
+  outside the box and rejected as `y_out_of_region`);
+- put-back confirmed by a read-only re-plan at `0.236 m`, inside the
+  validated `0.220–0.255 m` band;
+- `/safety_stop=false`; the real safety node reported `valid=true`,
+  `stop_latched=false`, no violations.
+
+Evidence: [`evidence/g8_acceptance_20261123/`](evidence/g8_acceptance_20261123/README.md).
+This closes the **full G8 hardware acceptance** part of the `v1.0.0` gate;
+the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
+
 ### Known limitations (accepted for rc.1)
 
 - No e-stop, brake, self-collision model, independent encoder or odometry.
@@ -61,14 +81,15 @@ Hardware evidence:
 - The Studio backend has no authentication and is localhost-only by policy;
   the gateway token comparison is constant-time; the systemd wrapper runs the
   container entrypoint as root.
-- The full G7/G8 task sequence was not rerun for this candidate; the fast-path
-  regression is one direction only.
+- The rc.1 tag itself predates the full G8 acceptance; the post-tag run
+  passed on 2026-11-23 (see above). The fast-path regression is one direction
+  only.
 - The gripper is left open in the validation pose; no automatic boot-time
   homing.
 
-`v1.0.0` requires: a supervised full G8 hardware acceptance, a reproducible
-ROS CI build, and closure of the remaining P1 operational items. Do not
-present rc.1 as a production safety certification.
+`v1.0.0` requires: a reproducible ROS CI build, closure of the remaining P1
+operational items, and inclusion of the 2026-11-23 full G8 acceptance
+evidence. Do not present rc.1 as a production safety certification.
 
 ### Upgrade / rollback
 

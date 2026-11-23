@@ -1,0 +1,586 @@
+{
+  "schema_version": 1,
+  "blocker": "full G8 task sequence",
+  "result": "PASS",
+  "date": "2026-11-23",
+  "session": "g8-acceptance-20261123",
+  "run_generated_at": "2026-11-23T01:39:06.371277Z",
+  "execute": true,
+  "plan": {
+    "valid": true,
+    "errors": [],
+    "warnings": [
+      "START_ECHO",
+      "TOP_CLIPPED_RECOVERED"
+    ],
+    "point_m": [
+      0.231727,
+      0.003021,
+      -0.049732
+    ],
+    "target_m": [
+      0.245427,
+      0.006921,
+      -0.040832
+    ],
+    "correction_mm": [
+      13.7,
+      3.9,
+      8.9
+    ],
+    "fit_joints_rad": [
+      0.03726256365060068,
+      -0.6618,
+      -1.80117,
+      -0.2942730275414597,
+      0.0
+    ],
+    "fit_xy_error_mm": 2.9648829295273014e-07,
+    "source": "commanded"
+  },
+  "approach": {
+    "kind": "chassis_pulse",
+    "vx": 0.985598,
+    "vy": -0.169103,
+    "duty": 10.0,
+    "duration_s": 1.536,
+    "nominal_travel_mm": 75.3,
+    "travel_m": 0.0753,
+    "forward_mm": 74.2,
+    "left_mm": -12.7,
+    "point_m": [
+      0.304202504823932,
+      -0.012731212988994735,
+      -0.05194038841256321
+    ],
+    "target_point_m": [
+      0.23,
+      0.0
+    ]
+  },
+  "approach_gateway": {
+    "status": "completed",
+    "verification": "open_loop",
+    "messages": 35,
+    "elapsed_s": 1.782,
+    "nominal_travel_mm": 75.3,
+    "subscribers_matched": 1
+  },
+  "phases": [
+    {
+      "phase_index": 0,
+      "phase": "open_gripper",
+      "command": "open_gripper",
+      "command_id": "cmd_a828ade09cdc4795",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:13.007108Z",
+      "error_code": null,
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.8,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "r_joint": 170
+      },
+      "actual_bus_pulses": {
+        "r_joint": 184
+      },
+      "deviations_pulses": {},
+      "commanded_cache_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 783,
+        "joint4": 120,
+        "joint5": 495,
+        "r_joint": 170
+      }
+    },
+    {
+      "phase_index": 1,
+      "phase": "approach",
+      "command": "approach",
+      "command_id": "cmd_937c572dd2af4163",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:14.267831Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.7120943348136863,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 500,
+        "joint5": 500
+      },
+      "actual_bus_pulses": {
+        "joint1": 504,
+        "joint2": 339,
+        "joint3": 929,
+        "joint4": 495,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": -1,
+        "joint4": -5,
+        "joint5": 0
+      },
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 500,
+        "joint5": 500,
+        "r_joint": 170
+      }
+    },
+    {
+      "phase_index": 2,
+      "phase": "grasp",
+      "command": "descend",
+      "command_id": "cmd_f7118ca54c2b44f7",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:15.426347Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.2875789357062797,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 466,
+        "joint5": 500
+      },
+      "actual_bus_pulses": {
+        "joint1": 505,
+        "joint2": 338,
+        "joint3": 929,
+        "joint4": 469,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": -1,
+        "joint4": 3,
+        "joint5": 0
+      },
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 466,
+        "joint5": 500,
+        "r_joint": 170
+      }
+    },
+    {
+      "phase_index": 2,
+      "phase": "grasp",
+      "command": "grasp",
+      "command_id": "cmd_9d7601ae3a734c19",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:16.463210Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.4613579659438318,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500
+      },
+      "actual_bus_pulses": {
+        "joint1": 504,
+        "joint2": 339,
+        "joint3": 929,
+        "joint4": 433,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": -1,
+        "joint4": 3,
+        "joint5": 0
+      },
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500,
+        "r_joint": 170
+      }
+    },
+    {
+      "phase_index": 3,
+      "phase": "close",
+      "command": "close_pre",
+      "command_id": "cmd_7d4818100ca8402b",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:17.811848Z",
+      "error_code": null,
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.35,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "r_joint": 318
+      },
+      "actual_bus_pulses": {
+        "r_joint": 306
+      },
+      "deviations_pulses": {},
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500,
+        "r_joint": 318
+      }
+    },
+    {
+      "phase_index": 3,
+      "phase": "close",
+      "command": "close_grip",
+      "command_id": "cmd_df0beb3c07cc4c38",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:19.156183Z",
+      "error_code": null,
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.5,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "r_joint": 550
+      },
+      "actual_bus_pulses": {
+        "r_joint": 426
+      },
+      "deviations_pulses": {},
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500,
+        "r_joint": 550
+      }
+    },
+    {
+      "phase_index": 4,
+      "phase": "lift",
+      "command": "lift",
+      "command_id": "cmd_34f560f36fb64cf0",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:20.315882Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.6387804367752175,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496
+      },
+      "actual_bus_pulses": {
+        "joint1": 504,
+        "joint2": 555,
+        "joint3": 793,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations_pulses": {
+        "joint1": 4,
+        "joint2": -6,
+        "joint3": 9,
+        "joint4": -1,
+        "joint5": 1
+      },
+      "commanded_cache_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496,
+        "r_joint": 550
+      }
+    },
+    {
+      "phase_index": 6,
+      "phase": "release",
+      "command": "release_descend",
+      "command_id": "cmd_af077f78766c4cdc",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:23.546937Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 1.1438609216451918,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 466,
+        "joint5": 500
+      },
+      "actual_bus_pulses": {
+        "joint1": 506,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 460,
+        "joint5": 500
+      },
+      "deviations_pulses": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      },
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 466,
+        "joint5": 500,
+        "r_joint": 550
+      }
+    },
+    {
+      "phase_index": 6,
+      "phase": "release",
+      "command": "release_final",
+      "command_id": "cmd_4d9f8d43306240ef",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:24.526881Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.2526495537951988,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500
+      },
+      "actual_bus_pulses": {
+        "joint1": 505,
+        "joint2": 339,
+        "joint3": 930,
+        "joint4": 434,
+        "joint5": 499
+      },
+      "deviations_pulses": {
+        "joint1": -4,
+        "joint2": -3,
+        "joint3": 0,
+        "joint4": 4,
+        "joint5": -1
+      },
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500,
+        "r_joint": 550
+      }
+    },
+    {
+      "phase_index": 6,
+      "phase": "release",
+      "command": "release_open",
+      "command_id": "cmd_4baf17451f3f43d1",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:25.874984Z",
+      "error_code": null,
+      "completion": "timed",
+      "verification": "bus",
+      "duration_s": 0.45,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "r_joint": 170
+      },
+      "actual_bus_pulses": {
+        "r_joint": 226
+      },
+      "deviations_pulses": {},
+      "commanded_cache_pulses": {
+        "joint1": 509,
+        "joint2": 342,
+        "joint3": 930,
+        "joint4": 430,
+        "joint5": 500,
+        "r_joint": 170
+      }
+    },
+    {
+      "phase_index": 7,
+      "phase": "return_view",
+      "command": "return_view",
+      "command_id": "cmd_a8e1a28a0bb74e16",
+      "stage": "Completed",
+      "wall_time": "2026-11-23T01:39:27.141755Z",
+      "error_code": null,
+      "completion": "position",
+      "verification": "bus",
+      "duration_s": 0.6387804367752175,
+      "tolerance_pulses": 3,
+      "verification_tolerance_pulses": 12,
+      "targets_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496
+      },
+      "actual_bus_pulses": {
+        "joint1": 505,
+        "joint2": 558,
+        "joint3": 792,
+        "joint4": 120,
+        "joint5": 497
+      },
+      "deviations_pulses": {
+        "joint1": 5,
+        "joint2": -3,
+        "joint3": 8,
+        "joint4": 0,
+        "joint5": 1
+      },
+      "commanded_cache_pulses": {
+        "joint1": 500,
+        "joint2": 561,
+        "joint3": 784,
+        "joint4": 120,
+        "joint5": 496,
+        "r_joint": 170
+      }
+    }
+  ],
+  "grip_verify": {
+    "held": true,
+    "verified": true,
+    "simulated": false,
+    "point_m": [
+      0.23172696022519296,
+      0.0030207611928560196,
+      -0.04973228915910097
+    ],
+    "clusters": 1,
+    "segmentation_success": false,
+    "cluster_details": [
+      {
+        "label": 0,
+        "bounds": {
+          "points": 3967,
+          "min": [
+            0.47761378966622003,
+            -0.25210711561882915,
+            -0.09890991569019475
+          ],
+          "max": [
+            0.5569759720628968,
+            -0.18669188212054116,
+            -0.06810117797543452
+          ],
+          "size": [
+            0.0793621823966768,
+            0.06541523349828798,
+            0.030808737714760226
+          ],
+          "centroid": [
+            0.509669262667094,
+            -0.21333200889678847,
+            -0.0807341396174828
+          ]
+        },
+        "height_m": 0.023927084345242378,
+        "ok": false,
+        "why": [
+          "y_out_of_region"
+        ]
+      }
+    ],
+    "note": "held=true means the cube box at the view was empty after the lift. The only segmented cluster was outside the box (y_out_of_region), so segmentation.success=false is the expected empty-box result, not a positive cube observation."
+  },
+  "postcheck": {
+    "execute": false,
+    "valid": true,
+    "point_m": [
+      0.236019,
+      0.002949,
+      -0.050847
+    ],
+    "target_m": [
+      0.249719,
+      0.006849,
+      -0.041947
+    ],
+    "warnings": [],
+    "band_m": [
+      0.22,
+      0.255
+    ],
+    "in_band": true,
+    "note": "read-only re-plan after the run; the cube was back at the view and inside the validated approach band"
+  },
+  "safety": {
+    "gateway_health": {
+      "safety_stop": false,
+      "motion_state": "completed",
+      "ros_ready": true
+    },
+    "safety_status": {
+      "valid": true,
+      "stop": false,
+      "stop_latched": false,
+      "violations": [],
+      "last_validation_approved": true
+    },
+    "safety_stop_topic": false,
+    "captured_at": "2026-11-23T01:42:22Z"
+  },
+  "evidence_files": [
+    "g8_run.json",
+    "g8_postcheck.json",
+    "runtime_snapshot.json",
+    "safety_status.txt",
+    "acceptance.json"
+  ],
+  "limitations": [
+    "One supervised run on one cube and one fixture; not a statistical sample.",
+    "The chassis approach is open-loop (no odometry); the cube started at 0.304 m and needed one 75.3 mm nominal pulse.",
+    "The gripper completion is timed (not position-servoed); its final bus readings are read back but not closed-loop.",
+    "No e-stop, brake, self-collision model or independent encoder; the workspace was clear and the arm was supported during setup.",
+    "The real armpi_safety node is a manual process in /home/ubuntu/shared/safety_ws, not a systemd unit."
+  ],
+  "post_run_note": "At 2026-11-23T01:42:04Z a later 1.0 s view-pose command (session 1c1bdca1-5434-4af4-b8a4-d80d3ba6d176) was dispatched outside this scripted run; it completed bus-verified at 504/558/792/120/497. It does not change the G8 phase evidence, which ends at 01:39:27Z."
+}

@@ -149,7 +149,8 @@ was discarded (D1).
    negative-register crash.
 8. **Reliability tooling.** Error-budget framework, paired-trial recorder and
    runner, measurement runner, read-only host/DDS benchmark, and a G1–G8.1
-   debug studio with the G8 fast path (144 backend + 93 gateway tests).
+   debug studio with the G8 fast path and a full 8-phase acceptance
+   (144 backend + 93 gateway tests).
 9. **Evidence-first documentation.** Every quantitative statement links to a
    timestamped evidence bundle; mock, simulation and hardware results are kept
    separate.
@@ -208,6 +209,7 @@ was discarded (D1).
 | Studio G8.1 chassis approach (2026-11-21) | a cube placed at **x 0.357 m** (outside the arm's reach and the old locate region) was brought into the band by **two bounded base pulses** (2.0 s / 98 mm nominal → **94 mm actual**; 0.68 s / 33 mm → ~42 mm), then the 13-step task gripped it (`close_grip` raw **412**, `held: true`, landing **+0.5 mm x**); the base is open-loop (`verification: open_loop`) with the camera closing the loop; the gateway caps duty ≤10 and ≤2 s | [`evidence/studio_g81/20261121/`](evidence/studio_g81/20261121/README.md) |
 | Studio G8 task takeover (2026-11-21) | one command plans a **13-step task from the live point cloud** (locate → grasp → lift → grip verify → put-back → return) and runs it with bus-verified steps; measured point `(0.2247, 0.0019, −0.0489) m`, target radius **0.2384 m** (direct-grasp band), fit j4 **−0.350**, grasp actual `504/339/930/421/499`; `close_grip` stalls at **raw 416** on the cube, grip verify `held: true`, put-back landing **+3.6 mm x / +0.2 mm y / +0.4 mm z**; the Aurora's **min-range sphere (~0.251 m)** clips the near top face (23 mm visible), so the centre is rebuilt from the intact far edge with the measured 39.4 mm cube (`TOP_CLIPPED_RECOVERED`) | [`evidence/studio_g8/20261121/`](evidence/studio_g8/20261121/README.md) |
 | Studio G8 fast path (2026-11-21) | **7 phases**, one dense S-curve per arm phase (4.0 rad/s / 20 rad/s²), fast gripper timings (0.35/0.5/0.45 s), and the **base approach inside the run**; real run **5.466 s commanded / 13.46 s wall** (the 13-step single-point plan was 33.56 s), `close_pre` 309, `close_grip` 414, `held: true`, landing **+2.22 mm x / −0.46 mm y / +1.06 mm z** (2.27 mm planar); the first attempt exposed a missing `fast` flag in the adapter payload (gateway rejected `close_pre` before publication) | [`evidence/studio_g8_fast/20261121/`](evidence/studio_g8_fast/20261121/README.md) |
+| Studio G8 full acceptance (2026-11-23) | cube at **0.304 m** → one bounded open-loop chassis pulse (75.3 mm nominal) → re-plan `VALID`; **8 phases / 11 commands**, all terminal `Completed` with `verification: bus`; `open_gripper` 184, approach `504/339/929/495/500`, `close_grip` **426**, lift `504/555/793/119/497`, grip verify `held: true` (empty box; the only cluster was `y_out_of_region`), release `505/339/930/434/499` then gripper 226, return `505/558/792/120/497`; put-back independently confirmed at **0.236 m**, inside the 0.220–0.255 m band; `/safety_stop=false` | [`evidence/g8_acceptance_20261123/`](evidence/g8_acceptance_20261123/README.md) |
 
 ## System architecture
 
@@ -295,12 +297,13 @@ tools/
 ## Project status (2026-11-23)
 
 Hardware results are as of 2026-11-21, plus the 2026-11-23 gateway, real
-`armpi_safety` and 4.0/20 fast-path validation. The repository is at the
-**v1.0.0-rc.1** release candidate (tag ladder and known limitations in
-[`RELEASE.md`](RELEASE.md)). The 2026-11-22/23 batch covers backend/gateway
-structure extraction, `/safety_stop` consumption, shared `jcheng_core`
-stats/vision primitives, four named motion-limit profiles, the real safety
-node install and the fast-path regression. Status convention:
+`armpi_safety`, 4.0/20 fast-path validation and the post-rc.1 full G8
+acceptance. The repository is at the **v1.0.0-rc.1** release candidate (tag
+ladder and known limitations in [`RELEASE.md`](RELEASE.md)). The 2026-11-22/23
+batch covers backend/gateway structure extraction, `/safety_stop`
+consumption, shared `jcheng_core` stats/vision primitives, four named
+motion-limit profiles, the real safety node install, the fast-path regression
+and the full 8-phase G8 run. Status convention:
 **Implemented / Validated / In Progress / Planned**.
 `Validated` means a command, log or data file exists in `evidence/`; it does
 not by itself mean hardware validation. Vendor functionality is marked

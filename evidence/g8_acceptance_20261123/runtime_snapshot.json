@@ -1,0 +1,43 @@
+{
+  "captured_at": "2026-11-23T01:42:22.996429Z",
+  "gateway_health": {
+    "status": "ok",
+    "ros_ready": true,
+    "motion_enabled": true,
+    "motion_state": "completed",
+    "safety_stop": false,
+    "pointcloud_configured": true,
+    "pointcloud_topic": "/depth_cam/depth_registered/points"
+  },
+  "motion_status": {
+    "state": "completed",
+    "command_id": "cmd_18cd12d8762d4aa8",
+    "verification": "bus",
+    "duration_s": 1.0,
+    "actual": {
+      "joint1": 504,
+      "joint2": 558,
+      "joint3": 792,
+      "joint4": 120,
+      "joint5": 497
+    },
+    "measured_command_cache": {
+      "joint1": 500,
+      "joint2": 561,
+      "joint3": 784,
+      "joint4": 120,
+      "joint5": 496,
+      "r_joint": 170
+    },
+    "safety_stop": false
+  },
+  "safety_status": {
+    "valid": true,
+    "stop": false,
+    "stop_latched": false,
+    "violations": [],
+    "last_validation_approved": true
+  },
+  "safety_stop_topic": false,
+  "note": "safety_status and /safety_stop were read inside the ArmPiUltra container from the real armpi_safety node; the motion actual is the gateway bus read after the most recent post-run view-pose command (the scripted G8 run ended at 01:39:27Z)."
+}

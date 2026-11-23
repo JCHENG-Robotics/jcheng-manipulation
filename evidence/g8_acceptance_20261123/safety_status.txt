@@ -1,0 +1,7 @@
+# captured 2026-11-23T01:44:19Z from ArmPiUltra container (real armpi_safety node)
+/safety_status:
+data: '{"schema_version": 1, "state": {"valid": true, "age_s": 0.02931690216064453, "violations": [], "stop": false, "stop_latched": false, "stop_reason": null, "positions": {"joint1": 0.0, "joint2": 0.2555162024919698, "joint3": -1.189616418159335, "joint4": -1.5917402778188283, "joint5": -0.016755160819145562, "r_joint": -2.220058808536787, "l_joint": 2.220058808536787, "l_in_joint": 2.220058808536787, "l_out_joint": -2.220058808536787, "r_in_joint": 2.220058808536787, "r_out_joint": -2.220058808536787}}, "last_validation": {"approved": true, "code": "OK", "violation_count": 0, "checked_at_s": 1795397079.6368587}, "stop": false}'
+---
+/safety_stop:
+data: false
+---

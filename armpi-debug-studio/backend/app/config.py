@@ -56,7 +56,7 @@ class Settings:
     camera_gateway_token: str | None = None
     urdf_path: Path = DEFAULT_URDF
     visual_model_path: Path = DEFAULT_VISUAL_MODEL
-    api_version: str = "0.1.0"
+    api_version: str = "1.0.0-rc.1"
     schema_version: int = 1
 
     @classmethod
