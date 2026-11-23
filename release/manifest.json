@@ -32,6 +32,9 @@
   "build_evidence": [
     "evidence/ros_colcon_20261123/"
   ],
+  "ops_evidence": [
+    "evidence/gateway_service_20261123/"
+  ],
   "hardware_evidence": [
     "evidence/studio_validation_20261123/",
     "evidence/armpi_safety_install_20261123/",
@@ -54,6 +57,11 @@
       "evidence": "evidence/ros_colcon_20261123/",
       "result": "PASS_WITH_RESIDUAL",
       "summary": "7 packages built; 118 tests, 0 errors, 0 failures, 1 skipped (local xmllint schema fetch); CI base image digest pin outstanding"
+    },
+    "operations": {
+      "evidence": "evidence/gateway_service_20261123/",
+      "result": "PASS",
+      "summary": "the live 8765 gateway service runs as pi:docker; backend remains localhost-only without auth; 8766 is still manual"
     },
     "summary": "8 phases / 11 bus-verified commands; one bounded chassis pulse; put-back at 0.236 m inside the 0.220-0.255 m band; /safety_stop=false"
   },

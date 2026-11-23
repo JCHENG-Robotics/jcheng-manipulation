@@ -35,7 +35,12 @@ if ! getent group "${SERVICE_GROUP}" >/dev/null 2>&1; then
   echo "ERROR: service group ${SERVICE_GROUP} does not exist" >&2
   exit 1
 fi
-if ! timeout 10 runuser -u "${SERVICE_USER}" -- docker info >/dev/null 2>&1; then
+RUNUSER_BIN=$(command -v runuser || true)
+if [[ -z "${RUNUSER_BIN}" ]]; then
+  echo "ERROR: runuser is required to check the service account" >&2
+  exit 1
+fi
+if ! timeout 10 "${RUNUSER_BIN}" -u "${SERVICE_USER}" -- docker info >/dev/null 2>&1; then
   echo "ERROR: ${SERVICE_USER} cannot access the Docker daemon (docker group)" >&2
   exit 1
 fi

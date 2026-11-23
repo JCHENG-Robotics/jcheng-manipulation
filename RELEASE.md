@@ -93,8 +93,8 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - `tools/check_evidence_manifest.py` verifies that every evidence path in
   this manifest exists and has a README.
 - The gateway installer now uses `User=pi` / `Group=docker` for the host
-  wrapper; the live service was installed with the older root unit and must be
-  reinstalled to apply it.
+  wrapper; the live 8765 service was reinstalled on 2026-11-23 and verified
+  (`evidence/gateway_service_20261123/`).
 - The backend remains localhost-only without authentication; use an SSH
   tunnel for remote access.
 
@@ -110,9 +110,9 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
   Hub was unreachable from the verification host.
 - The Studio backend has no authentication and is localhost-only by policy;
   use an SSH tunnel for remote access. The gateway token comparison is
-  constant-time. The repo installer now runs the host wrapper as
-  `pi:docker`, but the live 2026-11-23 service was installed with the older
-  root unit and must be reinstalled to pick that up.
+  constant-time. The 8765 host wrapper was switched to `pi:docker` and
+  verified on 2026-11-23; the 8766 pose/motion gateway remains a manual
+  process.
 - The rc.1 tag itself predates the full G8 acceptance; the post-tag run
   passed on 2026-11-23 (see above). The fast-path regression is one direction
   only.

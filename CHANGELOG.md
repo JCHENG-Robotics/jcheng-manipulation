@@ -22,8 +22,7 @@ All notable changes to this project are documented here. Format based on
 - `docs/operations/PREFLIGHT.md` and `RUNBOOK.md`; `tools/check_evidence_manifest.py`
   validates that released evidence paths exist and have a README.
 - The gateway installer now runs the host wrapper as `pi:docker` instead of
-  root; `systemd-analyze verify` passes on the installed host. The live
-  service still needs a reinstall to pick it up.
+  root; the live 8765 service was reinstalled and verified on 2026-11-23.
 
 ### Changed
 

@@ -44,7 +44,7 @@ architecture run built 7 packages and ran **118 tests / 0 failures / 1 skip**
 ([evidence](evidence/ros_colcon_20261123/README.md)). The CI base image is
 still tag-pinned rather than digest-pinned. Operations also gained a hardware
 preflight/runbook, an evidence-manifest check, and a non-root gateway
-installer (the live service still needs a reinstall).
+installer; the live 8765 service was reinstalled as `pi:docker` and verified.
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

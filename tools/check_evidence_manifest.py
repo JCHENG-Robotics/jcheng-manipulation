@@ -28,12 +28,16 @@ def main() -> int:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     paths = list(manifest.get("hardware_evidence", []))
     paths.extend(manifest.get("build_evidence", []))
+    paths.extend(manifest.get("ops_evidence", []))
     acceptance = manifest.get("post_rc1_acceptance", {})
     if acceptance.get("evidence"):
         paths.append(acceptance["evidence"])
     build = acceptance.get("reproducible_build", {})
     if build.get("evidence"):
         paths.append(build["evidence"])
+    operations = acceptance.get("operations", {})
+    if operations.get("evidence"):
+        paths.append(operations["evidence"])
 
     problems = []
     for relative in sorted(set(paths)):

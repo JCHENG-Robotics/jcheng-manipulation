@@ -32,6 +32,12 @@ gitignored or kept private.
 |---|---|---|
 | `ros_colcon_20261123/` | `colcon build/test` for 7 public packages on aarch64 Humble; 118 tests, 0 failures, 1 local skip | Target architecture; no motion |
 
+## Operations evidence
+
+| Path | Content | Scope |
+|---|---|---|
+| `gateway_service_20261123/` | Read-only gateway unit switched from root to `pi:docker`; health checks after the restart | Real robot host; no motion |
+
 ## Model / mock / synthetic evidence
 
 | Path | Content |

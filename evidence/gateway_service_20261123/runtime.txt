@@ -1,0 +1,63 @@
+# captured 2026-11-23T02:03:34Z
+## systemctl
+MainPID=83103
+User=pi
+Group=docker
+ActiveState=active
+SubState=running
+root:docker 640 /etc/armpi-gateway/gateway.env
+USER         PID CMD
+pi         83103 docker exec -u ubuntu ArmPiUltra /bin/bash -lc source /opt/ros/humble/setup.bash;    source /home/ubuntu/ros2_ws/install/setup.bash;    cd /home/ubuntu/shared/armpi_gateway_deploy;    exec python3 -m armpi_debug_gateway.main      --host 10.42.0.218 --port 8765 --token-file /home/ubuntu/shared/armpi_gateway_deploy/token      --aux-camera-topic /ext_cam/color/image_raw
+
+## health
+{
+    "status": "ok",
+    "ros_ready": true,
+    "battery_ready": true,
+    "camera_ready": true,
+    "aux_camera_ready": true,
+    "joints_ready": true,
+    "measured_ready": true,
+    "tf_ready": true,
+    "tf_status": "ok",
+    "pointcloud_configured": false,
+    "pointcloud_topic": null,
+    "pointcloud_last_capture": {
+        "available": false,
+        "topic": null,
+        "count": 0
+    },
+    "motion_enabled": false,
+    "motion_state": "disabled",
+    "safety_stop": false,
+    "chassis_enabled": false,
+    "chassis": null,
+    "motion_mode": "disabled",
+    "node": "armpi_debug_gateway",
+    "wall_time": "2026-11-23T02:03:36.434275Z",
+    "topics": {
+        "battery": "/ros_robot_controller/battery",
+        "camera": "/depth_cam/rgb/image_raw",
+        "aux_camera": "ros:/ext_cam/color/image_raw",
+        "joint_state": "/controller_manager/joint_states",
+        "measured": "/controller_manager/servo_states",
+        "pointcloud": null,
+        "motion": null,
+        "chassis": null,
+        "tf": "/tf",
+        "tf_static": "/tf_static"
+    }
+}
+
+{
+ "status": "ok",
+ "ros_ready": true,
+ "motion_state": "completed",
+ "safety_stop": false
+}
+
+{
+ "status": "ok",
+ "mode": "hardware",
+ "version": "1.0.0-rc.1"
+}

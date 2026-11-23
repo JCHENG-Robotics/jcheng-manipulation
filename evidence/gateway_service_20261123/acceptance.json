@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "blocker": "systemd wrapper runs as root",
+  "result": "PASS",
+  "date": "2026-11-23",
+  "service": "armpi-gateway.service",
+  "before": {
+    "user": "root",
+    "group": "root"
+  },
+  "after": {
+    "user": "pi",
+    "group": "docker",
+    "env_file": "root:docker 0640",
+    "active_state": "active",
+    "sub_state": "running"
+  },
+  "health": {
+    "gateway_8765": {
+      "status": "ok",
+      "ros_ready": true,
+      "camera_ready": true,
+      "aux_camera_ready": true,
+      "joints_ready": true,
+      "battery_ready": true
+    },
+    "gateway_8766": {
+      "status": "ok",
+      "motion_state": "completed",
+      "safety_stop": false
+    },
+    "backend": {
+      "status": "ok",
+      "mode": "hardware",
+      "version": "1.0.0-rc.1"
+    }
+  },
+  "motion_sent": false,
+  "residual": [
+    "backend has no authentication and remains localhost-only by policy",
+    "the 8766 pose/motion gateway is still a manual process"
+  ],
+  "evidence_files": [
+    "README.md",
+    "acceptance.json",
+    "runtime.txt"
+  ]
+}
