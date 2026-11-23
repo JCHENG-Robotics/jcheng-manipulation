@@ -59,7 +59,8 @@
 
 1. 由 `JerichoCheng` 作者打开 PR，`JerichoSwaine` 批准，合并到 `main`。
 2. 合并后创建 v0.1.0 标签（签名标签；需确认签名方式）。
-3. 可选：生成 TypeScript 绑定（M2.3 后续），不影响系统层 M3 使用 Python/ROS。
+3. 可选：生成 TypeScript 绑定与 ROS type hash（M2.3 后续）；`contract_hash`
+   仍是运行时握手的权威，不影响 M3 使用 Python/ROS。
 4. 组织主页 PR 仍待打开；不阻塞 M2。
 
 ## 5. 未做
@@ -68,6 +69,8 @@
 - 没有连接机器人、没有发送运动命令。
 - 没有修改 `jcheng-manipulation v1.0.0` 的标签、证据或实验历史。
 - 没有添加 `LICENSE`；许可证审查仍为 pending。
+- `interface_manifest.json` 的 `ros_type_hashes` 仍为空；这是 v0.1 已知限制，
+  后续补充。TypeScript 绑定同样未生成。
 
 ## 6. 验收状态
 
