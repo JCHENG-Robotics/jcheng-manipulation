@@ -1,7 +1,7 @@
 # M2 执行记录
 
-> 状态：**M2.1 审计已签字；M2.2 v0.1 契约与 M2.3 CI 已实现，等待 PR 评审/合并与 v0.1.0 标签。**
-> 日期：2026-11-23
+> 状态：**M2 已完成（2026-11-23）。**
+> PR #3 已由 `JerichoSwaine` 批准并合并；`v0.1.0` 已打 SSH 签名标签。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`），未改动。
 
 ## 1. 已完成
@@ -9,7 +9,7 @@
 ### M2.1 契约审计
 
 - 审计 `arm_interfaces`、Studio API、gateway、安全执行路径。
-- 产出字段级盘点、重复/冲突矩阵、兼容映射、破坏性变更、弃用计划、
+- 字段级盘点、重复/冲突矩阵、兼容映射、破坏性变更、弃用计划、
   安全不变量与 v0.1 建议清单。
 - 审计 PR #2 由 `JerichoSwaine` 批准并合并（`b2cfcf1`）；
   `docs/CONTRACT_AUDIT.md` 已标记签字。
@@ -22,9 +22,9 @@
 | 消息 | 14 个：`ContractVersion`、`CapabilityManifest`、`SafetyState`、`ControlLease`、`MotionCommand`、`MotionFeedback`、`MotionResult`、`RobotState`、`JointTrajectory`、`JointTrajectoryPoint`、`BasePulse`、`GripperCommand`、`TeleopCommand`、`ValidationReport` |
 | 服务 | 10 个：租约 4 个、校验 1 个、安全/使能 4 个、能力 1 个 |
 | Action | `ExecuteMotion` |
-| Schema | 7 个 JSON Schema + OpenAPI `/v1` + WebSocket `/v1` + 错误码注册表/映射 |
+| Schema | 7 个 JSON Schema + OpenAPI `/v1` + WebSocket `/v1` + 52 个错误码/映射 |
 | Python | `jcheng_contracts`：版本、错误码、模型、manifest、校验 |
-| Manifest | `interface_manifest.json`；契约哈希 `sha256:0b8d72ce…f24b42` |
+| Manifest | `interface_manifest.json`；契约哈希 `sha256:0b8d72ced7f54d444d6851d8b99a51a78e2bed3f687324f51a15f76557f24b42` |
 | 测试 | 15 项：manifest、Schema、错误码、IDL/Schema parity、OpenAPI、硬件原语 |
 
 ### M2.3 CI
@@ -35,15 +35,24 @@
 - 运行 `45135205900`：`m1-gate` success，`m2-contract` success。
 - `jcheng-interfaces` 的 `main` 保护已要求 `m1-gate` + `m2-contract`。
 
-## 2. 分支与提交
+## 2. 合并与标签
 
 | 项 | 值 |
 |---|---|
 | 仓库 | `JCHENG-Robotics/jcheng-interfaces` |
-| 分支 | `m2/interfaces-v0.1` |
-| 提交 | `b50fc3e`（v0.1 实现）、`7608500`（CI 修复）、`f1c906e`（保护记录）、`187b560`（type hash note） |
+| PR | [#3](https://github.com/JCHENG-Robotics/jcheng-interfaces/pull/3)，作者 `JerichoCheng`，批准/合并 `JerichoSwaine` |
+| 合并提交 | `33f1293bcdcc5c866fbd655232e26a1f3a756006` |
+| Tag | `v0.1.0` |
+| Tag object | `8bc17cd3debfd1badc451ec75a48c144a872ea2d` |
+| Tag target | `33f1293`（与 `main` 一致） |
+| Tag 类型 | SSH 签名 annotated tag |
+| 本地验证 | `Good "git" signature for chengkewei77@gmail.com`；ED25519 fingerprint `SHA256:88tnes5V23WwLptWGXBaitgw4ti0Hb7aiqeT3wJHNlA` |
+| GitHub 验证 | `verified=false, reason=unknown_key`；签名存在，但 SSH key 尚未注册为 GitHub signing key |
 | CI | https://github.com/JCHENG-Robotics/jcheng-interfaces/actions/runs/45135205900 |
-| PR | https://github.com/JCHENG-Robotics/jcheng-interfaces/compare/main...m2/interfaces-v0.1?expand=1 |
+
+**说明：** GitHub 的 `unknown_key` 不代表标签未签名；本地 `git tag -v` 已通过。
+要在 GitHub 显示 Verified，需要把 `~/.ssh/id_ed25519.pub` 作为 **Signing Key**
+添加到 GitHub 账户。已有标签无需重打；添加 key 后 GitHub 会重新校验。
 
 ## 3. 关键设计决定
 
@@ -55,13 +64,12 @@
 6. 错误码统一注册表；旧码通过 `error-code-mapping.v1.json` 映射。
 7. `ContractVersion.contract_hash` 是运行时握手依据；manifest 逐文件哈希可重建。
 
-## 4. 剩余步骤
+## 4. 后续（不阻塞 M3）
 
-1. 由 `JerichoCheng` 作者打开 PR，`JerichoSwaine` 批准，合并到 `main`。
-2. 合并后创建 v0.1.0 标签（签名标签；需确认签名方式）。
-3. 可选：生成 TypeScript 绑定与 ROS type hash（M2.3 后续）；`contract_hash`
-   仍是运行时握手的权威，不影响 M3 使用 Python/ROS。
-4. 组织主页 PR 仍待打开；不阻塞 M2。
+1. 把 SSH 公钥注册为 GitHub signing key，使 `v0.1.0` 显示 Verified。
+2. 生成 TypeScript 绑定。
+3. 补充 `ros_type_hashes`；`contract_hash` 仍是运行时权威。
+4. 组织主页 PR 仍待打开；不阻塞 M3。
 
 ## 5. 未做
 
@@ -69,8 +77,6 @@
 - 没有连接机器人、没有发送运动命令。
 - 没有修改 `jcheng-manipulation v1.0.0` 的标签、证据或实验历史。
 - 没有添加 `LICENSE`；许可证审查仍为 pending。
-- `interface_manifest.json` 的 `ros_type_hashes` 仍为空；这是 v0.1 已知限制，
-  后续补充。TypeScript 绑定同样未生成。
 
 ## 6. 验收状态
 
@@ -82,4 +88,5 @@
 | 契约哈希可重建 | 通过 |
 | 15 项测试 | 通过 |
 | `m1-gate` + `m2-contract` | 通过 |
-| PR 合并 + v0.1.0 标签 | 待完成 |
+| PR 合并 | 完成（`33f1293`） |
+| v0.1.0 标签 | 完成（SSH 签名；GitHub Verified 待注册 key） |
