@@ -1,88 +1,82 @@
 # M2 执行记录
 
-> 状态：**M2.1 契约审计稿已提交，等待签字；尚未定义 IDL。**
+> 状态：**M2.1 审计已签字；M2.2 v0.1 契约与 M2.3 CI 已实现，等待 PR 评审/合并与 v0.1.0 标签。**
 > 日期：2026-11-23
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`），未改动。
 
-## 1. 本轮完成
+## 1. 已完成
 
-- 审计 `arm_interfaces`：`ArmMove.action`、`ValidateTrajectory.srv` 的字段、
-  生产者/消费者、单位与安全语义。
-- 审计 Studio 后端 API：路由、请求/响应模型、租约、预览 token、幂等、
-  状态机、安全 gate。
-- 审计 gateway：`/state` 的三层位置语义、`/motion/dispatch`、
-  `/motion/status`、`/chassis/pulse`、`/safety_stop`、错误码族。
-- 审计安全执行路径：MoveIt CLI、Fast CLI、G6/G7/G8、底盘、脚本直写、
-  厂商直发。
-- 产出重复/冲突矩阵、兼容映射、破坏性变更、弃用计划、安全不变量、
-  v0.1 建议清单与开放问题。
+### M2.1 契约审计
 
-## 2. 分支与门禁
+- 审计 `arm_interfaces`、Studio API、gateway、安全执行路径。
+- 产出字段级盘点、重复/冲突矩阵、兼容映射、破坏性变更、弃用计划、
+  安全不变量与 v0.1 建议清单。
+- 审计 PR #2 由 `JerichoSwaine` 批准并合并（`b2cfcf1`）；
+  `docs/CONTRACT_AUDIT.md` 已标记签字。
+
+### M2.2 v0.1 契约
+
+| 项 | 内容 |
+|---|---|
+| ROS 包 | `ros2_ws/src/jcheng_interfaces` |
+| 消息 | 14 个：`ContractVersion`、`CapabilityManifest`、`SafetyState`、`ControlLease`、`MotionCommand`、`MotionFeedback`、`MotionResult`、`RobotState`、`JointTrajectory`、`JointTrajectoryPoint`、`BasePulse`、`GripperCommand`、`TeleopCommand`、`ValidationReport` |
+| 服务 | 10 个：租约 4 个、校验 1 个、安全/使能 4 个、能力 1 个 |
+| Action | `ExecuteMotion` |
+| Schema | 7 个 JSON Schema + OpenAPI `/v1` + WebSocket `/v1` + 错误码注册表/映射 |
+| Python | `jcheng_contracts`：版本、错误码、模型、manifest、校验 |
+| Manifest | `interface_manifest.json`；契约哈希 `sha256:0b8d72ce…f24b42` |
+| 测试 | 15 项：manifest、Schema、错误码、IDL/Schema parity、OpenAPI、硬件原语 |
+
+### M2.3 CI
+
+- `m1-gate`：仓库结构/审计签字/无运行时代码/无 LICENSE。
+- `m2-contract`：Humble 容器 `colcon build` + manifest + Schema + pytest +
+  `ros2 interface show`。
+- 运行 `45134699521`：`m1-gate` success，`m2-contract` success。
+- `jcheng-interfaces` 的 `main` 保护已要求 `m1-gate` + `m2-contract`。
+
+## 2. 分支与提交
 
 | 项 | 值 |
 |---|---|
 | 仓库 | `JCHENG-Robotics/jcheng-interfaces` |
-| 分支 | `m2/contract-audit` |
-| 提交 | `a0a5574` |
-| 审计文档 | `docs/CONTRACT_AUDIT.md`（507 行） |
-| M2 范围 | `docs/M2-SCOPE.md` |
-| M1 门禁 | 通过（无 IDL、无 package、无 LICENSE） |
-| CI | `m1-gate` 通过（run 45132889388） |
+| 分支 | `m2/interfaces-v0.1` |
+| 提交 | `b50fc3e`（v0.1 实现）、`7608500`（CI 修复） |
+| CI | https://github.com/JCHENG-Robotics/jcheng-interfaces/actions/runs/45134699521 |
+| PR | https://github.com/JCHENG-Robotics/jcheng-interfaces/compare/main...m2/interfaces-v0.1?expand=1 |
 
-对比/建 PR：
-https://github.com/JCHENG-Robotics/jcheng-interfaces/compare/main...m2/contract-audit?expand=1
+## 3. 关键设计决定
 
-## 3. 审计的核心结论
+1. `operator` 改为 `operator_id`，避免 C++ 保留字。
+2. 契约不提供原始 pulse/寄存器/EEPROM/任意 duty；`BasePulse.duty` 归一化。
+3. 夹爪契约正向 0–2.22 rad；URDF 负号由适配器转换。
+4. `ValidateMotion` 返回结构化 `ValidationReport`；不允许调用方放宽起点。
+5. `TeleopCommand` 在 v0.1 预留，试点时启用。
+6. 错误码统一注册表；旧码通过 `error-code-mapping.v1.json` 映射。
+7. `ContractVersion.contract_hash` 是运行时握手依据；manifest 逐文件哈希可重建。
 
-1. **`ArmMove` 不进入新契约。** 归档学习产物，单位未声明，仅 `arm_basics`
-   自用；如需要单步运动，用 `JOINT_STEP`（rad）。
-2. **`ValidateTrajectory` 语义保留，接口重做。** 新 `ValidateMotion` 不允许
-   调用方放宽起点门限；显式速率必须与位置差分交叉校验；报告结构化。
-3. **Studio `/api/*` 不逐字保留。** 新契约为 `/v1/*`；旧后端迁移期只做
-   客户端/适配器。
-4. **gateway `/motion/*` 不是外部契约。** 它是系统层硬件桥内部接口；
-   对外不暴露。
-5. **新契约必须更严格。** 总线实测、fail-closed、停止中止在飞执行、
-   禁止原始 pulse/任意 duty/EEPROM 写入。
-6. **重复/冲突主要集中在单位、限位、真值、完成判定与停止语义。**
-   单一 robot profile + 命名 profile + 哈希是修复路径。
+## 4. 剩余步骤
 
-## 4. 签字门禁
+1. 由 `JerichoCheng` 作者打开 PR，`JerichoSwaine` 批准，合并到 `main`。
+2. 合并后创建 v0.1.0 标签（签名标签；需确认签名方式）。
+3. 可选：生成 TypeScript 绑定（M2.3 后续），不影响系统层 M3 使用 Python/ROS。
+4. 组织主页 PR 仍待打开；不阻塞 M2。
 
-审计稿第 13 节需要：
+## 5. 未做
 
-- 接口评审：`JerichoCheng`
-- 系统/安全评审：`JerichoCheng` / `JerichoSwaine`
-- Owner 批准：`JerichoCheng`
-
-签字前：
-
-- 不创建 `.msg/.srv/.action`。
-- 不写最终 JSON Schema。
-- 不发布 `jcheng_interfaces` v0.1。
-
-## 5. 签字后的 M2.2
-
-1. 按审计第 11 节建立 `jcheng_interfaces` ROS 包与类型。
-2. 建立 JSON Schema、OpenAPI `/v1`、WebSocket `/v1`。
-3. 建立 `jcheng_contracts` Python 包与 `interface_manifest.json`。
-4. CI：Humble/Jazzy、Schema parity、契约哈希、SemVer diff、硬件原语扫描。
-5. 记录与 `arm_interfaces`/Studio/gateway 的适配映射。
-
-## 6. 未做
-
-- 没有 IDL、Schema、ROS 包或运行时代码。
-- 没有修改 `jcheng-manipulation v1.0.0` 的标签、证据或实验历史。
+- 没有运行节点、网关、硬件桥或部署单元。
 - 没有连接机器人、没有发送运动命令。
-- 组织主页 PR 仍待打开；不影响 M2。
+- 没有修改 `jcheng-manipulation v1.0.0` 的标签、证据或实验历史。
+- 没有添加 `LICENSE`；许可证审查仍为 pending。
 
-## 7. 需要确认
+## 6. 验收状态
 
-审计第 12 节的 10 个开放问题，重点：
-
-1. `ValidationReport` 结构化字段是否足够替代 `report_json`？
-2. `ArmMove` 是否立即弃用？
-3. 夹爪契约用正向 0–2.22 rad？
-4. 底盘 duty 用归一化 -1..1？
-5. 遥操作流是否在 v0.1 预留？
-6. HTTP 新 API 用 `/v1` 干净路径？
+| 项 | 状态 |
+|---|---|
+| 审计签字 | 完成 |
+| 14 msg / 10 srv / 1 action 构建 | Jazzy 本地 + Humble CI 通过 |
+| JSON Schema/OpenAPI/WS | 通过 |
+| 契约哈希可重建 | 通过 |
+| 15 项测试 | 通过 |
+| `m1-gate` + `m2-contract` | 通过 |
+| PR 合并 + v0.1.0 标签 | 待完成 |
