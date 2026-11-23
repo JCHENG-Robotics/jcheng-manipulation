@@ -61,7 +61,8 @@ Since 2026-11-22 (`43647bc`), the Studio gateway subscribes this flag, latches
 its `MotionGuard`, publishes a hold command on the rising edge and refuses new
 arm/chassis commands while latched. This makes the flag authoritative for the
 Studio gateway path only; `fast_motion.py` and the raw-bus scripts still do not
-consume it. The hardware round trip is still pending.
+consume it. The hardware round trip was confirmed on 2026-11-23 with a fake Bool
+(the slim container does not install `armpi_safety`).
 
 ## Configuration
 
