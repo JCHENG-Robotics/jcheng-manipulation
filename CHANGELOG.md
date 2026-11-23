@@ -95,6 +95,10 @@ safety hardware validation. See [`RELEASE.md`](RELEASE.md) and
   localhost-only with no auth. `v1.0.0` remains gated on a full G8 hardware
   acceptance and a reproducible build.
 
+> Superseded: `v1.0.0` shipped on 2026-11-23 with those gates closed; see
+> [`[1.0.0]`](#100--2026-11-23). The rc.1 limitations above are retained as
+> the historical candidate record.
+
 > Historical note: the dated `[Unreleased]` sections below are the pre-release
 > record. They are retained as-is; rc.1 is the first tagged baseline.
 
