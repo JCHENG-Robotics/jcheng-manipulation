@@ -109,15 +109,16 @@
 **进展（2026-11-23）：**
 
 - `.github` PR #1 已由 `JerichoSwaine` 作者打开、`JerichoCheng` 批准并 squash 合并
-  （`746d94c`）。`main` 的 CODEOWNERS 已包含双方。
-- `jcheng-interfaces` PR #1 与 `jcheng-system` PR #1 已由 `JerichoSwaine` 打开，
-  `m1-gate` 成功，但**仍在等待 `JerichoCheng` 的 code-owner 批准**；未批准前不合并。
-- `docs/bilingual-profile` 已从 `main` 更新到 `eb9c5c5`，`m1-gate` 通过
-  （run 45131178687）；PR 尚未创建，因为当前 token 缺 `Pull requests: write`。
+  （`746d94c`）。
+- `jcheng-interfaces` PR #1 已合并（`c85e39b`）；`jcheng-system` PR #1 已合并
+  （`d1e2696`）。
+- 三个仓库 `main` 的 CODEOWNERS 均已包含 `@JerichoCheng @JerichoSwaine`。
+- `docs/bilingual-profile` 已从 `main` 更新到 `821be42`，`m1-gate` 通过
+  （run 45131408260）；PR 尚未创建，因为当前 token 缺 `Pull requests: write`。
 
-**下一步：** `JerichoCheng` 批准 interfaces/system 两个 PR；随后由 `JerichoCheng`
-作者打开 profile PR，`JerichoSwaine` 批准，再合并组织主页。保护全程开启，
-不通过关闭保护来绕过评审。
+**当前状态：第二评审人 onboarding 已完成（三个仓库均为 maintain + code owner）。**
+唯一剩余步骤是组织主页 PR：由 `JerichoCheng` 作者打开，`JerichoSwaine` 批准后合并。
+保护全程开启，不通过关闭保护来绕过评审。
 
 ### 6.2 组织级设置
 
