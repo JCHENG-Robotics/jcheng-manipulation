@@ -10,7 +10,7 @@
 | 项 | 结果 |
 |---|---|
 | 组织 `JCHENG-Robotics` | 已存在且可读 |
-| `.github` | 已创建、已推送、`main` 受保护 |
+| `.github` | 已创建、已推送、`main` 受保护；`v0.1.0` SSH 签名标签已验证 |
 | `jcheng-interfaces` | 已创建、已推送、`main` 受保护 |
 | `jcheng-system` | 已创建、已推送、`main` 受保护 |
 | `m1-gate` | 三个仓库均运行成功 |

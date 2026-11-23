@@ -48,6 +48,8 @@
 | CI（`main`） | https://github.com/JCHENG-Robotics/jcheng-system/actions/runs/45139635986 |
 | `main` 保护 | `m1-gate` + `m3-mock`，1 个 code-owner 批准，管理员受限 |
 | PR | [#2](https://github.com/JCHENG-Robotics/jcheng-system/pull/2)，批准 `JerichoSwaine`，合并 `JerichoCheng` |
+| Tag | `v0.1.0`，tag object `ae316d17ff42e4db8c511bdd7748dc1ac8f967bc` |
+| Tag 验证 | GitHub `verified=true, reason=valid`（2026-11-23T08:51:12Z） |
 
 **关于 compare 页面：** `main...m3/system-mock` 显示 “There isn't anything to
 compare” 是预期结果。PR #2 已合并、分支已删除，`main` 已包含 M3；不是漏提交。
@@ -74,7 +76,7 @@ compare” 是预期结果。PR #2 已合并、分支已删除，`main` 已包�
 
 ## 6. 后续
 
-1. 可打 `jcheng-system v0.1.0` 标签（Mock 版本；尚未打，需单独确认）。
+1. `jcheng-system v0.1.0` 已打 SSH 签名标签并 GitHub Verified（`ae316d1`）。
 2. M4：只读机器人接入；域/容器/SROS2/guard 运行时；**不运动**。
 3. M5 起任何真实运动仍需单独、明确的现场授权。
 
