@@ -112,7 +112,7 @@ def test_profile_waypoints_match_for_nonzero_moves():
         assert backend.total_s == pytest.approx(info["total"], abs=1e-12)
 
 
-def test_zero_move_shape_is_intentionally_different():
+def test_zero_move_is_one_hold_segment_in_both():
     start = _random_pose(random.Random(11))
     backend = backend_profile.plan_move(
         start, start, backend_profile.ProfileParams(1.2, 6.0, 0.05)
@@ -124,14 +124,14 @@ def test_zero_move_shape_is_intentionally_different():
         6.0,
         0.05,
     )
-    # The backend emits one dt-long segment so a profile is never empty; the
-    # tool emits a single zero-duration point. Do not "fix" this without
-    # checking the task planner's zero-move path.
+    expected = [start[name] for name in JOINTS]
     assert backend.total_s == pytest.approx(0.05)
-    assert backend.segments == 1
-    assert info["total"] == 0.0
-    assert times == [0.0]
-    assert waypoints == [[start[name] for name in JOINTS]]
+    assert info["total"] == pytest.approx(0.05)
+    assert backend.segments == info["segments"] == 1
+    assert backend.durations_s == [pytest.approx(0.05)]
+    assert times == [0.0, 0.05]
+    assert waypoints == [expected, expected]
+    assert backend.points == [pytest.approx(start)]
 
 
 # ------------------------------------------------------------------- vision

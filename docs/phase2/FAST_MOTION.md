@@ -89,7 +89,9 @@ was 11x slower than the arm allows).
 (approach, return, `move_to_pose`), and the holding-cube put-back is faster
 than the grasp descent. These values are the `profiles.fast` tier in
 `safety_limits.yaml`; the MoveIt CLI keeps the conservative
-`profiles.moveit` 1.2/0.5 tier.
+`profiles.moveit` 1.2/0.5 tier. A zero displacement is represented as one
+`dt`-long hold segment at the target, not a zero-duration point, so the
+gateway's 25 ms segment floor always holds.
 
 | Move | Before | Now |
 |---|---:|---:|
