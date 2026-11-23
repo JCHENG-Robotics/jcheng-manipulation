@@ -32,7 +32,7 @@
 - `m1-gate`：仓库结构/审计签字/无运行时代码/无 LICENSE。
 - `m2-contract`：Humble 容器 `colcon build` + manifest + Schema + pytest +
   `ros2 interface show`。
-- 运行 `45134699521`：`m1-gate` success，`m2-contract` success。
+- 运行 `45135205900`：`m1-gate` success，`m2-contract` success。
 - `jcheng-interfaces` 的 `main` 保护已要求 `m1-gate` + `m2-contract`。
 
 ## 2. 分支与提交
@@ -41,8 +41,8 @@
 |---|---|
 | 仓库 | `JCHENG-Robotics/jcheng-interfaces` |
 | 分支 | `m2/interfaces-v0.1` |
-| 提交 | `b50fc3e`（v0.1 实现）、`7608500`（CI 修复） |
-| CI | https://github.com/JCHENG-Robotics/jcheng-interfaces/actions/runs/45134699521 |
+| 提交 | `b50fc3e`（v0.1 实现）、`7608500`（CI 修复）、`f1c906e`（保护记录）、`187b560`（type hash note） |
+| CI | https://github.com/JCHENG-Robotics/jcheng-interfaces/actions/runs/45135205900 |
 | PR | https://github.com/JCHENG-Robotics/jcheng-interfaces/compare/main...m2/interfaces-v0.1?expand=1 |
 
 ## 3. 关键设计决定
