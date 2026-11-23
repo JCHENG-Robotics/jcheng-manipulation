@@ -52,6 +52,7 @@
 | [06-ci-cd-acceptance.md](06-ci-cd-acceptance.md) | CI 矩阵、E2E 分级、验收场景与证据 | 什么算“通过”，如何防止回归 |
 | [07-migration-and-risks.md](07-migration-and-risks.md) | 迁移原则、阶段计划、风险登记、回滚 | 实施顺序与停止条件 |
 | [08-m1-execution.md](08-m1-execution.md) | M1 完成记录、证据、分支保护验证与治理待决项 | M1 验收与 M2 入口 |
+| [09-m2-execution.md](09-m2-execution.md) | M2.1 契约审计稿、审计结论与签字门禁 | 审计签字与 v0.1 定义 |
 | [adr/](adr/) | 关键架构决策记录 | 决策依据与替代方案 |
 
 ## 4. 基线承诺
