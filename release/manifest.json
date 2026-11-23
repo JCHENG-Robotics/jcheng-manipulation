@@ -1,0 +1,55 @@
+{
+  "checksums_sha256": {
+    ".github/workflows/python-ci.yml": "d4f465a1f373a461fdde3ba61855571015a255c7f7eb78e03dcec2233fb5c4a8",
+    ".github/workflows/studio-ci.yml": "0c016fb1b83a878eaacc87410c4c8e6a3707c49c22a4e6038b795d748e798bf7",
+    "VERSION": "8e3ccfbe492191dbb919be7b4ef3d93bd88f92b1d99532b25ba19c5ad9f1f722",
+    "armpi-debug-studio/backend/pyproject.toml": "fc0111979e2cf86a75fb9f65c1656523e4ad2c0de10a1c1ce9722c797045f573",
+    "armpi-debug-studio/configs/joint_mapping.yaml": "b91348739261ab3c4bd1f08f6469fae1622f5e8add89c264697faf4b92a8acae",
+    "armpi-debug-studio/configs/takeover.yaml": "fadf3498830967901bfad2e06167fb29a6ec7d0446224574aeaa4989f52a70e5",
+    "armpi-debug-studio/frontend/package.json": "087f0c0864108c88d20fae39ace94a71b5bf3fcc9922494440c234acee265ca8",
+    "packages/jcheng_core/pyproject.toml": "038bece82e393bc5c152ac882b008ef79cd77331fccb416f18d60961596cd177",
+    "ros2_ws/src/armpi_safety/config/safety_limits.yaml": "384def4d272a140e8acd58abcf268a5913698666e8983004d840eb6f091423da"
+  },
+  "components": {
+    "armpi_analysis": "0.1.0",
+    "armpi_fiducial_localizer": "0.1.0",
+    "armpi_grasp_planner": "0.1.0",
+    "armpi_safety": "0.1.0",
+    "armpi_ultra_moveit_config": "0.3.0",
+    "jcheng_core": "0.1.0",
+    "studio_backend": "1.0.0rc1",
+    "studio_frontend": "1.0.0-rc.1",
+    "studio_gateway": "1.0.0rc1"
+  },
+  "date": "2026-11-23",
+  "freeze": {
+    "commit": "30799df",
+    "date": "2026-11-21",
+    "tag": "v0.9.0-ff"
+  },
+  "hardware_evidence": [
+    "evidence/studio_validation_20261123/",
+    "evidence/armpi_safety_install_20261123/",
+    "evidence/fast_path_regression_20261123/"
+  ],
+  "known_limitations": [
+    "no e-stop, brake, self-collision model, independent encoder or odometry",
+    "fast CLI bypasses armpi_safety by design (profiles.fast + bus verification)",
+    "real armpi_safety node is a manual process, not a boot service",
+    "no ROS colcon build/test CI, no Python/Docker/vendor workspace pinning",
+    "backend has no auth and is localhost-only by policy",
+    "full G7/G8 task sequence not rerun for rc.1"
+  ],
+  "release": "1.0.0-rc.1",
+  "source_commit": "8459960",
+  "tag": "v1.0.0-rc.1",
+  "verification": {
+    "armpi_analysis": "34 passed",
+    "backend": "144 collected; exit 0",
+    "config_consistency": "CONFIG OK; 4 limit profiles",
+    "gateway": "93 passed",
+    "playwright": "not rerun in this release",
+    "safety_planner_fiducial": "59 passed",
+    "tools": "242 passed / 7 skipped"
+  }
+}

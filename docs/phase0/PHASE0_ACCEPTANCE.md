@@ -59,6 +59,13 @@
 > [`evidence/studio_validation_20261123/`](../../evidence/studio_validation_20261123/README.md)
 > and
 > [`evidence/armpi_safety_install_20261123/`](../../evidence/armpi_safety_install_20261123/README.md).
+>
+> **Update (2026-11-23, release candidate):** the repository is tagged
+> **`v1.0.0-rc.1`** (feature-freeze baseline `v0.9.0-ff` at `30799df`). This
+> does not change the task-level acceptance verdict; it packages the offline
+> hardening and the gateway/safety/fast-path validation. `v1.0.0` remains
+> gated on a supervised full G8 acceptance and a reproducible ROS build; see
+> [`RELEASE.md`](../../RELEASE.md) for the known limitations.
 
 ## 1. Current acceptance summary (2026-11-23; hardware 2026-11-21 + validation 2026-11-23)
 
