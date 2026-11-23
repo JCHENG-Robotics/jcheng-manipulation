@@ -7,6 +7,11 @@ Requires=docker.service
 
 [Service]
 Type=simple
+# The installer substitutes these two placeholders. The service does not need
+# root: the host-side wrapper only runs `docker exec`, and the in-container
+# gateway already runs as the vendor `ubuntu` user (uid 1000).
+User=@ARMPI_SERVICE_USER@
+Group=@ARMPI_SERVICE_GROUP@
 EnvironmentFile=/etc/armpi-gateway/gateway.env
 ExecStart=/usr/local/lib/armpi-gateway/armpi-gateway-run.sh
 # `docker exec` may not forward signals to the command inside the container.

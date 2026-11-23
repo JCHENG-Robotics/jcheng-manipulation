@@ -713,6 +713,10 @@ up separately. `evidence/README.md` explains what is tracked.
 - [Changelog](CHANGELOG.md) — chronological, per-session record of changes.
 - [Acceptance report](docs/phase0/PHASE0_ACCEPTANCE.md) — Phase 0 checklist,
   current capstone acceptance summary and remaining gaps.
+- [Hardware preflight](docs/operations/PREFLIGHT.md) — link, clock, gateway,
+  safety and bus-cache checks before any motion.
+- [Operator runbook](docs/operations/RUNBOOK.md) — startup, G8 run, safety
+  stop/reset, stale-cache recovery, evidence capture and rollback.
 - [5-DoF constraints](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — task-space
   limits and grasp policy.
 - [Calibration](docs/phase2/CALIBRATION.md) — chessboard hand–eye procedure

@@ -57,11 +57,15 @@ jobs:
             tools/phase4 \
             tools/verify_config_consistency.py \
             tools/vendor_baseline_manifest.py \
+            tools/check_evidence_manifest.py \
             tools/tests \
             --select=E,F,W --ignore=W503 --max-line-length=79
 
       - name: Check limit and calibration consistency
         run: python tools/verify_config_consistency.py
+
+      - name: Check the evidence manifest
+        run: python tools/check_evidence_manifest.py
 
       - name: Run pure-Python tests
         env:

@@ -42,7 +42,9 @@ inside the 0.220–0.255 m band). The same batch added a `colcon build/test` CI
 job, exact Python pins, and a vendor source-tree manifest; the target-
 architecture run built 7 packages and ran **118 tests / 0 failures / 1 skip**
 ([evidence](evidence/ros_colcon_20261123/README.md)). The CI base image is
-still tag-pinned rather than digest-pinned.
+still tag-pinned rather than digest-pinned. Operations also gained a hardware
+preflight/runbook, an evidence-manifest check, and a non-root gateway
+installer (the live service still needs a reinstall).
 
 | Milestone | Status | Evidence / limit |
 |---|---|---|

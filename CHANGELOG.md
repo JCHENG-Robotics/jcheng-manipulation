@@ -19,6 +19,11 @@ All notable changes to this project are documented here. Format based on
   failures, 1 local skip).
 - `requirements/ci.txt` and `tools/vendor_baseline_manifest.py`; the vendor
   source tree/archive is pinned by SHA-256 without publishing it.
+- `docs/operations/PREFLIGHT.md` and `RUNBOOK.md`; `tools/check_evidence_manifest.py`
+  validates that released evidence paths exist and have a README.
+- The gateway installer now runs the host wrapper as `pi:docker` instead of
+  root; `systemd-analyze verify` passes on the installed host. The live
+  service still needs a reinstall to pick it up.
 
 ### Changed
 

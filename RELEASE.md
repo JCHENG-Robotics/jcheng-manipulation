@@ -85,6 +85,19 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
 - Residual: the CI base image itself is still selected by tag, not by
   registry digest; Docker Hub was unreachable from the verification host.
 
+### Post-rc.1 operations update (2026-11-23)
+
+- [`docs/operations/PREFLIGHT.md`](docs/operations/PREFLIGHT.md) and
+  [`RUNBOOK.md`](docs/operations/RUNBOOK.md) cover link/clock/gateway/safety
+  checks, G8 runs, safety reset, stale-cache recovery and rollback.
+- `tools/check_evidence_manifest.py` verifies that every evidence path in
+  this manifest exists and has a README.
+- The gateway installer now uses `User=pi` / `Group=docker` for the host
+  wrapper; the live service was installed with the older root unit and must be
+  reinstalled to apply it.
+- The backend remains localhost-only without authentication; use an SSH
+  tunnel for remote access.
+
 ### Known limitations (accepted for rc.1)
 
 - No e-stop, brake, self-collision model, independent encoder or odometry.
@@ -96,8 +109,10 @@ the rc.1 tag itself predates the run, so `v1.0.0` must include this evidence.
   **tag-pinned** (`ros:humble-ros-base`), not digest-pinned, because Docker
   Hub was unreachable from the verification host.
 - The Studio backend has no authentication and is localhost-only by policy;
-  the gateway token comparison is constant-time; the systemd wrapper runs the
-  container entrypoint as root.
+  use an SSH tunnel for remote access. The gateway token comparison is
+  constant-time. The repo installer now runs the host wrapper as
+  `pi:docker`, but the live 2026-11-23 service was installed with the older
+  root unit and must be reinstalled to pick that up.
 - The rc.1 tag itself predates the full G8 acceptance; the post-tag run
   passed on 2026-11-23 (see above). The fast-path regression is one direction
   only.

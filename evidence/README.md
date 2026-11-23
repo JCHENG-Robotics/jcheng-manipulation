@@ -20,7 +20,17 @@ gitignored or kept private.
 | `studio_gateway/20261117/` | Persistent gateway live checks | Real hardware, read-only; execute disabled |
 | `studio_g5/20261118/` | G5 no-motion + supervised `camera_forward` recorder captures, G2 imports, live `/tf` vs `tf2_echo`, gated hardware Playwright | Real hardware; one supervised 0.892 s motion |
 | `phase3/session4_20261117/no_camera/`, `with_camera/` | Host + ROS/DDS benchmark on laptop and robot; camera run started/stopped for measurement | Real hardware, read-only; no motion |
+| `studio_validation_20261123/` | Cache resync, `/safety_stop` latch/hold/409/clear, recovery, joint2 round trip, CameraCache/telemetry | Real hardware; supervised motion |
+| `armpi_safety_install_20261123/` | Real `armpi_safety` node install and status/reset/validate/FK checks | Real hardware, no motion |
+| `fast_path_regression_20261123/` | 4.0/20 view→upright fast-path regression | Real hardware; supervised motion |
+| `g8_acceptance_20261123/` | Full 8-phase G8 task: one bounded chassis pulse, 11 bus-verified commands, grip verify, put-back | Real hardware; supervised motion |
 | `studio_e2e/` | Playwright browser tests | Mock mode |
+
+## Build / reproducibility evidence
+
+| Path | Content | Scope |
+|---|---|---|
+| `ros_colcon_20261123/` | `colcon build/test` for 7 public packages on aarch64 Humble; 118 tests, 0 failures, 1 local skip | Target architecture; no motion |
 
 ## Model / mock / synthetic evidence
 

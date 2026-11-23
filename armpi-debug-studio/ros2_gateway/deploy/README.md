@@ -58,8 +58,21 @@ The installer:
    `/home/ubuntu/shared/armpi_gateway_deploy/`);
 2. creates or preserves the token file next to it with mode `0600` (owned by
    uid 1000 so the container user can read it), using `openssl rand -hex 24`;
-3. installs the unit and `/etc/armpi-gateway/gateway.env` (first install only);
+3. installs the unit with `User=pi` / `Group=docker` (override with
+   `ARMPI_GATEWAY_SERVICE_USER` / `ARMPI_GATEWAY_SERVICE_GROUP`) and the
+   `root:docker` `gateway.env` (first install only);
 4. enables and starts the service, then polls `/health` for up to 60 s.
+
+The host wrapper no longer runs as root: `pi` is in the Docker group and the
+in-container gateway already runs as the vendor `ubuntu` user. The installer
+refuses to proceed if that account cannot reach the Docker daemon. Verify an
+installed unit with:
+
+```bash
+systemctl show armpi-gateway.service -p User -p Group
+# User=pi
+# Group=docker
+```
 
 It does **not** start, stop or modify the vendor container or the ROS stack.
 
