@@ -73,9 +73,10 @@
   "verification": {
     "armpi_analysis": "34 passed",
     "backend": "148 collected; exit 0",
+    "ci_runs": "studio 45100626118 + ros-colcon 45098657645 passed",
     "config_consistency": "CONFIG OK; 4 limit profiles",
     "gateway": "93 passed",
-    "playwright": "not rerun in this release",
+    "playwright": "10 mock + 3 token-mode dashboard passed; hardware/pose not rerun",
     "safety_planner_fiducial": "59 passed",
     "tools": "242 passed / 7 skipped"
   }

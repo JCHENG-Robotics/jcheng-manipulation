@@ -39,7 +39,8 @@ known limitations).
 | safety + planner + fiducial | 59 passed |
 | tools (phase2/3/4 + shared/parity/config) | 242 passed / 7 skipped |
 | config consistency | `CONFIG OK`; 4 limit profiles |
-| frontend Playwright | not rerun in this release; CI retains 10 mock + 3 pose/task + 3 hardware |
+| frontend Playwright | 10 mock + 3 token-mode dashboard passed; hardware/pose not rerun |
+| CI | `studio` 45100626118 and `ros-colcon` 45098657645 passed |
 
 Hardware evidence:
 
