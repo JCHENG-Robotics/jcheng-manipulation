@@ -25,6 +25,26 @@
 | 5 | Studio G8 task / fast | Studio backend → `/api/task/plan` + `/api/motion/execute`; gateway profile | Gateway profile policy: peak joint velocity, acceleration, segment length, max points, total duration, start tolerance, bus verification; base pulse caps | `takeover.yaml` `task.fast`: **4.0 rad/s / 20 rad/s²**, descent 0.6, final 0.35, release descent 1.4; `max_points 400`; `max_total_duration_s 6.0` |
 | 6 | Chassis pulse | Gateway `/chassis/pulse`; only with the chassis block enabled | Gateway chassis policy: duty cap, wheel cap, duration window, finite values, direction signs | G8.1 deployment caps duty at **10** and duration at **2.0 s**; open loop, no odometry |
 
+## Unified limit profiles (2026-11-23)
+
+The apparent **4.0/20 vs 1.2/0.5** contradiction is two named profiles, not
+drift. [`safety_limits.yaml`](../../ros2_ws/src/armpi_safety/config/safety_limits.yaml)
+declares them and binds each to its paths:
+
+| Profile | Limits | Paths |
+|---|---|---|
+| `moveit` | **1.2 rad/s / 0.5 rad/s²** | MoveIt CLI / `armpi_safety` veto |
+| `step` | **0.35 rad** step, 0.5–10 s | Studio G6 step |
+| `pose` | **0.5 rad/s** | Studio G7 / G8 pose |
+| `fast` | **4.0 rad/s / 20 rad/s²**, bus verification required | Studio G8 fast / fast CLI |
+
+`tools/verify_config_consistency.py` checks the safety joint rates, the Studio
+`joint_mapping.yaml` step block, the `takeover.yaml` pose velocity and
+`task.fast` values, and the `fast_motion.py` defaults against this table.
+`armpi_safety` also rejects a joint rate limit that does not match
+`profiles.moveit` at load time. The fast tier is therefore explicit and
+path-bound, not an accidental bypass of the conservative profile.
+
 ## What this means
 
 - **`armpi_safety` is not the guard for Studio motion.** G6/G7/G8 use the
@@ -64,6 +84,9 @@
    plant-wide e-stop.
 5. Any change to `safety_limits.yaml` or `takeover.yaml` must pass
    `python3 tools/verify_config_consistency.py` and a supervised smoke test.
+6. Change a rate/step limit only in the `profiles` block of
+   `safety_limits.yaml`, then update every declared consumer. Do not add a new
+   per-path literal; the checker must stay green for all four profiles.
 
 ## Inspection commands
 

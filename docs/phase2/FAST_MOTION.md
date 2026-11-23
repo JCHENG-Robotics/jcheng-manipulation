@@ -87,7 +87,9 @@ was 11x slower than the arm allows).
 
 **Production defaults: `vmax = 4.0`, `amax = 20`** for every free move
 (approach, return, `move_to_pose`), and the holding-cube put-back is faster
-than the grasp descent:
+than the grasp descent. These values are the `profiles.fast` tier in
+`safety_limits.yaml`; the MoveIt CLI keeps the conservative
+`profiles.moveit` 1.2/0.5 tier.
 
 | Move | Before | Now |
 |---|---:|---:|

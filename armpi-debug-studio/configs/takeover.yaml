@@ -29,7 +29,7 @@
 
 schema_version: 1
 scope: pose
-max_velocity_rad_s: 0.5      # conservative: armpi_safety vetoes above 1.2
+max_velocity_rad_s: 0.5      # profiles.pose in safety_limits.yaml
 min_duration_s: 1.0
 max_duration_s: 10.0
 path_samples: 21             # straight joint-space interpolation samples
@@ -157,6 +157,7 @@ task:
   # measured 4.0 rad/s / 20 rad/s^2 and 8.94 s grasp + put-back. The slow
   # single-point values above remain the documented fallback; `fast.enabled`
   # selects the dense profile for the task run.
+  # profiles.fast in safety_limits.yaml (4.0/20); bus verification required.
   fast:
     enabled: true
     vmax_rad_s: 4.0
