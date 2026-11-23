@@ -45,6 +45,15 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   gateway state mutations with an `RLock`; `_last_task_plan` is invalidated on
   stop/reset; the idempotency cache prunes on write as well as read.
 
+### Verification
+
+- **2026-11-23 hardware:** updated gateway on 8766/8767; command-cache resync
+  (target=actual), `/safety_stop` latch/hold/409/clear, initial-pose recovery
+  (actual 694/500/504/495/501), joint2 500→539→500 bus-verified, and camera /
+  battery / TF checks. `armpi_safety` is not installed in the slim container,
+  so the stop test used a fake Bool. See
+  [`evidence/studio_validation_20261123/`](evidence/studio_validation_20261123/README.md).
+
 ### Documentation
 
 - `docs/phase2/MOTION_WRITE_PATHS.md` and `SAFETY_LAYER.md` now describe the
