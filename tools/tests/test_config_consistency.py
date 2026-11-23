@@ -34,6 +34,27 @@ def test_current_repo_is_consistent():
             assert ids[joint] == expected
     assert set(report.gripper_servo_ids) == set(v.GRIPPER_ID_FILES)
     assert all(value == 1 for value in report.gripper_servo_ids.values())
+    assert set(report.profiles) >= {"moveit", "step", "pose", "fast"}
+    assert report.profiles["moveit"]["max_velocity_rad_s"] == 1.2
+    assert report.profiles["moveit"]["max_acceleration_rad_s2"] == 0.5
+    assert report.profiles["pose"]["max_velocity_rad_s"] == 0.5
+    assert report.profiles["fast"]["max_velocity_rad_s"] == 4.0
+    assert report.profiles["fast"]["max_acceleration_rad_s2"] == 20.0
+    assert report.profiles["fast"]["requires_bus_verification"] is True
+
+
+def test_safety_profiles_parser(tmp_path):
+    path = tmp_path / "safety_limits.yaml"
+    path.write_text(
+        "profiles:\n"
+        "  moveit:\n"
+        "    max_velocity_rad_s: 1.2\n"
+        "  fast:\n"
+        "    max_velocity_rad_s: 4.0\n"
+    )
+    profiles = v.safety_profiles(path)
+    assert profiles["moveit"]["max_velocity_rad_s"] == 1.2
+    assert profiles["fast"]["max_velocity_rad_s"] == 4.0
 
 
 def test_compare_limits_reports_a_mismatch():

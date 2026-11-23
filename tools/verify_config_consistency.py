@@ -102,6 +102,7 @@ class Report:
     arm_joints: dict[str, tuple[str, ...]] = field(default_factory=dict)
     servo_ids: dict[str, dict[str, int]] = field(default_factory=dict)
     gripper_servo_ids: dict[str, int] = field(default_factory=dict)
+    profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
     issues: list[str] = field(default_factory=list)
 
 
@@ -159,6 +160,15 @@ def safety_limits(path: Path) -> dict[str, tuple[float, float]]:
             _float(entry.get("upper"), f"{joint}.upper"),
         )
     return limits
+
+
+def safety_profiles(path: Path) -> dict[str, dict[str, Any]]:
+    """Read the path-bound limit profiles from the safety config."""
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    raw = data.get("profiles") or {}
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path}: profiles must be a mapping")
+    return raw
 
 
 def vendor_limits(path: Path) -> dict[str, tuple[float, float]]:
@@ -424,16 +434,90 @@ def check_repo(root: Path, tolerance: float = 1e-4) -> Report:
         takeover_data = yaml.safe_load(
             (root / TAKEOVER).read_text(encoding="utf-8")
         ) or {}
+        safety_data = yaml.safe_load(
+            (root / SAFETY).read_text(encoding="utf-8")
+        ) or {}
+        profiles = safety_profiles(root / SAFETY)
+        report.profiles = profiles
+        for name in ("moveit", "step", "pose", "fast"):
+            if name not in profiles:
+                report.issues.append(f"missing limit profile: {name}")
+
+        moveit = profiles.get("moveit") or {}
+        for joint, raw in (safety_data.get("joint_limits") or {}).items():
+            for key, profile_key in (
+                ("max_velocity", "max_velocity_rad_s"),
+                ("max_acceleration", "max_acceleration_rad_s2"),
+            ):
+                actual = _float(raw.get(key), f"{joint}.{key}")
+                expected = _float(
+                    moveit.get(profile_key),
+                    f"profiles.moveit.{profile_key}",
+                )
+                if abs(actual - expected) > tolerance:
+                    report.issues.append(
+                        f"safety {joint}.{key}={actual} vs "
+                        f"profiles.moveit.{profile_key}={expected}"
+                    )
+
+        mapping_data = yaml.safe_load(
+            (root / MAPPING).read_text(encoding="utf-8")
+        ) or {}
+        step = profiles.get("step") or {}
+        for key in ("max_step_rad", "min_duration_s", "max_duration_s"):
+            actual = _float(
+                (mapping_data.get("safety") or {}).get(key),
+                f"mapping.safety.{key}",
+            )
+            expected = _float(step.get(key), f"profiles.step.{key}")
+            if abs(actual - expected) > tolerance:
+                report.issues.append(
+                    f"mapping.safety.{key}={actual} vs "
+                    f"profiles.step.{key}={expected}"
+                )
+
+        pose = profiles.get("pose") or {}
+        actual_pose = _float(
+            takeover_data.get("max_velocity_rad_s"),
+            "takeover.max_velocity_rad_s",
+        )
+        expected_pose = _float(
+            pose.get("max_velocity_rad_s"),
+            "profiles.pose.max_velocity_rad_s",
+        )
+        if abs(actual_pose - expected_pose) > tolerance:
+            report.issues.append(
+                f"takeover max_velocity_rad_s={actual_pose} vs "
+                f"profiles.pose.max_velocity_rad_s={expected_pose}"
+            )
+
         fast = (takeover_data.get("task") or {}).get("fast") or {}
         defaults = fast_motion_defaults(root / FAST_MOTION)
         report.fast_motion = defaults
-        for key in ("vmax_rad_s", "amax_rad_s2"):
+        fast_profile = profiles.get("fast") or {}
+        for key, profile_key in (
+            ("vmax_rad_s", "max_velocity_rad_s"),
+            ("amax_rad_s2", "max_acceleration_rad_s2"),
+        ):
             expected = _float(fast.get(key), f"task.fast.{key}")
             if abs(defaults[key] - expected) > tolerance:
                 report.issues.append(
                     f"fast_motion {key}={defaults[key]} vs "
                     f"takeover task.fast {key}={expected}"
                 )
+            profile_value = _float(
+                fast_profile.get(profile_key),
+                f"profiles.fast.{profile_key}",
+            )
+            if abs(expected - profile_value) > tolerance:
+                report.issues.append(
+                    f"takeover task.fast.{key}={expected} vs "
+                    f"profiles.fast.{profile_key}={profile_value}"
+                )
+        if fast_profile.get("requires_bus_verification") is not True:
+            report.issues.append(
+                "profiles.fast.requires_bus_verification must be true"
+            )
     except (ValueError, KeyError, OSError) as exc:
         report.issues.append(str(exc))
 
@@ -575,6 +659,7 @@ def main(argv: list[str] | None = None) -> int:
                 path: list(value)
                 for path, value in report.view_poses.items()
             },
+            "profiles": report.profiles,
             "arm_joints": {
                 path: list(value)
                 for path, value in report.arm_joints.items()
@@ -597,6 +682,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"{len(report.arm_joints)} arm-joint, "
                 f"{len(report.servo_ids)} servo-id and "
                 f"{len(report.gripper_servo_ids)} gripper-id sources agree; "
+                f"{len(report.profiles)} limit profiles agree; "
                 "the constant correction agrees in "
                 f"{len(report.corrections)} sources"
             )

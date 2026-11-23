@@ -1,11 +1,13 @@
 """Unit tests for the pure-Python safety policy."""
 
 import math
+from pathlib import Path
 
 from armpi_safety.policy import (
     ARM_JOINTS,
     SafetyConfig,
     SafetyMonitor,
+    load_config,
 )
 import pytest
 
@@ -41,6 +43,37 @@ def make_config(**overrides):
     }
     raw.update(overrides)
     return SafetyConfig.from_dict(raw)
+
+
+def test_moveit_profile_is_the_single_rate_authority():
+    raw = {
+        'profiles': {
+            'moveit': {
+                'max_velocity_rad_s': 1.2,
+                'max_acceleration_rad_s2': 0.5,
+            }
+        },
+        'joint_limits': {
+            joint: {
+                'lower': -2.09,
+                'upper': 0.0 if joint == 'joint3' else 2.09,
+                'max_velocity': 1.3,
+                'max_acceleration': 0.5,
+            }
+            for joint in ARM_JOINTS
+        },
+    }
+    with pytest.raises(ValueError):
+        SafetyConfig.from_dict(raw)
+
+
+def test_shipped_config_matches_the_moveit_profile():
+    path = Path(__file__).resolve().parents[1] / 'config/safety_limits.yaml'
+    config = load_config(path)
+    for joint in ARM_JOINTS:
+        limit = config.joint_limits[joint]
+        assert limit.max_velocity == pytest.approx(1.2)
+        assert limit.max_acceleration == pytest.approx(0.5)
 
 
 def trajectory(positions=None, times=None, velocities=None,
@@ -147,7 +180,7 @@ def test_derived_velocity_limit_is_rejected():
 
 
 def test_explicit_velocity_limit_is_rejected():
-    """Explicit trajectory velocities are checked even if positions are slow."""
+    """Explicit velocities are checked even when positions move slowly."""
     velocities = [
         [0.0, 0.0, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.0, 0.0, 0.0],

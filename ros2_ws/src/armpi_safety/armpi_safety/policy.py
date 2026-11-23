@@ -65,6 +65,14 @@ class SafetyConfig:
     def from_dict(cls, config):
         """Build a configuration from a plain dictionary."""
         limits = {}
+        profiles = config.get('profiles') or {}
+        moveit_profile = profiles.get('moveit') or {}
+        profile_velocity = float(
+            moveit_profile.get('max_velocity_rad_s', 1.2)
+        )
+        profile_acceleration = float(
+            moveit_profile.get('max_acceleration_rad_s2', 0.5)
+        )
         raw_limits = config.get('joint_limits', {})
         for joint in ARM_JOINTS:
             raw = raw_limits.get(joint)
@@ -73,16 +81,27 @@ class SafetyConfig:
                 raw = {
                     'lower': lower,
                     'upper': upper,
-                    'max_velocity': 1.2,
-                    'max_acceleration': 0.5,
+                    'max_velocity': profile_velocity,
+                    'max_acceleration': profile_acceleration,
                 }
+            velocity = float(raw.get('max_velocity', profile_velocity))
+            acceleration = float(
+                raw.get('max_acceleration', profile_acceleration)
+            )
+            if (
+                abs(velocity - profile_velocity) > 1e-9
+                or abs(acceleration - profile_acceleration) > 1e-9
+            ):
+                raise ValueError(
+                    f'{joint}: rate limits must match profiles.moveit '
+                    f'({profile_velocity} rad/s, '
+                    f'{profile_acceleration} rad/s^2)'
+                )
             limits[joint] = JointLimit(
                 lower=float(raw['lower']),
                 upper=float(raw['upper']),
-                max_velocity=float(raw.get('max_velocity', 1.2)),
-                max_acceleration=float(
-                    raw.get('max_acceleration', 0.5)
-                ),
+                max_velocity=velocity,
+                max_acceleration=acceleration,
             )
         state = config.get('state', {})
         start = config.get('start_state', {})
@@ -679,9 +698,11 @@ class SafetyMonitor:
     def _rate_matrix(
         self, points, joint_names, stamps, explicit_key, source_matrix=None
     ):
-        """Build per-joint rates, preferring explicit values over differences."""
-        index = {name: position
-                 for position, name in enumerate(joint_names)}
+        """Build per-joint rates; explicit values win over differences."""
+        index = {
+            name: position
+            for position, name in enumerate(joint_names)
+        }
         matrix = {}
         for joint in ARM_JOINTS:
             if joint not in index:

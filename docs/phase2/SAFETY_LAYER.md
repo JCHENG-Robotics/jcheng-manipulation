@@ -90,7 +90,11 @@ service.
 ## Configuration
 
 [`ros2_ws/src/armpi_safety/config/safety_limits.yaml`](../../ros2_ws/src/armpi_safety/config/safety_limits.yaml)
-holds the adopted limits. The main values:
+holds the adopted limits. The `profiles.moveit` block is the single rate
+authority for this node (1.2 rad/s / 0.5 rad/s²); `SafetyConfig.from_dict`
+rejects a joint rate limit that does not match it. The `profiles.fast` block
+(4.0/20) is the explicit G8 fast tier and is not used by the MoveIt veto.
+The main position values:
 
 ```yaml
 joint_limits:      # adopted 2026-11-19, EEPROM/measured stop - 20 pulses

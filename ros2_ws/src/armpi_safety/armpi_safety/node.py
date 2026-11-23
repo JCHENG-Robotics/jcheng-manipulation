@@ -102,7 +102,9 @@ class SafetySupervisor(Node):
             Trigger, '~/reset_stop', self.on_reset_stop
         )
         rate = float(self.get_parameter('publish_rate_hz').value)
-        self.timer = self.create_timer(1.0 / max(rate, 0.1), self.publish_status)
+        self.timer = self.create_timer(
+            1.0 / max(rate, 0.1), self.publish_status
+        )
         self.publish_status()
         self.get_logger().info(
             'safety supervisor: config={} state_timeout={:.3f}s '

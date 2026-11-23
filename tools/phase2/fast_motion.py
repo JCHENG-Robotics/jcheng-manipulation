@@ -461,9 +461,10 @@ def main():
     parser.add_argument('--target', help='five commanded joint radians')
     parser.add_argument('--vmax', type=float, default=4.0,
                         help='peak joint velocity (rad/s), default 4.0 '
-                             '(the measured 2026-11-20 ceiling)')
+                             '(profiles.fast in safety_limits.yaml)')
     parser.add_argument('--amax', type=float, default=20.0,
-                        help='peak joint acceleration (rad/s^2), default 20')
+                        help='peak joint acceleration (rad/s^2), default 20 '
+                             '(profiles.fast in safety_limits.yaml)')
     parser.add_argument('--dt', type=float,
                         default=motion_profile.MIN_SEGMENT_S,
                         help='maximum segment length (s)')
