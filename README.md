@@ -741,6 +741,9 @@ up separately. `evidence/README.md` explains what is tracked.
   recovery rules.
 - [Fast motion](docs/phase2/FAST_MOTION.md) — S-curve profile, measured
   settles and the 4.0/20 envelope.
+- [Object grasp catalog](docs/phase2/OBJECT_GRASP_CATALOG.md) — six on-site
+  object forms with the measured gripper envelope, per-form poses, register
+  signatures and the staged procedure (reference for future grasps).
 - [Error budget](docs/phase3/ERROR_BUDGET.md) — schema, completed 2026-11-20
   budget and its bound-gate failure.
 - [Paired trials](docs/phase3/PAIRED_TRIALS.md) — recorder, randomization and

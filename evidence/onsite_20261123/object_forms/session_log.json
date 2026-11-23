@@ -1,0 +1,3325 @@
+{
+  "log": [
+    {
+      "stage": "chassis:pulse",
+      "approach": {
+        "kind": "chassis_pulse",
+        "vx": 0.89624,
+        "vy": 0.443569,
+        "duty": 10.0,
+        "duration_s": 0.629,
+        "nominal_travel_mm": 30.8,
+        "travel_m": 0.0308,
+        "forward_mm": 27.6,
+        "left_mm": 13.7,
+        "point_m": [
+          0.257619256892125,
+          0.013669384907680281,
+          -0.06327662092670228
+        ],
+        "target_point_m": [
+          0.23,
+          0.0
+        ]
+      },
+      "response": {
+        "status": "Completed",
+        "verification": "open_loop",
+        "session_id": "onsite-new-object",
+        "pulse": {
+          "vx": 0.89624,
+          "vy": 0.443569,
+          "duty": 10.0,
+          "duration_s": 0.629
+        },
+        "gateway": {
+          "status": "completed",
+          "verification": "open_loop",
+          "topic": "/ros_robot_controller/set_motor_speeds",
+          "mode": "pulse",
+          "vx": 0.89624,
+          "vy": 0.443569,
+          "duty": 10.0,
+          "duration_s": 0.629,
+          "wheels": {
+            "1": 13.398,
+            "2": -4.527,
+            "3": -4.527,
+            "4": 13.398
+          },
+          "nominal_travel_mm": 30.8,
+          "subscribers_matched": 1,
+          "messages": 17,
+          "elapsed_s": 0.865,
+          "started_wall": "2026-11-23T05:09:36.806071Z",
+          "ended_wall": "2026-11-23T05:09:37.672409Z"
+        }
+      }
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": null,
+      "errors": [],
+      "pose": null
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.280074,
+          0.004107,
+          -0.015113
+        ],
+        "table_clearance_m": 0.064828,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.280074,
+          0.004086,
+          -0.015114
+        ],
+        "table_clearance_m": 0.064829,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 340,
+        "joint3": 932,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -1,
+        "joint2": -2,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.238387,
+          0.003381,
+          -0.037652
+        ],
+        "table_clearance_m": 0.041951,
+        "samples": 21,
+        "start_tcp_m": [
+          0.280074,
+          0.003794,
+          -0.015123
+        ],
+        "start_table_clearance_m": 0.064838,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 341,
+        "joint3": 932,
+        "joint4": 419,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -1,
+        "joint2": -1,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.218605,
+          0.003037,
+          -0.042612
+        ],
+        "table_clearance_m": 0.036819,
+        "samples": 21,
+        "start_tcp_m": [
+          0.238145,
+          0.003143,
+          -0.037739
+        ],
+        "start_table_clearance_m": 0.041877,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 504,
+        "joint2": 341,
+        "joint3": 932,
+        "joint4": 383,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": 0,
+        "joint2": -1,
+        "joint3": 2,
+        "joint4": 2,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.50",
+      "path": "/tmp/newobj/grasp_j4_-0.50_131051.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 308
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 482
+      }
+    },
+    {
+      "stage": "preview:lift_150",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.227965,
+          0.008228,
+          0.108925
+        ],
+        "table_clearance_m": 0.04383,
+        "samples": 21,
+        "start_tcp_m": [
+          0.218808,
+          0.002832,
+          -0.042582
+        ],
+        "start_table_clearance_m": 0.036864,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift_150",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 545,
+        "joint3": 849,
+        "joint4": 200,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 10,
+        "joint4": 1,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:lift150",
+      "path": "/tmp/newobj/lift150_131228.jpg"
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.188819,
+        "samples": 21,
+        "start_tcp_m": [
+          0.227868,
+          0.008266,
+          0.108895
+        ],
+        "start_table_clearance_m": 0.187783,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 555,
+        "joint3": 793,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -6,
+        "joint3": 9,
+        "joint4": -1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_lift",
+      "path": "/tmp/newobj/view_after_lift_131235.jpg"
+    },
+    {
+      "stage": "preview:putback_pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.238387,
+          0.003377,
+          -0.037653
+        ],
+        "table_clearance_m": 0.041951,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 502,
+        "joint2": 339,
+        "joint3": 929,
+        "joint4": 410,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -2,
+        "joint2": -3,
+        "joint3": -1,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:putback_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.218605,
+          0.003033,
+          -0.042612
+        ],
+        "table_clearance_m": 0.03682,
+        "samples": 21,
+        "start_tcp_m": [
+          0.238145,
+          0.003143,
+          -0.037739
+        ],
+        "start_table_clearance_m": 0.041877,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 502,
+        "joint2": 339,
+        "joint3": 929,
+        "joint4": 385,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -2,
+        "joint2": -3,
+        "joint3": -1,
+        "joint4": 4,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "grip:release_open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 204
+      }
+    },
+    {
+      "stage": "preview:return_view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.04484,
+        "samples": 21,
+        "start_tcp_m": [
+          0.218808,
+          0.002832,
+          -0.042582
+        ],
+        "start_table_clearance_m": 0.036864,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:return_view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 502,
+        "joint2": 561,
+        "joint3": 792,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 2,
+        "joint2": 0,
+        "joint3": 8,
+        "joint4": -1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_putback",
+      "path": "/tmp/newobj/view_after_putback_131259.jpg"
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279877,
+          0.010349,
+          -0.01507
+        ],
+        "table_clearance_m": 0.064476,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 506,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.252138,
+          0.009067,
+          -0.032125
+        ],
+        "table_clearance_m": 0.04725,
+        "samples": 21,
+        "start_tcp_m": [
+          0.279886,
+          0.010041,
+          -0.015079
+        ],
+        "start_table_clearance_m": 0.064486,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 506,
+        "joint2": 339,
+        "joint3": 932,
+        "joint4": 446,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.23304,
+          0.008176,
+          -0.03923
+        ],
+        "table_clearance_m": 0.040019,
+        "samples": 21,
+        "start_tcp_m": [
+          0.252298,
+          0.008806,
+          -0.032063
+        ],
+        "start_table_clearance_m": 0.047331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 506,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 410,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.39",
+      "path": "/tmp/newobj/grasp_j4_-0.39_131458.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 307
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 482
+      }
+    },
+    {
+      "stage": "preview:lift_150",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.227965,
+          0.008228,
+          0.108925
+        ],
+        "table_clearance_m": 0.047139,
+        "samples": 21,
+        "start_tcp_m": [
+          0.233102,
+          0.007939,
+          -0.039221
+        ],
+        "start_table_clearance_m": 0.040044,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift_150",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 507,
+        "joint2": 547,
+        "joint3": 848,
+        "joint4": 200,
+        "joint5": 501
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -2,
+        "joint3": 9,
+        "joint4": 1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:upright_lift150",
+      "path": "/tmp/newobj/upright_lift150_131512.jpg"
+    },
+    {
+      "stage": "grip:probe",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 482
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.188819,
+        "samples": 21,
+        "start_tcp_m": [
+          0.227868,
+          0.008266,
+          0.108895
+        ],
+        "start_table_clearance_m": 0.187783,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 555,
+        "joint3": 793,
+        "joint4": 120,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -6,
+        "joint3": 9,
+        "joint4": 0,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_lift",
+      "path": "/tmp/newobj/view_after_lift_131520.jpg"
+    },
+    {
+      "stage": "preview:putback_pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.252129,
+          0.009267,
+          -0.032124
+        ],
+        "table_clearance_m": 0.047239,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 337,
+        "joint3": 932,
+        "joint4": 438,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -5,
+        "joint3": 2,
+        "joint4": -5,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:putback_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.233031,
+          0.008355,
+          -0.039229
+        ],
+        "table_clearance_m": 0.040009,
+        "samples": 21,
+        "start_tcp_m": [
+          0.252262,
+          0.009582,
+          -0.032057
+        ],
+        "start_table_clearance_m": 0.047287,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 337,
+        "joint3": 932,
+        "joint4": 410,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -5,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "grip:release_open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 205
+      }
+    },
+    {
+      "stage": "preview:return_view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.04808,
+        "samples": 21,
+        "start_tcp_m": [
+          0.233071,
+          0.008635,
+          -0.039216
+        ],
+        "start_table_clearance_m": 0.040005,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:return_view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 504,
+        "joint2": 556,
+        "joint3": 792,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 4,
+        "joint2": -5,
+        "joint3": 8,
+        "joint4": -1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_putback",
+      "path": "/tmp/newobj/view_after_putback_131539.jpg"
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279941,
+          0.008845,
+          -0.01508
+        ],
+        "table_clearance_m": 0.064561,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 505,
+        "joint2": 339,
+        "joint3": 931,
+        "joint4": 495,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": 1,
+        "joint4": -5,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.263071,
+          0.008187,
+          -0.026526
+        ],
+        "table_clearance_m": 0.053006,
+        "samples": 21,
+        "start_tcp_m": [
+          0.279924,
+          0.009149,
+          -0.015085
+        ],
+        "start_table_clearance_m": 0.064536,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 506,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 466,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.244681,
+          0.007463,
+          -0.03532
+        ],
+        "table_clearance_m": 0.044086,
+        "samples": 21,
+        "start_tcp_m": [
+          0.262961,
+          0.008463,
+          -0.026584
+        ],
+        "start_table_clearance_m": 0.052929,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 505,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 431,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.30",
+      "path": "/tmp/newobj/grasp_j4_-0.30_131708.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 307
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 645
+      }
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 180
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.052019,
+        "samples": 21,
+        "start_tcp_m": [
+          0.244464,
+          0.007708,
+          -0.035402
+        ],
+        "start_table_clearance_m": 0.043986,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 504,
+        "joint2": 555,
+        "joint3": 792,
+        "joint4": 120,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 4,
+        "joint2": -6,
+        "joint3": 8,
+        "joint4": 0,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_home",
+      "path": "/tmp/newobj/view_home_131829.jpg"
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279858,
+          0.010755,
+          -0.015067
+        ],
+        "table_clearance_m": 0.064453,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 509,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.244613,
+          0.009057,
+          -0.035309
+        ],
+        "table_clearance_m": 0.043996,
+        "samples": 21,
+        "start_tcp_m": [
+          0.279845,
+          0.010932,
+          -0.015073
+        ],
+        "start_table_clearance_m": 0.064435,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 430,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.225125,
+          0.008109,
+          -0.041255
+        ],
+        "table_clearance_m": 0.037921,
+        "samples": 21,
+        "start_tcp_m": [
+          0.244398,
+          0.009195,
+          -0.035392
+        ],
+        "start_table_clearance_m": 0.043902,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 509,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 395,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 2,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.45",
+      "path": "/tmp/newobj/grasp_j4_-0.45_131847.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 312
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 644
+      }
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 179
+      }
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279859,
+          0.010727,
+          -0.015067
+        ],
+        "table_clearance_m": 0.038691,
+        "samples": 21,
+        "start_tcp_m": [
+          0.225351,
+          0.008252,
+          -0.041205
+        ],
+        "start_table_clearance_m": 0.037964,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 509,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 493,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": -7,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.255193,
+          0.009544,
+          -0.030663
+        ],
+        "table_clearance_m": 0.04871,
+        "samples": 21,
+        "start_tcp_m": [
+          0.279845,
+          0.010932,
+          -0.015073
+        ],
+        "start_table_clearance_m": 0.064435,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 452,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236279,
+          0.00863,
+          -0.038244
+        ],
+        "table_clearance_m": 0.041007,
+        "samples": 21,
+        "start_tcp_m": [
+          0.255347,
+          0.009734,
+          -0.030586
+        ],
+        "start_table_clearance_m": 0.048777,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 336,
+        "joint3": 932,
+        "joint4": 417,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -6,
+        "joint3": 2,
+        "joint4": 4,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.36",
+      "path": "/tmp/newobj/grasp_j4_-0.36_131926.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 312
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 489
+      }
+    },
+    {
+      "stage": "preview:lift_150",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.227965,
+          0.008228,
+          0.108925
+        ],
+        "table_clearance_m": 0.048118,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236341,
+          0.008796,
+          -0.038225
+        ],
+        "start_table_clearance_m": 0.041017,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift_150",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 509,
+        "joint2": 545,
+        "joint3": 848,
+        "joint4": 200,
+        "joint5": 501
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 9,
+        "joint4": 1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:cyl_lift150",
+      "path": "/tmp/newobj/cyl_lift150_131935.jpg"
+    },
+    {
+      "stage": "grip:probe",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 489
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.188819,
+        "samples": 21,
+        "start_tcp_m": [
+          0.227868,
+          0.008266,
+          0.108895
+        ],
+        "start_table_clearance_m": 0.187783,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 502,
+        "joint2": 555,
+        "joint3": 792,
+        "joint4": 120,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 2,
+        "joint2": -6,
+        "joint3": 8,
+        "joint4": 0,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_lift",
+      "path": "/tmp/newobj/view_after_lift_131938.jpg"
+    },
+    {
+      "stage": "preview:putback_pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.255193,
+          0.009544,
+          -0.030663
+        ],
+        "table_clearance_m": 0.04871,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 507,
+        "joint2": 339,
+        "joint3": 930,
+        "joint4": 444,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": 0,
+        "joint4": -5,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:putback_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236279,
+          0.00863,
+          -0.038244
+        ],
+        "table_clearance_m": 0.041007,
+        "samples": 21,
+        "start_tcp_m": [
+          0.255347,
+          0.009734,
+          -0.030586
+        ],
+        "start_table_clearance_m": 0.048777,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:putback_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 508,
+        "joint2": 338,
+        "joint3": 930,
+        "joint4": 417,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 0,
+        "joint4": 4,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "grip:release_open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 205
+      }
+    },
+    {
+      "stage": "preview:return_view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.049091,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236341,
+          0.008796,
+          -0.038225
+        ],
+        "start_table_clearance_m": 0.041017,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:return_view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 556,
+        "joint3": 791,
+        "joint4": 119,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -5,
+        "joint3": 7,
+        "joint4": -1,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_after_putback",
+      "path": "/tmp/newobj/view_after_putback_131950.jpg"
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279271,
+          0.019343,
+          -0.015007
+        ],
+        "table_clearance_m": 0.063965,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 517,
+        "joint2": 339,
+        "joint3": 930,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -3,
+        "joint3": 0,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.237753,
+          0.015655,
+          -0.037567
+        ],
+        "table_clearance_m": 0.041256,
+        "samples": 21,
+        "start_tcp_m": [
+          0.279301,
+          0.018949,
+          -0.015017
+        ],
+        "start_table_clearance_m": 0.063981,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 517,
+        "joint2": 338,
+        "joint3": 930,
+        "joint4": 419,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": 0,
+        "joint4": 3,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.218049,
+          0.013894,
+          -0.042536
+        ],
+        "table_clearance_m": 0.036205,
+        "samples": 21,
+        "start_tcp_m": [
+          0.237536,
+          0.015316,
+          -0.037654
+        ],
+        "start_table_clearance_m": 0.041188,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 516,
+        "joint2": 339,
+        "joint3": 930,
+        "joint4": 383,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -3,
+        "joint3": 0,
+        "joint4": 2,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.50",
+      "path": "/tmp/newobj/grasp_j4_-0.50_132217.jpg"
+    },
+    {
+      "stage": "preview:grasp_j1_fix",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.217218,
+          0.021305,
+          -0.042484
+        ],
+        "table_clearance_m": 0.035781,
+        "samples": 21,
+        "start_tcp_m": [
+          0.218272,
+          0.013631,
+          -0.042507
+        ],
+        "start_table_clearance_m": 0.036253,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp_j1_fix",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 528,
+        "joint2": 338,
+        "joint3": 930,
+        "joint4": 383,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -4,
+        "joint3": 0,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:grasp_lying_cyl_fixed",
+      "path": "/tmp/newobj/grasp_lying_cyl_fixed_132227.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 312
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 642
+      }
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 178
+      }
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.276818,
+          0.037799,
+          -0.014878
+        ],
+        "table_clearance_m": 0.036431,
+        "samples": 21,
+        "start_tcp_m": [
+          0.217432,
+          0.021217,
+          -0.042454
+        ],
+        "start_table_clearance_m": 0.035819,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 538,
+        "joint2": 338,
+        "joint3": 929,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": -1,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.204364,
+          0.024893,
+          -0.043992
+        ],
+        "table_clearance_m": 0.033918,
+        "samples": 21,
+        "start_tcp_m": [
+          0.276861,
+          0.037532,
+          -0.014887
+        ],
+        "start_table_clearance_m": 0.062914,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 537,
+        "joint2": 338,
+        "joint3": 929,
+        "joint4": 361,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -5,
+        "joint2": -4,
+        "joint3": -1,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.184286,
+          0.021303,
+          -0.044128
+        ],
+        "table_clearance_m": 0.033478,
+        "samples": 21,
+        "start_tcp_m": [
+          0.204306,
+          0.024703,
+          -0.044004
+        ],
+        "start_table_clearance_m": 0.033917,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 538,
+        "joint2": 338,
+        "joint3": 929,
+        "joint4": 326,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": -4,
+        "joint3": -1,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:grasp_j4_-0.74",
+      "path": "/tmp/newobj/grasp_j4_-0.74_132421.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 312
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 521
+      }
+    },
+    {
+      "stage": "preview:lift_150",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.227965,
+          0.008228,
+          0.108925
+        ],
+        "table_clearance_m": 0.039941,
+        "samples": 21,
+        "start_tcp_m": [
+          0.184117,
+          0.021119,
+          -0.04412
+        ],
+        "start_table_clearance_m": 0.03382,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift_150",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 516,
+        "joint2": 547,
+        "joint3": 848,
+        "joint4": 200,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 4,
+        "joint2": -2,
+        "joint3": 9,
+        "joint4": 1,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:lyingcyl_lift150",
+      "path": "/tmp/newobj/lyingcyl_lift150_132431.jpg"
+    },
+    {
+      "stage": "grip:probe",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 648
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.188819,
+        "samples": 21,
+        "start_tcp_m": [
+          0.227868,
+          0.008266,
+          0.108895
+        ],
+        "start_table_clearance_m": 0.187783,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 555,
+        "joint3": 792,
+        "joint4": 120,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -6,
+        "joint3": 8,
+        "joint4": 0,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_home",
+      "path": "/tmp/newobj/view_home_132442.jpg"
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 178
+      }
+    },
+    {
+      "stage": "preview:roll_approach",
+      "valid": false,
+      "errors": [
+        "OUT_OF_LIMIT"
+      ],
+      "pose": null
+    },
+    {
+      "stage": "preview:roll_approach",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.277927,
+          0.023412,
+          -0.015716
+        ],
+        "table_clearance_m": 0.062988,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:roll_approach",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 523,
+        "joint2": 339,
+        "joint3": 932,
+        "joint4": 494,
+        "joint5": 869
+      },
+      "deviations": {
+        "joint1": -2,
+        "joint2": -3,
+        "joint3": 2,
+        "joint4": -6,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "preview:roll_pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.241401,
+          0.019568,
+          -0.036137
+        ],
+        "table_clearance_m": 0.042474,
+        "samples": 21,
+        "start_tcp_m": [
+          0.277954,
+          0.023121,
+          -0.015725
+        ],
+        "start_table_clearance_m": 0.062997,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:roll_pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 522,
+        "joint2": 338,
+        "joint3": 932,
+        "joint4": 427,
+        "joint5": 869
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -4,
+        "joint3": 2,
+        "joint4": 1,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "preview:roll_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.221893,
+          0.017505,
+          -0.041724
+        ],
+        "table_clearance_m": 0.036827,
+        "samples": 21,
+        "start_tcp_m": [
+          0.241425,
+          0.019327,
+          -0.036143
+        ],
+        "start_table_clearance_m": 0.042483,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:roll_grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 522,
+        "joint2": 339,
+        "joint3": 932,
+        "joint4": 393,
+        "joint5": 870
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": -3,
+        "joint3": 2,
+        "joint4": 3,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:rolled_grasp",
+      "path": "/tmp/newobj/rolled_grasp_132846.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 312
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 644
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.044849,
+        "samples": 21,
+        "start_tcp_m": [
+          0.221809,
+          0.01728,
+          -0.041752
+        ],
+        "start_table_clearance_m": 0.036813,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 555,
+        "joint3": 792,
+        "joint4": 122,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -6,
+        "joint3": 8,
+        "joint4": 2,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:view_home",
+      "path": "/tmp/newobj/view_home_132916.jpg"
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 178
+      }
+    },
+    {
+      "stage": "preview:approach_low",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.279659,
+          0.014281,
+          -0.015042
+        ],
+        "table_clearance_m": 0.064253,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach_low",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "preview:pre_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.244449,
+          0.011999,
+          -0.035288
+        ],
+        "table_clearance_m": 0.04383,
+        "samples": 21,
+        "start_tcp_m": [
+          0.27964,
+          0.014498,
+          -0.015048
+        ],
+        "start_table_clearance_m": 0.064233,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre_grasp",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "preview:small_step",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.238061,
+          0.011582,
+          -0.037595
+        ],
+        "table_clearance_m": 0.041488,
+        "samples": 21,
+        "start_tcp_m": [
+          0.24423,
+          0.012166,
+          -0.035371
+        ],
+        "start_table_clearance_m": 0.043734,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:small_step",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "preview:offstop_step",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.249279,
+          0.012309,
+          -0.027199
+        ],
+        "table_clearance_m": 0.041895,
+        "samples": 21,
+        "start_tcp_m": [
+          0.237805,
+          0.011741,
+          -0.037679
+        ],
+        "start_table_clearance_m": 0.041391,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:offstop_step",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 512,
+        "joint2": 353,
+        "joint3": 917,
+        "joint4": 423,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": 1,
+        "joint3": -6,
+        "joint4": 7,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:step_40",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.242945,
+          0.011896,
+          -0.029652
+        ],
+        "table_clearance_m": 0.049445,
+        "samples": 21,
+        "start_tcp_m": [
+          0.248676,
+          0.012456,
+          -0.027498
+        ],
+        "start_table_clearance_m": 0.051619,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:step_40",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 512,
+        "joint2": 355,
+        "joint3": 917,
+        "joint4": 413,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -4,
+        "joint2": 3,
+        "joint3": -6,
+        "joint4": 8,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:step_45",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236497,
+          0.011475,
+          -0.031786
+        ],
+        "table_clearance_m": 0.047276,
+        "samples": 21,
+        "start_tcp_m": [
+          0.242836,
+          0.012069,
+          -0.029749
+        ],
+        "start_table_clearance_m": 0.049336,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:step_45",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 513,
+        "joint2": 357,
+        "joint3": 917,
+        "joint4": 402,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -3,
+        "joint2": 5,
+        "joint3": -6,
+        "joint4": 9,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:box_grasp_pose",
+      "path": "/tmp/newobj/box_grasp_pose_134102.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 296
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 433
+      }
+    },
+    {
+      "stage": "preview:lift1",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.256174,
+          0.009661,
+          0.077316
+        ],
+        "table_clearance_m": 0.052279,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236355,
+          0.011639,
+          -0.031895
+        ],
+        "start_table_clearance_m": 0.047155,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift1",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "grip:probe_settled",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 441
+      }
+    },
+    {
+      "stage": "preview:lift2",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.23837,
+          0.008754,
+          0.104322
+        ],
+        "table_clearance_m": 0.157829,
+        "samples": 21,
+        "start_tcp_m": [
+          0.256124,
+          0.009709,
+          0.077267
+        ],
+        "start_table_clearance_m": 0.15642,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:lift2",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.184685,
+        "samples": 21,
+        "start_tcp_m": [
+          0.238208,
+          0.008791,
+          0.104407
+        ],
+        "start_table_clearance_m": 0.183378,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "snapshot:box_at_view",
+      "path": "/tmp/newobj/box_at_view_134227.jpg"
+    },
+    {
+      "stage": "preview:back_pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.23837,
+          0.008754,
+          0.104322
+        ],
+        "table_clearance_m": 0.183297,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:back_pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 506,
+        "joint2": 530,
+        "joint3": 855,
+        "joint4": 215,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": -6,
+        "joint2": -6,
+        "joint3": 9,
+        "joint4": -10,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:back_grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236497,
+          0.011475,
+          -0.031786
+        ],
+        "table_clearance_m": 0.047276,
+        "samples": 21,
+        "start_tcp_m": [
+          0.238208,
+          0.008791,
+          0.104407
+        ],
+        "start_table_clearance_m": 0.183378,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:back_grasp",
+      "event": "Unknown",
+      "error": "MOTION_OUTCOME_UNKNOWN",
+      "actual": {},
+      "deviations": null
+    },
+    {
+      "stage": "grip:release_open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 205
+      }
+    },
+    {
+      "stage": "preview:return_view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.055103,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236355,
+          0.011639,
+          -0.031895
+        ],
+        "start_table_clearance_m": 0.047155,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:return_view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 555,
+        "joint3": 792,
+        "joint4": 122,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -6,
+        "joint3": 8,
+        "joint4": 2,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:box_after_putback",
+      "path": "/tmp/newobj/box_after_putback_134238.jpg"
+    },
+    {
+      "stage": "preview:approach",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.289592,
+          0.001699,
+          -0.001759
+        ],
+        "table_clearance_m": 0.078405,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 349,
+        "joint3": 927,
+        "joint4": 494,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 1,
+        "joint2": -3,
+        "joint3": 4,
+        "joint4": -6,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.255869,
+          0.001519,
+          -0.024509
+        ],
+        "table_clearance_m": 0.055365,
+        "samples": 21,
+        "start_tcp_m": [
+          0.289277,
+          0.002071,
+          -0.002032
+        ],
+        "start_table_clearance_m": 0.078106,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 349,
+        "joint3": 927,
+        "joint4": 430,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 1,
+        "joint2": -3,
+        "joint3": 4,
+        "joint4": 2,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236842,
+          0.001408,
+          -0.031856
+        ],
+        "table_clearance_m": 0.047844,
+        "samples": 21,
+        "start_tcp_m": [
+          0.255318,
+          0.001832,
+          -0.024814
+        ],
+        "start_table_clearance_m": 0.055035,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 348,
+        "joint3": 927,
+        "joint4": 394,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 1,
+        "joint2": -4,
+        "joint3": 4,
+        "joint4": 1,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:bag_grasp_pose",
+      "path": "/tmp/newobj/bag_grasp_pose_134433.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 306
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 645
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.055646,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236708,
+          0.001692,
+          -0.031964
+        ],
+        "start_table_clearance_m": 0.047717,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 554,
+        "joint3": 793,
+        "joint4": 122,
+        "joint5": 497
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -7,
+        "joint3": 9,
+        "joint4": 2,
+        "joint5": 1
+      }
+    },
+    {
+      "stage": "snapshot:bag_at_view",
+      "path": "/tmp/newobj/bag_at_view_134459.jpg"
+    },
+    {
+      "stage": "preview:approach",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.289592,
+          0.001699,
+          -0.001759
+        ],
+        "table_clearance_m": 0.078405,
+        "samples": 21,
+        "start_tcp_m": [
+          0.20556,
+          0.000132,
+          0.127198
+        ],
+        "start_table_clearance_m": 0.206331,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:approach",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 502,
+        "joint2": 348,
+        "joint3": 927,
+        "joint4": 493,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 0,
+        "joint2": -4,
+        "joint3": 4,
+        "joint4": -7,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "preview:pre",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.255869,
+          0.001519,
+          -0.024509
+        ],
+        "table_clearance_m": 0.055365,
+        "samples": 21,
+        "start_tcp_m": [
+          0.289277,
+          0.002071,
+          -0.002032
+        ],
+        "start_table_clearance_m": 0.078106,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:pre",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 353,
+        "joint3": 921,
+        "joint4": 435,
+        "joint5": 499
+      },
+      "deviations": {
+        "joint1": 1,
+        "joint2": 1,
+        "joint3": -2,
+        "joint4": 7,
+        "joint5": -1
+      }
+    },
+    {
+      "stage": "preview:grasp",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.236842,
+          0.001408,
+          -0.031856
+        ],
+        "table_clearance_m": 0.047844,
+        "samples": 21,
+        "start_tcp_m": [
+          0.255318,
+          0.001832,
+          -0.024814
+        ],
+        "start_table_clearance_m": 0.055035,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:grasp",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 504,
+        "joint2": 354,
+        "joint3": 915,
+        "joint4": 402,
+        "joint5": 500
+      },
+      "deviations": {
+        "joint1": 2,
+        "joint2": 2,
+        "joint3": -8,
+        "joint4": 9,
+        "joint5": 0
+      }
+    },
+    {
+      "stage": "snapshot:bag2_grasp_pose",
+      "path": "/tmp/newobj/bag2_grasp_pose_134526.jpg"
+    },
+    {
+      "stage": "grip:close_pre",
+      "target_rad": -1.6,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 322
+      }
+    },
+    {
+      "stage": "grip:close_grip",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 478
+      }
+    },
+    {
+      "stage": "grip:probe",
+      "target_rad": -0.05,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 642
+      }
+    },
+    {
+      "stage": "preview:view",
+      "valid": true,
+      "errors": [],
+      "pose": {
+        "ok": true,
+        "tcp_m": [
+          0.205596,
+          0.000132,
+          0.127738
+        ],
+        "table_clearance_m": 0.055646,
+        "samples": 21,
+        "start_tcp_m": [
+          0.236708,
+          0.001692,
+          -0.031964
+        ],
+        "start_table_clearance_m": 0.047717,
+        "start_compliant": true,
+        "violations": []
+      }
+    },
+    {
+      "stage": "pose:view",
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "joint1": 503,
+        "joint2": 553,
+        "joint3": 795,
+        "joint4": 120,
+        "joint5": 498
+      },
+      "deviations": {
+        "joint1": 3,
+        "joint2": -8,
+        "joint3": 11,
+        "joint4": 0,
+        "joint5": 2
+      }
+    },
+    {
+      "stage": "snapshot:bag_after_slip",
+      "path": "/tmp/newobj/bag_after_slip_134557.jpg"
+    },
+    {
+      "stage": "grip:open",
+      "target_rad": -2.220058808536787,
+      "event": "Completed",
+      "error": null,
+      "actual": {
+        "r_joint": 183
+      }
+    }
+  ],
+  "last_plan": {
+    "schema_version": 1,
+    "valid": false,
+    "errors": [
+      {
+        "label": "task",
+        "code": "LOCATE_FAILED",
+        "message": "定位失败：没有可用的木块点（横向尺寸过大，中心 [0.297, 0.004, -0.056] m；横向尺寸过大、height_0.015、前后超出定位范围、横向超出定位窗口，中心 [0.580, -0.252, -0.097] m；height_0.002、横向超出定位窗口，中心 [0.355, 0.260, -0.094] m）",
+        "joint": null
+      }
+    ],
+    "warnings": [],
+    "simulated": false,
+    "steps": [],
+    "view_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2574,
+      "joint3": -1.18773,
+      "joint4": -1.5917,
+      "joint5": -0.01676
+    },
+    "current_joints": {
+      "joint1": 0.0,
+      "joint2": 0.2555162024919699,
+      "joint3": -1.1896164181593352,
+      "joint4": -1.5917402778188288,
+      "joint5": -0.016755160819145565
+    },
+    "locate": {
+      "schema_version": 1,
+      "mode": "markerless_rgbd_segment",
+      "cloud": {
+        "points_total": 205850,
+        "points_in_range": 168954,
+        "frame_id": "depth_camera_link",
+        "topic": "/depth_cam/depth_registered/points",
+        "sample_age_ms": 0,
+        "layout": "opencv_optical_xyz"
+      },
+      "floor": {
+        "normal_base": [
+          0.05790446544811134,
+          0.0023018377484188036,
+          0.998319475085353
+        ],
+        "offset_base": 0.0801717729253262,
+        "rms_m": 0.0007041806178631486,
+        "inliers": 149762,
+        "z_at_0p24": -0.09422719578302362,
+        "angle_to_z_deg": 3.322163075841087
+      },
+      "segmentation": {
+        "voxel_m": 0.005,
+        "points_above_floor": 12901,
+        "clusters": 3,
+        "cluster_details": [
+          {
+            "label": 0,
+            "bounds": {
+              "points": 10992,
+              "min": [
+                0.2316362252661771,
+                -0.027427562462764093,
+                -0.07958836837121253
+              ],
+              "max": [
+                0.3817551968194859,
+                0.027971925579484823,
+                -0.047641838809694304
+              ],
+              "size": [
+                0.15011897155330878,
+                0.055399488042248916,
+                0.03194652956151822
+              ],
+              "centroid": [
+                0.2969076117281804,
+                0.004353259909959327,
+                -0.05643047851780905
+              ]
+            },
+            "height_m": 0.046585356973329314,
+            "ok": false,
+            "why": [
+              "too_wide"
+            ]
+          },
+          {
+            "label": 1,
+            "bounds": {
+              "points": 1755,
+              "min": [
+                0.565298882486862,
+                -0.3067349630605376,
+                -0.10914441612622755
+              ],
+              "max": [
+                0.6146009898754861,
+                -0.21018559356183536,
+                -0.07953762218222915
+              ],
+              "size": [
+                0.04930210738862406,
+                0.09654936949870224,
+                0.0296067939439984
+              ],
+              "centroid": [
+                0.579855625850211,
+                -0.2518446745147578,
+                -0.09713855857615115
+              ]
+            },
+            "height_m": 0.014689573600794467,
+            "ok": false,
+            "why": [
+              "too_wide",
+              "height_0.015",
+              "x_out_of_region",
+              "y_out_of_region"
+            ]
+          },
+          {
+            "label": 2,
+            "bounds": {
+              "points": 154,
+              "min": [
+                0.34597896108560977,
+                0.255207349930575,
+                -0.0960252958454258
+              ],
+              "max": [
+                0.367982213365568,
+                0.26858334515879995,
+                -0.09249750377695942
+              ],
+              "size": [
+                0.022003252279958252,
+                0.013375995228224968,
+                0.0035277920684663733
+              ],
+              "centroid": [
+                0.355320104753843,
+                0.2600734079446213,
+                -0.09427954051378072
+              ]
+            },
+            "height_m": 0.0017296920060641957,
+            "ok": false,
+            "why": [
+              "height_0.002",
+              "y_out_of_region"
+            ]
+          }
+        ]
+      },
+      "success": false
+    },
+    "fit": null,
+    "approach": null,
+    "plan_id": null
+  },
+  "last_locate": {
+    "top_centroid": null,
+    "bounds": {
+      "min": null,
+      "max": null,
+      "size": null,
+      "centroid": null
+    },
+    "height_above_floor": null,
+    "floor_z": -0.09422719578302362,
+    "recovered": false,
+    "grasp_point": null
+  },
+  "grip_register": 433
+}
