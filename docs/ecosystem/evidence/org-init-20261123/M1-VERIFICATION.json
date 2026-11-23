@@ -1,0 +1,703 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-23T06:45:20.409105+00:00",
+  "org": "JCHENG-Robotics",
+  "expected_visibility": "public",
+  "expected_check": "m1-gate",
+  "baseline": {
+    "repo": "https://github.com/JerichoCheng/jcheng-manipulation.git",
+    "tag": "v1.0.0",
+    "commit": "b3411e43ad31c09f396cdd2db0fdfda8f09853dd"
+  },
+  "summary": {
+    "total": 111,
+    "passed": 111,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "name": "org:exists",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": ".github:exists",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": ".github:default_branch",
+      "ok": true,
+      "detail": "main"
+    },
+    {
+      "name": ".github:visibility",
+      "ok": true,
+      "detail": "public"
+    },
+    {
+      "name": ".github:issues",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": ".github:wiki_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": ".github:projects_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": ".github:squash_on",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": ".github:merge_commit_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": ".github:rebase_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": ".github:delete_branch_on_merge",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": ".github:protection_present",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": ".github:pr_reviews",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/.github/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1
+      }
+    },
+    {
+      "name": ".github:code_owner_review",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": ".github:required_check",
+      "ok": true,
+      "detail": [
+        "m1-gate"
+      ]
+    },
+    {
+      "name": ".github:admins_restricted",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/.github/branches/main/protection/enforce_admins",
+        "enabled": true
+      }
+    },
+    {
+      "name": ".github:no_force_push",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": ".github:no_delete",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": ".github:conversation_resolution",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": ".github:linear_history",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": ".github:main_tree",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "files": 43
+      }
+    },
+    {
+      "name": ".github:no_license",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": ".github:file:profile/README.md",
+      "ok": true,
+      "detail": "profile/README.md"
+    },
+    {
+      "name": ".github:file:CONTRIBUTING.md",
+      "ok": true,
+      "detail": "CONTRIBUTING.md"
+    },
+    {
+      "name": ".github:file:SECURITY.md",
+      "ok": true,
+      "detail": "SECURITY.md"
+    },
+    {
+      "name": ".github:file:GOVERNANCE.md",
+      "ok": true,
+      "detail": "GOVERNANCE.md"
+    },
+    {
+      "name": ".github:file:CODEOWNERS.template",
+      "ok": true,
+      "detail": "CODEOWNERS.template"
+    },
+    {
+      "name": ".github:file:LICENSE-REVIEW.md",
+      "ok": true,
+      "detail": "LICENSE-REVIEW.md"
+    },
+    {
+      "name": ".github:file:docs/license-review.md",
+      "ok": true,
+      "detail": "docs/license-review.md"
+    },
+    {
+      "name": ".github:file:.github/CODEOWNERS",
+      "ok": true,
+      "detail": ".github/CODEOWNERS"
+    },
+    {
+      "name": ".github:file:.github/workflows/ci.yml",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-python.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-python.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-ros-build.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-ros-build.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-contract-check.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-contract-check.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-integration-mock.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-integration-mock.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-security.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-security.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/reusable-release.yml",
+      "ok": true,
+      "detail": ".github/workflows/reusable-release.yml"
+    },
+    {
+      "name": ".github:file:.github/workflows/org-health.yml",
+      "ok": true,
+      "detail": ".github/workflows/org-health.yml"
+    },
+    {
+      "name": ".github:file:actions/setup-colcon/action.yml",
+      "ok": true,
+      "detail": "actions/setup-colcon/action.yml"
+    },
+    {
+      "name": ".github:file:actions/contract-manifest/action.yml",
+      "ok": true,
+      "detail": "actions/contract-manifest/action.yml"
+    },
+    {
+      "name": ".github:file:actions/evidence-check/action.yml",
+      "ok": true,
+      "detail": "actions/evidence-check/action.yml"
+    },
+    {
+      "name": ".github:check_run_present",
+      "ok": true,
+      "detail": {
+        "names": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": ".github:check_run_success",
+      "ok": true,
+      "detail": {
+        "matching": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": "jcheng-interfaces:exists",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "jcheng-interfaces:default_branch",
+      "ok": true,
+      "detail": "main"
+    },
+    {
+      "name": "jcheng-interfaces:visibility",
+      "ok": true,
+      "detail": "public"
+    },
+    {
+      "name": "jcheng-interfaces:issues",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-interfaces:wiki_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-interfaces:projects_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-interfaces:squash_on",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-interfaces:merge_commit_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-interfaces:rebase_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-interfaces:delete_branch_on_merge",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-interfaces:protection_present",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "jcheng-interfaces:pr_reviews",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/jcheng-interfaces/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1
+      }
+    },
+    {
+      "name": "jcheng-interfaces:code_owner_review",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-interfaces:required_check",
+      "ok": true,
+      "detail": [
+        "m1-gate"
+      ]
+    },
+    {
+      "name": "jcheng-interfaces:admins_restricted",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/jcheng-interfaces/branches/main/protection/enforce_admins",
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-interfaces:no_force_push",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "jcheng-interfaces:no_delete",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "jcheng-interfaces:conversation_resolution",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-interfaces:linear_history",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-interfaces:main_tree",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "files": 24
+      }
+    },
+    {
+      "name": "jcheng-interfaces:no_license",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-interfaces:file:LICENSE-REVIEW.md",
+      "ok": true,
+      "detail": "LICENSE-REVIEW.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:.github/CODEOWNERS",
+      "ok": true,
+      "detail": ".github/CODEOWNERS"
+    },
+    {
+      "name": "jcheng-interfaces:file:docs/CONTRACT_AUDIT_PLAN.md",
+      "ok": true,
+      "detail": "docs/CONTRACT_AUDIT_PLAN.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:docs/CONTRACT.md",
+      "ok": true,
+      "detail": "docs/CONTRACT.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:docs/VERSIONING.md",
+      "ok": true,
+      "detail": "docs/VERSIONING.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:docs/COMPATIBILITY.md",
+      "ok": true,
+      "detail": "docs/COMPATIBILITY.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:docs/M1-SCOPE.md",
+      "ok": true,
+      "detail": "docs/M1-SCOPE.md"
+    },
+    {
+      "name": "jcheng-interfaces:file:scripts/check_m1_gate.sh",
+      "ok": true,
+      "detail": "scripts/check_m1_gate.sh"
+    },
+    {
+      "name": "jcheng-interfaces:file:.github/workflows/ci.yml",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml"
+    },
+    {
+      "name": "jcheng-interfaces:no_idl",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-interfaces:no_package_xml",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-interfaces:check_run_present",
+      "ok": true,
+      "detail": {
+        "names": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": "jcheng-interfaces:check_run_success",
+      "ok": true,
+      "detail": {
+        "matching": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": "jcheng-system:exists",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "jcheng-system:default_branch",
+      "ok": true,
+      "detail": "main"
+    },
+    {
+      "name": "jcheng-system:visibility",
+      "ok": true,
+      "detail": "public"
+    },
+    {
+      "name": "jcheng-system:issues",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-system:wiki_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-system:projects_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-system:squash_on",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-system:merge_commit_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-system:rebase_off",
+      "ok": true,
+      "detail": false
+    },
+    {
+      "name": "jcheng-system:delete_branch_on_merge",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-system:protection_present",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "jcheng-system:pr_reviews",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/jcheng-system/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1
+      }
+    },
+    {
+      "name": "jcheng-system:code_owner_review",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "jcheng-system:required_check",
+      "ok": true,
+      "detail": [
+        "m1-gate"
+      ]
+    },
+    {
+      "name": "jcheng-system:admins_restricted",
+      "ok": true,
+      "detail": {
+        "url": "https://api.github.com/repos/JCHENG-Robotics/jcheng-system/branches/main/protection/enforce_admins",
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-system:no_force_push",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "jcheng-system:no_delete",
+      "ok": true,
+      "detail": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "jcheng-system:conversation_resolution",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-system:linear_history",
+      "ok": true,
+      "detail": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "jcheng-system:main_tree",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "files": 31
+      }
+    },
+    {
+      "name": "jcheng-system:no_license",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-system:file:LICENSE-REVIEW.md",
+      "ok": true,
+      "detail": "LICENSE-REVIEW.md"
+    },
+    {
+      "name": "jcheng-system:file:.github/CODEOWNERS",
+      "ok": true,
+      "detail": ".github/CODEOWNERS"
+    },
+    {
+      "name": "jcheng-system:file:docs/ARCHITECTURE.md",
+      "ok": true,
+      "detail": "docs/ARCHITECTURE.md"
+    },
+    {
+      "name": "jcheng-system:file:docs/SAFETY.md",
+      "ok": true,
+      "detail": "docs/SAFETY.md"
+    },
+    {
+      "name": "jcheng-system:file:docs/ACCEPTANCE.md",
+      "ok": true,
+      "detail": "docs/ACCEPTANCE.md"
+    },
+    {
+      "name": "jcheng-system:file:docs/M1-SCOPE.md",
+      "ok": true,
+      "detail": "docs/M1-SCOPE.md"
+    },
+    {
+      "name": "jcheng-system:file:scripts/check_m1_gate.sh",
+      "ok": true,
+      "detail": "scripts/check_m1_gate.sh"
+    },
+    {
+      "name": "jcheng-system:file:.github/workflows/ci.yml",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml"
+    },
+    {
+      "name": "jcheng-system:no_runtime_code",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-system:no_package_xml",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "jcheng-system:check_run_present",
+      "ok": true,
+      "detail": {
+        "names": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": "jcheng-system:check_run_success",
+      "ok": true,
+      "detail": {
+        "matching": [
+          "m1-gate"
+        ],
+        "conclusions": [
+          "success"
+        ]
+      }
+    },
+    {
+      "name": "baseline:v1.0.0_commit",
+      "ok": true,
+      "detail": {
+        "expected": "b3411e43ad31c09f396cdd2db0fdfda8f09853dd",
+        "actual": "b3411e43ad31c09f396cdd2db0fdfda8f09853dd",
+        "refs": {
+          "refs/tags/v1.0.0": "6436e2b620a7b0594ed35870f12f12cee19a9f6e",
+          "refs/tags/v1.0.0^{}": "b3411e43ad31c09f396cdd2db0fdfda8f09853dd"
+        }
+      }
+    }
+  ]
+}

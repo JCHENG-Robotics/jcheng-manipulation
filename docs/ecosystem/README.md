@@ -51,7 +51,7 @@
 | [05-versioning-lock-release.md](05-versioning-lock-release.md) | SemVer、契约哈希、锁文件、发布列车 | 独立模块如何可复现地组合 |
 | [06-ci-cd-acceptance.md](06-ci-cd-acceptance.md) | CI 矩阵、E2E 分级、验收场景与证据 | 什么算“通过”，如何防止回归 |
 | [07-migration-and-risks.md](07-migration-and-risks.md) | 迁移原则、阶段计划、风险登记、回滚 | 实施顺序与停止条件 |
-| [08-m1-execution.md](08-m1-execution.md) | M1 本地骨架、验证结果、GitHub 阻塞与解锁步骤 | 组织/令牌解锁与分支保护验收 |
+| [08-m1-execution.md](08-m1-execution.md) | M1 完成记录、证据、分支保护验证与治理待决项 | M1 验收与 M2 入口 |
 | [adr/](adr/) | 关键架构决策记录 | 决策依据与替代方案 |
 
 ## 4. 基线承诺
