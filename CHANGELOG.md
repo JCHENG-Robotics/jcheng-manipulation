@@ -81,6 +81,11 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   [`evidence/studio_validation_20261123/`](evidence/studio_validation_20261123/README.md)
   and
   [`evidence/armpi_safety_install_20261123/`](evidence/armpi_safety_install_20261123/README.md).
+- **2026-11-23 4.0/20 fast-path regression:** `fast_motion.py` moved the arm
+  from the measured view pose to upright with `vmax 4.0 / amax 20`;
+  `ok=true`, bus after `502/500/500/497/500`, settle excursion 2 pulses, and
+  the real safety node stayed `/safety_stop=false`. See
+  [`evidence/fast_path_regression_20261123/`](evidence/fast_path_regression_20261123/README.md).
 
 ### Documentation
 

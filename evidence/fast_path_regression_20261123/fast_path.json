@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-23",
+  "robot": "ArmPi Ultra",
+  "profile": {
+    "name": "fast",
+    "vmax_rad_s": 4.0,
+    "amax_rad_s2": 20.0,
+    "source": "safety_limits.yaml profiles.fast"
+  },
+  "command": "fast_motion.py --target 0,0,0,0,0 --vmax 4.0 --amax 20 --i-have-clear-workspace",
+  "actual_before": {
+    "r_joint": 224,
+    "joint1": 502,
+    "joint2": 557,
+    "joint3": 788,
+    "joint4": 122,
+    "joint5": 497
+  },
+  "cache_resynced_to_actual": true,
+  "target_pulses": {
+    "joint1": 500,
+    "joint2": 500,
+    "joint3": 500,
+    "joint4": 500,
+    "joint5": 500
+  },
+  "pulses_after": {
+    "joint1": 502,
+    "joint2": 500,
+    "joint3": 500,
+    "joint4": 497,
+    "joint5": 500
+  },
+  "settle_excursion_pulses": {
+    "joint3": 2,
+    "joint4": 2
+  },
+  "actual_after": {
+    "r_joint": 224,
+    "joint1": 503,
+    "joint2": 501,
+    "joint3": 500,
+    "joint4": 498,
+    "joint5": 500
+  },
+  "ok": true,
+  "safety_stop_after": false,
+  "limitations": [
+    "one direction only; full G7/G8 task not repeated",
+    "fast_motion bypasses armpi_safety by design",
+    "no e-stop, brake, self-collision model or independent encoder",
+    "arm supported and workspace clear; operator present"
+  ]
+}
