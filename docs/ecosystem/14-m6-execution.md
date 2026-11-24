@@ -1,7 +1,7 @@
 # M6 执行记录（基线回放与 G8 复验）
 
-> 状态：**M6 离线开始：S13 回放 21/21 decision 一致；S17/G8/底盘实机待授权。**
-> 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `eba0e73`。
+> 状态：**M6 离线：S13 回放 21/21；S17 plan-only goal 构建/校验通过；G8/底盘实机待授权。**
+> 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `8e319b1`（PR #8 open）。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`）只读引用；证据不复制、不修改。
 > 约束：S13 只回放 decision，不执行运动；G8/底盘实机需单独明确授权。
 
@@ -24,12 +24,14 @@
 
 ## 2. M6 其余部分
 
-### S17 MoveIt 只规划
+### S17 MoveIt 只规划（离线通过）
 
-- 目标：`/plan_kinematic_path` 或 `/move_action` + `planning_options.plan_only=true`；
-  不执行。
-- 尚未接入真实 MoveIt/move_group；需要录制 goal 或实际 move_group 验证。
-- MoveIt 执行路径必须关闭或无硬件发布权限。
+- `jcheng_moveit/plan_only.py`：构造 MoveGroup/GetMotionPlan 形状的 goal，
+  强制 `planning_options.plan_only=true`；拒绝含 `execute`/`trajectory` 的 goal。
+- `tests/test_moveit_plan_only.py`：正反用例通过；`check_m6_moveit.sh` 通过。
+- 尚未接入真实 MoveIt/move_group；`plan_kinematic_path` 的实际调用与
+  `JointTrajectory` 转换待做。
+- 任何 MoveIt 执行路径必须关闭或无硬件发布权限。
 
 ### S14 底盘脉冲
 
@@ -50,14 +52,14 @@
 
 ## 3. 环境与依赖
 
-- M6 分支基于 `m5.2/final-acceptance`（`822b05d`），包含夹爪完成语义
-  修复；`main` 仍是 `c4f46b2` 旧语义，需先合并 M5.2 修复。
-- CI `m6-replay` 全绿；`main` 保护新增 `m6-replay`。
+- M5.2 修复已合并到 `main`（PR #7 → `d765ae3`）；M6 分支基于该修复。
+- PR #8（`m6/replay-planning`）仍 open；CI `m6-replay` 全绿。
+- `main` 保护包含 `m6-replay`。
 - 未连接机器人；没有运动。
 
 ## 4. 后续
 
-1. 合并 M5.2 修复与 M6 S13 分支。
-2. 补 S17 MoveIt plan-only 验证。
+1. 合并 PR #8（S13 回放 + S17 plan-only 离线包）。
+2. 在真实 MoveIt/move_group 环境验证 S17；接入 plan-only 响应到契约。
 3. 单独授权后做 S14 底盘脉冲与 G8 全流程，记录落点/总线证据。
 4. M6 全部通过后再讨论 `v0.3.0`/M7；任何实机运动仍需单独授权。
