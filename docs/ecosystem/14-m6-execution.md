@@ -1,7 +1,8 @@
 # M6 执行记录（基线回放与 G8 复验）
 
 > 状态：**M6 离线：S13 回放 21/21；S17 plan-only goal 构建/校验通过；G8/底盘实机待授权。**
-> 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `8e319b1`（PR #8 open）。
+> 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `8e319b1`；
+> PR #8 已合并为 `427214b`，`main` CI 绿。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`）只读引用；证据不复制、不修改。
 > 约束：S13 只回放 decision，不执行运动；G8/底盘实机需单独明确授权。
 
@@ -53,13 +54,13 @@
 ## 3. 环境与依赖
 
 - M5.2 修复已合并到 `main`（PR #7 → `d765ae3`）；M6 分支基于该修复。
-- PR #8（`m6/replay-planning`）仍 open；CI `m6-replay` 全绿。
+- M6（`m6/replay-planning`）已合并为 `427214b`；`main` CI 绿。
 - `main` 保护包含 `m6-replay`。
 - 未连接机器人；没有运动。
 
 ## 4. 后续
 
-1. 合并 PR #8（S13 回放 + S17 plan-only 离线包）。
+1. M6 S13/S17 离线部分已合并（`427214b`）。
 2. 在真实 MoveIt/move_group 环境验证 S17；接入 plan-only 响应到契约。
 3. 单独授权后做 S14 底盘脉冲与 G8 全流程，记录落点/总线证据。
 4. M6 全部通过后再讨论 `v0.3.0`/M7；任何实机运动仍需单独授权。
