@@ -3,6 +3,61 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- The laptop Humble image is now the development image: it adds the CI/test
+  layer (`python3-opencv` 4.5.4 with ArUco, numpy, yaml, pytest, ament
+  linters, `cv_bridge`, `tf2_geometry_msgs`, `urdfdom_py`) and
+  `/opt/jcheng/venv` (pytest 8 + jsonschema 4 for the ecosystem
+  repositories). `tools/humble_moveit/setup_humble_ws.sh` now symlinks all
+  seven packages CI builds (`arm_interfaces`, `armpi_analysis`,
+  `armpi_fiducial_localizer`, `armpi_grasp_planner`, `armpi_safety`,
+  `armpi_ultra_description`, `armpi_ultra_moveit_config`), and
+  `tools/dev/humble.sh` runs builds and the analysis tools inside the
+  container (`build`, `test`, `run`, `check`, `shell`), removing the host Jazzy
+  colcon dependency for tools that import `armpi_grasp_planner` and
+  `armpi_analysis`. The previous image is kept as
+  `armpi-humble-moveit:pre-dev-20261124`.
+- Studio task takeover now carries the 2026-11-23 object-form grasp catalog.
+  `task.forms` in `armpi-debug-studio/configs/takeover.yaml` records the blue
+  block (lying/upright), Ø29 red cylinder (standing/lying), VLT carton and
+  snack sachet with the hardware-measured j4 depth, gripper preclose/close
+  targets, aim correction and close register. `POST /api/task/plan {"form":
+  ...}` and the 任务接管 page select a form; `refused` forms return
+  `FORM_REFUSED`, `pose` forms `FORM_POSE_ONLY` with the recorded pose, and
+  the default remains the 39.4 mm cube. A catalog j4 is held exactly (joint1
+  is solved on the target azimuth, so the TCP xy residual is deliberate — the
+  pads are the contact point); each working form also records the measured
+  object position (`base_point_m`, ±12 mm), so the G8.1 loop pulses toward that
+  base point instead of the cube's 0.230 m when the object is outside it; a
+  deep close stretches the release-open duration to stay under the 900 raw/s
+  fast-path sanity ceiling. The CLI runner gains `--form`. Not yet
+  hardware-run as an integrated task path.
+
+### Changed
+
+- The repository now carries the ecosystem-standard documentation set: a root
+  [`ACCEPTANCE.md`](ACCEPTANCE.md) for the v1.0.0 baseline acceptance and links
+  from both READMEs, plus an ecosystem-track note in the roadmap. The Phase 0
+  checklist remains a separate record.
+- `tools/studio/start_studio.sh` resolves the gateway token, the gateway
+  health and the backend venv **before** the port guard, and its SSH token
+  fetch uses `-o IdentitiesOnly=yes`. On 2026-11-24 the old order killed a
+  healthy backend and then failed the token fetch over SSH, leaving the Studio
+  down while the robot was wedged.
+
+### Moved
+
+- The unattended operations guards built during the 2026-11-24 outage (15 s
+  hardware watchdog, 30 s health timer with a motion-idle guard, restart
+  policies, OOM protection, laptop Studio watchdog, incident record and
+  rollback) live in the operations repository,
+  [`JCHENG-Robotics/jcheng-ops`](https://github.com/JCHENG-Robotics/jcheng-ops)
+  v0.1.0. This repository keeps only the `start_studio.sh` ordering fix and the
+  runbook pointer.
+
 ## [1.0.0] — 2026-11-23
 
 Production baseline. Includes `v1.0.0-rc.1` plus the full G8 acceptance,
