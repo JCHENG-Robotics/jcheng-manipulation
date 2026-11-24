@@ -1,0 +1,22 @@
+{
+  "arm": {
+    "armed": true,
+    "message": "armed",
+    "state": "ARMED_IDLE"
+  },
+  "lease": {
+    "granted": true,
+    "lease_id": "lease-4cd8fe9bafa3",
+    "reason": "OK"
+  },
+  "state": {
+    "state": "DISARMED",
+    "stop_latched": false
+  },
+  "validate": {
+    "approved": true,
+    "reason": "OK",
+    "validation_id": "val-d45a67034ff5",
+    "violations": []
+  }
+}

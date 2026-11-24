@@ -1,0 +1,16 @@
+{
+  "bus_verified": true,
+  "evidence_id": "ev-706f5b682e86",
+  "measured_positions": [
+    0.020943951023931956,
+    0.40631264986427995,
+    -1.3823007675795091,
+    -1.6294393896619062,
+    0.0
+  ],
+  "message": "bus verified target 512",
+  "outcome": "COMPLETED",
+  "reason_code": "OK",
+  "safety_state": "ARMED_IDLE",
+  "stop_latched": false
+}

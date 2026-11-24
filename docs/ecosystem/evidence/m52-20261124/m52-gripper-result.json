@@ -1,0 +1,40 @@
+[
+  {
+    "bus_verified": false,
+    "evidence_id": "ev-8fb04b8bed72",
+    "gripper_position": null,
+    "intent": "m52-gripper-open-001",
+    "message": "bus target 183 != commanded 170",
+    "outcome": "UNKNOWN",
+    "positions": [
+      0.03351032163829113,
+      0.41050144006906636,
+      -1.3864895577842955,
+      -1.6294393896619062,
+      0.0
+    ],
+    "reason_code": "MOTION_OUTCOME_UNKNOWN",
+    "safety_state": "STOP_LATCHED",
+    "stop_latched": true,
+    "target_rad": 2.22
+  },
+  {
+    "bus_verified": false,
+    "evidence_id": "",
+    "gripper_position": null,
+    "intent": "m52-gripper-close-001",
+    "message": "safety stop is latched",
+    "outcome": "REJECTED",
+    "positions": [
+      0.02932153143350474,
+      0.40631264986427995,
+      -1.3864895577842955,
+      -1.6294393896619062,
+      0.0
+    ],
+    "reason_code": "SAFETY_STOP_LATCHED",
+    "safety_state": "STOP_LATCHED",
+    "stop_latched": true,
+    "target_rad": 0.25
+  }
+]
