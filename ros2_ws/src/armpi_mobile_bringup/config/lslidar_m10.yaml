@@ -1,0 +1,50 @@
+# LSLIDAR M10 driver parameters.
+#
+# Driver: Lslidar/Lslidar_ROS2_driver, branch LS-S1_V1.0 (v5.2.0, Apache-2.0,
+# commit e23139673c34c51d07053837910020aaa81736fa). The executable is a plain
+# rclcpp Node named lslidar_driver_node (not a lifecycle node), so launch it
+# with a normal Node action, not LifecycleNode.
+#
+# M10 interface: serial UART at 460800 baud (fixed in the driver for M10),
+# 5 V / ~400 mA, 360 deg, 10 Hz, 10k points/s, 0.36 deg.
+#
+# The serial_port and frame_id values here are overridden by the launch
+# arguments laser_port / laser_frame; keep them consistent for manual runs.
+lslidar_driver_node:
+  ros__parameters:
+    lidar_type: "X10"
+    lidar_model: "M10"
+    serial_port: "/dev/lslidar_m10"
+    device_ip: "192.168.1.200"
+    msop_port: 2368
+    difop_port: 2369
+    packet_rate: 188.0
+
+    frame_id: "laser_link"
+    pointcloud_topic: "lslidar_point_cloud"
+    # Absolute topic: publishes /scan whether the node runs at root or under
+    # the vendor 'x10' namespace.
+    laserscan_topic: "/scan"
+    use_time_service: false
+    use_first_point_time: false
+    publish_scan: true
+    use_high_precision: false      # N10 recommends true; M10 keeps false
+    publish_multiecholaserscan: false
+    enable_noise_filter: false     # turn on only after seeing the raw scan
+    N10Plus_hz: 10                 # N10Plus only
+
+    # M10 datasheet: 0.05 m minimum, 10 m @ 10% reflectivity / 25 m @ 70%.
+    # 12 m is a conservative indoor cap; raise only after measuring the site.
+    min_range: 0.05
+    max_range: 12.0
+    angle_disable_min: 0
+    angle_disable_max: 0
+
+    is_pretreatment: false
+    x_offset: 0.0
+    y_offset: 0.0
+    z_offset: 0.0
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    is_MatrixTransformation: false

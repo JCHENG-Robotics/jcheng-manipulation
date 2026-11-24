@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>armpi_mobile_bringup</name>
+  <version>0.0.0</version>
+  <description>
+    Draft AMR bringup for ArmPi Ultra: 2D LiDAR + RTAB-Map ICP odometry +
+    slam_toolbox + Nav2 (MPPI Omni). Nothing in this package is
+    hardware-validated yet.
+  </description>
+  <maintainer email="maintainer@example.invalid">ubuntu</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <!-- Runtime stack. These are not needed to build this ament_python
+       package, but are required by the launch files. The robot container
+       currently has only part of Nav2 installed; see README.md. -->
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_mppi_controller</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>rtabmap_odom</exec_depend>
+  <!-- Built from source: Lslidar/Lslidar_ROS2_driver, branch LS-S1_V1.0
+       (v5.2.0, Apache-2.0). No ros-humble apt package exists. -->
+  <exec_depend>lslidar_driver</exec_depend>
+  <exec_depend>lslidar_msgs</exec_depend>
+
+  <!-- Vendor package, present only in the robot container. The launch file
+       starts it only with start_base:=true. -->
+  <!-- <exec_depend>controller</exec_depend> -->
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
