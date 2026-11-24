@@ -1,0 +1,10 @@
+{
+  "bus_verified": false,
+  "client_stop_to_result_ms": 48.415,
+  "evidence_id": "ev-8e7f5f3c4bbb",
+  "message": "motion aborted by software stop",
+  "outcome": "ABORTED",
+  "reason_code": "SAFETY_STOP_LATCHED",
+  "safety_state": "STOP_LATCHED",
+  "stop_latched": true
+}

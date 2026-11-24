@@ -1,0 +1,16 @@
+{
+  "no_lease": {
+    "approved": false,
+    "reason": "NO_LEASE",
+    "violations": [
+      "control lease is not valid"
+    ]
+  },
+  "overlimit": {
+    "approved": false,
+    "reason": "JOINT_LIMIT",
+    "violations": [
+      "joint1 outside limits"
+    ]
+  }
+}
