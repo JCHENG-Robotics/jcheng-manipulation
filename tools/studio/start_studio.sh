@@ -162,10 +162,20 @@ else
         echo "camera already publishing"
     elif [[ "$START_CAMERA" == "1" ]]; then
         step "camera: no publisher, starting vision.launch.py"
+        # The aurora driver is only registered by the isolated install prefix
+        # (the third_party_ws overlay's local_setup symlinks dangle since its
+        # build/ tree was deleted). Without it the launch dies with
+        # "package 'deptrum-ros-driver-aurora930' not found" while
+        # `docker exec -d` still returns 0. See docs/hardware/ros_environment.md.
+        AURORA_PREFIX=/home/ubuntu/jcheng_aurora_install/deptrum-ros-driver-aurora930
         timeout 30 ssh -o BatchMode=yes -o ConnectTimeout=8 \
             -i "$SSH_KEY" "$SSH_USER@$ROBOT_HOST" \
             "sudo docker exec -d -u ubuntu -w /home/ubuntu $CONTAINER /bin/zsh -c \
              'source ~/.zshrc >/dev/null 2>&1; \
+              export AMENT_PREFIX_PATH=$AURORA_PREFIX:\$AMENT_PREFIX_PATH; \
+              export LD_LIBRARY_PATH=$AURORA_PREFIX/lib:\$LD_LIBRARY_PATH; \
+              ros2 pkg prefix deptrum-ros-driver-aurora930 >/dev/null 2>&1 \
+                || { echo aurora-driver-not-resolvable > /tmp/vision.log; exit 3; }; \
               exec ros2 launch bringup vision.launch.py > /tmp/vision.log 2>&1'" \
             || fail "could not start vision.launch.py"
         echo "launch started; waiting for frames (log: /tmp/vision.log on the robot)"

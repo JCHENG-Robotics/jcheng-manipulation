@@ -73,8 +73,27 @@ Camera nodes when `vision.launch.py` is running:
 ```bash
 sudo docker exec -d -u ubuntu -w /home/ubuntu ArmPiUltra /bin/zsh -c \
   'source ~/.zshrc >/dev/null 2>&1; \
+   export AMENT_PREFIX_PATH=/home/ubuntu/jcheng_aurora_install/deptrum-ros-driver-aurora930:$AMENT_PREFIX_PATH; \
+   export LD_LIBRARY_PATH=/home/ubuntu/jcheng_aurora_install/deptrum-ros-driver-aurora930/lib:$LD_LIBRARY_PATH; \
    exec ros2 launch bringup vision.launch.py > /tmp/vision.log 2>&1'
 ```
+
+**The `jcheng_aurora_install` prefix is mandatory (2026-11-24).** The
+`third_party_ws` overlay that used to register `deptrum-ros-driver-aurora930`
+is broken: its `build/` tree was deleted, so every per-package
+`install/*/share/<pkg>/local_setup.*` is a dangling symlink and sourcing the
+overlay emits `not found` lines while leaving `AMENT_PREFIX_PATH` at
+`ros2_ws/install` only. Without the prefix above, `vision.launch.py` dies at
+once with `package 'deptrum-ros-driver-aurora930' not found` — and because the
+old start script used `docker exec -d`, `armpi-vision.service` still reported
+success. The driver lives in
+`/home/ubuntu/jcheng_aurora_install/deptrum-ros-driver-aurora930` (rebuilt with
+`colcon build --packages-select deptrum-ros-driver-aurora930 --build-base
+/home/ubuntu/jcheng_aurora_build --install-base /home/ubuntu/jcheng_aurora_install`;
+see `jcheng-perception/docs/HARDWARE_BRINGUP.md`). The deployed start script is
+`tools/robot/armpi-vision-start.sh`: it prepends that prefix, waits for the
+`bringup.launch.py` process, and fails (so systemd retries) when
+`aurora930_node` does not appear.
 
 The `exec` form keeps the launch owned by the container. A
 `nohup ros2 launch ... &` inside `docker exec` was reaped when the exec session
@@ -91,6 +110,8 @@ closed; its `aurora930_node` became a zombie. Stop it with
 | Wi-Fi module crash | A stale command loaded `rtw88_8821cu` for a Realtek RTL8188GU (`0bda:1a2b`) adapter in CDROM mode; the kernel oops wedged USB, `lsusb` hung, and a soft reboot stuck in shutdown. A restart recovered it. Do not reload that module on this robot. | `[V]` |
 | Battery 7.651 V | Charge before long motion trials | `[V]` |
 | Camera launch can die | The first persistent launch later exited with SIGKILL; the static TF publishers logged DDS multicast errors. Restart with the persistent `docker exec -d ... exec` form and check `/aurora/aurora`. | `[V]` |
+| Aurora driver invisible to `ros2 launch` | `third_party_ws/build` was deleted, so the overlay's per-package `local_setup.*` symlinks dangle and sourcing it adds nothing; `vision.launch.py` aborts with `package 'deptrum-ros-driver-aurora930' not found`. Fixed by prepending `/home/ubuntu/jcheng_aurora_install/deptrum-ros-driver-aurora930` to `AMENT_PREFIX_PATH`/`LD_LIBRARY_PATH` (2026-11-24; verified: unit 09:29:36, gateway `640×400 bgr8` ~4.7 fps). | `[V]` fixed |
+| `armpi-vision` reported success while the camera died | `docker exec -d` returns 0 immediately, so a launch that crashed in 1 s still showed `Finished`. The start script now waits for `aurora930_node --ros-args` and exits non-zero, and a drop-in sets `TimeoutStartSec=300` + `Restart=on-failure` (the 180 s budget was consumed by the old `ros2 topic list` readiness poll under load). | `[V]` fixed 2026-11-24 |
 | DDS interface change | **Wired is the only path since 2026-11-18.** The office WiFi path (`wlp4s0 10.51.128.246 ↔ wlan0 10.51.128.226`) suffered a ~10-minute **full data-plane outage** (100 % packet loss, ping and every bulk topic dead) while both nodes stayed up, their addresses were unchanged and DDS *discovery* survived — so the laptop received no `/joint_states`/battery/camera data and `move_group` reported `Failed to receive current joint state`. Both ends were switched to the wired link: robot `cyclonedds.xml` → `eth0` (WiFi backup `.wifi.bak`), laptop → `enx00e04ca373c7`; data returned immediately. The inbound lockdown later made wlan0 outbound-only, so there is no WiFi DDS fallback anymore. The earlier `wlan0: does not match an available interface` failure happens when the XML names an interface that is down — bring the interface up **before** restarting the core. Discovery-only with no data is a **link** symptom, not a ROS bug: check `ping` and the interface before touching the graph. | `[V]` |
 | Vendor stack restart re-initialises the servos | Restarting `start_node.service` does **not** hold the previous posture: the arm moved on its own from a folded grasp pose to the vendor init pose **700/500/500/500/500** (`joint1 = 0.8378 rad`, others 0) while the servo torque stayed on. Plan the restart only at a safe pose. The stop script only `kill -9`s the ROS processes. | `[V]` |
 | DDS graph anomaly | `get_node_names()` in the robot container fails with `Failed to get node names: empty node name returned by the RMW layer`; topic discovery/subscription still works. Camera/static-TF logs repeat `serdata.cpp` errors (`string data is not null-terminated` / `invalid data size`). Root cause unresolved (2026-11-17 Session 4). | `[V]` observed, root cause `[U]` |
