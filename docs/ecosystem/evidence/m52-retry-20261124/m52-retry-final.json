@@ -1,0 +1,15 @@
+{
+  "pulses": {
+    "1": 619,
+    "2": 500,
+    "3": 112,
+    "4": 834,
+    "5": 597,
+    "6": 507
+  },
+  "safety": "STOP_LATCHED",
+  "stop_latched": true,
+  "violations": [
+    "bus target 620 != commanded 640"
+  ]
+}
