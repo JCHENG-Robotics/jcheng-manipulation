@@ -4,6 +4,10 @@
 
 [English](README.md) | **简体中文**
 
+> 状态：**冻结** — v1.0.0（2026-11-23）。完整 G8 验收已记录；标签、证据与实验历史不可变。
+
+> 本文为英文主文档的中文对照；如有歧义，以英文版为准。
+
 > 本项目为应用机器人方向的项目制硕士毕业课题。本仓库是该工作的完整、可追溯记录：修正后的五自由度模型与 TF 树、约束 MoveIt 2 规划、经独立标记验证的自主手眼标定、实机抓取—抬升—放置、安全否决，以及基于实测的失败模式分类。厂商固件与驱动仅作为**只读基线**，不复制进本仓库。
 
 > 历史说明：本仓库最初是一个为期 8 周的 ROS 2 / Panda 学习项目。该记录归档于
@@ -450,7 +454,8 @@ tools/phase4/run_benchmark.sh evidence/phase3/session4_20261117/with_camera
 
 - [技术路线图](ROADMAP.md) — 公开技术路线图与后续步骤。
 - [变更日志](CHANGELOG.md) — 按会话记录的时间顺序变更。
-- [验收报告](docs/phase0/PHASE0_ACCEPTANCE.md) — Phase 0 检查清单、当前毕业项目验收结论与剩余缺口。
+- [验收报告](ACCEPTANCE.md) — v1.0.0 基线验收：已验证结论、未验证项与未通过的误差预算门限。
+- [Phase 0 验收](docs/phase0/PHASE0_ACCEPTANCE.md) — 原 Mock 范围检查清单与毕业项目摘要。
 - [硬件 preflight](docs/operations/PREFLIGHT.md) — 运动前的链路、时钟、网关、安全与总线缓存检查。
 - [操作 runbook](docs/operations/RUNBOOK.md) — 启动、G8、安全停止/复位、缓存恢复、证据与回滚。
 - [5-DoF 约束](docs/phase0/ARMPI_5DOF_CONSTRAINTS.md) — 任务空间限制与抓取策略。

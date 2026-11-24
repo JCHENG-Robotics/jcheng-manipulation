@@ -7,6 +7,11 @@
 
 > Technical roadmap: this document tracks the engineering and experimental development of a low-cost ROS2 manipulation platform based on ArmPi Ultra.
 
+> Ecosystem track: this repository is the frozen `v1.0.0` baseline. Ecosystem
+> milestones (M0–M8) are tracked in
+> [`.github/ROADMAP.md`](https://github.com/JCHENG-Robotics/.github/blob/main/ROADMAP.md);
+> baseline acceptance is in [ACCEPTANCE.md](ACCEPTANCE.md).
+
 ## Current status (2026-11-23)
 
 Hardware results are as of 2026-11-21 plus the 2026-11-23 gateway, safety,

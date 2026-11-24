@@ -4,6 +4,10 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+> Status: **Frozen** — v1.0.0 as of 2026-11-23. Full G8 acceptance is recorded;
+> the tag, evidence and experiment history are immutable.
+> English canonical; see [README.zh-CN.md](README.zh-CN.md) for the Chinese translation.
+
 > A project-based master's capstone in applied robotics. The repository is the
 > complete, evidence-backed record of the work: a corrected 5-DoF model and TF
 > tree, constrained MoveIt 2 planning, a self-implemented hand–eye calibration
@@ -714,8 +718,10 @@ up separately. `evidence/README.md` explains what is tracked.
 
 - [Technical roadmap](ROADMAP.md) — public technical roadmap and next steps.
 - [Changelog](CHANGELOG.md) — chronological, per-session record of changes.
-- [Acceptance report](docs/phase0/PHASE0_ACCEPTANCE.md) — Phase 0 checklist,
-  current capstone acceptance summary and remaining gaps.
+- [Acceptance report](ACCEPTANCE.md) — v1.0.0 baseline acceptance, verified
+  claims, explicit unverified items and the failed error-budget bounds.
+- [Phase 0 acceptance](docs/phase0/PHASE0_ACCEPTANCE.md) — the original
+  mock-scope checklist and capstone summary.
 - [Hardware preflight](docs/operations/PREFLIGHT.md) — link, clock, gateway,
   safety and bus-cache checks before any motion.
 - [Operator runbook](docs/operations/RUNBOOK.md) — startup, G8 run, safety
