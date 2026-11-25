@@ -28,6 +28,7 @@
           ],
           "profile": "gripper",
           "step": "open_gripper",
+          "validate_latency_ms": 0.020668026991188526,
           "violations": []
         },
         {
@@ -49,6 +50,7 @@
           ],
           "profile": "fast",
           "step": "approach",
+          "validate_latency_ms": 0.035192002542316914,
           "violations": []
         },
         {
@@ -70,6 +72,7 @@
           ],
           "profile": "fast",
           "step": "grasp",
+          "validate_latency_ms": 0.020598003175109625,
           "violations": []
         },
         {
@@ -91,6 +94,7 @@
           ],
           "profile": "fast",
           "step": "grasp",
+          "validate_latency_ms": 0.01675804378464818,
           "violations": []
         },
         {
@@ -104,6 +108,7 @@
           "normalizations": [],
           "profile": "gripper",
           "step": "close",
+          "validate_latency_ms": 0.009495997801423073,
           "violations": []
         },
         {
@@ -117,6 +122,7 @@
           "normalizations": [],
           "profile": "gripper",
           "step": "close",
+          "validate_latency_ms": 0.007121998351067305,
           "violations": []
         },
         {
@@ -138,6 +144,7 @@
           ],
           "profile": "fast",
           "step": "lift",
+          "validate_latency_ms": 0.01480302307754755,
           "violations": []
         },
         {
@@ -159,6 +166,7 @@
           ],
           "profile": "fast",
           "step": "release",
+          "validate_latency_ms": 0.015850993804633617,
           "violations": []
         },
         {
@@ -180,6 +188,7 @@
           ],
           "profile": "fast",
           "step": "release",
+          "validate_latency_ms": 0.015222001820802689,
           "violations": []
         },
         {
@@ -199,6 +208,7 @@
           ],
           "profile": "gripper",
           "step": "release",
+          "validate_latency_ms": 0.007121998351067305,
           "violations": []
         },
         {
@@ -220,10 +230,18 @@
           ],
           "profile": "fast",
           "step": "return_view",
+          "validate_latency_ms": 0.019900035113096237,
           "violations": []
         }
       ],
-      "schema_version": 1
+      "schema_version": 1,
+      "validation_latency_ms": {
+        "max_ms": 0.035192002542316914,
+        "mean_ms": 0.016612011346627365,
+        "min_ms": 0.007121998351067305,
+        "p95_ms": 0.035192002542316914,
+        "samples": 11
+      }
     },
     {
       "baseline": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/studio_g8_fast/20261121/run2.json",
@@ -253,6 +271,7 @@
           ],
           "profile": "fast",
           "step": "approach",
+          "validate_latency_ms": 0.02744101220741868,
           "violations": []
         },
         {
@@ -274,6 +293,7 @@
           ],
           "profile": "fast",
           "step": "grasp",
+          "validate_latency_ms": 0.019411032553762197,
           "violations": []
         },
         {
@@ -295,6 +315,7 @@
           ],
           "profile": "fast",
           "step": "grasp",
+          "validate_latency_ms": 0.018155027646571398,
           "violations": []
         },
         {
@@ -308,6 +329,7 @@
           "normalizations": [],
           "profile": "gripper",
           "step": "close",
+          "validate_latency_ms": 0.009425973985344172,
           "violations": []
         },
         {
@@ -321,6 +343,7 @@
           "normalizations": [],
           "profile": "gripper",
           "step": "close",
+          "validate_latency_ms": 0.0071919639594852924,
           "violations": []
         },
         {
@@ -342,6 +365,7 @@
           ],
           "profile": "fast",
           "step": "lift",
+          "validate_latency_ms": 0.018852995708584785,
           "violations": []
         },
         {
@@ -363,6 +387,7 @@
           ],
           "profile": "fast",
           "step": "release",
+          "validate_latency_ms": 0.019272032659500837,
           "violations": []
         },
         {
@@ -384,6 +409,7 @@
           ],
           "profile": "fast",
           "step": "release",
+          "validate_latency_ms": 0.01368601806461811,
           "violations": []
         },
         {
@@ -403,6 +429,7 @@
           ],
           "profile": "gripper",
           "step": "release",
+          "validate_latency_ms": 0.007121998351067305,
           "violations": []
         },
         {
@@ -424,10 +451,18 @@
           ],
           "profile": "fast",
           "step": "return_view",
+          "validate_latency_ms": 0.025836052373051643,
           "violations": []
         }
       ],
-      "schema_version": 1
+      "schema_version": 1,
+      "validation_latency_ms": {
+        "max_ms": 0.02744101220741868,
+        "mean_ms": 0.016639410750940442,
+        "min_ms": 0.007121998351067305,
+        "p95_ms": 0.02744101220741868,
+        "samples": 10
+      }
     }
   ],
   "schema_version": 1

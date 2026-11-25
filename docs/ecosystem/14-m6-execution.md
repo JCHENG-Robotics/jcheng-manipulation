@@ -21,6 +21,7 @@
 - profile 限位为 4 位小数，基线精确值最大差 5.9e-5 rad；回放仅在边界
   做 ≤1e-3 rad 归一化并记录，**不修改运行时安全校验**。
 - `tests/test_replay.py`：合成 valid/invalid 用例通过。
+- 校验延迟（21 条命令）：mean **0.0166 ms**，p95/max **0.0352 ms**。
 - 证据：[`evidence/m6-s13-20261124/s13-replay.json`](evidence/m6-s13-20261124/s13-replay.json)。
 
 ## 2. M6 其余部分
@@ -55,6 +56,7 @@
 
 - M5.2 修复已合并到 `main`（PR #7 → `d765ae3`）；M6 分支基于该修复。
 - M6（`m6/replay-planning`）已合并为 `427214b`；`main` CI 绿。
+- 校验延迟指标分支 `m6/metrics` `c2ab6b6`，CI 全绿，待 PR。
 - `main` 保护包含 `m6-replay`。
 - 未连接机器人；没有运动。
 
