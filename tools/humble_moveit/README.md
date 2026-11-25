@@ -121,8 +121,12 @@ sg docker -c "docker build -t armpi-humble-moveit \
 ```
 
 The base is `ros:humble-ros-base`; the Dockerfile adds MoveIt, RViz,
-`moveit_configs_utils`, the Pilz planner, CycloneDDS and a UID 1000 `user`
-(matching the host) so the interactive container has a normal prompt.
+`moveit_configs_utils`, the Pilz planner, CycloneDDS, the CI/test layer
+(`python3-opencv` with ArUco, numpy, yaml, pytest, the ament linters,
+`cv_bridge`, `tf2_geometry_msgs`, `urdfdom_py`) and `/opt/jcheng/venv`
+(pytest 8 + jsonschema 4 for the ecosystem repositories). It also adds a UID
+1000 `user` (matching the host) so the interactive container has a normal
+prompt.
 
 ### 3. Prepare the Humble workspace
 
@@ -130,9 +134,20 @@ The base is `ros:humble-ros-base`; the Dockerfile adds MoveIt, RViz,
 bash tools/humble_moveit/setup_humble_ws.sh
 ```
 
-This symlinks `armpi_ultra_description` and `armpi_ultra_moveit_config` into
-`~/jcheng/humble_ws/src`. `run_humble.sh` mounts the repo source at the same
-absolute path inside the container, so the absolute symlinks resolve.
+This symlinks the seven packages `.github/workflows/ros-ci.yml` builds —
+`arm_interfaces`, `armpi_analysis`, `armpi_fiducial_localizer`,
+`armpi_grasp_planner`, `armpi_safety`, `armpi_ultra_description` and
+`armpi_ultra_moveit_config` — into `~/jcheng/humble_ws/src`. `run_humble.sh`
+mounts the repo source at the same absolute path inside the container, so the
+absolute symlinks resolve. Analysis tools use the wrapper instead of a host
+Jazzy install:
+
+```bash
+tools/dev/humble.sh build    # rebuild all seven packages
+tools/dev/humble.sh test     # colcon test, 116 tests locally
+tools/dev/humble.sh check    # imports + every analysis tool's --help
+tools/dev/humble.sh run python3 tools/phase3/random_site_session.py --help
+```
 
 ### 4. Start the container
 
@@ -148,13 +163,15 @@ bind; see the 2026-11-18 pitfalls below) and `ROS2CLI_NO_DAEMON=1`.
 ### 5. Build and launch inside the container
 
 ```bash
-source /opt/ros/humble/setup.bash
-cd /workspace
-colcon build --symlink-install \
-  --packages-select armpi_ultra_description armpi_ultra_moveit_config
+tools/dev/humble.sh build          # or: colcon build --symlink-install
+tools/dev/humble.sh shell
 source install/setup.bash
 ros2 launch armpi_ultra_moveit_config real_moveit.launch.py
 ```
+
+The wrapper mounts the workspace at `/workspace` and the repository at its
+host path; `build` with no arguments compiles all seven packages, which is the
+same set CI tests.
 
 ## Verify before moving
 

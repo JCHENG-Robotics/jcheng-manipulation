@@ -35,6 +35,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-humble-rmw-cyclonedds-cpp \
     && rm -rf /var/lib/apt/lists/*
 
+# Development/test layer: mirrors the dependency list the GitHub Actions
+# workflows install, so this container can build and test the same packages as
+# CI. python3-opencv (4.5.4, includes ArUco) also replaces the per-run
+# `apt-get install python3-opencv` the perception tag container used to need.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3-numpy \
+        python3-opencv \
+        python3-pip \
+        python3-pytest \
+        python3-venv \
+        python3-yaml \
+        ros-humble-ament-copyright \
+        ros-humble-ament-flake8 \
+        ros-humble-ament-lint-auto \
+        ros-humble-ament-lint-common \
+        ros-humble-ament-pep257 \
+        ros-humble-cv-bridge \
+        ros-humble-tf2-geometry-msgs \
+        ros-humble-tf2-ros \
+        ros-humble-urdfdom-py \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ecosystem test venv. ros-ci.yml installs pytest from apt, but the JCHENG
+# repositories require pytest>=8 and jsonschema Draft 2020-12 (>=4); Ubuntu
+# 22.04's apt versions are older. Activate the venv explicitly for those
+# repositories; it is never sourced by the ROS workspace build.
+RUN python3 -m venv --system-site-packages /opt/jcheng/venv && \
+    /opt/jcheng/venv/bin/pip install --no-cache-dir \
+        'pytest==8.3.4' 'jsonschema==4.23.0'
+
 # Match the host UID/GID so run_humble.sh has a named user and a writable
 # home, avoiding the "I have no name!" prompt.
 RUN set -eux; \

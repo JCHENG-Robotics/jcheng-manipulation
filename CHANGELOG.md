@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. Format based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- The laptop Humble image is now the development image: it adds the CI/test
+  layer (`python3-opencv` 4.5.4 with ArUco, numpy, yaml, pytest, ament
+  linters, `cv_bridge`, `tf2_geometry_msgs`, `urdfdom_py`) and
+  `/opt/jcheng/venv` (pytest 8 + jsonschema 4 for the ecosystem
+  repositories). `tools/humble_moveit/setup_humble_ws.sh` now symlinks all
+  seven packages CI builds (`arm_interfaces`, `armpi_analysis`,
+  `armpi_fiducial_localizer`, `armpi_grasp_planner`, `armpi_safety`,
+  `armpi_ultra_description`, `armpi_ultra_moveit_config`), and
+  `tools/dev/humble.sh` runs builds and the analysis tools inside the
+  container (`build`, `test`, `run`, `check`, `shell`), removing the host
+  Jazzy colcon dependency for tools that import `armpi_grasp_planner` and
+  `armpi_analysis`. Verified locally: 7 packages build, 116 `colcon test`
+  items with 0 failures, 15 analysis tools pass `--help`. The previous image
+  is kept as `armpi-humble-moveit:pre-dev-20261124`.
+
 ## [1.0.0] — 2026-11-23
 
 Production baseline. Includes `v1.0.0-rc.1` plus the full G8 acceptance,

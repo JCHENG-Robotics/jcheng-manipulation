@@ -24,6 +24,31 @@
 | Core service | `start_node.service` active; `ArmPiUltra` container up | `systemctl`, `docker ps` | `[V]` |
 | Laptop MoveIt launch | `ros2 launch armpi_ultra_moveit_config real_moveit.launch.py` | `tools/humble_moveit/` | `[V]` |
 
+## Laptop Humble workspace (2026-11-24)
+
+`~/jcheng/humble_ws` mirrors the CI package set: `arm_interfaces`,
+`armpi_analysis`, `armpi_fiducial_localizer`, `armpi_grasp_planner`,
+`armpi_safety`, `armpi_ultra_description`, `armpi_ultra_moveit_config`.
+`tools/humble_moveit/setup_humble_ws.sh` recreates the symlinks.
+
+`tools/dev/humble.sh` runs builds and the analysis tools in the same container,
+so they no longer need a host Jazzy colcon install:
+
+| Command | Effect |
+|---|---|
+| `tools/dev/humble.sh build [pkg...]` | `colcon build --symlink-install` in `/workspace` |
+| `tools/dev/humble.sh test [pkg...]` | `colcon test` + `colcon test-result --verbose` |
+| `tools/dev/humble.sh run <cmd...>` | run a command with ROS and the workspace sourced, cwd at the repo root |
+| `tools/dev/humble.sh check` | import checks + `--help` for 15 analysis tools |
+| `tools/dev/humble.sh shell` | interactive shell in `/workspace` |
+
+The repository is mounted read-write at its host path (the tools write evidence
+bundles) and the container runs as the host UID. The image carries
+`python3-opencv` (4.5.4, with ArUco), the ament linters, `cv_bridge`,
+`tf2_geometry_msgs`, `urdfdom_py` and `/opt/jcheng/venv` (pytest 8 +
+jsonschema 4) for the ecosystem repositories. The previous image is preserved
+as `armpi-humble-moveit:pre-dev-20261124`.
+
 ## Live ROS graph (2026-11-17)
 
 Robot-side nodes:
