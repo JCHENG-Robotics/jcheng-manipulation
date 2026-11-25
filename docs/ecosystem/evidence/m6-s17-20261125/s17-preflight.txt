@@ -1,0 +1,31 @@
+timestamp: 2026-11-25T01:36:51+00:00
+host: raspberrypi
+ros_distro: humble
+domain: 42
+rmw: rmw_cyclonedds_cpp
+moveit_pkg: "2.5.10-1jammy.20261107.004435"
+config_pkg: /home/ubuntu/jcheng-moveit
+
+== nodes ==
+/move_group
+/move_group_private_93829111475600
+/moveit_simple_controller_manager
+/transform_listener_impl_55564bde0460
+
+== allow_trajectory_execution ==
+Boolean value is: False
+
+== arm controller action ==
+Action: /arm_controller/follow_joint_trajectory
+Action clients: 1
+    /moveit_simple_controller_manager
+Action servers: 0
+
+== gripper controller action ==
+Action: /gripper_controller/follow_joint_trajectory
+Action clients: 1
+    /moveit_simple_controller_manager
+Action servers: 0
+
+== command topics (expected none) ==
+NONE
