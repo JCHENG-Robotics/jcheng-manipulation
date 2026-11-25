@@ -1,0 +1,62 @@
+{
+  "action": "/move_action",
+  "allow_trajectory_execution": false,
+  "error_code": 1,
+  "error_name": "SUCCESS",
+  "executed": false,
+  "execution_note": "plan_only=true; allow_trajectory_execution=false; 0 controller servers",
+  "goal_start": {
+    "joint1": 0.0,
+    "joint2": 0.7309,
+    "joint3": -1.6127,
+    "joint4": -1.6591,
+    "joint5": 0.0
+  },
+  "goal_target": {
+    "joint1": 0.1,
+    "joint2": 0.7309,
+    "joint3": -1.6127,
+    "joint4": -1.6591,
+    "joint5": 0.0
+  },
+  "group_name": "arm",
+  "plan_only_requested": true,
+  "planning_time_s": 0.050016037,
+  "scenario": "S17",
+  "trajectory_joint_names": [
+    "joint1",
+    "joint2",
+    "joint3",
+    "joint4",
+    "joint5"
+  ],
+  "trajectory_points": 8,
+  "trajectory_start": {
+    "joint_names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4",
+      "joint5",
+      "l_in_joint",
+      "l_out_joint",
+      "l_joint",
+      "r_in_joint",
+      "r_out_joint",
+      "r_joint"
+    ],
+    "positions": [
+      0.0,
+      0.7309,
+      -1.6127,
+      -1.6591,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  }
+}

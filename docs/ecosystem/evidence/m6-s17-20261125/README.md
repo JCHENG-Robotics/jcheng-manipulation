@@ -73,8 +73,9 @@ log ends with `Motion plan was computed successfully.` and contains no
 execution or controller-send event. The no-server, no-topic checks are the
 stronger evidence.
 
-Commands and outputs are in [s17-preflight.txt](s17-preflight.txt); the full
-move_group log is [move_group.log](move_group.log).
+Commands and outputs are in [s17-preflight.txt](s17-preflight.txt); the raw
+client output is [s17-plan-only-log.txt](s17-plan-only-log.txt); the full
+move_group log is [move_group-log.txt](move_group-log.txt).
 
 ## 4. Reproduction
 
