@@ -1,6 +1,6 @@
 # M6 执行记录（基线回放与 G8 复验）
 
-> 状态：**M6 离线：S13 回放 21/21；S17 真实 MoveIt plan-only 通过（2026-11-25）；G8/底盘实机待授权。**
+> 状态：**M6：S13 回放 21/21；S17 真实 MoveIt plan-only 通过（2026-11-25）；G8/底盘实机待授权。**
 > 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `8e319b1`；
 > PR #8 已合并为 `427214b`，`main` CI 绿；`m6/metrics` 已合并为 PR #11 → `78c613d`。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`）只读引用；证据不复制、不修改。
