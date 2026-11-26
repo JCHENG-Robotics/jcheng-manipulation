@@ -1,12 +1,12 @@
 # JCHENG Manipulation
 
-**Measured visual manipulation on a 5-DoF ArmPi Ultra: corrected model, self-implemented calibration, real grasp execution and a quantitative reliability budget.**
-
 **English** | [简体中文](README.zh-CN.md)
+
+**Measured visual manipulation on a 5-DoF ArmPi Ultra: corrected model, self-implemented calibration, real grasp execution and a quantitative reliability budget.**
 
 > Status: **Frozen** — v1.0.0 as of 2026-11-23. Full G8 acceptance is recorded;
 > the tag, evidence and experiment history are immutable.
-> English canonical; see [README.zh-CN.md](README.zh-CN.md) for the Chinese translation.
+> English canonical; the Chinese README is a translation.
 
 > A project-based master's capstone in applied robotics. The repository is the
 > complete, evidence-backed record of the work: a corrected 5-DoF model and TF
