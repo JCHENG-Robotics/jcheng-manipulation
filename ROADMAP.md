@@ -32,7 +32,7 @@ fast-path, full-G8 and post-change-smoke validation. The repository is at the
 - **Reproducible build — PASS.** Digest-pinned `ros-colcon` CI (run
   `45098657645`) builds 7 public packages; target-architecture run: **118
   tests, 0 failures, 1 local skip**. [Evidence](evidence/ros_colcon_20261123/README.md).
-- **Operations — PASS.** 8765 runs as `pi:docker`; the 8766 pose/motion unit is
+- **Operations — PASS.** 8765 runs as `<ROBOT_USER>:docker`; the 8766 pose/motion unit is
   installed but disabled; the backend has optional token auth and refuses a
   non-loopback bind without it. [Preflight](docs/operations/PREFLIGHT.md) /
   [runbook](docs/operations/RUNBOOK.md).
@@ -52,7 +52,7 @@ and the digest-pinned `ros-colcon` run passed.
 | Real visual grasping and paired trials | **Validated; 3/5 first series, 24/24 after correction** | 2026-11-19 fixed trial 12/24 → 24/24 (p = 0.00049); 2026-11-21 random trial 9/24 → 24/24 (p = 6.1×10⁻⁵); dual-camera PASS (2.58 mm x/y) |
 | Fast motion and G8 | **Validated on hardware** | 4.0/20 S-curves, grasp+put-back 11.67 → 8.94 s; fast G8 13.46 s wall / 2.27 mm landing; full G8 8 phases / 11 commands, put-back 0.236 m; smoke 7 phases / 10 commands |
 | Error budget | **Complete; bound gates fail** | Translation RSS 13.325 mm / worst 24.014 mm; rotation RSS 1.858° / worst 3.322°; empirical corrected placement mean 3.080 mm |
-| Safety and operations | **Validated with constraints** | Watchdog/trajectory veto and real `armpi_safety`; no e-stop/brake; 8765 `pi:docker`; 8766 unit installed disabled; backend token optional, no token on localhost |
+| Safety and operations | **Validated with constraints** | Watchdog/trajectory veto and real `armpi_safety`; no e-stop/brake; 8765 `<ROBOT_USER>:docker`; 8766 unit installed disabled; backend token optional, no token on localhost |
 | Debug Studio | **G1–G8.1 + full G8; tests pass** | 148 backend + 93 gateway; CI suite 10 mock + 3 hardware + 3 pose/task Playwright (release rerun: 10 mock + 3 token-mode dashboard); full G8, post-change smoke, digest CI and ops evidence |
 | Mobile base | **Open-loop only** | No encoders/IMU/odometry; G8.1 bounded approach is camera-closed but open-loop; any base move invalidates the table calibration |
 

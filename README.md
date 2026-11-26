@@ -1,12 +1,12 @@
 # JCHENG Manipulation
 
-**Measured visual manipulation on a 5-DoF ArmPi Ultra: corrected model, self-implemented calibration, real grasp execution and a quantitative reliability budget.**
-
 **English** | [简体中文](README.zh-CN.md)
+
+**Measured visual manipulation on a 5-DoF ArmPi Ultra: corrected model, self-implemented calibration, real grasp execution and a quantitative reliability budget.**
 
 > Status: **Frozen** — v1.0.0 as of 2026-11-23. Full G8 acceptance is recorded;
 > the tag, evidence and experiment history are immutable.
-> English canonical; see [README.zh-CN.md](README.zh-CN.md) for the Chinese translation.
+> English canonical; the Chinese README is a translation.
 
 > A project-based master's capstone in applied robotics. The repository is the
 > complete, evidence-backed record of the work: a corrected 5-DoF model and TF
@@ -225,7 +225,7 @@ was discarded (D1).
 │  Debug Studio (FastAPI+React)  G1–G8, read-only gateway, pose/task takeover, recorder │
 └───────────────────────────────────────┬───────────────────────────────────────────┘
                                         │ CycloneDDS over direct Ethernet
-                                        │ 10.42.0.1 ↔ 10.42.0.218
+                                        │ <OPERATOR_LINK_IP> ↔ <ROBOT_LINK_IP>
 ┌───────────────────────────────────────┴───────────────────────────────────────────┐
 │ Raspberry Pi 5 — vendor Humble core stack + front-camera units                     │
 │ ros_robot_controller · servo_manager · camera · TF · start_node.service            │
@@ -334,7 +334,7 @@ separately.
 | Error budget | **Complete; bound gates fail** | All sources measured; translation RSS 13.325 mm / worst 24.014 mm vs 6 mm; rotation RSS 1.858° (pass) / worst 3.322° (fail) vs the provisional 2°; empirical corrected placement mean 3.080 mm is inside 6 mm; fixture-inclusive RSS 19.926 mm |
 | Paired trials | **Two physical trials complete (2026-11-19 fixed, 2026-11-21 random)** | 2026-11-19: 24 pairs, baseline 12/24 vs intervention 24/24, McNemar p = 0.00049; among 12 dual-success pairs the intervention places 2.19 mm closer (95 % CI −3.96…−0.83, p = 0.0063). 2026-11-21 random-placement 24 pairs: free by-eye spots with a base approach, baseline **9/24** vs intervention **24/24**, McNemar **p = 6.1×10⁻⁵**; the secondary home release error (+2.12 mm, anchor = corrected target) is descriptive, not an accuracy gain; baseline `MISS` 14 + `NO_GRIP` 1 (grip lost on the return); D1/D2 discards recorded; the pre-grasp gap fix (reused final measurement) is post-data tooling only |
 | Host/DDS benchmark | **Implemented; read-only hardware snapshot** | Laptop + Pi metrics; 20 Hz state; ~12 Hz camera; 0.24 ms ping |
-| Debug Studio | **G1–G8.1 + full G8; tests pass** | 148 backend + 93 gateway; CI suite 10 mock + 3 hardware + 3 pose-scope Playwright (release rerun: 10 mock + 3 token-mode dashboard); G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); **full G8 acceptance (2026-11-23)** 8 phases / 11 bus-verified commands, put-back 0.236 m; **post-change smoke** 7 phases / 10 commands; 8765 runs as `pi:docker`, the 8766 unit is disabled by default, and the backend supports an optional token; the min-range clip recovery rebuilds a clipped top from the far edge; a 34.6 mm visible top is accepted and a lateral cube triggers the bounded base approach; D435i aux feed on the Dashboard, and the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback; the gateway latches `/safety_stop` for Studio arm/chassis commands (hardware-confirmed 2026-11-23) |
+| Debug Studio | **G1–G8.1 + full G8; tests pass** | 148 backend + 93 gateway; CI suite 10 mock + 3 hardware + 3 pose-scope Playwright (release rerun: 10 mock + 3 token-mode dashboard); G5 moving capture; G6 supervised path verified without motion; **G7 pose takeover** **verified with real motion** and bus-servo completion; **G8 task takeover** (locate + deep-family fit + 13-step task + grip verify) **verified on hardware**; **G8.1 bounded chassis approach** (open-loop pulses, camera-closed loop) **verified with a far cube**; **G8 fast task path** (7 phases, dense S-curves at 4.0/20, base approach inside one run) **verified on hardware** (5.466 s commanded / 13.46 s wall, landing 2.27 mm); **full G8 acceptance (2026-11-23)** 8 phases / 11 bus-verified commands, put-back 0.236 m; **post-change smoke** 7 phases / 10 commands; 8765 runs as `<ROBOT_USER>:docker`, the 8766 unit is disabled by default, and the backend supports an optional token; the min-range clip recovery rebuilds a clipped top from the far edge; a 34.6 mm visible top is accepted and a lateral cube triggers the bounded base approach; D435i aux feed on the Dashboard, and the takeover launcher routes camera feeds through the read-only gateway; Chinese operator UI; no e-stop, no self-collision model; `/servo_states` is a command cache, not measured feedback; the gateway latches `/safety_stop` for Studio arm/chassis commands (hardware-confirmed 2026-11-23) |
 | Clock sync | **Implemented and verified** | Laptop-pushed systemd user timer every 60 s; restricted forced-command key; Pi held ~2 s ahead; forced 301 s offset restored; reboot test PASS |
 | Controller board | **Probed (2026-11-19)** — battery, 6 bus servos, 4 open-loop motor duties, buzzer and LED1/2 real; IMU, encoders, e-stop, onboard gamepad/SBUS absent; KEY1/2 removed | [`evidence/phase2/onsite_20261119/board_capabilities/`](evidence/phase2/onsite_20261119/board_capabilities/) |
 | Mobile base | **Open-loop only; duty-20 auto-approach validated** | Four motor duties, no encoders/IMU/odometry; 0.5 s watchdog; any base move invalidates the table calibration; one aligned auto-base run at (0.2316, −0.0025) m; the G8.1 bounded approach (duty ≤10, ≤2 s) is camera-closed but still open-loop |
@@ -637,7 +637,7 @@ supervised runners.
   the previous timing. Every move is accepted only after a measured bus-servo
   settle.
 - **Wired link only for inbound access.** Default-deny nftables, `eth0` only,
-  SSH key-only, gateway bound to `10.42.0.218`.
+  SSH key-only, gateway bound to `<ROBOT_LINK_IP>`.
 - **No autonomous operation.** The G6 path is single-joint, step-capped and
   requires an explicit acknowledgement phrase.
 
