@@ -16,13 +16,14 @@ is visible but out of arm reach (G8.1), now **inside the same run**.
 
 ```text
 view_table preset (operator prepares the view)
-   -> POST /api/task/plan
+   -> POST /api/task/plan {"form": "cube_39" | one catalog form}
         cloud capture (gateway subprocess, ~1 s)
         hand-eye T_link4_camera (TSAI, calibrated table-down)
         segment floor cube (RANSAC floor, components, top slab)
-        constant correction (+13.7, +3.9, +8.9) mm
+        form correction or the cube's (+13.7, +3.9, +8.9) mm
         deep-family fit (j2=-0.6618, j3=-1.80117, j5=0, j1/j4 solved on URDF)
-        reach band 0.220-0.255 m, FK xy <= 3 mm
+          or a measured catalog j4 held exactly, j1 solved on azimuth
+        reach band 0.220-0.255 m, FK xy <= 3 mm (or the catalog j4 residual)
         build 7 phases, each command validated: limits, velocity cap, FK gate
    -> one "run task":
         if APPROACH_REQUIRED: chassis pulse -> settle -> re-plan (max 3)
@@ -169,6 +170,56 @@ top face clipped by the min-range sphere could flag *two* edges as clipped
 (the recovery now also requires the cut boundary to be perpendicular to the
 camera direction, `recovery_radial_min: 0.85`).
 
+## Object forms — the 2026-11-23 catalog (2026-11-24)
+
+The G8 task plan is no longer cube-only. `task.forms` in
+`configs/takeover.yaml` carries the six object forms measured on the real arm
+on 2026-11-23 ([`docs/phase2/OBJECT_GRASP_CATALOG.md`](../../docs/phase2/OBJECT_GRASP_CATALOG.md),
+evidence in [`evidence/onsite_20261123/object_forms/`](../../evidence/onsite_20261123/object_forms/)).
+The task-takeover page shows them as selectable cards; `POST /api/task/plan`
+accepts `{"form": "<id>"}`; `tools/studio/g8_task_run.py` takes `--form`.
+Without a selection the contract's `default_form` is `cube_39`, so the
+historical cube command sequence is unchanged.
+
+| Form id | Mode | Grasp parameters |
+|---|---|---|
+| `cube_39` | `task` | j4 from the deep-family fit; close −0.63; the original G8 object |
+| `block_lying` | `task` | j4 **−0.50** measured; close −1.6 → **−0.05**; top 30 mm at the pads' limit |
+| `block_upright` | `task` | j4 **−0.39** measured; close −1.6 → −0.05; top 61 mm |
+| `cylinder_standing` | `task` | j4 **−0.365** measured; aim **+27 mm** (pads sit ~13 mm behind the TCP); close −1.6 → −0.05 |
+| `cylinder_lying` | `refused` | widest ring 14.7 mm is below the pads' 28–30 mm reach; `FORM_REFUSED` |
+| `carton_vlt` | `pose` | no depth return in any orientation; `FORM_POSE_ONLY` returns the recorded j1 0.066 / j2 −0.62 / j3 −1.77 / j4 −0.45 / j5 0 pose for pose takeover |
+| `sachet` | `refused` | squeezes out of the rigid pads (478 → 642); `FORM_REFUSED` |
+
+**How a form changes the plan.** A measured `grasp_j4` is held exactly, not
+re-fitted: re-solving j4 for the TCP xy is what left the pads above the lying
+block on 2026-11-23. `joint1` is solved on the target azimuth, and the TCP xy
+residual is reported as a warning (`FORM_J4_MEASURED`) rather than rejected —
+the contact point is the pads, which sit in front of the nominal TCP. A
+fixed-j4 form carries the **measured object position** it was validated at
+(`base_point_m`, window ±12 mm): the lying block 0.233 m, the upright block
+0.226 m and the standing cylinder 0.214 m. An object outside that window makes
+the G8.1 loop pulse the base toward the form's base point instead of the cube's
+`(0.230, 0.0)`, and the plan warns `FORM_BASE_POSE`; the `0.220–0.255 m`
+direct-grasp band is then replaced by that measured base window (the catalog's
+cylinder sits at x ≈ 0.214 m, below the cube band). The `+27 mm` TCP aim
+(`correction_mm`) only affects joint1/display, not the fixed j4. The approach,
+pre-grasp (`j4 ± 0.15`), lift, release and return phases are otherwise
+unchanged; every pose still goes through plan-time validation,
+preview/execute and the gateway's bus verification. A deep close (−0.05 rad,
+raw ~688) stretches the release-open duration beyond 0.45 s so the commanded
+interpolation stays under the 900 raw/s fast-path sanity ceiling.
+`close_register` is documentation (482/489/433 are real holds, 640–648 an
+empty close), not a completion signal.
+
+**Not yet hardware-run as an integrated task path.** The six form poses were
+measured through the pose API on 2026-11-23; this task-plan integration was
+validated by unit/mock tests and a frontend build on 2026-11-24. Treat the
+first hardware run of a form as a commissioning run, clear the workspace, and
+expect `LOCATE_FAILED` on the upright block/standing cylinder when the
+min-range sphere leaves too little top face (use pose takeover with the
+recorded pose).
+
 ## Safety
 
 - Every command is validated twice: at plan time from the planned start, and
@@ -197,8 +248,8 @@ camera direction, `recovery_radial_min: 0.85`).
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/task/plan` | locate + fit + 7 phases (or `APPROACH_REQUIRED` + `approach`); `valid`, `point`, `target`, `fit`, `fast`, `warnings`, `plan_id` |
-| POST | `/api/task/verify` | `{plan_id}`; cube box at the view after the lift |
+| POST | `/api/task/plan` | optional `{form}`; locate + fit + 7 phases (or `APPROACH_REQUIRED` + `approach`); `valid`, `form_id`, `point`, `target`, `grasp_j4`, `preclose_rad`, `grip_rad`, `fit`, `fast`, `warnings`, `plan_id`; unknown form → 422 `UNKNOWN_TASK_FORM`, a refused/pose form → invalid with `FORM_REFUSED`/`FORM_POSE_ONLY` |
+| POST | `/api/task/verify` | `{plan_id}`; object box at the view after the lift |
 | POST | `/api/chassis/pulse` | one bounded base pulse; lease + arm at the view |
 | GET | `/api/motion/presets` | `view_table`, `lift_150`, ... plus `task.fast` and `task.approach` |
 | POST | `/api/motion/preview` | `targets` plus optional `profile {vmax_rad_s, amax_rad_s2, dt_s}` / `fast` |
@@ -206,13 +257,20 @@ camera direction, `recovery_radial_min: 0.85`).
 
 `tools/studio/g8_task_run.py` is the operator runner: plan-only by default;
 `--execute --i-have-clear-workspace` runs the base approach and every phase,
-requires bus-verified `Completed`, and saves a report.
+requires bus-verified `Completed`, and saves a report. `--form` selects a
+catalog form; without it the contract default (the 39.4 mm cube) is used.
 
 ## Limitations
 
-- One cube, one position, one put-back target (the grasp pose); the landing
+- One object, one position, one put-back target (the grasp pose); the landing
   scatter measured after the 13-step run is +3.6 mm x, +0.2 mm y, +0.4 mm z,
   and after the fast run +2.22 mm x, -0.46 mm y, +1.06 mm z (2.27 mm planar).
+- The object-form task path is **not hardware-run as an integrated flow** yet:
+  the pose values and close registers were measured on 2026-11-23, but the
+  form selector, its arm phases and the stretched deep-close release were
+  validated in Mock/tests only. The catalog j4 is tied to the base approach's
+  aimed position (0.230, 0.0); a target farther from it is the first reason to
+  expect a miss.
 - The fast path ran on the hardware on 2026-11-21: 7 phases, 5.466 s commanded
   / 13.46 s wall, `close_pre` 309, `close_grip` 414, `held: true`. The first
   attempt exposed a real regression (the adapter did not forward `fast: true`,

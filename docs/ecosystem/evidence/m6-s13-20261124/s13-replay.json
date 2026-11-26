@@ -1,0 +1,469 @@
+{
+  "kind": "s13_replay_bundle",
+  "ok": true,
+  "runs": [
+    {
+      "baseline": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/g8_acceptance_20261123/g8_run.json",
+      "commands": 11,
+      "kind": "s13_replay",
+      "match_rate": 1.0,
+      "matched": 11,
+      "mismatched": 0,
+      "ok": true,
+      "records": [
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "open_gripper",
+          "expected_approved": true,
+          "index": 0,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped": 2.22,
+              "joint": "r_joint",
+              "raw": 2.220058808536787
+            }
+          ],
+          "profile": "gripper",
+          "step": "open_gripper",
+          "validate_latency_ms": 0.020668026991188526,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "approach",
+          "expected_approved": true,
+          "index": 1,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -1.5917,
+              "clamped_target": 0.0,
+              "joint": "joint4",
+              "raw_start": -1.5917402778188283,
+              "raw_target": 0.0
+            }
+          ],
+          "profile": "fast",
+          "step": "approach",
+          "validate_latency_ms": 0.035192002542316914,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "descend",
+          "expected_approved": true,
+          "index": 2,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "grasp",
+          "validate_latency_ms": 0.020598003175109625,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "grasp",
+          "expected_approved": true,
+          "index": 3,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "grasp",
+          "validate_latency_ms": 0.01675804378464818,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "close_pre",
+          "expected_approved": true,
+          "index": 4,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [],
+          "profile": "gripper",
+          "step": "close",
+          "validate_latency_ms": 0.009495997801423073,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "close_grip",
+          "expected_approved": true,
+          "index": 5,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [],
+          "profile": "gripper",
+          "step": "close",
+          "validate_latency_ms": 0.007121998351067305,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "lift",
+          "expected_approved": true,
+          "index": 6,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": 0.2574,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": 0.2574
+            }
+          ],
+          "profile": "fast",
+          "step": "lift",
+          "validate_latency_ms": 0.01480302307754755,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_descend",
+          "expected_approved": true,
+          "index": 7,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -1.5917,
+              "clamped_target": -0.14427302754145968,
+              "joint": "joint4",
+              "raw_start": -1.5917402778188283,
+              "raw_target": -0.14427302754145968
+            }
+          ],
+          "profile": "fast",
+          "step": "release",
+          "validate_latency_ms": 0.015850993804633617,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_final",
+          "expected_approved": true,
+          "index": 8,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "release",
+          "validate_latency_ms": 0.015222001820802689,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_open",
+          "expected_approved": true,
+          "index": 9,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped": 2.22,
+              "joint": "r_joint",
+              "raw": 2.220058808536787
+            }
+          ],
+          "profile": "gripper",
+          "step": "release",
+          "validate_latency_ms": 0.007121998351067305,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "return_view",
+          "expected_approved": true,
+          "index": 10,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": 0.2574,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": 0.2574
+            }
+          ],
+          "profile": "fast",
+          "step": "return_view",
+          "validate_latency_ms": 0.019900035113096237,
+          "violations": []
+        }
+      ],
+      "schema_version": 1,
+      "validation_latency_ms": {
+        "max_ms": 0.035192002542316914,
+        "mean_ms": 0.016612011346627365,
+        "min_ms": 0.007121998351067305,
+        "p95_ms": 0.035192002542316914,
+        "samples": 11
+      }
+    },
+    {
+      "baseline": "/home/jerichocheng/jcheng/jcheng-manipulation/evidence/studio_g8_fast/20261121/run2.json",
+      "commands": 10,
+      "kind": "s13_replay",
+      "match_rate": 1.0,
+      "matched": 10,
+      "mismatched": 0,
+      "ok": true,
+      "records": [
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "approach",
+          "expected_approved": true,
+          "index": 0,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -1.5917,
+              "clamped_target": 0.0,
+              "joint": "joint4",
+              "raw_start": -1.5917402778188283,
+              "raw_target": 0.0
+            }
+          ],
+          "profile": "fast",
+          "step": "approach",
+          "validate_latency_ms": 0.02744101220741868,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "descend",
+          "expected_approved": true,
+          "index": 1,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "grasp",
+          "validate_latency_ms": 0.019411032553762197,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "grasp",
+          "expected_approved": true,
+          "index": 2,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "grasp",
+          "validate_latency_ms": 0.018155027646571398,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "close_pre",
+          "expected_approved": true,
+          "index": 3,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [],
+          "profile": "gripper",
+          "step": "close",
+          "validate_latency_ms": 0.009425973985344172,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "close_grip",
+          "expected_approved": true,
+          "index": 4,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [],
+          "profile": "gripper",
+          "step": "close",
+          "validate_latency_ms": 0.0071919639594852924,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "lift",
+          "expected_approved": true,
+          "index": 5,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": 0.2574,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": 0.2574
+            }
+          ],
+          "profile": "fast",
+          "step": "lift",
+          "validate_latency_ms": 0.018852995708584785,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_descend",
+          "expected_approved": true,
+          "index": 6,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -1.5917,
+              "clamped_target": -0.23531596303725646,
+              "joint": "joint4",
+              "raw_start": -1.5917402778188283,
+              "raw_target": -0.23531596303725646
+            }
+          ],
+          "profile": "fast",
+          "step": "release",
+          "validate_latency_ms": 0.019272032659500837,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_final",
+          "expected_approved": true,
+          "index": 7,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": -0.6618,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": -0.6618
+            }
+          ],
+          "profile": "fast",
+          "step": "release",
+          "validate_latency_ms": 0.01368601806461811,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "release_open",
+          "expected_approved": true,
+          "index": 8,
+          "kind": "GRIPPER",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped": 2.22,
+              "joint": "r_joint",
+              "raw": 2.220058808536787
+            }
+          ],
+          "profile": "gripper",
+          "step": "release",
+          "validate_latency_ms": 0.007121998351067305,
+          "violations": []
+        },
+        {
+          "actual_approved": true,
+          "actual_reason": "OK",
+          "command": "return_view",
+          "expected_approved": true,
+          "index": 9,
+          "kind": "JOINT_TRAJECTORY",
+          "match": true,
+          "normalizations": [
+            {
+              "clamped_start": -0.6618,
+              "clamped_target": 0.2574,
+              "joint": "joint2",
+              "raw_start": -0.6618288523562497,
+              "raw_target": 0.2574
+            }
+          ],
+          "profile": "fast",
+          "step": "return_view",
+          "validate_latency_ms": 0.025836052373051643,
+          "violations": []
+        }
+      ],
+      "schema_version": 1,
+      "validation_latency_ms": {
+        "max_ms": 0.02744101220741868,
+        "mean_ms": 0.016639410750940442,
+        "min_ms": 0.007121998351067305,
+        "p95_ms": 0.02744101220741868,
+        "samples": 10
+      }
+    }
+  ],
+  "schema_version": 1
+}

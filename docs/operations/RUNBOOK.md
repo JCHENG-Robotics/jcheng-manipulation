@@ -83,6 +83,42 @@ frontend then needs `VITE_API_TOKEN` at build time and a TLS reverse proxy.
 Use an SSH tunnel for ordinary remote access, and keep both tokens out of
 shell history. Backend edits need a restart (there is no autoreload).
 
+## Automated ops (watchdog and health watch)
+
+Installed 2026-11-24 after an OOM wedged user space: ping and TCP still
+answered, but sshd never sent a banner, the 8765 socket never responded and
+only a power cycle recovered the robot. The code, incident record and rollback
+live in the operations repository,
+[`JCHENG-Robotics/jcheng-ops`](https://github.com/JCHENG-Robotics/jcheng-ops).
+
+```bash
+git clone git@github.com:JCHENG-Robotics/jcheng-ops.git ~/jcheng/jcheng-ops
+
+# robot: hardware watchdog (15 s, fixed by the BCM2835 chip), 30 s health
+# timer, restart policies, OOM protection
+scp ~/jcheng/jcheng-ops/robot/* pi@10.42.0.218:/tmp/armpi-ops/
+ssh pi@10.42.0.218 sudo bash /tmp/armpi-ops/install-pi-ops.sh
+
+# laptop: backend watchdog as a systemd user service (needs linger once)
+~/jcheng/jcheng-ops/studio/install-studio-watchdog.sh
+sudo loginctl enable-linger "$USER"
+```
+
+Check it is alive:
+
+```bash
+systemctl show -p RuntimeWatchdogUSec            # robot: 15s
+cat /run/armpi-ops/status.json                   # robot: last cycle
+sudo journalctl -u armpi-ops-health.service -n 20
+systemctl --user status armpi-studio-watchdog    # laptop
+```
+
+Two behaviours worth knowing: the health watch restarts a gateway only after
+three consecutive failed probes **and** only while the other gateway reports
+motion idle; the Studio watchdog never kills a backend while the robot gateway
+is unreachable. `start_studio.sh` now resolves the token, gateway and venv
+before it touches port 8000, so a dead robot cannot take the Studio down.
+
 ## Normal G8 run
 
 Use the runner, not hand-built command sequences:
@@ -95,9 +131,16 @@ python3 tools/studio/g8_task_run.py \
   --execute --i-have-clear-workspace
 ```
 
+For a measured non-cube object add `--form <id>` (for example
+`--form block_lying`); the ids and their measured j4/grip values are in
+`task.forms` and the
+[object grasp catalog](../phase2/OBJECT_GRASP_CATALOG.md). Omit it for the
+39.4 mm cube. A `refused` form stops with `FORM_REFUSED`; a `pose` form stops
+with `FORM_POSE_ONLY` and returns the recorded pose for the Studio's pose page.
+
 If the planner returns `APPROACH_REQUIRED`, clear the workspace and approve
 one bounded chassis pulse explicitly; a base move invalidates the table
-calibration. After the run, re-plan read-only to confirm the cube is back in
+calibration. After the run, re-plan read-only to confirm the object is back in
 the `0.220–0.255 m` band. Record the report and a README; do not rewrite old
 evidence.
 

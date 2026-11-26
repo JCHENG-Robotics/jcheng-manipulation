@@ -1,0 +1,38 @@
+[
+  {
+    "bus_verified": true,
+    "evidence_id": "ev-2f32266a42bf",
+    "intent": "m52-run5-gripper-close",
+    "message": "gripper timed completion with bus evidence: start=183 target=700 measured=645",
+    "outcome": "COMPLETED",
+    "positions": [
+      -0.008377580409572783,
+      0.3769911184307752,
+      -1.3990559283986548,
+      -1.6420057602762654,
+      0.004188790204786391
+    ],
+    "reason_code": "OK",
+    "safety_state": "ARMED_IDLE",
+    "stop_latched": false,
+    "target_rad": 0.0
+  },
+  {
+    "bus_verified": true,
+    "evidence_id": "ev-685e22c68aa3",
+    "intent": "m52-run5-gripper-open",
+    "message": "gripper timed completion with bus evidence: start=647 target=170 measured=183",
+    "outcome": "COMPLETED",
+    "positions": [
+      -0.008377580409572783,
+      0.3811799086355616,
+      -1.3990559283986548,
+      -1.6420057602762654,
+      0.004188790204786391
+    ],
+    "reason_code": "OK",
+    "safety_state": "ARMED_IDLE",
+    "stop_latched": false,
+    "target_rad": 2.22
+  }
+]

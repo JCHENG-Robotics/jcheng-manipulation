@@ -31,6 +31,27 @@ ARMPI_TAKEOVER_ACK=I_AM_AT_THE_ROBOT_WITH_A_CLEAR_WORKSPACE \
 Then open <http://127.0.0.1:8000>. The script prints the backend PID; stop it
 with `kill <pid>`.
 
+## Watchdog
+
+The backend watchdog (and the robot-side health timer, hardware watchdog and
+restart policies) live in the operations repository,
+[`JCHENG-Robotics/jcheng-ops`](https://github.com/JCHENG-Robotics/jcheng-ops):
+
+```bash
+git clone git@github.com:JCHENG-Robotics/jcheng-ops.git ~/jcheng/jcheng-ops
+~/jcheng/jcheng-ops/studio/install-studio-watchdog.sh
+sudo loginctl enable-linger "$USER"    # once: keep it running after logout/reboot
+```
+
+It checks `/api/health` every 30 s and restarts the backend after two
+consecutive failures — but never while the robot gateway is unreachable, so a
+dead robot cannot cost a running Studio. Configuration is
+`~/.config/armpi-studio/studio.env` (0600); logs are in
+`~/.local/state/armpi-studio/`.
+
+`start_studio.sh` resolves the token, the gateway and the venv before it
+touches port 8000, so a preflight failure leaves the running backend alone.
+
 ## Pose takeover (G7)
 
 `--takeover` exports `ARMPI_HARDWARE_MOTION=1`, `ARMPI_MOTION_SCOPE=pose` and
@@ -92,6 +113,16 @@ python3 tools/studio/g8_task_run.py --backend http://127.0.0.1:8000 \
   --session operator-g8 --out /tmp/g8_run.json \
   --execute --i-have-clear-workspace
 ```
+
+For a measured non-cube object pass `--form <id>` (for example
+`--form block_lying`). The ids, measured j4 depth, gripper closure and aim
+correction live in `armpi-debug-studio/configs/takeover.yaml` `task.forms`;
+the reference page is
+[`docs/phase2/OBJECT_GRASP_CATALOG.md`](../../docs/phase2/OBJECT_GRASP_CATALOG.md).
+Omit `--form` for the 39.4 mm cube. A `refused` form stops with
+`FORM_REFUSED`; the VLT carton (`pose`) stops with `FORM_POSE_ONLY` and is
+executed through pose takeover. The integrated form path has not had a
+hardware run yet — treat the first run of a form as a commissioning run.
 
 The plan is refused unless the arm is within 0.12 rad of the view and every
 command passes the joint limits, the profile velocity cap and the FK gate. A

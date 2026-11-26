@@ -8,7 +8,9 @@ step should inject those dependencies explicitly.
 from __future__ import annotations
 
 import json
+import math
 import uuid
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -16,11 +18,15 @@ import numpy as np
 
 from ..domain.approach import plan_approach
 from ..domain.enums import ConnectionState, ErrorCode, Mode, Truth
-from ..domain.grasp_fit import fit as grasp_fit, validate_target as validate_grasp_target
+from ..domain.grasp_fit import (
+    fit as grasp_fit,
+    fit_with_j4,
+    validate_target as validate_grasp_target,
+)
 from ..domain.locate import cube_box_present, cube_point, segment_floor_cube
 from ..domain.models import RobotState, utc_now_iso
 from ..domain.task import build_task_plan
-from ..domain.takeover import ARM_JOINTS, TakeoverConfig
+from ..domain.takeover import ARM_JOINTS, TakeoverConfig, TaskFormConfig
 from ..domain.visual import VisualModelError, compute_frames
 from ..errors import ServiceError
 
@@ -146,6 +152,7 @@ class TaskOperations:
         simulated: bool = False,
         extra_errors: list[dict[str, Any]] | None = None,
         approach: dict[str, Any] | None = None,
+        form: TaskFormConfig | None = None,
     ) -> dict[str, Any]:
         errors = [
             {"label": "task", "code": code, "message": message, "joint": None}
@@ -157,6 +164,8 @@ class TaskOperations:
             "errors": errors,
             "warnings": [],
             "simulated": simulated,
+            "form": form.to_public_dict() if form is not None else None,
+            "form_id": form.form_id if form is not None else None,
             "steps": [],
             "view_joints": view_joints or {},
             "current_joints": current or {},
@@ -224,15 +233,29 @@ class TaskOperations:
         )
         return cache, raw, "measured_on_demand" if measured else "commanded"
 
-    def task_plan(self) -> dict[str, Any]:
-        """Locate the floor cube and build the validated task plan.
+    def task_plan(self, form_id: str | None = None) -> dict[str, Any]:
+        """Locate the object and build the validated task plan.
 
         Read-only: no motion command is issued. The arm must already be at the
         task view preset; the cloud and joint positions are read at that pose.
+
+        ``form_id`` selects one measured object form from
+        ``docs/phase2/OBJECT_GRASP_CATALOG.md`` through ``task.forms`` in the
+        takeover contract. ``None`` uses ``task.default_form`` (the original
+        39.4 mm cube when the contract has no form list).
         """
         takeover, task = self._task_context()
         state = self._state()
         simulated = self.settings.mode is Mode.MOCK
+        requested_form = form_id or task.default_form
+        form = task.form(requested_form)
+        if form is None:
+            raise ServiceError(
+                "UNKNOWN_TASK_FORM",
+                f"task form {requested_form!r} is not in task.forms",
+                status_code=422,
+                details={"available": [item.form_id for item in task.forms]},
+            )
         view = takeover.preset(task.view_preset)
         if view is None:
             raise ServiceError(
@@ -267,6 +290,16 @@ class TaskOperations:
                 view_joints=view.joints,
                 current=current,
                 simulated=simulated,
+                form=form,
+            )
+        if form.mode != "task":
+            return self._task_invalid(
+                "FORM_POSE_ONLY" if form.mode == "pose" else "FORM_REFUSED",
+                f"{form.label}：{form.reason}",
+                view_joints=view.joints,
+                current=current,
+                simulated=simulated,
+                form=form,
             )
         offsets = {
             name: abs(float(current[name]) - float(view.joints[name]))
@@ -280,6 +313,7 @@ class TaskOperations:
                 view_joints=view.joints,
                 current=current,
                 simulated=simulated,
+                form=form,
             )
         basis, raw_pulses, source = self._task_pose_basis(state, view)
         if simulated:
@@ -289,7 +323,20 @@ class TaskOperations:
         meta: dict[str, Any] = {}
         if simulated:
             source = "simulated"
-            point = np.asarray(self.MOCK_TASK_POINT, dtype=np.float64)
+            # The mock cube point is the 39.4 mm cube. A form with a measured
+            # base point is simulated at that base, so the base window and the
+            # fixed j4 exercise the same path as hardware.
+            if form.base_point_m is not None:
+                point = np.asarray(
+                    [
+                        form.base_point_m[0],
+                        form.base_point_m[1],
+                        self.MOCK_TASK_POINT[2],
+                    ],
+                    dtype=np.float64,
+                )
+            else:
+                point = np.asarray(self.MOCK_TASK_POINT, dtype=np.float64)
             report = {
                 "schema_version": 1,
                 "mode": "simulated_locate",
@@ -342,29 +389,94 @@ class TaskOperations:
                     view_joints=view.joints,
                     current=current,
                     simulated=simulated,
+                    form=form,
                 )
             measured, accepted = cube_point(report)
             if measured is None or not accepted:
                 reason = _locate_rejection_text(report)
+                target_label = (
+                    "木块" if form.form_id == task.default_form else form.label
+                )
                 return self._task_invalid(
                     "LOCATE_FAILED",
-                    f"定位失败：没有可用的木块点（{reason}）",
+                    f"定位失败：没有可用的{target_label}点（{reason}）",
                     view_joints=view.joints,
                     locate=report,
                     current=current,
                     simulated=simulated,
+                    form=form,
                 )
             point = measured
-        correction = np.asarray(task.correction_mm, dtype=np.float64) / 1000.0
+        # A catalog form's j4 was measured at a specific object position. If
+        # the object is outside that base window, use the G8.1 loop to pulse
+        # toward the measured base point instead of the cube's (0.230, 0.0).
+        base_gated = (
+            form.grasp_j4 is not None
+            and form.base_point_m is not None
+            and task.approach is not None
+        )
+        if base_gated:
+            base_x, base_y = form.base_point_m
+            base_distance = math.hypot(
+                float(point[0]) - base_x, float(point[1]) - base_y
+            )
+            if base_distance > form.base_tolerance_m:
+                approach = plan_approach(
+                    point,
+                    replace(task.approach, target_point_m=form.base_point_m),
+                )
+                if approach is not None:
+                    return self._task_invalid(
+                        "APPROACH_REQUIRED",
+                        f"{form.label}：物体距目录基准位 "
+                        f"({base_x:.3f}, {base_y:.3f}) "
+                        f"{base_distance * 1000.0:.0f} mm，超过 "
+                        f"{form.base_tolerance_m * 1000.0:.0f} mm 窗口；"
+                        "先底盘脉冲到基准位再抓。",
+                        view_joints=view.joints,
+                        locate=report,
+                        current=current,
+                        simulated=simulated,
+                        approach=approach,
+                        form=form,
+                    )
+        correction_mm = (
+            form.correction_mm
+            if form.correction_mm is not None
+            else task.correction_mm
+        )
+        correction = np.asarray(correction_mm, dtype=np.float64) / 1000.0
         target = point + correction
+        grasp_j2 = (
+            form.grasp_j2 if form.grasp_j2 is not None else task.grasp_j2
+        )
+        grasp_j3 = (
+            form.grasp_j3 if form.grasp_j3 is not None else task.grasp_j3
+        )
+        grasp_j5 = (
+            form.grasp_j5 if form.grasp_j5 is not None else task.grasp_j5
+        )
         try:
             fit_result = grasp_fit(
                 target,
                 self._task_tcp,
-                j2=task.grasp_j2,
-                j3=task.grasp_j3,
-                j5=task.grasp_j5,
+                j2=grasp_j2,
+                j3=grasp_j3,
+                j5=grasp_j5,
             )
+            if form.grasp_j4 is not None:
+                # The catalog pose is a measured wrist depth, not a fit: keep
+                # joint4 exactly and solve joint1 on the target azimuth.
+                fitted_j4 = float(fit_result["joints"][3])
+                fit_result = fit_with_j4(
+                    target,
+                    self._task_tcp,
+                    j2=grasp_j2,
+                    j3=grasp_j3,
+                    j4=form.grasp_j4,
+                    j5=grasp_j5,
+                )
+                fit_result["j4_fit_rad"] = fitted_j4
         except Exception as exc:  # noqa: BLE001 - report, never crash the plan
             return self._task_invalid(
                 "FIT_FAILED",
@@ -373,19 +485,32 @@ class TaskOperations:
                 locate=report,
                 current=current,
                 simulated=simulated,
+                form=form,
             )
         reasons = validate_grasp_target(
             target,
             fit_result,
-            task.max_xy_error_mm,
-            (task.min_reach_m, task.max_reach_m),
+            # A catalog j4 deliberately keeps the TCP off the fitted xy (the
+            # pads, not the TCP, are the contact point), so only the object's
+            # radius and finite joints gate that form. Gate the measured point,
+            # not the +27 mm aim: the aim is a TCP offset, not the object.
+            999.0 if form.grasp_j4 is not None else task.max_xy_error_mm,
+            # A base-gated form is already inside its measured base window; the
+            # cube's 0.220-0.255 m band does not apply (the catalog's cylinder
+            # was measured at x ~0.214 m).
+            None if base_gated else (task.min_reach_m, task.max_reach_m),
+            radius_m=(
+                float(np.linalg.norm(point[:2]))
+                if form.grasp_j4 is not None and not base_gated
+                else None
+            ),
         )
         if reasons:
             approach = plan_approach(point, task.approach)
             if approach is not None:
                 return self._task_invalid(
                     "APPROACH_REQUIRED",
-                    "the cube is outside the direct-grasp band ("
+                    "the target is outside the direct-grasp band ("
                     + "; ".join(reasons)
                     + "); pulse the chassis and re-locate",
                     view_joints=view.joints,
@@ -394,6 +519,7 @@ class TaskOperations:
                     current=current,
                     simulated=simulated,
                     approach=approach,
+                    form=form,
                 )
             return self._task_invalid(
                 "FIT_REJECTED",
@@ -403,6 +529,7 @@ class TaskOperations:
                 fit=fit_result,
                 current=current,
                 simulated=simulated,
+                form=form,
             )
         try:
             gate = self._pose_gate_for()
@@ -415,6 +542,7 @@ class TaskOperations:
                 fit=fit_result,
                 current=current,
                 simulated=simulated,
+                form=form,
             )
         gripper = state.gripper
         start_gripper = (
@@ -453,6 +581,7 @@ class TaskOperations:
             locate_summary=locate_summary,
             hand_eye_summary=hand_eye_summary,
             simulated=simulated,
+            form=form,
         )
         recovered = (report.get("selected") or {}).get("top_recovered")
         if isinstance(recovered, dict):
@@ -480,6 +609,7 @@ class TaskOperations:
                 "view": dict(view.joints),
                 "source": source,
                 "simulated": simulated,
+                "form_id": form.form_id,
             }
         return plan
 

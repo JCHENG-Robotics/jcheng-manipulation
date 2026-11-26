@@ -141,6 +141,9 @@ task:
   correction_mm: [13.7, 3.9, 8.9]
   view_preset: view_table
   lift_preset: lift_150
+  # One measured object form is selected per plan; the cube keeps the original
+  # G8 behaviour. See `forms` at the end of this block.
+  default_form: cube_39
   grasp_j2: -0.6618
   grasp_j3: -1.80117
   grasp_j5: 0.0
@@ -237,3 +240,131 @@ task:
     recovery_range_band_m: 0.0025   # mean range minus the cloud's min range
     recovery_range_std_m: 0.0015    # range spread along the clipped edge
     recovery_radial_min: 0.85       # cut boundary faces the camera; cube edges do not
+
+  # ---------------------------------------------------------------------------
+  # Object forms measured on the real arm on 2026-11-23. The reference page is
+  # docs/phase2/OBJECT_GRASP_CATALOG.md; evidence is
+  # evidence/onsite_20261123/object_forms/.
+  #
+  # mode:
+  #   task    — the depth locate + this plan can run it. grasp_j4 is the
+  #             measured wrist depth that worked, not a fit; joint1 is still
+  #             solved from the located target azimuth. The catalog poses
+  #             assume the base approach put the object near (0.230, 0.0).
+  #   pose    — grasped on hardware, but the depth pipeline cannot locate it
+  #             (the carton returns no depth); use the recorded pose in the
+  #             pose-takeover page.
+  #   refused — measured to fail; the reason is shown before anything moves.
+  #
+  # close_register is the bus register after the grip: 640-648 is an empty
+  # close, 482/489/433 are real holds. A register that keeps moving on a second
+  # close means no object.
+  forms:
+    - id: cube_39
+      label: 39.4 mm 木块
+      label_en: 39.4 mm cube
+      mode: task
+      size_text: 39.4 × 39.4 × 39.4 mm
+      top_height_mm: 39.4
+      close_register: 414
+      notes: "G8 原始标定对象；j4 由深位拟合给出，闭合 −0.63（2026-11-21 快路径实测 414）。"
+
+    - id: block_lying
+      label: 蓝块·平躺
+      label_en: Blue block, lying
+      mode: task
+      size_text: 29.4 × 58.3 × 30 mm
+      top_height_mm: 30
+      close_register: 482
+      grasp_j4: -0.50
+      base_point_m: [0.233, 0.0006]   # measured after the base approach
+      preclose_rad: -1.6
+      grip_rad: -0.05
+      notes: >-
+        j4 −0.50 是实测让夹爪垫到达块顶的深度（拟合的 −0.31 会高约 15 mm）；
+        闭合 −1.6 → −0.05，寄存器停在 482 即接触。顶面只有 30 mm 高，已到
+        夹爪垫的垂直极限。
+
+    - id: block_upright
+      label: 蓝块·立放
+      label_en: Blue block, upright
+      mode: task
+      size_text: 29 × 30 × 61 mm
+      top_height_mm: 61
+      close_register: 482
+      grasp_j4: -0.39
+      base_point_m: [0.2258, 0.0086]  # top point at the upright grasp
+      preclose_rad: -1.6
+      grip_rad: -0.05
+      notes: >-
+        立放后顶面高 61 mm，j4 −0.39 比平躺浅 34 mm，夹爪夹住顶部约 15 mm。
+        近距裁剪可能只留下 18 × 29 mm 的顶面而让任务定位拒绝；此时用姿态
+        接管按本行关节位姿执行。
+
+    - id: cylinder_standing
+      label: 红圆柱·站立
+      label_en: Red cylinder, standing
+      mode: task
+      size_text: Ø28.7 × 45 mm
+      top_height_mm: 45
+      close_register: 489
+      grasp_j4: -0.365
+      base_point_m: [0.2138, 0.0062]  # after the 22.1 mm base pulse
+      preclose_rad: -1.6
+      grip_rad: -0.05
+      correction_mm: [27.0, 3.9, 8.9]
+      notes: >-
+        小物体瞄准规则：夹爪垫在名义 TCP 后方约 13 mm，TCP 要对准目标中心
+        + 27 mm（不是默认的 +13.7 mm），否则 Ø29 会从两指间漏过。夹爪垫
+        接触最宽环，寄存器 489。现场成功位姿是先用手动底盘脉冲把物体送到
+        x≈0.210–0.214 m 后执行的；G8.1 默认瞄准 0.230 m，第一次用本形态
+        时先按目录位姿手动脉冲。
+
+    - id: cylinder_lying
+      label: 红圆柱·躺倒
+      label_en: Red cylinder, lying
+      mode: refused
+      size_text: Ø28.6 × 45 mm
+      top_height_mm: 29.5
+      close_register: 642
+      reason: >-
+        躺倒时最宽环只有 14.7 mm 高，低于夹爪垫可达的桌面上方 28–30 mm；
+        实测 j4 −0.74 只擦到寄存器 521，抬升时滑落。需要 ≥15 mm 垫高或把
+        它立起来。
+
+    - id: carton_vlt
+      label: VLT 纸盒·站立
+      label_en: VLT carton, standing
+      mode: pose
+      size_text: ~55 × ~35 × ~80 mm
+      top_height_mm: 80
+      close_register: 433
+      grasp_j2: -0.62
+      grasp_j3: -1.77
+      grasp_j4: -0.45
+      preclose_rad: -1.6
+      grip_rad: -0.05
+      recorded_pose:
+        joint1: 0.066
+        joint2: -0.62
+        joint3: -1.77
+        joint4: -0.45
+        joint5: 0.0
+      reason: >-
+        纸盒在所有方向都没有深度回波（印刷面反光），任务定位取不到点；
+        现场只能用 RGB 反投影出位姿。按记录位姿走姿态接管，不要用任务规划。
+      notes: >-
+        现场实测 j1 0.066 / j2 −0.62 / j3 −1.77 / j4 −0.45；夹爪闭合到
+        −0.05 时寄存器 433，抬升后 441 仍保持。j2/j3 是避开停位偏移的
+        −0.62/−1.77，不是深位默认值。
+
+    - id: sachet
+      label: 百草味软袋
+      label_en: Puffy snack sachet
+      mode: refused
+      size_text: 118 × 55 mm
+      top_height_mm: 49
+      close_register: 642
+      reason: >-
+        充气软袋被刚性平行夹爪压扁后从两指间挤出：接触时 478，第二次闭合
+        回到 642，袋子落回桌面。平行夹爪不适合软袋，优先选刚性物体。

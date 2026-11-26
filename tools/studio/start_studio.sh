@@ -87,28 +87,14 @@ fi
 step() { printf '\n== %s\n' "$*"; }
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
-# 1. Port ---------------------------------------------------------------
-step "port $PORT"
-if ss -ltnp 2>/dev/null | grep -q ":$PORT "; then
-    holders="$(ss -ltnp 2>/dev/null | grep ":$PORT " | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u | tr '\n' ' ')"
-    printf 'port %s is already in use by pid(s): %s\n' "$PORT" "$holders"
-    for pid in $holders; do
-        if [[ -r "/proc/$pid/cmdline" ]] && tr '\0' ' ' < "/proc/$pid/cmdline" | grep -q 'app.main:create_app'; then
-            printf '  killing stale studio backend pid %s\n' "$pid"
-            kill "$pid" 2>/dev/null || true
-        else
-            fail "pid $pid is not a studio backend; refusing to kill it"
-        fi
-    done
-    for _ in $(seq 1 15); do
-        ss -ltnp 2>/dev/null | grep -q ":$PORT " || break
-        sleep 1
-    done
-    ss -ltnp 2>/dev/null | grep -q ":$PORT " && fail "port $PORT still busy"
-fi
-echo "free"
+# The robot preflight runs *before* the port guard. On 2026-11-24 the script
+# killed the healthy backend and then failed fetching the gateway token over
+# SSH, leaving the Studio down while the robot was wedged. A dead robot must
+# never cost a running backend.
+[[ -x "$BACKEND_DIR/.venv/bin/python" ]] \
+    || fail "missing $BACKEND_DIR/.venv; create it with: python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'"
 
-# 2. Token and gateway --------------------------------------------------
+# 1. Token, gateway and camera -------------------------------------------
 if [[ "$MODE" == "mock" ]]; then
     step "mode mock (no gateway, no robot access)"
     export ARMPI_MODE=mock
@@ -120,7 +106,7 @@ else
         TOKEN="$ARMPI_GATEWAY_TOKEN"
         echo "using ARMPI_GATEWAY_TOKEN from the environment"
     else
-        TOKEN="$(timeout 25 ssh -o BatchMode=yes -o ConnectTimeout=8 \
+        TOKEN="$(timeout 25 ssh -o BatchMode=yes -o ConnectTimeout=8 -o IdentitiesOnly=yes \
             -i "$SSH_KEY" "$SSH_USER@$ROBOT_HOST" \
             "sudo cat '$TOKEN_FILE' 2>/dev/null" || true)"
         [[ -n "$TOKEN" ]] || fail "cannot read $TOKEN_FILE on $ROBOT_HOST (check SSH reachability and the token path)"
@@ -141,7 +127,7 @@ else
     echo "$health" | grep -q '"ros_ready": *true' || fail "gateway up but ROS is not ready"
     echo "gateway ok"
 
-    # 3. Camera ---------------------------------------------------------
+    # camera ------------------------------------------------------------
     # In takeover mode the motion gateway (8766) is camera-free; the
     # persistent read-only gateway (8765) serves both cameras.
     CAMERA_GATEWAY_PORT="${CAMERA_GATEWAY_PORT:-$GATEWAY_PORT}"
@@ -209,10 +195,29 @@ else
     fi
 fi
 
-# 4. Backend ------------------------------------------------------------
+# 2. Port ---------------------------------------------------------------
+step "port $PORT"
+if ss -ltnp 2>/dev/null | grep -q ":$PORT "; then
+    holders="$(ss -ltnp 2>/dev/null | grep ":$PORT " | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u | tr '\n' ' ')"
+    printf 'port %s is already in use by pid(s): %s\n' "$PORT" "$holders"
+    for pid in $holders; do
+        if [[ -r "/proc/$pid/cmdline" ]] && tr '\0' ' ' < "/proc/$pid/cmdline" | grep -q 'app.main:create_app'; then
+            printf '  killing stale studio backend pid %s\n' "$pid"
+            kill "$pid" 2>/dev/null || true
+        else
+            fail "pid $pid is not a studio backend; refusing to kill it"
+        fi
+    done
+    for _ in $(seq 1 15); do
+        ss -ltnp 2>/dev/null | grep -q ":$PORT " || break
+        sleep 1
+    done
+    ss -ltnp 2>/dev/null | grep -q ":$PORT " && fail "port $PORT still busy"
+fi
+echo "free"
+
+# 3. Backend ------------------------------------------------------------
 step "backend on http://$HOST:$PORT"
-[[ -x "$BACKEND_DIR/.venv/bin/python" ]] \
-    || fail "missing $BACKEND_DIR/.venv; create it with: python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'"
 cd "$BACKEND_DIR"
 nohup .venv/bin/python -m uvicorn app.main:create_app --factory \
     --host "$HOST" --port "$PORT" > "$LOG" 2>&1 &
@@ -227,7 +232,7 @@ for _ in $(seq 1 25); do
 done
 [[ "$up" == "1" ]] || fail "backend did not answer /api/health within 25 s"
 
-# 5. Report -------------------------------------------------------------
+# report ----------------------------------------------------------------
 step "status"
 curl -s "http://$HOST:$PORT/api/health"; echo
 peripheral_status() {

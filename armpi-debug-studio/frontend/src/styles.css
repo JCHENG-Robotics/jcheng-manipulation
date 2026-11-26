@@ -872,6 +872,52 @@ select:focus-visible {
   gap: 10px;
 }
 
+.task-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.task-form:hover {
+  border-color: var(--border-strong);
+}
+
+.task-form[aria-pressed="true"] {
+  border-color: rgba(90, 169, 255, 0.65);
+  box-shadow: 0 0 0 1px rgba(90, 169, 255, 0.35) inset;
+}
+
+.task-form:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.task-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-form-meta {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
 .field {
   display: flex;
   flex-direction: column;

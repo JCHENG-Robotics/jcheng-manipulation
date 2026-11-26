@@ -78,8 +78,20 @@ class MockRobotAdapter(RobotAdapter):
             hardware_read=False,
             mock_faults=True,
             replay=True,
-            min_duration_s=mapping.safety.min_duration_s,
-            max_duration_s=mapping.safety.max_duration_s,
+            # Advertise the same floor the pose validator applies: the
+            # takeover contract's 1.0 s wins over the mapping's 0.5 s. The UI
+            # uses this value to build a command, so reporting 0.5 s made a
+            # "prepare view" when already at the view fail DURATION_RANGE.
+            min_duration_s=(
+                max(mapping.safety.min_duration_s, takeover.min_duration_s)
+                if takeover is not None
+                else mapping.safety.min_duration_s
+            ),
+            max_duration_s=(
+                min(mapping.safety.max_duration_s, takeover.max_duration_s)
+                if takeover is not None
+                else mapping.safety.max_duration_s
+            ),
             max_step_rad=(
                 max(
                     joint.max_rad - joint.min_rad

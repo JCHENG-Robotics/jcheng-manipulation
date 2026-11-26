@@ -235,8 +235,11 @@ export const api = {
   async motionPresets(): Promise<MotionPresetList> {
     return request<MotionPresetList>("/api/motion/presets");
   },
-  async taskPlan(): Promise<TaskPlan> {
-    return request<TaskPlan>("/api/task/plan", { method: "POST" });
+  async taskPlan(form?: string | null): Promise<TaskPlan> {
+    return request<TaskPlan>("/api/task/plan", {
+      method: "POST",
+      body: JSON.stringify({ form: form ?? null }),
+    });
   },
   async chassisPulse(input: {
     sessionId: string;

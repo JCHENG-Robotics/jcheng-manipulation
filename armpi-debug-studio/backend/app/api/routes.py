@@ -196,9 +196,16 @@ class TaskVerifyIn(BaseModel):
     plan_id: str | None = Field(default=None, max_length=128)
 
 
+class TaskPlanIn(BaseModel):
+    form: str | None = Field(default=None, max_length=64)
+
+
 @router.post("/task/plan")
-def task_plan(request: Request) -> dict[str, Any]:
-    return _service(request).task_plan()
+def task_plan(
+    request: Request,
+    body: TaskPlanIn | None = None,
+) -> dict[str, Any]:
+    return _service(request).task_plan(body.form if body else None)
 
 
 @router.post("/task/verify")

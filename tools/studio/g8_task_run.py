@@ -89,11 +89,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--i-have-clear-workspace", action="store_true")
+    parser.add_argument(
+        "--form",
+        default=None,
+        help=(
+            "task form id from task.forms in the takeover contract "
+            "(default: cube_39, the 39.4 mm cube)"
+        ),
+    )
     args = parser.parse_args(argv)
     if args.execute and not args.i_have_clear_workspace:
         raise SystemExit("--execute needs --i-have-clear-workspace")
 
     client = Client(args.backend)
+    plan_body = {"form": args.form}
     report: dict[str, Any] = {
         "schema_version": 1,
         "kind": "g8_task_run",
@@ -114,12 +123,12 @@ def main(argv: list[str] | None = None) -> int:
         out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
     try:
-        plan = client.request("POST", "/api/task/plan")
+        plan = client.request("POST", "/api/task/plan", plan_body)
         report["plan"] = plan
         if "error" in plan:
             raise RuntimeError(json.dumps(plan["error"]))
         print("规划:", "VALID" if plan.get("valid") else "REJECTED", "simulated", plan.get("simulated"))
-        print("  木块点", plan.get("point"), "修正后目标", plan.get("target"))
+        print("  形态", plan.get("form_id"), "目标点", plan.get("point"), "修正后目标", plan.get("target"))
         if plan.get("fit"):
             print(
                 "  拟合 j1..j4",
@@ -204,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
                 if pulse.get("status") != "Completed":
                     raise RuntimeError(f"chassis pulse returned {pulse}")
                 time.sleep(settle)
-                plan = client.request("POST", "/api/task/plan")
+                plan = client.request("POST", "/api/task/plan", plan_body)
                 report["plan"] = plan
                 print(
                     "  重新规划:",

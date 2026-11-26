@@ -102,22 +102,94 @@ def fit(
     }
 
 
+def fit_with_j4(
+    target,
+    tcp: Callable[[list[float]], np.ndarray],
+    j2: float,
+    j3: float,
+    j4: float,
+    j5: float = 0.0,
+    max_iterations: int = 30,
+) -> dict:
+    """Hold joint4 at the catalog-measured depth and solve joint1 on azimuth.
+
+    The 2026-11-23 object-form poses pair a measured wrist depth with joint1
+    from the target azimuth. Reusing them in the task plan means joint4 must
+    not be re-fitted: the catalog joint4 is the depth whose pads reached the
+    object, and re-solving it for the TCP xy would put the pads back above the
+    top face. Only joint1 is free here.
+
+    The TCP xy residual is reported, not rejected: the contact point is the
+    pads, which sit in front of the nominal TCP, so the TCP is deliberately
+    not placed on the target.
+    """
+    target = np.asarray(target, dtype=np.float64).reshape(3)
+    joints = [0.0, float(j2), float(j3), float(j4), float(j5)]
+    target_angle = math.atan2(target[1], target[0])
+    for _ in range(max_iterations):
+        position = np.asarray(tcp(joints), dtype=np.float64)
+        angle = math.atan2(position[1], position[0])
+        probe = list(joints)
+        probe[0] += 1e-6
+        probe_position = np.asarray(tcp(probe), dtype=np.float64)
+        probe_angle = math.atan2(probe_position[1], probe_position[0])
+        derivative = (probe_angle - angle) / 1e-6
+        if not math.isfinite(derivative) or abs(derivative) < 1e-9:
+            break
+        error = math.atan2(
+            math.sin(target_angle - angle), math.cos(target_angle - angle)
+        )
+        delta = error / derivative
+        joints[0] += float(np.clip(delta, -0.5, 0.5))
+        if abs(delta) < 1e-9:
+            break
+    tcp_position = np.asarray(tcp(joints), dtype=np.float64)
+    return {
+        "joints": [float(value) for value in joints],
+        "tcp": [float(value) for value in tcp_position],
+        "target": [float(value) for value in target],
+        "residual_mm": [
+            float(value * 1000.0) for value in (tcp_position - target)
+        ],
+        "xy_error_mm": float(
+            np.linalg.norm(tcp_position[:2] - target[:2]) * 1000.0
+        ),
+        "reach_limited": False,
+        "j4_source": "form",
+    }
+
+
 def validate_target(
     target,
     result: dict,
     max_xy_error_mm: float,
-    reach: tuple[float, float] = (0.10, 0.30),
+    reach: tuple[float, float] | None = (0.10, 0.30),
+    *,
+    radius_m: float | None = None,
 ) -> list[str]:
-    """Return a list of refusal reasons; empty means the fit is usable."""
+    """Return a list of refusal reasons; empty means the fit is usable.
+
+    ``radius_m`` overrides the target radius for a form whose joint4 is fixed:
+    the measured point is the object's position, while the catalog's +27 mm
+    aim is only a TCP aiming offset, so gating the corrected target radius
+    would falsely reject a valid object at the edge of the band. ``reach=None``
+    skips the band entirely for a form already gated by its measured base
+    window.
+    """
     target = np.asarray(target, dtype=np.float64)
     reasons: list[str] = []
     if not np.all(np.isfinite(target)):
         return ["target is not finite"]
-    radius = float(np.linalg.norm(target[:2]))
-    if not reach[0] <= radius <= reach[1]:
-        reasons.append(
-            f"target radius {radius:.3f} m is outside {reach[0]}-{reach[1]} m"
+    if reach is not None:
+        radius = (
+            float(radius_m)
+            if radius_m is not None
+            else float(np.linalg.norm(target[:2]))
         )
+        if not reach[0] <= radius <= reach[1]:
+            reasons.append(
+                f"target radius {radius:.3f} m is outside {reach[0]}-{reach[1]} m"
+            )
     if result["xy_error_mm"] > max_xy_error_mm:
         reasons.append(
             f"joint fit xy error {result['xy_error_mm']:.2f} mm exceeds "

@@ -323,6 +323,33 @@ export interface TaskFit {
   residual_mm: number[];
   xy_error_mm: number;
   reach_limited: boolean;
+  j4_source?: "form" | string;
+  j4_fit_rad?: number | null;
+}
+
+export type TaskFormMode = "task" | "pose" | "refused";
+
+export interface TaskForm {
+  form_id: string;
+  label: string;
+  label_en: string;
+  mode: TaskFormMode;
+  reason: string;
+  size_text: string;
+  top_height_mm: number | null;
+  close_register: number | null;
+  grasp_j2: number | null;
+  grasp_j3: number | null;
+  grasp_j4: number | null;
+  grasp_j5: number | null;
+  preclose_rad: number | null;
+  grip_rad: number | null;
+  correction_mm: number[] | null;
+  base_point_m: number[] | null;
+  base_tolerance_m: number;
+  recorded_pose: Record<string, number> | null;
+  notes: string;
+  catalog: string;
 }
 
 export interface TaskApproach {
@@ -345,9 +372,17 @@ export interface TaskPlan {
   errors: TaskIssue[];
   warnings: TaskIssue[];
   simulated: boolean;
+  form?: TaskForm | null;
+  form_id?: string | null;
   point?: number[];
   target?: number[];
   correction_mm?: number[];
+  preclose_rad?: number;
+  grip_rad?: number;
+  grasp_j2?: number;
+  grasp_j3?: number;
+  grasp_j4?: number | null;
+  grasp_j5?: number;
   fit?: TaskFit | null;
   grasp_joints?: Record<string, number>;
   approach_joints?: Record<string, number>;

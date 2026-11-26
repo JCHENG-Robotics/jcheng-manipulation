@@ -129,6 +129,35 @@ All pose commands go through `POST /api/motion/preview` and
 `POST /api/motion/execute`; **the execute must carry the same `profile` as the
 preview** or it is re-validated against the 0.5 rad/s pose cap and rejected.
 
+## Studio task-takeover integration (2026-11-24)
+
+The Studio task-takeover page now carries these forms as `task.forms` in
+`armpi-debug-studio/configs/takeover.yaml`; select one before “定位并规划”, or
+call `POST /api/task/plan {"form": "<id>"}`. The default is `cube_39`, so the
+original G8 cube run is unchanged.
+
+| Form id | Mode | What the task plan uses |
+|---|---|---|
+| `cube_39` | `task` | the original deep-family fit and `grip_rad −0.63` |
+| `block_lying` | `task` | `grasp_j4 −0.50`, close `−1.6 → −0.05` |
+| `block_upright` | `task` | `grasp_j4 −0.39`, close `−1.6 → −0.05` |
+| `cylinder_standing` | `task` | `grasp_j4 −0.365`, aim `+27 mm` in x, close `−1.6 → −0.05` |
+| `cylinder_lying` | `refused` | `FORM_REFUSED`; the height-gate reason is shown |
+| `carton_vlt` | `pose` | `FORM_POSE_ONLY`; returns the recorded pose below |
+| `sachet` | `refused` | `FORM_REFUSED`; the squeeze-out reason is shown |
+
+The recorded carton pose is `j1 0.066 / j2 −0.62 / j3 −1.77 / j4 −0.45 /
+j5 0.0` (the `j2 −0.62`, `j3 −1.77` off-stop variant). The task plan holds a
+measured `grasp_j4` exactly instead of re-fitting it, solves `j1` on the target
+azimuth, and reports the TCP xy residual as a `FORM_J4_MEASURED` warning — the
+pads, not the TCP, are the contact point. The working poses also carry the
+measured object position (`base_point_m`): lying block `(0.233, 0.0006)`,
+upright block `(0.2258, 0.0086)`, standing cylinder `(0.2138, 0.0062)` with a
+±12 mm window. Outside that window the G8.1 loop pulses the base to the form's
+base point instead of the cube's `(0.230, 0.0)`; the `FORM_BASE_POSE` warning
+states the window. The first integrated hardware run of each form is still a
+commissioning run.
+
 ## Known system issues observed on 2026-11-23
 
 - **The j2/j3 stops moved.** The adopted deep bounds (`j2 −0.6618` → raw 342,

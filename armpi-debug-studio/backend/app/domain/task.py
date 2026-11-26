@@ -17,6 +17,7 @@ dispatches motion.
 
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 from typing import Any
 
@@ -24,7 +25,7 @@ from .mapping import MappingConfig
 from .motion import EffectiveMotionLimits
 from .models import MotionTarget
 from .profile import ProfileParams, plan_move
-from .takeover import TakeoverConfig
+from .takeover import TakeoverConfig, TaskFormConfig
 from ..safety.pose_gate import PoseGate
 from ..safety.validation import ValidationOutcome, validate_targets
 
@@ -67,8 +68,14 @@ def build_task_plan(
     locate_summary: dict[str, Any] | None = None,
     hand_eye_summary: dict[str, Any] | None = None,
     simulated: bool = False,
+    form: TaskFormConfig | None = None,
 ) -> dict[str, Any]:
-    """Build and validate the full task plan; return the public plan."""
+    """Build and validate the full task plan; return the public plan.
+
+    ``form`` is one measured object form from the 2026-11-23 catalog. It
+    overrides the cube's grip closure, wrist depth and target correction;
+    ``None`` keeps the historical 39.4 mm-cube plan exactly.
+    """
     task = takeover.task
     if task is None:
         raise ValueError("the takeover contract has no task block")
@@ -81,16 +88,35 @@ def build_task_plan(
     view = takeover.preset(task.view_preset)
     if view is None:
         raise ValueError("the task view preset is missing")
+    if form is not None and form.mode != "task":
+        raise ValueError(
+            f"task form {form.form_id!r} is mode {form.mode!r}; only a 'task' "
+            "form can be planned"
+        )
+    grasp_j2 = form.grasp_j2 if form and form.grasp_j2 is not None else task.grasp_j2
+    grasp_j3 = form.grasp_j3 if form and form.grasp_j3 is not None else task.grasp_j3
+    grasp_j5 = form.grasp_j5 if form and form.grasp_j5 is not None else task.grasp_j5
+    preclose_rad = (
+        form.preclose_rad
+        if form and form.preclose_rad is not None
+        else task.preclose_rad
+    )
+    grip_rad = form.grip_rad if form and form.grip_rad is not None else task.grip_rad
+    correction_mm = (
+        form.correction_mm
+        if form and form.correction_mm is not None
+        else task.correction_mm
+    )
     fit = {
         name: float(fit_result["joints"][index])
         for index, name in enumerate(ARM_JOINTS)
     }
     approach = {
         "joint1": fit["joint1"],
-        "joint2": task.grasp_j2,
-        "joint3": task.grasp_j3,
+        "joint2": grasp_j2,
+        "joint3": grasp_j3,
         "joint4": 0.0,
-        "joint5": task.grasp_j5,
+        "joint5": grasp_j5,
     }
     sign = 1.0 if fit["joint4"] >= approach["joint4"] else -1.0
     pre_grasp = dict(fit)
@@ -283,13 +309,13 @@ def build_task_plan(
     close_pre, gripper_now = grip_command(
         "close_pre",
         gripper_now,
-        task.preclose_rad,
+        preclose_rad,
         fast.gripper_preclose_duration_s,
     )
     close_grip, gripper_now = grip_command(
         "close_grip",
         gripper_now,
-        task.grip_rad,
+        grip_rad,
         fast.gripper_grip_duration_s,
     )
     add_step("close", "grip", [close_pre, close_grip])
@@ -318,11 +344,24 @@ def build_task_plan(
     release_final, current = profile_command(
         "release_final", current, fit, fast.release_final_vmax_rad_s
     )
+    # A catalog form closes to −0.05 rad (raw ~688), so a 0.45 s open would
+    # interpolate at >900 raw/s and be rejected. Keep the measured 0.45 s for
+    # the cube and stretch only when the close target is deeper.
+    open_delta_raw = abs(
+        takeover.gripper.open_rad - grip_rad
+    ) / takeover.gripper.radians_per_tick
+    release_open_duration = max(
+        fast.gripper_release_open_duration_s,
+        math.ceil(
+            open_delta_raw / fast.gripper_speed_raw_per_s * 100.0
+        )
+        / 100.0,
+    )
     release_open, gripper_now = grip_command(
         "release_open",
         gripper_now,
         takeover.gripper.open_rad,
-        fast.gripper_release_open_duration_s,
+        release_open_duration,
     )
     add_step(
         "release", "mixed", [release_descend, release_final, release_open]
@@ -338,7 +377,8 @@ def build_task_plan(
             {
                 "label": "task",
                 "code": "SIMULATED_LOCATE",
-                "message": "mock mode uses a fixed cube point; no camera was read",
+                "message": "mock mode uses a fixed object point (the form base "
+                "when set); no camera was read",
             }
         )
     if source == "commanded":
@@ -350,6 +390,65 @@ def build_task_plan(
                 "from the actual); each move is bus-verified",
             }
         )
+    if form is not None:
+        if form.grasp_j4 is not None:
+            fitted_j4 = fit_result.get("j4_fit_rad")
+            fitted_text = (
+                f"（拟合值 {float(fitted_j4):.3f}）"
+                if isinstance(fitted_j4, (int, float))
+                else ""
+            )
+            warnings.append(
+                {
+                    "label": "task",
+                    "code": "FORM_J4_MEASURED",
+                    "message": (
+                        f"{form.label}：joint4 固定为现场实测 "
+                        f"{fit['joint4']:.3f} rad{fitted_text}。TCP 的 xy "
+                        "残差是设计使然：接触点是夹爪垫，不是 TCP。"
+                    ),
+                }
+            )
+        if form.correction_mm is not None:
+            warnings.append(
+                {
+                    "label": "task",
+                    "code": "FORM_AIM_OVERRIDE",
+                    "message": (
+                        f"{form.label}：瞄准修正使用实测值 "
+                        f"[{', '.join(f'{value:.1f}' for value in form.correction_mm)}] mm。"
+                    ),
+                }
+            )
+        if form.grasp_j4 is not None:
+            if form.base_point_m is not None:
+                base_x, base_y = form.base_point_m
+                base_message = (
+                    f"{form.label}：j4 是目录基准位姿的实测值；基准窗口 "
+                    f"({base_x:.3f}, {base_y:.3f}) ± "
+                    f"{form.base_tolerance_m * 1000.0:.0f} mm。物体不在窗口内时，"
+                    "运行会先底盘脉冲到该基准位再抓。"
+                )
+            else:
+                base_message = (
+                    f"{form.label}：j4 是目录基准位姿的实测值，G8.1 只把物体"
+                    "送到 0.230 m；若记录基准位不同，先手动把物体移到目录位置。"
+                )
+            warnings.append(
+                {
+                    "label": "task",
+                    "code": "FORM_BASE_POSE",
+                    "message": base_message,
+                }
+            )
+        if form.notes:
+            warnings.append(
+                {
+                    "label": "task",
+                    "code": "FORM_NOTES",
+                    "message": form.notes,
+                }
+            )
     fast_public = fast.to_public_dict()
     fast_public["mode"] = "s_curve"
     return {
@@ -358,12 +457,24 @@ def build_task_plan(
         "errors": errors,
         "warnings": warnings,
         "simulated": simulated,
+        "form": form.to_public_dict() if form is not None else None,
+        "form_id": form.form_id if form is not None else None,
         "point": [round(float(value), 6) for value in point],
         "target": [
-            round(float(value) + float(task.correction_mm[index]) / 1000.0, 6)
+            round(float(value) + float(correction_mm[index]) / 1000.0, 6)
             for index, value in enumerate(point)
         ],
-        "correction_mm": list(task.correction_mm),
+        "correction_mm": list(correction_mm),
+        "preclose_rad": round(float(preclose_rad), 6),
+        "grip_rad": round(float(grip_rad), 6),
+        "grasp_j2": round(float(grasp_j2), 6),
+        "grasp_j3": round(float(grasp_j3), 6),
+        "grasp_j4": (
+            round(float(form.grasp_j4), 6)
+            if form is not None and form.grasp_j4 is not None
+            else None
+        ),
+        "grasp_j5": round(float(grasp_j5), 6),
         "fit": fit_result,
         "grasp_joints": {name: round(value, 6) for name, value in fit.items()},
         "approach_joints": approach,

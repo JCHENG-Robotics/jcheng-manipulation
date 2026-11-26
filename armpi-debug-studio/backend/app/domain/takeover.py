@@ -305,6 +305,81 @@ class ApproachConfig:
         }
 
 
+TASK_FORM_MODES = ("task", "pose", "refused")
+
+
+@dataclass(frozen=True)
+class TaskFormConfig:
+    """One measured object form from the 2026-11-23 grasp catalog.
+
+    - ``task``    — the depth locate + plan can execute this form; the fields
+      below override the cube defaults.
+    - ``pose``    — physically grasped on hardware, but the depth pipeline
+      cannot locate it (the VLT carton has no depth return); the recorded pose
+      is for pose takeover, not for this plan.
+    - ``refused`` — measured to fail (below the pads' vertical reach, or
+      squeezed out of the rigid pads); the reason is shown before anything is
+      planned.
+
+    ``grasp_j4`` is the **measured** wrist depth that worked on hardware, not
+    a planner output. ``base_point_m`` is the measured object position at that
+    working pose; when the object is outside ``base_tolerance_m`` of it, the
+    G8.1 loop pulses the base to this point instead of the cube's
+    ``(0.230, 0.0)``. joint1 is still solved from the located target azimuth.
+    """
+
+    form_id: str
+    label: str
+    label_en: str
+    mode: str = "task"
+    reason: str = ""
+    size_text: str = ""
+    top_height_mm: float | None = None
+    close_register: int | None = None
+    grasp_j2: float | None = None
+    grasp_j3: float | None = None
+    grasp_j4: float | None = None
+    grasp_j5: float | None = None
+    preclose_rad: float | None = None
+    grip_rad: float | None = None
+    correction_mm: tuple[float, float, float] | None = None
+    base_point_m: tuple[float, float] | None = None
+    base_tolerance_m: float = 0.012
+    recorded_pose: dict[str, float] | None = None
+    notes: str = ""
+    catalog: str = "docs/phase2/OBJECT_GRASP_CATALOG.md"
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "form_id": self.form_id,
+            "label": self.label,
+            "label_en": self.label_en,
+            "mode": self.mode,
+            "reason": self.reason,
+            "size_text": self.size_text,
+            "top_height_mm": self.top_height_mm,
+            "close_register": self.close_register,
+            "grasp_j2": self.grasp_j2,
+            "grasp_j3": self.grasp_j3,
+            "grasp_j4": self.grasp_j4,
+            "grasp_j5": self.grasp_j5,
+            "preclose_rad": self.preclose_rad,
+            "grip_rad": self.grip_rad,
+            "correction_mm": (
+                list(self.correction_mm) if self.correction_mm else None
+            ),
+            "base_point_m": (
+                list(self.base_point_m) if self.base_point_m else None
+            ),
+            "base_tolerance_m": self.base_tolerance_m,
+            "recorded_pose": (
+                dict(self.recorded_pose) if self.recorded_pose else None
+            ),
+            "notes": self.notes,
+            "catalog": self.catalog,
+        }
+
+
 @dataclass(frozen=True)
 class TaskConfig:
     """G8 task contract: locate + the validated deep grasp family."""
@@ -330,6 +405,14 @@ class TaskConfig:
     locate: LocateParams
     approach: ApproachConfig | None = None
     fast: FastProfile = FastProfile()
+    forms: tuple[TaskFormConfig, ...] = ()
+    default_form: str = ""
+
+    def form(self, form_id: str) -> TaskFormConfig | None:
+        for item in self.forms:
+            if item.form_id == form_id:
+                return item
+        return None
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -360,6 +443,8 @@ class TaskConfig:
                 self.approach.to_public_dict() if self.approach else None
             ),
             "fast": self.fast.to_public_dict(),
+            "forms": [item.to_public_dict() for item in self.forms],
+            "default_form": self.default_form,
         }
 
 
@@ -843,6 +928,209 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
         _require(verify_height >= 0, "task.verify_min_height_m must be >= 0")
         _require(0 <= min_reach < max_reach, "task reach range must ascend")
         _require(max_xy >= 0, "task.max_xy_error_mm must be >= 0")
+
+        forms: list[TaskFormConfig] = []
+        forms_raw = task_raw.get("forms")
+        if forms_raw is not None:
+            _require(
+                isinstance(forms_raw, list) and bool(forms_raw),
+                "task.forms must be a non-empty list",
+            )
+            for index, form_raw in enumerate(forms_raw):
+                _require(
+                    isinstance(form_raw, dict),
+                    f"task.forms[{index}] must be a mapping",
+                )
+                form_id = str(form_raw.get("id", "")).strip()
+                _require(bool(form_id), f"task.forms[{index}].id is required")
+                _require(
+                    all(item.form_id != form_id for item in forms),
+                    f"task.forms id {form_id!r} is duplicated",
+                )
+                label = str(form_raw.get("label", "")).strip()
+                label_en = str(form_raw.get("label_en", "")).strip()
+                _require(bool(label), f"task.forms[{index}].label is required")
+                _require(
+                    bool(label_en), f"task.forms[{index}].label_en is required"
+                )
+                mode = str(form_raw.get("mode", "task")).strip().lower()
+                _require(
+                    mode in TASK_FORM_MODES,
+                    f"task.forms[{index}].mode must be one of {TASK_FORM_MODES}",
+                )
+                reason = str(form_raw.get("reason", "")).strip()
+                if mode in ("pose", "refused"):
+                    _require(
+                        bool(reason),
+                        f"task.forms[{index}].reason is required for mode {mode!r}",
+                    )
+                top_height = form_raw.get("top_height_mm")
+                if top_height is not None:
+                    top_height = float(top_height)
+                    _require(
+                        math.isfinite(top_height) and top_height >= 0,
+                        f"task.forms[{index}].top_height_mm must be finite and >= 0",
+                    )
+                close_register = form_raw.get("close_register")
+                if close_register is not None:
+                    close_register = int(close_register)
+                    _require(
+                        0 <= close_register <= 1000,
+                        f"task.forms[{index}].close_register must be 0..1000",
+                    )
+                form_j2 = form_raw.get("grasp_j2")
+                form_j3 = form_raw.get("grasp_j3")
+                form_j4 = form_raw.get("grasp_j4")
+                form_j5 = form_raw.get("grasp_j5")
+                for name, value in (
+                    ("grasp_j2", form_j2),
+                    ("grasp_j3", form_j3),
+                    ("grasp_j4", form_j4),
+                    ("grasp_j5", form_j5),
+                ):
+                    if value is None:
+                        continue
+                    value = float(value)
+                    _require(
+                        math.isfinite(value) and -2.0 <= value <= 2.0,
+                        f"task.forms[{index}].{name} must be finite and in [-2.0, 2.0]",
+                    )
+                    if name == "grasp_j2":
+                        form_j2 = value
+                    elif name == "grasp_j3":
+                        form_j3 = value
+                    elif name == "grasp_j4":
+                        form_j4 = value
+                    else:
+                        form_j5 = value
+                form_preclose = form_raw.get("preclose_rad")
+                form_grip = form_raw.get("grip_rad")
+                for name, value in (
+                    ("preclose_rad", form_preclose),
+                    ("grip_rad", form_grip),
+                ):
+                    if value is None:
+                        continue
+                    value = float(value)
+                    _require(
+                        math.isfinite(value)
+                        and gripper.min_rad <= value <= gripper.max_rad,
+                        f"task.forms[{index}].{name} must be inside the gripper range",
+                    )
+                    if name == "preclose_rad":
+                        form_preclose = value
+                    else:
+                        form_grip = value
+                form_correction = form_raw.get("correction_mm")
+                if form_correction is not None:
+                    form_correction = _triple(
+                        form_correction,
+                        f"task.forms[{index}].correction_mm",
+                    )
+                base_raw = form_raw.get("base_point_m")
+                base_point = None
+                if base_raw is not None:
+                    _require(
+                        isinstance(base_raw, (list, tuple))
+                        and len(base_raw) == 2,
+                        f"task.forms[{index}].base_point_m must have 2 values",
+                    )
+                    base_point = (float(base_raw[0]), float(base_raw[1]))
+                    _require(
+                        all(math.isfinite(value) for value in base_point)
+                        and base_point[0] > 0.0,
+                        f"task.forms[{index}].base_point_m must be finite with x > 0",
+                    )
+                base_tolerance = float(
+                    form_raw.get("base_tolerance_m", 0.012)
+                )
+                _require(
+                    0.005 <= base_tolerance <= 0.05,
+                    f"task.forms[{index}].base_tolerance_m must be in [0.005, 0.05]",
+                )
+                recorded_raw = form_raw.get("recorded_pose")
+                recorded_pose = None
+                if recorded_raw is not None:
+                    _require(
+                        isinstance(recorded_raw, dict),
+                        f"task.forms[{index}].recorded_pose must be a mapping",
+                    )
+                    _require(
+                        set(recorded_raw) == set(ARM_JOINTS),
+                        f"task.forms[{index}].recorded_pose must have the five arm joints",
+                    )
+                    recorded_pose = {
+                        name: float(recorded_raw[name]) for name in ARM_JOINTS
+                    }
+                    _require(
+                        all(
+                            math.isfinite(value)
+                            for value in recorded_pose.values()
+                        ),
+                        f"task.forms[{index}].recorded_pose must be finite",
+                    )
+                _require(
+                    mode != "pose" or recorded_pose is not None,
+                    f"task.forms[{index}] mode 'pose' needs recorded_pose",
+                )
+                forms.append(
+                    TaskFormConfig(
+                        form_id=form_id,
+                        label=label,
+                        label_en=label_en,
+                        mode=mode,
+                        reason=reason,
+                        size_text=str(form_raw.get("size_text", "")).strip(),
+                        top_height_mm=top_height,
+                        close_register=close_register,
+                        grasp_j2=form_j2,
+                        grasp_j3=form_j3,
+                        grasp_j4=form_j4,
+                        grasp_j5=form_j5,
+                        preclose_rad=form_preclose,
+                        grip_rad=form_grip,
+                        correction_mm=form_correction,
+                        base_point_m=base_point,
+                        base_tolerance_m=base_tolerance,
+                        recorded_pose=recorded_pose,
+                        notes=str(form_raw.get("notes", "")).strip(),
+                        catalog=str(
+                            form_raw.get(
+                                "catalog", "docs/phase2/OBJECT_GRASP_CATALOG.md"
+                            )
+                        ),
+                    )
+                )
+        else:
+            # Backward-compatible contract: no form list means the original
+            # 39.4 mm cube only.
+            forms = [
+                TaskFormConfig(
+                    form_id="cube_39",
+                    label="39.4 mm 木块",
+                    label_en="39.4 mm cube",
+                    mode="task",
+                    size_text="39.4 × 39.4 × 39.4 mm",
+                    top_height_mm=39.4,
+                    close_register=414,
+                    notes="G8 原始标定对象；j4 由深位拟合给出，闭合 −0.63。",
+                )
+            ]
+        default_form = str(
+            task_raw.get("default_form") or forms[0].form_id
+        ).strip()
+        _require(
+            any(item.form_id == default_form for item in forms),
+            f"task.default_form {default_form!r} is not a task form",
+        )
+        default_match = next(
+            item for item in forms if item.form_id == default_form
+        )
+        _require(
+            default_match.mode == "task",
+            "task.default_form must be a 'task' form",
+        )
+
         task = TaskConfig(
             hand_eye_path=str(hand_eye_path),
             correction_mm=correction,
@@ -865,6 +1153,8 @@ def load_takeover_config(path: str | Path) -> TakeoverConfig:
             locate=locate,
             approach=approach,
             fast=fast,
+            forms=tuple(forms),
+            default_form=default_form,
         )
 
     canonical = {

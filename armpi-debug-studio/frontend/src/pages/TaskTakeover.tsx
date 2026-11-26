@@ -8,6 +8,7 @@ import type {
   PreviewResult,
   TargetPayload,
   TaskApproach,
+  TaskForm,
   TaskPlan,
   TaskStep,
   TaskVerify,
@@ -98,6 +99,21 @@ function stepSpeedText(step: TaskStep): string {
   return `vmax ${unique.join("/")} rad/s`;
 }
 
+function formModeTone(mode: TaskForm["mode"]): "ok" | "warning" | "fault" {
+  return mode === "task" ? "ok" : mode === "pose" ? "warning" : "fault";
+}
+
+function formModeLabel(mode: TaskForm["mode"]): string {
+  return mode === "task" ? "可任务规划" : mode === "pose" ? "仅姿态接管" : "不可用";
+}
+
+function poseText(pose: Record<string, number> | null): string {
+  if (!pose) return "—";
+  return ARM_JOINTS.map(
+    (name) => `${name.replace("joint", "j")} ${formatNumber(pose[name] ?? 0, 3)}`,
+  ).join(" · ");
+}
+
 export function TaskTakeover() {
   const robot = useRobotStore((store) => store.state);
   const diagnostics = useRobotStore((store) => store.diagnostics);
@@ -106,6 +122,7 @@ export function TaskTakeover() {
   const sessionId = getSessionId();
 
   const [presets, setPresets] = useState<MotionPresetList | null>(null);
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [plan, setPlan] = useState<TaskPlan | null>(null);
   const [verify, setVerify] = useState<TaskVerify | null>(null);
   const [stepStatus, setStepStatus] = useState<Record<number, string>>({});
@@ -133,6 +150,31 @@ export function TaskTakeover() {
     const raw = presets?.contract as { task?: Record<string, unknown> } | null;
     return raw?.task ?? null;
   }, [presets]);
+
+  const taskForms = useMemo<TaskForm[]>(() => {
+    const raw = taskContract?.forms;
+    return Array.isArray(raw) ? (raw as TaskForm[]) : [];
+  }, [taskContract]);
+
+  const selectedForm = useMemo<TaskForm | null>(() => {
+    if (taskForms.length === 0) return null;
+    const wanted =
+      selectedFormId ?? String(taskContract?.default_form ?? taskForms[0].form_id);
+    return taskForms.find((item) => item.form_id === wanted) ?? taskForms[0];
+  }, [taskForms, selectedFormId, taskContract]);
+
+  const formRunnable = !selectedForm || selectedForm.mode === "task";
+
+  const selectForm = (item: TaskForm) => {
+    setSelectedFormId(item.form_id);
+    setPlan(null);
+    setVerify(null);
+    setStepStatus({});
+    setStepActual({});
+    setStepDeviations({});
+    setError(null);
+    setNote(null);
+  };
 
   const viewPresetId = String(taskContract?.view_preset ?? "view_table");
   const viewPreset = useMemo<MotionPreset | null>(
@@ -261,8 +303,8 @@ export function TaskTakeover() {
     }
   };
 
-  const requestPlan = async (): Promise<TaskPlan> => {
-    const result = await api.taskPlan();
+  const requestPlan = async (formId?: string | null): Promise<TaskPlan> => {
+    const result = await api.taskPlan(formId ?? selectedForm?.form_id ?? null);
     setPlan(result);
     if (!result.valid) {
       const codes = result.errors.map((item) => item.code);
@@ -280,6 +322,10 @@ export function TaskTakeover() {
   };
 
   const planTask = async () => {
+    if (selectedForm && selectedForm.mode !== "task") {
+      setError(`${selectedForm.label}：${selectedForm.reason}`);
+      return;
+    }
     setBusy(true);
     setError(null);
     setNote(null);
@@ -288,7 +334,7 @@ export function TaskTakeover() {
     setStepActual({});
     setStepDeviations({});
     try {
-      await requestPlan();
+      await requestPlan(selectedForm?.form_id ?? null);
     } catch (caught) {
       setError(errorText(caught));
     } finally {
@@ -325,14 +371,9 @@ export function TaskTakeover() {
         throw new Error(`底盘接近返回 ${response.status}`);
       }
       await delay(Math.round(settle * 1000));
-      next = await requestPlan();
+      next = await requestPlan(next.form_id);
       if (next.valid) {
-        setNote(
-          `已进入抓取带：目标半径 ${Math.hypot(
-            (next.target ?? [0])[0],
-            (next.target ?? [0, 0])[1] ?? 0,
-          ).toFixed(3)} m。`,
-        );
+        setNote("已进入抓取带/形态基准位，继续执行机械臂步骤。");
         return next;
       }
       const nextCodes = next.errors.map((item) => item.code);
@@ -467,8 +508,9 @@ export function TaskTakeover() {
         <div>
           <h1 className="page-title">任务接管</h1>
           <p className="page-subtitle">
-            G8 任务级接管：观察位定位 → 深位姿抓取 → 闭爪 → 抬升 → 夹持验证 → 放回。
-            每一步仍走预览/执行与总线校验；无急停，停止只是保持请求。
+            G8 任务级接管：选择实测抓取形态 → 观察位定位 → 深位姿抓取 → 闭爪 →
+            抬升 → 夹持验证 → 放回。每一步仍走预览/执行与总线校验；
+            无急停，停止只是保持请求。
           </p>
         </div>
         <div className="page-actions">
@@ -497,13 +539,150 @@ export function TaskTakeover() {
       <div className="banner banner-warning">
         <strong>G8 任务 · 无急停 / 无自碰撞模型</strong>
         <span>
-          一次“运行任务”完成全部动作：木块在抓取带外时先自动底盘接近并重新定位，然后以
+          一次“运行任务”完成全部动作：目标在抓取带外时先自动底盘接近并重新定位，然后以
           S 曲线（4.0 rad/s / 20 rad/s²）执行 7 个阶段步骤，每步仍走预览/执行与总线校验。
           手边保持可断电；第一次运行请清空工作区。夹持验证失败即停，不自动重试。
         </span>
       </div>
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       {note && <div className="banner banner-info">{note}</div>}
+
+      {taskForms.length > 0 && (
+        <Card
+          title="抓取形态"
+          subtitle="2026-11-23 现场实测的对象形态；默认 39.4 mm 木块保持原 G8 行为"
+          actions={
+            selectedForm ? (
+              <StatusChip
+                tone={formModeTone(selectedForm.mode)}
+                label={formModeLabel(selectedForm.mode)}
+                detail={selectedForm.form_id}
+              />
+            ) : undefined
+          }
+        >
+          <div className="task-form-grid">
+            {taskForms.map((item) => (
+              <button
+                key={item.form_id}
+                type="button"
+                className="task-form"
+                aria-pressed={selectedForm?.form_id === item.form_id}
+                disabled={running || busy}
+                onClick={() => selectForm(item)}
+              >
+                <span className="task-form-head">
+                  <strong>{item.label}</strong>
+                  <StatusChip
+                    tone={formModeTone(item.mode)}
+                    label={formModeLabel(item.mode)}
+                  />
+                </span>
+                <span className="task-form-meta">
+                  {item.size_text || "尺寸未记录"}
+                  {item.top_height_mm !== null
+                    ? ` · 顶面 ${formatNumber(item.top_height_mm, 1)} mm`
+                    : ""}
+                </span>
+                <span className="task-form-meta">
+                  {item.grasp_j4 !== null
+                    ? `j4 ${formatNumber(item.grasp_j4, 3)} rad（实测）`
+                    : "j4 由深位拟合"}
+                  {item.close_register !== null
+                    ? ` · 闭合寄存器 ${item.close_register}`
+                    : ""}
+                </span>
+              </button>
+            ))}
+          </div>
+          {selectedForm && (
+            <>
+              <div className="joint-readout">
+                <KeyValue label="形态">
+                  <span className="mono">{selectedForm.label}</span>{" "}
+                  <span className="muted">{selectedForm.label_en}</span>
+                </KeyValue>
+                <KeyValue label="实测尺寸">
+                  <span className="mono">{selectedForm.size_text || "—"}</span>
+                </KeyValue>
+                <KeyValue label="顶面高度">
+                  <span className="mono">
+                    {selectedForm.top_height_mm !== null
+                      ? `${formatNumber(selectedForm.top_height_mm, 1)} mm`
+                      : "—"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="抓取深度">
+                  <span className="mono">
+                    {selectedForm.grasp_j4 !== null
+                      ? `j4 ${formatNumber(selectedForm.grasp_j4, 3)} rad（实测）`
+                      : "由深位拟合 j4"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="夹爪">
+                  <span className="mono">
+                    预闭合{" "}
+                    {selectedForm.preclose_rad !== null
+                      ? formatNumber(selectedForm.preclose_rad, 2)
+                      : "契约默认"}{" "}
+                    · 闭合{" "}
+                    {selectedForm.grip_rad !== null
+                      ? formatNumber(selectedForm.grip_rad, 2)
+                      : "契约默认"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="瞄准修正">
+                  <span className="mono">
+                    {selectedForm.correction_mm
+                      ? selectedForm.correction_mm
+                          .map((value) => formatNumber(value, 1))
+                          .join(" / ") + " mm"
+                      : "契约默认"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="基准位窗口">
+                  <span className="mono">
+                    {selectedForm.base_point_m
+                      ? `(${formatNumber(
+                          selectedForm.base_point_m[0],
+                          3,
+                        )}, ${formatNumber(
+                          selectedForm.base_point_m[1],
+                          3,
+                        )}) ± ${formatNumber(
+                          selectedForm.base_tolerance_m * 1000,
+                          0,
+                        )} mm`
+                      : "契约默认（0.230, 0）"}
+                  </span>
+                </KeyValue>
+                {selectedForm.recorded_pose && (
+                  <KeyValue label="记录位姿">
+                    <span className="mono">
+                      {poseText(selectedForm.recorded_pose)}
+                    </span>
+                  </KeyValue>
+                )}
+              </div>
+              {selectedForm.notes && (
+                <p className="muted">{selectedForm.notes}</p>
+              )}
+              {selectedForm.mode !== "task" && (
+                <p className="muted">
+                  <strong>{formModeLabel(selectedForm.mode)}：</strong>
+                  {selectedForm.reason}
+                </p>
+              )}
+              {selectedForm.mode === "pose" && (
+                <p className="muted">
+                  该形态不能用任务规划（深度没有回波）；请到“关节控制 → 姿态接管”页
+                  按上方记录位姿执行。
+                </p>
+              )}
+            </>
+          )}
+        </Card>
+      )}
 
       <div className="grid grid-2">
         <Card
@@ -551,21 +730,40 @@ export function TaskTakeover() {
             <Button variant="secondary" onClick={() => void prepareView()} disabled={busy || running || !viewPreset}>
               {busy ? "执行中…" : "准备（移动到观察位）"}
             </Button>
-            <Button variant="primary" onClick={() => void planTask()} disabled={busy || running || !viewPreset}>
+            <Button
+              variant="primary"
+              onClick={() => void planTask()}
+              disabled={busy || running || !viewPreset || !formRunnable}
+              title={
+                formRunnable
+                  ? undefined
+                  : `${selectedForm?.label ?? "该形态"}：${formModeLabel(
+                      selectedForm?.mode ?? "refused",
+                    )}，不能用任务规划`
+              }
+            >
               {busy ? "定位中…" : "定位并规划"}
             </Button>
             <Button
               variant="danger"
               onClick={() => setConfirmOpen(true)}
-              disabled={(!plan?.valid && !requiredApproach) || running || hardwareBlocked || !safetyReady}
+              disabled={
+                (!plan?.valid && !requiredApproach) ||
+                running ||
+                hardwareBlocked ||
+                !safetyReady ||
+                !formRunnable
+              }
               title={
-                !plan
-                  ? "先定位并规划"
-                  : plan.valid
-                    ? "确认后连续执行任务"
-                    : requiredApproach
-                      ? "运行时会先底盘接近，再重新规划并执行"
-                      : "规划无效"
+                !formRunnable
+                  ? `${selectedForm?.label ?? "该形态"}不能任务执行`
+                  : !plan
+                    ? "先定位并规划"
+                    : plan.valid
+                      ? "确认后连续执行任务"
+                      : requiredApproach
+                        ? "运行时会先底盘接近，再重新规划并执行"
+                        : "规划无效"
               }
             >
               运行任务（需确认）
@@ -576,7 +774,7 @@ export function TaskTakeover() {
           </div>
           {requiredApproach && (
             <p className="muted">
-              木块在抓取带外：运行任务时会先自动底盘{approachText(requiredApproach)}
+              目标在抓取带/形态基准位外：运行任务时会先自动底盘{approachText(requiredApproach)}
               （duty {requiredApproach.duty}，{requiredApproach.duration_s} s，约{" "}
               {requiredApproach.nominal_travel_mm.toFixed(0)} mm），重新定位后再执行机械臂步骤。
             </p>
@@ -592,7 +790,26 @@ export function TaskTakeover() {
           )}
           {plan?.valid && (
             <div className="joint-readout">
-              <KeyValue label="木块点">
+              <KeyValue label="抓取形态">
+                <span className="mono">
+                  {plan.form?.label ?? selectedForm?.label ?? "—"}
+                </span>{" "}
+                <span className="muted">{plan.form_id ?? ""}</span>
+              </KeyValue>
+              <KeyValue label="抓取深度 / 夹爪">
+                <span className="mono">
+                  {plan.grasp_j4 !== null && plan.grasp_j4 !== undefined
+                    ? `j4 ${formatNumber(plan.grasp_j4, 3)}（实测）`
+                    : "j4 由深位拟合"}
+                  {plan.preclose_rad !== undefined && plan.grip_rad !== undefined
+                    ? ` · 闭合 ${formatNumber(
+                        plan.preclose_rad,
+                        2,
+                      )} → ${formatNumber(plan.grip_rad, 2)}`
+                    : ""}
+                </span>
+              </KeyValue>
+              <KeyValue label="目标点">
                 <span className="mono">
                   {planPoint
                     ? planPoint.map((value) => formatNumber(value, 4)).join(", ")
@@ -620,6 +837,12 @@ export function TaskTakeover() {
                 <span className="mono">
                   {fit ? `${formatNumber(fit.xy_error_mm, 2)} mm` : "—"}
                 </span>
+                {fit?.j4_source === "form" ? (
+                  <span className="muted">
+                    {" "}
+                    （j4 固定为实测值，残差是夹爪垫与 TCP 的偏移）
+                  </span>
+                ) : null}
               </KeyValue>
               <KeyValue label="定位来源">
                 <span className="mono">{plan.source}</span>
@@ -765,7 +988,7 @@ export function TaskTakeover() {
           <>
             {requiredApproach ? (
               <p>
-                木块在抓取带外。确认后先底盘<strong>{approachText(requiredApproach)}</strong>
+                目标在抓取带/形态基准位外。确认后先底盘<strong>{approachText(requiredApproach)}</strong>
                 （<span className="mono">
                   vx {formatNumber(requiredApproach.vx, 3)} · vy{" "}
                   {formatNumber(requiredApproach.vy, 3)} · duty{" "}
@@ -783,7 +1006,25 @@ export function TaskTakeover() {
             )}
             {plan.valid && (
               <>
-                <KeyValue label="木块点">
+                <KeyValue label="抓取形态">
+                  <span className="mono">
+                    {plan.form?.label ?? selectedForm?.label ?? "—"}
+                  </span>
+                </KeyValue>
+                <KeyValue label="抓取深度 / 夹爪">
+                  <span className="mono">
+                    {plan.grasp_j4 !== null && plan.grasp_j4 !== undefined
+                      ? `j4 ${formatNumber(plan.grasp_j4, 3)}（实测）`
+                      : "j4 由深位拟合"}
+                    {plan.preclose_rad !== undefined && plan.grip_rad !== undefined
+                      ? ` · 闭合 ${formatNumber(
+                          plan.preclose_rad,
+                          2,
+                        )} → ${formatNumber(plan.grip_rad, 2)}`
+                      : ""}
+                  </span>
+                </KeyValue>
+                <KeyValue label="目标点">
                   <span className="mono">
                     {planPoint?.map((value) => formatNumber(value, 4)).join(", ")}
                   </span>

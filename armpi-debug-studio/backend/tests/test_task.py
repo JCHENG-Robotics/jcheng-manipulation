@@ -11,7 +11,11 @@ from fastapi.testclient import TestClient
 from app.adapters.mock import MockRobotAdapter
 from app.config import Settings
 from app.domain.enums import Mode
-from app.domain.grasp_fit import fit as grasp_fit
+from app.domain.grasp_fit import (
+    fit as grasp_fit,
+    fit_with_j4,
+    validate_target as validate_grasp_target,
+)
 from app.domain.locate import (
     LocateParams,
     cube_box_present,
@@ -593,3 +597,178 @@ def test_profile_contract_rejects_a_faster_profile(
         assert "PROFILE_LIMIT" in codes
     finally:
         service.close()
+
+
+def test_takeover_carries_the_measured_object_forms(takeover) -> None:
+    """The six 2026-11-23 forms + the original cube, with their verdicts."""
+    task = takeover.task
+    assert task is not None
+    assert task.default_form == "cube_39"
+    assert [item.form_id for item in task.forms] == [
+        "cube_39",
+        "block_lying",
+        "block_upright",
+        "cylinder_standing",
+        "cylinder_lying",
+        "carton_vlt",
+        "sachet",
+    ]
+    forms = {item.form_id: item for item in task.forms}
+    assert forms["block_lying"].mode == "task"
+    assert forms["block_lying"].grasp_j4 == pytest.approx(-0.50)
+    assert forms["block_lying"].grip_rad == pytest.approx(-0.05)
+    assert forms["block_lying"].close_register == 482
+    assert forms["block_lying"].base_point_m == pytest.approx((0.233, 0.0006))
+    assert forms["cylinder_standing"].correction_mm == pytest.approx(
+        (27.0, 3.9, 8.9)
+    )
+    assert forms["cylinder_standing"].base_point_m == pytest.approx(
+        (0.2138, 0.0062)
+    )
+    assert forms["cylinder_standing"].base_tolerance_m == pytest.approx(0.012)
+    assert forms["cylinder_lying"].mode == "refused"
+    assert "14.7" in forms["cylinder_lying"].reason
+    assert forms["sachet"].mode == "refused"
+    assert forms["carton_vlt"].mode == "pose"
+    assert forms["carton_vlt"].recorded_pose == pytest.approx(
+        {
+            "joint1": 0.066,
+            "joint2": -0.62,
+            "joint3": -1.77,
+            "joint4": -0.45,
+            "joint5": 0.0,
+        }
+    )
+
+
+def test_fit_with_j4_keeps_the_measured_depth(urdf) -> None:
+    target = [0.2406, 0.0100, -0.0590]
+    result = fit_with_j4(
+        target, _tcp(urdf), j2=-0.6618, j3=-1.80117, j4=-0.50, j5=0.0
+    )
+    assert result["joints"][3] == pytest.approx(-0.50)
+    assert abs(result["joints"][0]) < 0.20
+    assert result["j4_source"] == "form"
+    # The TCP is deliberately not on the fitted xy: the pads are the contact.
+    assert result["xy_error_mm"] > 3.0
+
+
+def test_form_radius_gate_uses_the_measured_point(urdf) -> None:
+    # The standing cylinder's +27 mm aim puts the corrected target at 0.263 m,
+    # beyond the 0.255 m band, while the object itself is at 0.2359 m. The
+    # measured point is the right gate for a fixed-j4 form.
+    target = [0.2629, 0.0101, -0.046]
+    result = fit_with_j4(
+        target, _tcp(urdf), j2=-0.6618, j3=-1.80117, j4=-0.365, j5=0.0
+    )
+    target_reasons = validate_grasp_target(
+        target, result, 999.0, (0.220, 0.255)
+    )
+    assert any("outside 0.22-0.255 m" in item for item in target_reasons)
+    point_reasons = validate_grasp_target(
+        target, result, 999.0, (0.220, 0.255), radius_m=0.2359
+    )
+    assert point_reasons == []
+
+
+def test_task_plan_uses_the_measured_block_form(
+    mapping, clock, takeover, tmp_path
+) -> None:
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        _prepare_view(service, takeover, clock)
+        plan = service.task_plan("block_lying")
+        assert plan["valid"], plan
+        assert plan["form_id"] == "block_lying"
+        assert plan["point"][:2] == pytest.approx([0.233, 0.0006], abs=1e-6)
+        assert plan["grasp_joints"]["joint4"] == pytest.approx(-0.50, abs=1e-6)
+        assert plan["fit"]["j4_source"] == "form"
+        assert plan["fit"]["j4_fit_rad"] != pytest.approx(-0.50)
+        close = plan["steps"][2]["commands"]
+        assert close[0]["target_rad"] == pytest.approx(-1.6)
+        assert close[1]["target_rad"] == pytest.approx(-0.05)
+        # A deep close needs a longer release-open than the cube's 0.45 s.
+        release_open = plan["steps"][5]["commands"][2]
+        assert release_open["duration_s"] == pytest.approx(0.58, abs=0.01)
+        assert any(
+            item["code"] == "FORM_J4_MEASURED" for item in plan["warnings"]
+        )
+        # The default form still produces the historical cube plan.
+        default = service.task_plan()
+        assert default["form_id"] == "cube_39"
+        assert default["grasp_j4"] is None
+        assert default["grasp_joints"]["joint4"] == pytest.approx(
+            default["fit"]["joints"][3], abs=1e-6
+        )
+        cylinder = service.task_plan("cylinder_standing")
+        assert cylinder["valid"], cylinder
+        assert cylinder["grasp_joints"]["joint4"] == pytest.approx(
+            -0.365, abs=1e-6
+        )
+        assert cylinder["correction_mm"] == pytest.approx([27.0, 3.9, 8.9])
+    finally:
+        service.close()
+
+
+def test_task_plan_refuses_unusable_forms(
+    mapping, clock, takeover, tmp_path
+) -> None:
+    service = _service(tmp_path, mapping, clock, takeover)
+    try:
+        lying = service.task_plan("cylinder_lying")
+        assert lying["valid"] is False
+        assert lying["errors"][0]["code"] == "FORM_REFUSED"
+        assert lying["form_id"] == "cylinder_lying"
+        assert "14.7" in lying["errors"][0]["message"]
+        carton = service.task_plan("carton_vlt")
+        assert carton["valid"] is False
+        assert carton["errors"][0]["code"] == "FORM_POSE_ONLY"
+        assert carton["form"]["recorded_pose"]["joint3"] == pytest.approx(-1.77)
+    finally:
+        service.close()
+
+
+def test_task_api_selects_a_form_and_rejects_an_unknown_one(
+    tmp_path, mapping, clock, takeover
+) -> None:
+    settings = _pose_settings(tmp_path)
+    app = create_app(settings=settings, clock=clock)
+    with TestClient(app) as client:
+        lease = client.post(
+            "/api/control/acquire",
+            json={"session_id": "api-form", "ttl_s": 600},
+        ).json()
+        view = takeover.preset("view_table").joints
+        targets = [
+            {"joint": name, "target_rad": view[name], "duration_s": 3.2}
+            for name in ARM_JOINTS
+        ]
+        preview = client.post(
+            "/api/motion/preview",
+            json={"session_id": "api-form", "targets": targets},
+        ).json()
+        assert preview["valid"], preview
+        client.post(
+            "/api/motion/execute",
+            headers={"Idempotency-Key": "api-form-view"},
+            json={
+                "session_id": "api-form",
+                "lease_id": lease["lease_id"],
+                "preview_token": preview["preview_token"],
+                "command_id": preview["command_id"],
+                "targets": targets,
+            },
+        )
+        clock.advance(3.5)
+        assert client.get("/api/state").status_code == 200
+
+        plan = client.post(
+            "/api/task/plan", json={"form": "block_upright"}
+        ).json()
+        assert plan["valid"] is True, plan
+        assert plan["form_id"] == "block_upright"
+        assert plan["grasp_joints"]["joint4"] == pytest.approx(-0.39, abs=1e-6)
+
+        unknown = client.post("/api/task/plan", json={"form": "not_a_form"})
+        assert unknown.status_code == 422
+        assert unknown.json()["error"]["code"] == "UNKNOWN_TASK_FORM"
