@@ -81,7 +81,7 @@ unit, optional backend token auth and the post-change G8 smoke.
   source tree/archive is pinned by SHA-256 without publishing it.
 - `docs/operations/PREFLIGHT.md` and `RUNBOOK.md`; `tools/check_evidence_manifest.py`
   validates that released evidence paths exist and have a README.
-- The gateway installer now runs the host wrapper as `pi:docker` instead of
+- The gateway installer now runs the host wrapper as `<ROBOT_USER>:docker` instead of
   root; the live 8765 service was reinstalled and verified on 2026-11-23.
 - `armpi-gateway-pose.service` for the 8766 pose/motion gateway; it is
   installed disabled and was verified with an explicit start.
@@ -203,9 +203,9 @@ Offline only; no hardware motion and no new algorithms. Follow-up to the
   target (never a zero-duration point), so the gateway's 25 ms segment floor
   always holds.
 - `armpi_safety` real node installed in the persistent
-  `/home/ubuntu/shared/safety_ws` overlay (`arm_interfaces`,
+  `/home/<user>/shared/safety_ws` overlay (`arm_interfaces`,
   `armpi_grasp_planner`, `armpi_safety`); `urdf_parser_py` is supplied from
-  `/home/ubuntu/shared/armpi_tools`. See
+  `/home/<user>/shared/armpi_tools`. See
   [`evidence/armpi_safety_install_20261123/`](evidence/armpi_safety_install_20261123/README.md).
 - CI step for `armpi_safety/test/test_policy.py`,
   `armpi_grasp_planner/test/test_joint_limits.py` and `test_candidates.py`, and
@@ -1120,7 +1120,7 @@ random-placement 24-pair trial).
 
 - `tools/net/armpi-clock-sync.sh` and `install-clock-sync.sh`: a laptop-pushed
   systemd user timer every 60 s keeps the Pi ~2 s ahead of the workstation.
-  The dedicated key is passphrase-free but restricted on the robot to the
+  The dedicated key is restricted on the robot to the
   forced command `/usr/local/sbin/armpi-clock-set` (`get` or `set <epoch>`); it
   cannot open a shell. Documented in `docs/hardware/ros_environment.md`.
 
@@ -1361,14 +1361,14 @@ random-placement 24-pair trial).
 
 - **The robot is now inbound-locked to the direct Ethernet cable.** A
   default-deny `inet lockdown` table accepts only `eth0` (the point-to-point
-  link to the laptop); `wlan0` is outbound-only except DHCP replies. SSH
+  link to the laptop); `<ROBOT_WIFI_IF>` is outbound-only except DHCP replies. SSH
   password authentication is off, `wayvnc` and the vendor `remote.service`
   (unauthenticated TCP 9026) are disabled, and `armpi-gateway` now binds
-  `10.42.0.218:8765`. Tailscale was already absent. The nftables service is
+  `<ROBOT_LINK_IP>:8765`. Tailscale was already absent. The nftables service is
   enabled at boot, with a drop-in so `systemctl stop nftables` no longer
   flushes docker's NAT table. Studio and the Humble MoveIt container were
   repointed to the wired link; `tools/humble_moveit/cyclonedds-laptop.xml`
-  now binds `enx00e04ca373c7`. Install/rollback/verification:
+  now binds `<USB_ETH_IF>`. Install/rollback/verification:
   `docs/hardware/network_access.md`.
 
 ### Fixed
@@ -1500,10 +1500,10 @@ random-placement 24-pair trial).
   vendor model's `base_link.STL` (0.289 × 0.177 × 0.076 m). The measured floor
   is still published separately by `tools/phase2/table_collision.py`.
 - **DDS moved from the office WiFi to the wired link.** The WiFi path
-  (`wlp4s0 10.51.128.246 ↔ wlan0 10.51.128.226`) reached 100 % packet loss
+  (`<HOST_WIFI_IF> <OPERATOR_WIFI_IP> ↔ <ROBOT_WIFI_IF> <ROBOT_WIFI_IP>`) reached 100 % packet loss
   while both nodes stayed up and DDS discovery survived, so no robot data
   reached the laptop. Both `cyclonedds.xml` files now bind
-  `enx00e04ca373c7` (10.42.0.1) and `eth0` (10.42.0.218); the WiFi versions are
+  `<USB_ETH_IF>` (`<OPERATOR_LINK_IP>`) and `eth0` (`<ROBOT_LINK_IP>`); the WiFi versions are
   kept as `*.wifi.bak`.
 - **Vendor stack restart re-initialises the servos.** Restarting
   `start_node.service` moved the arm from the folded grasp pose to the vendor
@@ -1517,11 +1517,11 @@ random-placement 24-pair trial).
   instead of wheel rps; `/cmd_vel ±0.05 m/s` publishes `±9.1` duty and moves
   the base ≈55 mm forward/back. Record:
   `evidence/phase2/onsite_20261118/chassis_motor_channels_20261118.md`.
-- **The wireless link is now the default.** Robot `wlan0` rejoins the open
-  office SSID `tjyx_office` (`10.51.128.226/23`, NM profile
-  `tjyx_office-robot` recreated, AP `HW-5401EF08` autoconnect off); the robot's
-  CycloneDDS binds `wlan0` (wired backup `.bak_eth0_20261118`), the laptop's
-  binds `wlp4s0`, and the gateway binds `10.51.128.226`. Verified SSH, DDS
+- **The wireless link is now the default.** Robot `<ROBOT_WIFI_IF>` rejoins the open
+  office SSID `<WIFI_SSID>` (`<ROBOT_WIFI_IP>/23`, NM profile
+  `<WIFI_SSID>-robot` recreated, AP `<AP_ID>` autoconnect off); the robot's
+  CycloneDDS binds `<ROBOT_WIFI_IF>` (wired backup `.bak_eth0_20261118`), the laptop's
+  binds `<HOST_WIFI_IF>`, and the gateway binds `<ROBOT_WIFI_IP>`. Verified SSH, DDS
   (`/joint_states`, `/battery` 8289 mV, `/tf` 12.5 Hz) and gateway HTTP. The
   core restart left the arm unmoved; the camera launch was restarted (6.5 fps
   in-container) but cross-host image topics drop to ~2 Hz over WiFi — use the
@@ -1572,7 +1572,7 @@ random-placement 24-pair trial).
   named-state executor and the plan-JSON executor require a safety approval
   before execution.
 - The real MoveIt graph now requires the link fixes: the laptop link is a plain
-  static `10.42.0.1/24` (not NetworkManager `shared`), EEE is disabled, and the
+  static `<OPERATOR_LINK_IP>/24` (not NetworkManager `shared`), EEE is disabled, and the
   container's CycloneDDS config is mounted at `/config/` instead of under
   `/workspace` (a 0-byte placeholder bug).
 
@@ -2039,7 +2039,7 @@ random-placement 24-pair trial).
 - `FiducialDetector` refines the PnP pose with `solvePnPRefineLM` by default
   (`refine_pose=True`), removing the fronto-parallel IPPE ambiguity.
 - `tools/humble_moveit/cyclonedds-laptop.xml` now binds the direct-Ethernet NIC
-  `enx00e04ca373c7` (the robot config is on `eth0`).
+  `<USB_ETH_IF>` (the robot config is on `eth0`).
 - Hardware/phase docs corrected: 95% → 87% disk, wired link current, and the
   superseded body→optical numbers (89.34°, `[15.4, 10.0, -28.3] mm`) replaced
   by the full-precision result (89.798°, `[5.4, 10.1, -27.4] mm`).
@@ -2124,7 +2124,7 @@ random-placement 24-pair trial).
 ### Verified (real hardware, 2026-11-17)
 
 - Persistent gateway installed on the Pi host: `armpi-gateway.service` is
-  `enabled` and `active`, bound to `10.42.0.218:8765`. `/health`,
+  `enabled` and `active`, bound to `<ROBOT_LINK_IP>:8765`. `/health`,
   `/battery` (7424 mV), `/camera/status` (640×400 `bgr8`) and token 401 were
   re-checked through the service. `systemctl stop` produced a clean SIGTERM
   (`received signal 15`), released port 8765 and removed the in-container
@@ -2183,8 +2183,8 @@ random-placement 24-pair trial).
 - Private vendor `servo_controller.launch.py` (not in this repository):
   removed `name='controller_manager'`, which also renamed the internal
   `ServoManager` and created duplicate nodes/action servers.
-- Corrected the live DDS topology in the Phase 1 docs: robot `wlan0` ↔ laptop
-  `wlp4s0` (office WiFi); direct Ethernet is an SSH fallback, not the current
+- Corrected the live DDS topology in the Phase 1 docs: robot `<ROBOT_WIFI_IF>` ↔ laptop
+  `<HOST_WIFI_IF>` (office WiFi); direct Ethernet is an SSH fallback, not the current
   CycloneDDS interface. Recorded that the camera launch can be killed and must
   be checked/restarted with the persistent `docker exec -d ... exec` form, and
   that a running Humble container keeps the old bind-mounted
@@ -2322,7 +2322,7 @@ random-placement 24-pair trial).
 - `demo.launch.py`: added `use_rviz` (default `true`) for headless runs.
 - Rewrote the vendor `armpi_ultra_description` launch files
   (`display.launch.py`, `rviz.launch.py`, `robot_description.launch.py`):
-  removed the `need_compile` requirement and the hardcoded `/home/ubuntu` /
+  removed the `need_compile` requirement and the hardcoded `/home/<user>` /
   `mentorpi_description` paths. `colcon test` for the package now passes
   (12 tests, 0 failures, 1 skipped).
 - URDF arm limits and `effort="1000"` now carry explicit `PROVISIONAL` comments.
