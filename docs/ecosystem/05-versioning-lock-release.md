@@ -260,7 +260,8 @@ modules:
    （第一阶段已实现）。
 9. 提供 `--module-root` 时，每个 module 的 `commit` 必须存在于对应本地检出，
    且该提交的 `VERSION` 与 `capability.yaml`（`contract_hash`、范围）必须与
-   锁一致（第一阶段已实现）。
+   锁一致，`system_api` 范围必须包含 `configs/api.yaml` 的 `api_version`
+   （第一阶段已实现）。
 10. *第二阶段*：每个 module 的 `commit` 可从声明的 `url` 取得；`tag` 非空时
     指向同一提交，且不得是浮动 ref。
 11. *第二阶段*：`capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。

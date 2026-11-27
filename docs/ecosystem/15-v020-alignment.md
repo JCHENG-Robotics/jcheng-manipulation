@@ -150,7 +150,8 @@ modules:
 7. `interfaces` 范围包含锁内契约版本。
 8. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`。
 9. 提供 `--module-root` 时，pinned commit 必须存在，且该提交的 `VERSION`、
-   `capability.yaml` 的 `contract_hash` 与范围必须与锁一致。
+   `capability.yaml` 的 `contract_hash` 与范围必须与锁一致，`system_api`
+   范围必须包含 `configs/api.yaml` 的 `api_version`。
 
 第二阶段（需要 lockfile v2）：
 
@@ -277,13 +278,15 @@ modules:
 
 ### 7.4 `system_api` 语义
 
-当前所有能力仓库都写 `system_api: >=0.1,<0.2`，但 `jcheng-interfaces` 的
-schema 只把它定义为字符串，没有说明它对应系统的哪个版本轴；系统本身是
-`0.3.0-dev0`。需要二选一：
+已采用 **A**（2026-11-27）：`system_api` 定义为系统 HTTP/WS 公共 API 版本，
+与系统 `VERSION` 解耦。
 
-- **A**：定义为系统 HTTP/WS 公共 API 版本（与系统 `VERSION` 解耦），
-  在 `jcheng-system` 中提供 `configs/api.yaml` 并纳入 `verify_lock`；
-- **B**：删除该字段，直到公共 API 版本真正独立发布。
+- `jcheng-system/configs/api.yaml` 提供 `api_version: "0.1.0"` 与路径；
+- `/v1` 是 HTTP 路径主版本，`api_version` 是能力仓库声明范围所用的语义版本；
+- `verify_lock.py --module-root` 会验证每个模块 `capability.yaml` 的
+  `system_api` 范围包含该值。
+
+备选 B（删除字段）不再采用。
 
 ## 8. 实施顺序
 
