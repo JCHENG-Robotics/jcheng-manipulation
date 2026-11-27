@@ -273,6 +273,12 @@ modules:
 仍未接入，不在本轮声称范围内。工作流需在 `.github` 合并后才可被仓库以
 `@v1`（或临时 `@main`）引用。
 
+**2026-11-27 试点结果：** `jcheng-interfaces` 的 draft PR #15 以修复提交
+`9ef38a5`（`.github` PR #19）为 pin，`org-contract-check / contract-check`
+在真实 interfaces 仓库上通过（manifest、Schema、硬件原语、pytest、
+VERSION guard）。PR #19 合并后需把 pin 换成合并提交或 `v1` 标签，再转为
+ready；`v1` 标签的“可移动/不可移动”策略仍需决定。
+
 ### 7.3 锁文件首批 `modules` 与发布标识
 
 - 首批纳入 `teleop 0.3.0`、`applications 0.1.0`、`studio 0.7.0`（ArmPi 组合）；
