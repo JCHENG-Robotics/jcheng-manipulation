@@ -1,6 +1,6 @@
 # v0.2.0 生态对齐包
 
-> 状态：**审计完成；文档修正与 2026-11-27 验收快照就绪；4 项决策待确认。**
+> 状态：**审计完成；文档修正与 2026-11-27 验收快照就绪；4 项决策已按推荐实现（待合并）。**
 > 方法：12 个仓库先 `git fetch --prune`，再读取 `origin/main`、标签与 GitHub API；
 > 不以工作区分支的过期内容为依据。
 > 边界：只读审计 + 文档；不改运行时代码、不迁移 `jcheng-perception`、不改
@@ -263,10 +263,15 @@ modules:
 
 ### 7.2 组织级 CI 复用策略
 
-- **A（推荐）**：先填实 3 个高风险工作流（`reusable-contract-check`、
-  `reusable-security`、`reusable-release`），仓库逐步引用；其余保留仓库自有。
-- **B**：7 个全部填实并迁移 12 个仓库，一次性统一。
-- **C**：明确放弃复用，删除骨架，把 `06` 改为“仓库自有 CI + 组织审计”。
+已采用 **A**（2026-11-27）：先填实 `reusable-contract-check`、
+`reusable-security`、`reusable-release` 三个高风险工作流；其余三个
+（`reusable-python`、`reusable-ros-build`、`reusable-integration-mock`）
+保持骨架，仓库逐步引用。
+
+实现边界：三个工作流只使用 `actions/checkout`（完整 SHA）与 shell；
+`reusable-release` 默认只创建 draft；CodeQL、dependency review、SBOM 与签名
+仍未接入，不在本轮声称范围内。工作流需在 `.github` 合并后才可被仓库以
+`@v1`（或临时 `@main`）引用。
 
 ### 7.3 锁文件首批 `modules` 与发布标识
 

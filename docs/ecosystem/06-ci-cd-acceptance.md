@@ -38,14 +38,19 @@
 
 位于 `JCHENG-Robotics/.github/.github/workflows/`，用 `@v1` 引用。
 
-| 工作流 | 输入 | 主要步骤 | 输出 |
-|---|---|---|---|
-| `reusable-python.yml` | `python-version`、`working-directory`、`test-command` | setup-python、缓存、ruff、pytest、coverage | 测试报告、覆盖率 |
-| `reusable-ros-build.yml` | `distro`、`image`、`packages`、`test-command` | 容器、apt 依赖、colcon build/test、test-result | colcon 日志、测试结果 |
-| `reusable-contract-check.yml` | `base-ref`、`interfaces-path` | 构建、生成 manifest、Schema lint、parity、diff、硬件原语扫描 | manifest、diff 报告 |
-| `reusable-integration-mock.yml` | `scenario-set`、`system-ref` | 启动 Mock 栈、运行场景、收集指标 | E2E 报告、日志 |
-| `reusable-security.yml` | `language` | CodeQL、dependency review、secret scan、actionlint、pin check | SARIF、摘要 |
-| `reusable-release.yml` | `version`、`lockfile` | verify lock、build、SBOM、checksums、签名、release | 发布附件 |
+| 工作流 | 输入 | 主要步骤 | 输出 | 状态（2026-11-27） |
+|---|---|---|---|---|
+| `reusable-python.yml` | `python-version`、`working-directory`、`test-command` | setup-python、缓存、ruff、pytest、coverage | 测试报告、覆盖率 | 骨架 |
+| `reusable-ros-build.yml` | `distro`、`image`、`packages`、`test-command` | 容器、apt 依赖、colcon build/test、test-result | colcon 日志、测试结果 | 骨架 |
+| `reusable-contract-check.yml` | `base-ref`、`interfaces-path`、`run-tests` | manifest、Schema、硬件原语、pytest、VERSION-bump guard | 检查日志 | 已实现 |
+| `reusable-integration-mock.yml` | `scenario-set`、`system-ref` | 启动 Mock 栈、运行场景、收集指标 | E2E 报告、日志 | 骨架 |
+| `reusable-security.yml` | `forbid-license` | secret scan、Action pin check、LICENSE hold | 检查日志 | 已实现（CodeQL/dependency review 待接） |
+| `reusable-release.yml` | `version`、`lockfile`、`artifacts`、`draft` | 版本/tag 校验、SHA256SUMS、draft release | 发布附件 | 已实现（SBOM/签名待 M8） |
+
+**2026-11-27 实现边界：** 三个“已实现”工作流只使用 `actions/checkout`
+（完整 SHA）与 shell，不引入新的第三方 Action；它们在本机对
+`jcheng-interfaces` 与 `.github` 跑通了相同命令。`reusable-release` 默认只创建
+draft，发布仍需人工点击；SBOM、签名与 dependency review 不在本轮声称范围内。
 
 要求：
 
