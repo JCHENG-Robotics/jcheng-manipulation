@@ -273,11 +273,10 @@ modules:
 仍未接入，不在本轮声称范围内。工作流需在 `.github` 合并后才可被仓库以
 `@v1`（或临时 `@main`）引用。
 
-**2026-11-27 试点结果：** `jcheng-interfaces` 的 draft PR #15 以修复提交
-`9ef38a5`（`.github` PR #19）为 pin，`org-contract-check / contract-check`
-在真实 interfaces 仓库上通过（manifest、Schema、硬件原语、pytest、
-VERSION guard）。PR #19 合并后需把 pin 换成合并提交或 `v1` 标签，再转为
-ready；`v1` 标签的“可移动/不可移动”策略仍需决定。
+**2026-11-27 试点结果：** `jcheng-interfaces` 的 PR #15 先用修复提交
+`9ef38a5` 跑通 `org-contract-check / contract-check`；`.github` #19 合并后，
+`v1` 标签指向 `065e390`（含修复），试点 pin 已改为 `@v1` 并转为 ready。
+`v1` 是可移动 major 别名，移动规则见 `05` §7.4。
 
 ### 7.3 锁文件首批 `modules` 与发布标识
 
