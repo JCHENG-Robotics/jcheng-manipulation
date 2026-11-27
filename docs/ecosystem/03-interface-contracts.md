@@ -541,6 +541,19 @@ source_hashes:
 这是**唯一权威**。安全 YAML、MoveIt 限位、网关映射、应用预设必须由
 `tools/render_configs.py` 生成；CI 检查生成物与源一致。
 
+### 8.2.1 设备描述与 `robot-profile.v1` 的边界
+
+`jcheng-devices` v0.1.0 引入 `device-profile.v1` 与 `capability-profile.v1`
+两个**仓库内** Schema，用于设备注册、能力匹配与仿真配置。它们不属于本节定义的
+契约层：
+
+- 每机器人的 `robot-profile.v1` 仍是关节限位、伺服映射、工作空间与工作台平面的
+  运行时唯一权威；
+- 设备描述只保存型号、类别、关节角色、能力与验证标记，不包含 `servo_id`、
+  `direction`、实测脉冲、命名动作 profile 或 `source_hashes`；
+- 重叠的关节限位必须由兼容性检查核对，不得复制成第二份运行时配置；
+- 提升为跨仓库契约前，必须先在本仓库完成提案、评审与版本化。
+
 ### 8.3 `evidence-record.v1.schema.json`
 
 ```json

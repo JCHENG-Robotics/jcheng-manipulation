@@ -23,6 +23,7 @@ L3  jcheng-manipulation     v1.0.0 冻结实验基线（参考，不参与运行
     jcheng-teleop           遥操作能力（意图源）
     jcheng-learning         数据/训练/策略推理（意图源）
     jcheng-mobile           移动底盘能力（意图源）
+    jcheng-devices          离线设备库：设备/能力描述与校验（不参与运行时）
 L4  jcheng-applications     任务编排与操作界面（网关客户端）
 ```
 
@@ -39,6 +40,10 @@ jcheng-applications ──HTTP/WS──> jcheng-system ──ROS──> 厂商�
   jcheng-teleop        jcheng-learning
   jcheng-mobile        (能力层只依赖契约与系统客户端库)
 ```
+
+`jcheng-devices` 是离线设备库，不在运行时依赖图中；它只读取声明式设备与能力
+描述文件，不打开设备、不加入 DDS 域，也不构成控制通道。设备 I/O 与运动仍归
+`jcheng-system`，每机器人的 `robot-profile.v1` 仍是运行时权威。
 
 禁止的方向：
 
@@ -283,6 +288,7 @@ jcheng-system/
 | `jcheng-learning` | 数据集、训练、策略推理 | 数据集、模型、技能意图 | 直接运动命令、硬件设备 |
 | `jcheng-mobile` | 底盘能力封装、未来的定位/导航 | 底盘意图 | 电机驱动话题、里程计伪造 |
 | `jcheng-applications` | 任务编排、Studio/操作界面 | 网关 API 调用 | ROS 硬件话题、rclpy 直连 |
+| `jcheng-devices` | 离线设备库：设备注册、型号/能力描述、离线校验 | 描述文件、校验结果、注册摘要 | 设备访问、DDS 域、运动命令、独立控制通道 |
 
 ### 4.1 新模块接入清单
 
