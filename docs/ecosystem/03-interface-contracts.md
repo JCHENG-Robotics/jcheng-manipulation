@@ -554,6 +554,19 @@ source_hashes:
 - 重叠的关节限位必须由兼容性检查核对，不得复制成第二份运行时配置；
 - 提升为跨仓库契约前，必须先在本仓库完成提案、评审与版本化。
 
+### 8.2.2 场景 Profile 与 SCEN 层
+
+`jcheng-scenarios` v0.1.0 引入 `scenario-registry.v1`、`scenario-profile.v1` 以及
+环境、语义、任务、能力需求、运行约束、评测六个 Profile Schema。它们同样是
+**仓库内** v1 文档，不属于本节定义的契约层：
+
+- 场景文件只声明环境、语义、任务条件、能力需求与评测指标，不包含执行计划、
+  设备兼容性结论或评测结果；
+- 场景能力需求使用抽象的 dotted capability 名称，不绑定设备 ID；
+- 与 `jcheng-devices` 的能力词汇必须先版本化对齐，不能形成循环依赖；
+- applications、simulation、benchmark 消费场景文件前，必须先提案并固定版本；
+- 场景约束不能替代 `jcheng-system` 的运行时安全机制。
+
 ### 8.3 `evidence-record.v1.schema.json`
 
 ```json

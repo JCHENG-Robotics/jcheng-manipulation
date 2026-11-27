@@ -107,6 +107,8 @@
 M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；
 R5 契约 v0.2.0 已发布并在 7 个消费仓库落地；v0.2.0 对齐包见
 [15-v020-alignment.md](15-v020-alignment.md)。G8/底盘实机待授权。
+SCEN 层定义见 [16-scen-layer.md](16-scen-layer.md)：`jcheng-scenarios` v0.1.0
+是离线声明式场景库，位于运行时依赖图之外。
 
 ## 6. 术语
 
@@ -141,3 +143,4 @@ R5 契约 v0.2.0 已发布并在 7 个消费仓库落地；v0.2.0 对齐包见
 | 2026-11-25 | S17 真实 MoveIt plan-only 通过：MoveIt 2.5.10、domain 42、`SUCCESS`、8 点轨迹、`plan_only=true`；控制器 action 0 个服务端、无命令 topic；未执行运动 |
 | 2026-11-27 | R5 停止确认契约：interfaces v0.2.0 签名标签 GitHub 验证通过；system 增加 `confirmation`/`physical_stop`，pin v0.2.0（PR #34）；未执行运动 |
 | 2026-11-27 | v0.2.0 对齐审计：7/8 消费仓库已采用；perception 未迁移；锁文件 `modules` 拓扑与 2026-11-27 验收快照就绪 |
+| 2026-11-27 | SCEN 层准入：`jcheng-scenarios` v0.1.0 离线声明式场景库；8 份仓库内 Schema、校验 CLI 与 `ore_sorting` 参考场景；不加入 DDS、不访问设备、不执行任务；消费方均为 Not started |

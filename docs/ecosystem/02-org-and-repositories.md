@@ -24,6 +24,7 @@ L3  jcheng-manipulation     v1.0.0 冻结实验基线（参考，不参与运行
     jcheng-learning         数据/训练/策略推理（意图源）
     jcheng-mobile           移动底盘能力（意图源）
     jcheng-devices          离线设备库：设备/能力描述与校验（不参与运行时）
+    jcheng-scenarios        SCEN 声明式场景库：场景 Profile 与离线校验（不参与运行时）
 L4  jcheng-applications     任务编排与操作界面（网关客户端）
 ```
 
@@ -44,6 +45,12 @@ jcheng-applications ──HTTP/WS──> jcheng-system ──ROS──> 厂商�
 `jcheng-devices` 是离线设备库，不在运行时依赖图中；它只读取声明式设备与能力
 描述文件，不打开设备、不加入 DDS 域，也不构成控制通道。设备 I/O 与运动仍归
 `jcheng-system`，每机器人的 `robot-profile.v1` 仍是运行时权威。
+
+`jcheng-scenarios` 是 SCEN 层声明式场景库，不在运行时依赖图中。它记录场景注册表、
+环境/语义/任务/能力/运行/评测 Profile，并提供仓库内 JSON Schema 校验器；不加入
+DDS 域、不启动 ROS 2 节点、不打开设备、不执行任务、不发布控制或运动意图。场景
+约束不能替代 `jcheng-system` 的安全机制。applications、simulation、benchmark 与
+设备库只读取固定版本的声明文件；跨仓库消费前必须走 `jcheng-interfaces` 评审。
 
 禁止的方向：
 
@@ -289,6 +296,7 @@ jcheng-system/
 | `jcheng-mobile` | 底盘能力封装、未来的定位/导航 | 底盘意图 | 电机驱动话题、里程计伪造 |
 | `jcheng-applications` | 任务编排、Studio/操作界面 | 网关 API 调用 | ROS 硬件话题、rclpy 直连 |
 | `jcheng-devices` | 离线设备库：设备注册、型号/能力描述、离线校验 | 描述文件、校验结果、注册摘要 | 设备访问、DDS 域、运动命令、独立控制通道 |
+| `jcheng-scenarios` | SCEN 声明式场景库：注册表、环境/语义/任务/能力/运行/评测 Profile、离线校验 | 声明文件、校验结果 | 运行时执行、DDS 域、设备访问、控制/运动意图 |
 
 ### 4.1 新模块接入清单
 
