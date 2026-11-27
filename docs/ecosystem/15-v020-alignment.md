@@ -6,7 +6,8 @@
 > 边界：只读审计 + 文档；不改运行时代码、不迁移 `jcheng-perception`、不改
 > `jcheng-manipulation v1.0.0`、不连接机器人、不发送运动命令。
 > 结论：契约 v0.2.0 已在 **7 个消费仓库**落地；`jcheng-perception` 是唯一未迁移的
-> L3 消费方；组织级复用 CI 仍是 M1 骨架；锁文件尚未表达模块组合。
+> L3 消费方；组织级复用 CI 仍是 M1 骨架；锁文件已按 v1 字段表达首批 3 个模块
+> （分支待合并）。
 
 ## 1. 这份对齐包解决什么问题
 
@@ -88,14 +89,36 @@ perception 的情况不同：它的代码没有导入 `jcheng_interfaces`，其�
 
 | 处置 | 仓库 | 理由 |
 |---|---|---|
-| 首批纳入 | `jcheng-teleop`、`jcheng-applications`、`jcheng-studio`、`jcheng-mobile` | 运行时可提交意图 / 操作台 |
+| 首批纳入 | `jcheng-teleop`、`jcheng-applications`、`jcheng-studio` | 与 ArmPi 运行时组合相关、且已采用 v0.2.0 契约 |
 | 迁移后纳入 | `jcheng-perception` | 先满足 3.1 第 2 条 |
+| 暂不纳入 | `jcheng-mobile` | 移动平台能力，尚未进入 ArmPi 运行时组合 |
 | 暂不纳入 | `jcheng-learning` | 当前离线，无运行时节点；M3 出现推理节点后再纳入 |
 | 不纳入 | `jcheng-simulation` | 域 43 离线被控对象，不在运行时组合中 |
 | 不纳入 | `jcheng-ops`、`jcheng-benchmark`、`jcheng-research` | 仅 HTTP / 离线 / 调研 |
 | 不纳入 | `jcheng-manipulation` | 冻结基线，不是运行时依赖 |
 
-### 3.2 字段与粒度
+### 3.2 字段与粒度（两阶段）
+
+**约束：`lockfile.v1.schema.json` 计入契约哈希。** 它位于
+`jcheng-interfaces/schemas/`，修改会改变所有消费者运行时握手的哈希；
+因此富字段必须与一次契约发布（v0.3.0）一起做。
+
+**第一阶段（当前 v1，已实现）** 只允许三个字段：
+
+```yaml
+modules:
+  jcheng-teleop:
+    version: "0.3.0"
+    commit: "eca822399f03c5ca6228306ffc931d764e766941"
+    interfaces: ">=0.2,<0.3"
+```
+
+`verify_lock.py` 校验提交格式与范围；提供 `--module-root` 时，从本地检出的
+pinned commit 读取 `VERSION` 与 `capability.yaml`，核对版本、契约哈希与范围。
+v1 没有 `url`/`tag`，所以远程可达性检查留到第二阶段。
+
+**第二阶段（契约 v0.3.0 / lockfile v2）** 增加
+`url`、`tag`、`layer`、`contract_hash`、`system_api`、`capability_sha256`：
 
 ```yaml
 modules:
@@ -111,7 +134,7 @@ modules:
     capability_sha256: "sha256:<capability.yaml 规范化哈希>"
 ```
 
-规则：
+规则（第二阶段字段）：
 
 - **`commit` 是权威标识**；`version` 与 `tag` 只是可读性与发布语义，不得替代提交。
 - **禁止浮动 ref**（`main`、`latest` 等）进入锁文件；`tag` 非空时必须指向同一提交。
@@ -122,21 +145,25 @@ modules:
 
 ### 3.3 验证规则（接 `05` §4.3）
 
-在现有 6 条之外新增：
+第一阶段已实现：
 
-7. 每个 module 的 `commit` 可从声明的 `url` 取得；`tag` 非空时指向同一提交。
-8. `capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。
-9. `interfaces` 范围包含锁内契约版本；`contract_hash` 与锁内哈希完全一致。
-10. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`。
-11. `channel: stable` 要求每个 module 的 `tag` 非空且为签名标签；
-    `channel: dev|rc` 允许 `tag: null`。
+7. `interfaces` 范围包含锁内契约版本。
+8. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`。
+9. 提供 `--module-root` 时，pinned commit 必须存在，且该提交的 `VERSION`、
+   `capability.yaml` 的 `contract_hash` 与范围必须与锁一致。
+
+第二阶段（需要 lockfile v2）：
+
+10. 每个 module 的 `commit` 可从声明的 `url` 取得；`tag` 非空时指向同一提交。
+11. `capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。
+12. `channel: stable` 要求每个 module 的 `tag` 非空且为签名标签。
 
 ### 3.4 发布标识
 
-当前锁文件写的是 `release: "2026.11.0-m3"`，与 `05` §4.2 的 `2026.12.0`
-约定不一致，且把里程碑号放进了发布标识。建议：
+锁文件原先写 `release: "2026.11.0-m3"`，与 `05` §4.2 的 `2026.12.0` 约定不一致，
+且把里程碑号放进了发布标识。本轮已改为：
 
-- `release` 采用 `YYYY.MM.PATCH`（例如 `2026.11.1`），通道仍用 `channel`；
+- `release: "2026.11.1"`，通道仍用 `channel: dev`；
 - 里程碑号只出现在 `CHANGELOG.md`、执行记录与 `verification.e2e_report` 中；
 - 契约升级（0.1→0.2）属于需要重建的组合变化，发布标识至少提升 `PATCH`，
   并在 `CHANGELOG.md` 说明原因。
@@ -242,9 +269,11 @@ modules:
 
 ### 7.3 锁文件首批 `modules` 与发布标识
 
-- 首批纳入 `teleop 0.3.0`、`applications 0.1.0`、`studio 0.7.0`、`mobile 0.1.0`；
-- `channel: dev` 允许 `tag: null`，`stable` 必须签名标签；
-- `release` 改为 `2026.11.1`，不再嵌入里程碑号。
+- 首批纳入 `teleop 0.3.0`、`applications 0.1.0`、`studio 0.7.0`（ArmPi 组合）；
+  `mobile` 暂不纳入，等移动平台进入运行时组合；
+- 第一阶段只用 v1 允许的 `version`/`commit`/`interfaces`；
+- `channel: dev` 允许无 tag，`stable` 必须签名标签（第二阶段字段）；
+- `release` 已改为 `2026.11.1`，不再嵌入里程碑号。
 
 ### 7.4 `system_api` 语义
 
@@ -261,7 +290,7 @@ schema 只把它定义为字符串，没有说明它对应系统的哪个版本�
 | 阶段 | 内容 | 风险 | 回滚 |
 |---|---|---|---|
 | P0 | 本文、`05` 规则、验收快照、`OPERATIONS.md` 修正 | 无运行时影响 | 文档 revert |
-| P1 | 锁文件 `modules` schema + `verify_lock` 扩展 + 首批 4 模块 | 中；只影响发布校验 | 恢复旧锁文件 |
+| P1 | 锁文件 `modules`（v1 字段）+ `verify_lock` 扩展 + 首批 3 模块；富字段留待契约 v0.3.0 | 中；只影响发布校验 | 恢复旧锁文件 |
 | P2 | 填实 3 个复用工作流并试点 2 个仓库 | 中；CI 变更 | 仓库改回自有 `ci.yml` |
 | P3 | perception 清单迁移（按 7.1 决定） | 中；能力仓库声明变化 | 恢复旧清单 |
 | P4 | 3 处工具常量更新 + 测试 | 低；代码 PR | revert |

@@ -201,10 +201,30 @@ verification:
 `jcheng-manipulation` 不进入 `modules`。`jcheng-learning` 在出现运行时推理
 节点之前也不进入。
 
-### 4.2.2 模块字段与粒度
+### 4.2.2 两阶段字段
 
-下面的取值来自 2026-11-27 的实际状态，用来说明字段；`4.2` 的 1.0 示例仍是
-长期目标形态。
+**约束：`lockfile.v1.schema.json` 位于 `jcheng-interfaces/schemas/`，会计入契约哈希。**
+修改它会改变所有消费者运行时握手的哈希，因此“富字段”必须与一次契约发布
+（`jcheng-interfaces` v0.3.0）一起做，不能单独改 schema。
+
+**第一阶段（当前 v1，已实现）**：`modules` 只允许三个字段。
+
+```yaml
+modules:
+  jcheng-teleop:
+    version: "0.3.0"
+    commit: "<40-hex>"
+    interfaces: ">=0.2,<0.3"
+```
+
+这一阶段由 `verify_lock.py` 校验提交格式与版本范围，并在提供
+`--module-root` 时从本地检出的 pinned commit 读取 `VERSION` 与
+`capability.yaml`，核对版本、契约哈希与范围。v1 没有 `url`/`tag` 字段，
+远程可达性检查留到第二阶段。
+
+**第二阶段（契约 v0.3.0 / lockfile v2）**：增加 `url`、`tag`、`layer`、
+`contract_hash`、`system_api` 与 `capability_sha256`。
+
 ```yaml
 modules:
   jcheng-teleop:
@@ -235,12 +255,16 @@ modules:
 4. 机器人配置文件的 SHA-256 匹配，且 `profile_version` 与内容一致。
 5. 锁文件自身通过 `lockfile.v1.schema.json` 校验。
 6. 工作区干净；任何未提交改动都使发布失败（与当前 `release_check.sh` 一致）。
-7. 每个 module 的 `commit` 可从 `url` 取得；`tag` 非空时指向同一提交，
-   且不得是浮动 ref。
-8. `capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。
-9. `interfaces` 范围包含锁内契约版本；`contract_hash` 与锁内哈希完全一致。
-10. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`。
-11. `channel: stable` 要求每个 module 的 `tag` 非空且为签名标签；
+7. `interfaces` 范围包含锁内契约版本（第一阶段已实现）。
+8. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`
+   （第一阶段已实现）。
+9. 提供 `--module-root` 时，每个 module 的 `commit` 必须存在于对应本地检出，
+   且该提交的 `VERSION` 与 `capability.yaml`（`contract_hash`、范围）必须与
+   锁一致（第一阶段已实现）。
+10. *第二阶段*：每个 module 的 `commit` 可从声明的 `url` 取得；`tag` 非空时
+    指向同一提交，且不得是浮动 ref。
+11. *第二阶段*：`capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。
+12. *第二阶段*：`channel: stable` 要求每个 module 的 `tag` 非空且为签名标签；
     `channel: dev|rc` 允许 `tag: null`。
 
 ### 4.4 依赖获取方式
