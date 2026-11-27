@@ -154,13 +154,25 @@ repos:
 
 modules:
   jcheng-teleop:
-    version: "0.1.0"
+    url: "https://github.com/JCHENG-Robotics/jcheng-teleop"
+    version: "0.3.0"
+    tag: null                    # dev/rc 允许为空；stable 必须非空
     commit: "<40-hex>"
+    layer: L3
     interfaces: ">=1.0,<2.0"
+    contract_hash: "sha256:..."
+    system_api: ">=1.0,<2.0"
+    capability_sha256: "sha256:..."
   jcheng-applications:
+    url: "https://github.com/JCHENG-Robotics/jcheng-applications"
     version: "0.1.0"
+    tag: null
     commit: "<40-hex>"
+    layer: L4
     interfaces: ">=1.0,<2.0"
+    contract_hash: "sha256:..."
+    system_api: ">=1.0,<2.0"
+    capability_sha256: "sha256:..."
 
 robot:
   name: armpi_ultra
@@ -174,6 +186,44 @@ verification:
   hardware_evidence: "evidence/2026-12-01/README.md"
 ```
 
+### 4.2.1 模块收录判据
+
+`modules` 不是“所有仓库的清单”，而是**运行时组合**。一个仓库进入 `modules`
+必须同时满足：
+
+1. 在运行时依赖图中（L3 能力或 L4 应用），能提交运动意图或消费运行时状态；
+2. 有符合 `capability-manifest.v1` 的 `capability.yaml`；
+3. 有可解析、不可变的 `commit`；
+4. 不在 `repos:` 主体中（`jcheng-interfaces` 与 `jcheng-system` 已占位）。
+
+因此 `jcheng-simulation`（域 43 离线被控对象）、`jcheng-ops`
+（仅 HTTP 健康）、`jcheng-benchmark`、`jcheng-research` 与冻结基线
+`jcheng-manipulation` 不进入 `modules`。`jcheng-learning` 在出现运行时推理
+节点之前也不进入。
+
+### 4.2.2 模块字段与粒度
+
+下面的取值来自 2026-11-27 的实际状态，用来说明字段；`4.2` 的 1.0 示例仍是
+长期目标形态。
+```yaml
+modules:
+  jcheng-teleop:
+    url: "https://github.com/JCHENG-Robotics/jcheng-teleop"
+    version: "0.3.0"
+    tag: null                    # dev/rc 允许为空；stable 必须非空
+    commit: "<40-hex>"
+    layer: L3
+    interfaces: ">=0.2,<0.3"
+    contract_hash: "sha256:..."
+    system_api: ">=0.1,<0.2"
+    capability_sha256: "sha256:<capability.yaml 规范化哈希>"
+```
+
+- `commit` 是权威标识；`version` 与 `tag` 不得替代提交。
+- `capability_sha256` 钉住声明的权限面（`safety.class`、`scopes`、
+  `runtime.ros_domains`），使“代码不变但权限声明变化”也触发锁文件更新。
+- `contract_hash` 只在模块清单声明该字段时写入，不由锁文件臆造。
+
 ### 4.3 验证规则
 
 `jcheng-system/tools/verify_lock.py` 必须检查：
@@ -185,6 +235,13 @@ verification:
 4. 机器人配置文件的 SHA-256 匹配，且 `profile_version` 与内容一致。
 5. 锁文件自身通过 `lockfile.v1.schema.json` 校验。
 6. 工作区干净；任何未提交改动都使发布失败（与当前 `release_check.sh` 一致）。
+7. 每个 module 的 `commit` 可从 `url` 取得；`tag` 非空时指向同一提交，
+   且不得是浮动 ref。
+8. `capability.yaml` 的规范化 SHA-256 等于 `capability_sha256`。
+9. `interfaces` 范围包含锁内契约版本；`contract_hash` 与锁内哈希完全一致。
+10. `modules` 中不得出现 L0/L1/L2 仓库；`jcheng-system` 只在 `repos`。
+11. `channel: stable` 要求每个 module 的 `tag` 非空且为签名标签；
+    `channel: dev|rc` 允许 `tag: null`。
 
 ### 4.4 依赖获取方式
 
