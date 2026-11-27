@@ -1,6 +1,6 @@
 # JCHENG Robotics 生态架构设计（已批准；M1–M5.2 核心、M6 离线与 S17 实机只规划完成）
 
-> 状态：**M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；G8/底盘待授权。**
+> 状态：**M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；R5 契约 v0.2.0 已发布；G8/底盘待授权。**
 > 基线：`jcheng-manipulation` 的 `v1.0.0`（提交 `b3411e4`，2026-11-23），未改动。
 > 本文档集描述目标架构、仓库初始化方案、目录结构、迁移风险与实施顺序；
 > M1–M6 已按批准范围实施，**未迁移现有代码、未修改 `v1.0.0`。**
@@ -102,7 +102,8 @@
 4. 最后评审 `05`–`07` 的版本、CI、阶段与风险。
 
 批准后已进入 M1–M5.2；M1–M3 为 Mock，M4 实机只读通过，M5.1 已合并。
-M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；G8/底盘实机待授权。
+M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；
+R5 契约 v0.2.0 已发布；G8/底盘实机待授权。
 
 ## 6. 术语
 
@@ -135,3 +136,4 @@ M5.2 核心实机通过；M6 S13 21/21、S17 真实 MoveIt plan-only 通过；G8
 | 2026-11-24 | M6 S17 离线：`jcheng_moveit` plan-only goal 构建/校验与正反测试通过；真实 MoveIt/G8/底盘待授权 |
 | 2026-11-24 | M6 校验延迟：21 条回放 mean 0.0166 ms、p95 0.0352 ms；`m6/metrics` 后合并为 PR #11 → `78c613d` |
 | 2026-11-25 | S17 真实 MoveIt plan-only 通过：MoveIt 2.5.10、domain 42、`SUCCESS`、8 点轨迹、`plan_only=true`；控制器 action 0 个服务端、无命令 topic；未执行运动 |
+| 2026-11-27 | R5 停止确认契约：interfaces v0.2.0 签名标签 GitHub 验证通过；system 增加 `confirmation`/`physical_stop`，pin v0.2.0（PR #34）；未执行运动 |

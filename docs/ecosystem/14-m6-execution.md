@@ -1,6 +1,6 @@
 # M6 执行记录（基线回放与 G8 复验）
 
-> 状态：**M6：S13 回放 21/21；S17 真实 MoveIt plan-only 通过（2026-11-25）；G8/底盘实机待授权。**
+> 状态：**M6：S13 回放 21/21；S17 真实 MoveIt plan-only 通过（2026-11-25）；R5 停止确认契约 v0.2.0 已发布（2026-11-27）；G8/底盘实机待授权。**
 > 分支：`jcheng-system` 的 `m6/replay-planning`，提交 `8e319b1`；
 > PR #8 已合并为 `427214b`，`main` CI 绿；`m6/metrics` 已合并为 PR #11 → `78c613d`。
 > 基线：`jcheng-manipulation v1.0.0`（`b3411e4`）只读引用；证据不复制、不修改。
@@ -55,6 +55,23 @@
 - 证据：[`evidence/m6-s17-20261125/`](evidence/m6-s17-20261125/)。
 - 未验证：轨迹执行、控制器桥接、带障碍物的规划、pose/Cartesian goal、多目标；
   真实响应尚未接入 `jcheng_runtime` 契约。
+
+### R5 停止确认契约（v0.2.0，2026-11-27 完成）
+
+- `jcheng-interfaces` 的 `StopResponse` 增加 `confirmation`
+  （`request_accepted` / `backend_confirmed`）、`physical_stop=unverified`
+  和可选 `requested_at`；IDL/ROS 消息不变。
+- `VERSION` 0.2.0，契约哈希
+  `sha256:afca22a42f7163e0351d185d5a8577b0b51f2f3da4b92278f161a4a7d2c35b1c`；
+  签名标签 `v0.2.0` 已通过 GitHub 验证（`verified=true, reason=valid`）。
+- system `StopResult`/HTTP 响应已带字段；mock 在活动会话中完成 `ABORTED` 时为
+  `backend_confirmed`，空闲 stop 和 vendor executor 的“先返回后终态”路径为
+  `request_accepted`；`physical_stop` 始终 `unverified`。
+- system contract/lock 已 pin v0.2.0（PR #34）；CI 的四个 job 从 v0.2.0 tag
+  clone interfaces。system 离线测试 56 项通过，`verify_lock --remote` 通过。
+- 仍待：`jcheng-mobile`/`jcheng-perception` 的 `>=0.1,<0.2` 约束需放宽到
+  `>=0.2,<0.3`；R5 不改变 ROS action cancel 语义。
+- 本轮没有机器人运动、没有设备访问、没有重启厂商容器。
 
 ### S14 底盘脉冲
 
