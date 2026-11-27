@@ -64,15 +64,16 @@ perception 的情况不同：它的代码没有导入 `jcheng_interfaces`，其�
    `locks/ecosystem.lock.yaml` 均指向 `0.2.0 / v0.2.0 / b03a054`（PR #34 → `9cd1c8f`）。
 3. `jcheng-perception` 仍是早期清单格式：没有 `schema_version`、没有
    `contract:` 块、没有 `safety.class`，不符合 `capability-manifest.v1`。
-4. 全部 12 个产品仓库各自维护一份 `.github/workflows/ci.yml`，
-   **没有仓库引用** `.github` 的 `reusable-*` 工作流。
-5. `.github` 的 7 个复用工作流中，**6 个仍是 M1 骨架**
-   （`reusable-python`、`reusable-ros-build`、`reusable-contract-check`、
-   `reusable-integration-mock`、`reusable-security`、`reusable-release`），
-   只有 `org-health.yml` 是实际执行的。
+4. `jcheng-interfaces` 已在 `main` 引用
+   `reusable-contract-check.yml@v1`；其余 11 个产品仓库仍各自维护
+   `.github/workflows/ci.yml`。
+5. `.github` 的 7 个复用工作流中，**3 个已实现**
+   （`reusable-contract-check`、`reusable-security`、`reusable-release`），
+   3 个仍是 M1 骨架（`reusable-python`、`reusable-ros-build`、
+   `reusable-integration-mock`）；只有 `reusable-contract-check` 已被仓库采用。
 6. 工作区已从 `/home/jerichocheng/jcheng` 移到
-   `/home/jerichocheng/01_Projects/jcheng-robotics`；旧路径的兼容符号链接
-   **当前不存在**。
+   `/home/jerichocheng/01_Projects/jcheng-robotics`；兼容符号链接
+   `~/jcheng` 已于 2026-11-27 13:48 恢复，旧路径继续可用。
 
 ## 3. 锁文件 `modules` 拓扑（设计提案）
 
@@ -181,7 +182,7 @@ modules:
 | `.github/docs/repo-taxonomy.md`（修改前第 13、15、26–29 行） | teleop 写 v0.1.0“仅准入”，applications 写“只读传输” | teleop v0.3.0 离线核心；applications 受监督 mock 网关意图 | 本对齐分支修正 |
 | 工作区 `AGENTS.md` §5 | 契约 v0.1.0 / 旧哈希 | v0.2.0 / `afca22…` | 待确认（运行指令，不擅自改） |
 | 工作区 `AGENTS.md` §3 | applications/teleop/learning 仍描述为“无 HTTP/WS 客户端”等旧状态 | 按各仓 `capability.yaml` 与 ACCEPTANCE 更新 | 待确认 |
-| 工作区 `AGENTS.md` §2/§12、bootstrap `README.md`、`GIT-WORKSPACE-POLICY.md`、`scripts/git_preflight.sh` | 仍以 `~/jcheng` 为根 | `/home/jerichocheng/01_Projects/jcheng-robotics`（或 `JCHENG_ROOT`） | 待确认 |
+| 工作区 `AGENTS.md` §2/§12、bootstrap `README.md`、`GIT-WORKSPACE-POLICY.md`、`scripts/git_preflight.sh` | 仍以 `~/jcheng` 为根 | 保持 `~/jcheng` 兼容符号链接；新文档使用新路径 | 已通过符号链接解决（2026-11-27） |
 
 ### 4.2 可执行常量（代码，单独 PR）
 
@@ -242,6 +243,10 @@ modules:
 总体结果仍为 **inconclusive**：M5.2 S7/S9、M6 S14/G8、mobile 运动、perception
 可重复性等前缀限制没有变化；本次新增的是契约与治理状态，不是实机能力。
 
+合并后补记（`acceptance/ecosystem-2026-11-27b.json`）：`org-ci-reuse` 与
+`workspace-path-consistency` 均为 **pass**，锁文件的 3 个模块已记录；
+总体结果仍为 **inconclusive**，硬件限制未变。
+
 ## 7. 待确认决策
 
 ### 7.1 `jcheng-perception` 的契约处置
@@ -277,6 +282,10 @@ modules:
 `9ef38a5` 跑通 `org-contract-check / contract-check`；`.github` #19 合并后，
 `v1` 标签指向 `065e390`（含修复），试点 pin 已改为 `@v1` 并转为 ready。
 `v1` 是可移动 major 别名，移动规则见 `05` §7.4。
+
+PR #15 已合并；`jcheng-interfaces` 的 `main`（`a64369e`）push run 通过
+`m1-gate`、`m2-contract` 与 `org-contract-check / contract-check`，
+组织 CI 复用门禁改为 **pass**。
 
 ### 7.3 锁文件首批 `modules` 与发布标识
 
