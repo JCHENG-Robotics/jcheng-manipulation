@@ -179,9 +179,10 @@ PiPER X 的具体取值以 `jcheng-simulation/docs/robots/piper_x/joint_map.yaml
 
 - 新标签 `v0.3.0`；重生成 `interface_manifest.json`；更新 `configs/contract.yaml`
   与 `locks/ecosystem.lock.yaml`。
-- 8 个仓库的 `capability.yaml` 当前 pin `interfaces: ">=0.2,<0.3"`：
-  applications、devices、learning、mobile、scenarios、studio、teleop，加上
-  system 的 lock。全部改为 `>=0.3,<0.4`。
+- 7 个仓库的 `capability.yaml` 当前 pin `interfaces: ">=0.2,<0.3"`：
+  applications、devices、learning、mobile、scenarios、studio、teleop；
+  加上 `jcheng-system` 的 `configs/contract.yaml` 与 `locks/ecosystem.lock.yaml`，
+  共 8 个消费边界，全部改为 `>=0.3,<0.4`。
 - `jcheng-simulation` 当前 pin `>=0.1,<0.2`，落后两个 minor；本次一并评估，
   不默认跟随。
 - 契约变更前不得合并任何依赖 v2 的运行时代码。
@@ -215,7 +216,7 @@ PiPER X 的具体取值以 `jcheng-simulation/docs/robots/piper_x/joint_map.yaml
 - `robot-profile.v2.schema.json`；`chain_id`；夹爪范围去常量。
 - v1 加载器不变；新增 v2 加载分支与一致性测试。
 - 生成 Piper X 的 v2 runtime profile（`simulation-only` 起步）。
-- 更新 8 个消费仓库边界 + system lock + manifest。
+- 更新 7 个 `capability.yaml` 边界 + `jcheng-system` 的 contract/lock + manifest。
 
 **出口**：`python3 -m pytest -q` 全绿；`jcheng-interfaces` 的 schema/manifest
 检查通过；mock 用 v2 profile 跑 S1–S12；无实机依赖。
