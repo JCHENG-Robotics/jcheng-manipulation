@@ -1,6 +1,7 @@
 # 平台转向：冻结 ArmPi Ultra，转向 PiPER X 与 AR5 双臂
 
-> 状态：**提议（待评审）**，2026-11-28。
+> 状态：**已批准**，2026-11-28。D1–D6 由负责人批准；P0–P7 顺序生效。
+> P3 的实机操作员与监督人尚未指定；任何实机动作仍需单独、逐次授权。
 > 本文是生态设计记录，定义平台迁移的边界、契约决策与阶段顺序。它不修改任何
 > 契约、代码、部署单元或证据，也不授权任何实机运动。
 > 基线：`jcheng-manipulation` `v1.0.0`（提交 `b3411e4`，2026-11-23）只读引用；
@@ -183,8 +184,8 @@ PiPER X 的具体取值以 `jcheng-simulation/docs/robots/piper_x/joint_map.yaml
   applications、devices、learning、mobile、scenarios、studio、teleop；
   加上 `jcheng-system` 的 `configs/contract.yaml` 与 `locks/ecosystem.lock.yaml`，
   共 8 个消费边界，全部改为 `>=0.3,<0.4`。
-- `jcheng-simulation` 当前 pin `>=0.1,<0.2`，落后两个 minor；本次一并评估，
-  不默认跟随。
+- `jcheng-simulation` 的版本边界仍是 `>=0.1,<0.2`，但 `contract_hash` 已是
+  `0.2.0`（`afca22a4`）；本次一并将边界校正到 `>=0.3,<0.4`。
 - 契约变更前不得合并任何依赖 v2 的运行时代码。
 
 ## 6. 阶段计划
@@ -289,6 +290,8 @@ PiPER X 的具体取值以 `jcheng-simulation/docs/robots/piper_x/joint_map.yaml
 
 ### 7.2 冻结记录必填
 
+冻结记录：[`evidence/armpi-freeze-20261128/README.md`](evidence/armpi-freeze-20261128/README.md)。
+
 - 已验证：M4 只读（1799/1799 measured，writes=0）、M5.2 单关节/夹爪/停止
   0.266 ms、M6 S13 21/21、S17 真实 MoveIt plan-only。
 - 未验证：S14 底盘、完整 G8、S7/S9 残余、teleop 硬件、M7 外部模块试点。
@@ -331,12 +334,12 @@ R31/R32/R33 是本次转向的**停止条件**：发现任一情况，立即停�
 
 ## 10. 需要确认的决策
 
-- [ ] 接受 D1：ArmPi 平台 `Frozen`，不 `Archived`，仓库不冻。
-- [ ] 接受 D2：先固定单元，移动化推迟到 P7。
-- [ ] 接受 D3：PiPER X 为生产执行臂；leader 只读，不进控制回路。
-- [ ] 接受 D4：AR5 先过身份门禁，未确认前不写后端。
-- [ ] 接受 D5：契约一次升到 `v0.3.0`，含 `chain_id` 与夹爪范围去常量。
-- [ ] 接受 D6：证据按平台重做，ArmPi `Verified` 不迁移。
+- [x] 接受 D1：ArmPi 平台 `Frozen`，不 `Archived`，仓库不冻。
+- [x] 接受 D2：先固定单元，移动化推迟到 P7。
+- [x] 接受 D3：PiPER X 为生产执行臂；leader 只读，不进控制回路。
+- [x] 接受 D4：AR5 先过身份门禁，未确认前不写后端。
+- [x] 接受 D5：契约一次升到 `v0.3.0`，含 `chain_id` 与夹爪范围去常量。
+- [x] 接受 D6：证据按平台重做，ArmPi `Verified` 不迁移。
 - [ ] 指定 P3 的实机操作员与监督人。
 
 ## 11. 变更记录

@@ -113,7 +113,8 @@ SCEN 层定义见 [16-scen-layer.md](16-scen-layer.md)：`jcheng-scenarios` v0.1
 是离线声明式场景库，位于运行时依赖图之外。
 平台转向见 [17-platform-pivot.md](17-platform-pivot.md)：ArmPi Ultra 平台转入
 `Frozen`，PiPER X 作为生产执行臂先行，AR5 双臂在身份门禁后接入；契约升到
-`v0.3.0`。该文为提议，未改变任何契约或部署。
+`v0.3.0`。该文与 ADR-0007 已于 2026-11-28 批准；本文档集仍未改变任何契约或
+部署，实机动作需单独授权。
 
 ## 6. 术语
 
@@ -150,3 +151,4 @@ SCEN 层定义见 [16-scen-layer.md](16-scen-layer.md)：`jcheng-scenarios` v0.1
 | 2026-11-27 | v0.2.0 对齐审计：7/8 消费仓库已采用；perception 未迁移；锁文件 `modules` 拓扑与 2026-11-27 验收快照就绪 |
 | 2026-11-27 | SCEN 层准入：`jcheng-scenarios` v0.1.0 离线声明式场景库；8 份仓库内 Schema、校验 CLI 与 `ore_sorting` 参考场景；不加入 DDS、不访问设备、不执行任务；消费方均为 Not started |
 | 2026-11-28 | 平台转向提议：ArmPi Ultra 平台 `Frozen`，PiPER X 生产执行臂先行，AR5 双臂身份门禁后接入；契约 `v0.3.0`（robot-profile v2、`chain_id`、夹爪范围去常量）；未改变任何契约、代码或部署 |
+| 2026-11-28 | 平台转向批准：D1–D6 与 ADR-0007 接受；P0–P7 顺序生效；P3 操作员/监督人待指定；实机动作仍需单独授权 |
