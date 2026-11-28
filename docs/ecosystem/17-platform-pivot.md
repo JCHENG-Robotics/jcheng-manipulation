@@ -67,14 +67,14 @@
 | # | 位置 | 卡点 | 迁移动作 |
 |---|---|---|---|
 | A | `jcheng-interfaces/schemas/robot-profile.v1.schema.json` | 每关节必须 `servo_id`；夹爪必须 `measured_*_pulses`；`profiles.base` 必填；单 robot/单 workspace/单 tip | 新增 v2，v1 保持可加载 |
-| A | `jcheng-interfaces/schemas/messages.v1.schema.json` | `GripperCommand.position_rad` 上限写死 `2.22`；`MotionCommand` 无 `chain_id`；`ControlLease.scope` 单值 | 范围来自 profile；加链地址 |
+| A | `jcheng-interfaces/schemas/messages.v1.schema.json` | `GripperCommand.position_rad` 把夹爪语义写成舵机弧度（`2.22` 只是这个假设的产物）；`MotionCommand` 无 `chain_id`；`ControlLease.scope` 单值 | 夹爪单位/字段随 v0.3.0 处理；加链地址 |
 | B | `jcheng-system/ros2_ws/src/jcheng_vendor/jcheng_vendor/executor.py:41` | `HardwareBridge` 是脉冲端口（`send_step→pulse`、`read_bus→pulses`、`tolerance_pulses`） | 新 joint-space 端口 |
 | B | `jcheng-system/ros2_ws/src/jcheng_vendor/jcheng_vendor/bridge.py:28` | 直接 import `GetBusServoState` / `/servo_controller`，Hiwonder 专用 | 新 PiPER / AR5 backend |
 | B | `jcheng-system/ros2_ws/src/jcheng_hardware/jcheng_hardware/readonly.py` | 0..1000 pulse、必须恰好一个夹爪、`read_order` 覆盖全部舵机 | 新 mapping kind |
 | C | `jcheng-system/ros2_ws/src/jcheng_system_core/jcheng_system_core/safety.py:512` | `frame_id != "base_link"` 直接拒绝 | 参数化到 profile |
 | C | `jcheng-system/ros2_ws/src/jcheng_system_core/jcheng_system_core/safety.py:522` | base pulse 固定 4 通道 | 与 D2 一并出局 |
 | C | `jcheng-system/ros2_ws/src/jcheng_moveit/jcheng_moveit/plan_only.py:13` | `group="arm"`、`frame="base_link"`、`tip="end_effector_link"` 写死 | 每链参数化 |
-| D | `jcheng-applications/src/jcheng_applications/model.py:464` | 夹爪 `[0.0, 2.22]` rad | profile 驱动 |
+| D | `jcheng-applications/src/jcheng_applications/model.py:464` | 夹爪按 `[0.0, 2.22]` rad 校验；0.1 m 数值上能过，但单位与语义不对 | profile 的 `unit/lower/upper` 驱动 |
 | D | `jcheng-perception/config/wrist_tf.yaml` | `bus_servo/get_state`、numeric servo IDs、`link4` 手眼 | CAN joint source + 新手眼 |
 | D | `jcheng-perception/config/cameras.yaml` | 要求 external 与 wrist 两种 role 同时存在；融合路径假设单腕 | 双腕需融合侧扩展 |
 | D | `jcheng-ops/robot/armpi-ops-health` | 8765/8766、`/dev/rrc`、ArmPi unit 名与 host | 新固定单元部署 profile |
@@ -86,7 +86,7 @@
 生态的脊柱——单一运动权威、租约、deadman、停止锁存、guard、证据、HTTP/WS
 网关、契约版本机制——与臂型号无关。迁移成本集中在三层：
 
-1. **契约形状**（robot-profile v1、夹爪上限、无链地址）；
+1. **契约形状**（robot-profile v1、夹爪语义、无链地址）；
 2. **执行器端口**（脉冲语义、单臂、Hiwonder 专用 bridge）；
 3. **部署与标定**（wrist TF、相机 role、ops 探针、默认路径）。
 
@@ -164,9 +164,10 @@ PiPER X 的具体取值以 `jcheng-simulation/docs/robots/piper_x/joint_map.yaml
 
 ### 5.3 夹爪
 
-- `GripperCommand.position_rad` 的 `2.22` 上限从 JSON Schema 移除，改为
-  profile 的 `gripper.lower/upper` 校验。v1 消费方仍按 profile 得到 2.22，
-  行为不变。
+- 把 `2.22` 常量从 JSON Schema 移除，改为 profile 的 `gripper.unit/lower/upper`
+  校验。`0.1 m` 这类值本来就能通过旧上限，问题在单位与字段名，不在边界。
+  `position_rad` 的字段名在 v0.3.0 的 message 变更中单独处理；v1 消费方按
+  profile 得到 2.22，行为不变。
 - PiPER 夹爪登记为独立 end-effector profile（暂定 `agilex.agx-gripper`），
   行程 0–0.1 m，mimic 关节不入契约。
 - `jcheng-applications` 的 `[0.0, 2.22]` 常量删除，改由 profile 读取。
