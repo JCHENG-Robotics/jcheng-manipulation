@@ -8,6 +8,7 @@
 | [0004](0004-fresh-history-frozen-baseline.md) | 新仓库全新历史，基线只读 | 提议 |
 | [0005](0005-lockfile-over-submodules.md) | 锁文件 + 契约哈希，不用 submodule | 提议 |
 | [0006](0006-moveit-plan-only.md) | MoveIt 只规划，执行归仲裁器 | 提议 |
+| [0007](0007-fixed-cell-piper-first.md) | 固定单元优先，PiPER X 生产臂，leader 只读 | 已接受（2026-11-28） |
 
 状态说明：`提议` -> `已接受` -> `已取代` / `已废弃`。
 批准后由系统负责人更新状态并记录日期。
